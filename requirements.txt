@@ -1,0 +1,9 @@
+pandas
+numpy
+matplotlib
+reportlab
+python-docx
+streamlit
+altair
+streamlit-aggrid
+openpyxl
