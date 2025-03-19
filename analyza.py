@@ -92,9 +92,6 @@ variable_legends = {
 
 def generate_graph(nazev, hodnoty_proband, hodnoty_avg, popisky, graph_type="bar", 
                    label_current="Aktuální měření", label_reference="Historické měření"):
-    """
-    Vytvoří graf dle zadaných parametrů a vrátí ho jako BytesIO objekt.
-    """
     logger.info(f"Generuji graf: {nazev}, typ: {graph_type}")
     fig, ax = plt.subplots(figsize=(10, 6))
     if graph_type == "bar":
@@ -135,7 +132,6 @@ def generate_graph(nazev, hodnoty_proband, hodnoty_avg, popisky, graph_type="bar
         return generate_graph(nazev, hodnoty_proband, hodnoty_avg, popisky, graph_type="bar",
                               label_current=label_current, label_reference=label_reference)
     
-    # Uloží graf do BytesIO objektu
     buf = BytesIO()
     plt.savefig(buf, format='png', bbox_inches="tight")
     plt.close()
@@ -220,7 +216,6 @@ def generuj_analyzu(proband_id, file_path, zaverecne_hodnoceni=None,
     doc = SimpleDocTemplate(pdf_path, pagesize=A4)
     elements = []
     
-    # Odstraněno zobrazení loga FTVS
     elements.append(Paragraph("Univerzita Karlova, Fakulta tělesné výchovy a sportu", styles["Custom-Bold"]))
     elements.append(Spacer(1, 12))
     
@@ -329,8 +324,7 @@ def generuj_analyzu(proband_id, file_path, zaverecne_hodnoceni=None,
         elements.append(table2)
         elements.append(Spacer(1, 12))
     
-    # Generování grafů dle předdefinovaných skupin
-    from analyza import generate_graph, interpretuj_graf  # Import z vlastního modulu
+    from analyza import generate_graph, interpretuj_graf
     for nazev, popisky, _ in GRAPH_GROUPS:
         if selected_graphs is not None and nazev not in selected_graphs:
             continue
@@ -382,7 +376,6 @@ def generuj_analyzu(proband_id, file_path, zaverecne_hodnoceni=None,
         elements.append(Paragraph("Vyhodnocení grafu:", styles["Custom-Bold"]))
         elements.append(Paragraph(interpretation_text, styles["Custom-Regular"]))
     
-    # Individuální grafy pro vybrané proměnné
     if selected_graph_vars is not None:
         for var in selected_graph_vars:
             if comparison_data is None:
@@ -426,11 +419,9 @@ def generuj_analyzu(proband_id, file_path, zaverecne_hodnoceni=None,
 
 def generuj_word_report(proband_id, file_path, zaverecne_hodnoceni=None,
                         selected_columns=None, selected_graphs=None,
+                        selected_graph_type="bar",  # parametr přidaný
                         advanced_stats=False, group_label=None, data_df=None, comparison_data=None,
                         selected_graph_vars=None):
-    """
-    Generuje Word report se stejným obsahem jako PDF report.
-    """
     if data_df is not None:
         df = data_df.copy()
     else:
@@ -443,7 +434,6 @@ def generuj_word_report(proband_id, file_path, zaverecne_hodnoceni=None,
     proband_data = df[df["Identifikace"] == proband_id].iloc[0]
     
     document = Document()
-    # Odstraněno vložení loga FTVS
     document.add_heading("Univerzita Karlova, Fakulta tělesné výchovy a sportu", level=1)
     document.add_heading(f"Analýza probanda {proband_id}", level=2)
     document.add_paragraph(f"Věk: {proband_data['Vek']} let")
@@ -509,7 +499,6 @@ def generuj_word_report(proband_id, file_path, zaverecne_hodnoceni=None,
             for j, cell in enumerate(row):
                 adv_table.cell(i, j).text = str(cell)
     
-    # Generování grafů dle předdefinovaných skupin
     if selected_graphs is not None:
         for nazev, popisky, _ in GRAPH_GROUPS:
             if nazev not in selected_graphs:
