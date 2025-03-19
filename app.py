@@ -55,6 +55,11 @@ if theme_choice == "Tmavý":
     [data-testid="stSidebar"] {
         background-color: #37393F !important;
     }
+    /* Styl pro textová pole: přidání červeného rámečku */
+    [data-testid="stTextArea"] textarea {
+        border: 2px solid red !important;
+        border-radius: 4px;
+    }
     </style>
     """, unsafe_allow_html=True)
 else:
@@ -133,9 +138,8 @@ if 'df' in locals():
                          "Vnitřní/Vnější rotace (210°/s)", "Vnitřní/Vnější rotace (300°/s)"]
         selected_graphs = st.multiselect("Vyberte skupiny grafů", graph_options, default=graph_options)
         graph_type_options = ["Bar Chart", "Line Chart", "Scatter Plot"]
-        selected_graph_type = st.selectbox("Vyberte typ grafu", graph_type_options, index=0, help="Zvolte způsob vykreslení grafů v reportu.")
-        graph_type_mapping = {"Bar Chart": "bar", "Line Chart": "line", "Scatter Plot": "scatter"}
-        selected_graph_type_param = graph_type_mapping[selected_graph_type]
+        selected_graph = st.selectbox("Vyberte typ grafu", graph_type_options, index=0, help="Zvolte způsob vykreslení grafů v reportu.")
+        selected_graph_type_param = {"Bar Chart": "bar", "Line Chart": "line", "Scatter Plot": "scatter"}[selected_graph]
         numeric_vars = [col for col in df.columns if pd.api.types.is_numeric_dtype(df[col])]
         selected_graph_vars = st.multiselect("Vyberte proměnné pro individuální grafy", numeric_vars, default=numeric_vars)
         
@@ -262,7 +266,7 @@ if 'df' in locals():
                 else:
                     st.error("Historická databáze neexistuje.")
                     data_source = None
-            advanced_stats_group = st.checkbox("Zobrazit rozšířené statistiky", value=False, key="advanced_stats_group")
+            advanced_stats_group = st.checkbox("Zobrazit rozšířené statistiky ve vygenerovaném hodonocení (Medián, Nejpeší a nejhorší výkon, Konfidenční intervaly)", value=False, key="advanced_stats_group")
             zaverecne_hodnoceni_group = st.text_area("Zadejte závěrečné doporučení (skupina)", height=200)
             if st.button("Generovat report (skupina)", key="gen_report_group"):
                 if report_format == "PDF":
@@ -290,6 +294,7 @@ if 'df' in locals():
                         zaverecne_hodnoceni_group,
                         selected_columns,
                         selected_graphs,
+                        selected_graph_type=selected_graph_type_param,
                         advanced_stats=advanced_stats_group,
                         group_label=group_label,
                         data_df=data_source,
@@ -298,10 +303,15 @@ if 'df' in locals():
                     )
                     st.download_button("Stáhnout Word report", open(report_path, "rb"), file_name=f"analyza_{proband_id}_skupina.docx", mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
                     st.info("Word report byl vygenerován. Otevřete jej ve Wordu a upravte dle potřeby.")
-            if st.button("Vygenerovat podklady pro GPT (skupina)", key="gen_gpt_group"):
+            
+            if st.button("Vygenerovat podklady pro model AI (skupina)", key="gen_gpt_group"):
                 podklad_text_group = priprav_podklad(proband_id, file_path, selected_columns, data_df=data_source)
                 st.download_button("Stáhnout podklad – skupina", podklad_text_group, file_name=f"podklad_pro_{proband_id}_skupina.txt", mime="text/plain")
-                
+            st.markdown(
+                '<a href="https://chatgpt.com/g/g-67c33271c8a081919ae40ad68ee41f49-ftvs-data-science-tenis" target="_blank" style="display: inline-block; background-color: #4CAF50; color: white; padding: 8px 16px; text-align: center; text-decoration: none; border-radius: 4px;">Otevřít model AI</a>',
+                unsafe_allow_html=True
+            )
+        
         with report_subtabs[1]:
             st.subheader("Porovnání probanda s předchozím měřením")
             HIST_FILE = os.path.join(HISTORICAL_FOLDER, "historical_data.xlsx")
@@ -321,7 +331,7 @@ if 'df' in locals():
                 st.error("Historická databáze neexistuje.")
                 comparison_row = None
             
-            advanced_stats_time = st.checkbox("Zobrazit rozšířené statistiky", value=False, key="advanced_stats_time")
+            advanced_stats_time = st.checkbox("Zobrazit rozšířené statistiky, měřené skupiny probandů, ve vygenerovaném hodonocení (Medián, Nejpeší a nejhorší výkon, Konfidenční intervaly)", value=False, key="advanced_stats_time")
             zaverecne_hodnoceni_time = st.text_area("Zadejte závěrečné doporučení (časové srovnání)", height=200)
             if comparison_row is not None:
                 if st.button("Generovat report (čas)", key="gen_report_time"):
@@ -349,6 +359,7 @@ if 'df' in locals():
                             zaverecne_hodnoceni_time,
                             selected_columns,
                             selected_graphs,
+                            selected_graph_type=selected_graph_type_param,
                             advanced_stats=advanced_stats_time,
                             data_df=df,
                             comparison_data=comparison_row,
@@ -356,10 +367,14 @@ if 'df' in locals():
                         )
                         st.download_button("Stáhnout Word report", open(report_path, "rb"), file_name=f"analyza_{proband_id}_cas.docx", mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
                         st.info("Word report byl vygenerován. Otevřete jej ve Wordu a upravte dle potřeby.")
-                if st.button("Vygenerovat podklady pro GPT (čas)", key="gen_gpt_time"):
+                if st.button("Vygenerovat podklady pro model AI (čas)", key="gen_gpt_time"):
                     podklad_text_time = priprav_podklad(proband_id, file_path, selected_columns, data_df=df, comparison_data=comparison_row)
                     podklad_text_time += "\n\nPorovnání v čase: Toto podklad obsahuje hodnoty aktuálního měření a z vybraného historického měření, což umožňuje sledování změn v čase."
                     st.download_button("Stáhnout podklad – čas", podklad_text_time, file_name=f"podklad_pro_{proband_id}_cas.txt", mime="text/plain")
+                st.markdown(
+                    '<a href="https://chatgpt.com/g/g-67c33271c8a081919ae40ad68ee41f49-ftvs-data-science-tenis" target="_blank" style="display: inline-block; background-color: #4CAF50; color: white; padding: 8px 16px; text-align: center; text-decoration: none; border-radius: 4px;">Otevřít model AI</a>',
+                    unsafe_allow_html=True
+                )
             else:
                 st.info("Pro porovnání v čase není dostupné žádné historické měření.")
     
