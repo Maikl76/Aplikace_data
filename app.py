@@ -388,10 +388,20 @@ with tab_reports:
                     st.download_button("Stáhnout Word report", open(report_path, "rb"), file_name=f"analyza_{proband_id}_skupina.docx", mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document", key="download_word_group")
                     st.info("Word report byl vygenerován. Otevřete jej ve Wordu a upravte dle potřeby.")
             
-            if st.button("Vygenerovat podklady pro model AI (skupina)", key="gen_gpt_group"):
-                podklad_text_group = priprav_podklad(proband_id, file_path, selected_columns, data_df=data_source)
-                st.download_button("Stáhnout podklad – skupina", podklad_text_group, file_name=f"podklad_pro_{proband_id}_skupina.txt", mime="text/plain", key="download_podklad_group")
-            st.markdown(
+if st.button("Vygenerovat podklady pro model AI (skupina)", key="gen_gpt_group"):
+    st.session_state["podklad_text_group"] = priprav_podklad(
+        proband_id, file_path, selected_columns, data_df=data_source
+    )
+
+if st.session_state.get("podklad_text_group"):
+    _txt = st.session_state["podklad_text_group"]
+    st.download_button(
+        "Stáhnout podklad – skupina",
+        data=_txt.encode("utf-8"),
+        file_name=f"{proband_id}_skupina.txt",
+        mime="text/plain; charset=utf-8",
+        key="download_podklad_group"
+    )st.markdown(
                 '<a href="https://chatgpt.com/g/g-67c33271c8a081919ae40ad68ee41f49-ftvs-data-science-tenis" target="_blank" style="display: inline-block; background-color: #4CAF50; color: white; padding: 8px 16px; text-align: center; text-decoration: none; border-radius: 4px;">Otevřít model AI</a>',
                 unsafe_allow_html=True
             )
@@ -512,7 +522,7 @@ with tab_genetics:
                 prompt += "- Navrhni praktická doporučení pro trénink, prevenci zranění, regeneraci a životosprávu.\n"
                 
                 st.text_area("Vygenerovaný prompt pro Custom GPT model", value=prompt, height=300, key="gen_prompt_area")
-                st.download_button("Stáhnout prompt", prompt, file_name=f"prompt_{proband_gen}.txt", mime="text/plain", key="gen_prompt_download")
+                st.download_button("Stáhnout prompt", (prompt.encode("utf-8")), file_name=f"prompt_{proband_gen}.txt", mime="text/plain", key="gen_prompt_download")
             # Vždy zobrazíme tlačítko pro otevření modelu AI
             custom_button_html = """
             <style>
