@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-xl font-semibold mb-4">Sportovci</h1>
+
+<input type="search" name="q" value="{{ q }}" placeholder="Hledat podle kódu…"
+       class="mb-4 w-full md:w-80 rounded border border-slate-300 px-3 py-2"
+       hx-get="{% url 'subject_list' %}"
+       hx-trigger="input changed delay:300ms, search"
+       hx-target="#vysledky">
+
+<table class="w-full bg-white rounded-lg border border-slate-200 text-sm">
+  <thead class="text-left text-slate-500 border-b border-slate-200">
+    <tr>
+      <th class="p-2">Kód</th><th class="p-2">Sport</th><th class="p-2">Tým</th>
+      <th class="p-2">Pohlaví</th><th class="p-2">Věk</th><th class="p-2">Úroveň</th>
+    </tr>
+  </thead>
+  <tbody id="vysledky">{% include "subjects/_subject_rows.html" %}</tbody>
+</table>
+{% endblock %}

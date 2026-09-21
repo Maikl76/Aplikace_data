@@ -1,0 +1,1 @@
+web: streamlit run legacy/app.py --server.enableCORS false

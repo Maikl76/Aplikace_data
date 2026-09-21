@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex items-baseline gap-3 mb-4">
+  <h1 class="text-xl font-semibold">{{ display_name }}</h1>
+  <span class="text-sm text-slate-500">
+    {{ subject.sport|default:"—" }} · {{ subject.get_level_display }}
+    {% if subject.age %} · {{ subject.age }} let{% endif %}
+  </span>
+</div>
+
+{% with restriction=subject.external_exams.first %}
+  {% if restriction and restriction.restriction_is_active %}
+    <div class="mb-4 p-3 rounded bg-amber-50 border border-amber-300 text-sm">
+      <strong>Platné omezení zátěže</strong> ({{ restriction.get_load_restriction_display }})
+      z {{ restriction.date|date:"d.m.Y" }}, {{ restriction.provider }}.
+      Doporučení vyžadující zátěž se negenerují.
+    </div>
+  {% endif %}
+{% endwith %}
+
+<div class="grid md:grid-cols-2 gap-6">
+  <section>
+    <h2 class="font-semibold mb-2">Testovací dny</h2>
+    <ul class="bg-white rounded-lg border border-slate-200 divide-y divide-slate-100 text-sm">
+      {% for s in sessions %}
+        <li class="p-3">
+          <div class="font-medium">{{ s.date|date:"d.m.Y" }}</div>
+          <div class="text-slate-500">
+            {% for run in s.protocol_runs.all %}{{ run.protocol.name }}{% if not forloop.last %}, {% endif %}{% empty %}bez protokolu{% endfor %}
+          </div>
+        </li>
+      {% empty %}
+        <li class="p-3 text-slate-500">Zatím žádná měření.</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section>
+    <h2 class="font-semibold mb-2">Zprávy</h2>
+    <ul class="bg-white rounded-lg border border-slate-200 divide-y divide-slate-100 text-sm">
+      {% for r in reports %}
+        <li class="p-3">
+          {{ r.report_number }} — {{ r.get_status_display }}
+          <span class="text-slate-500">({{ r.created_at|date:"d.m.Y" }})</span>
+        </li>
+      {% empty %}
+        <li class="p-3 text-slate-500">Zatím žádné zprávy.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}

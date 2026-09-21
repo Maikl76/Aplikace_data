@@ -1,0 +1,5 @@
+# Nahraďte skutečnou doménou. Caddy si certifikát vyřídí a obnovuje sám.
+testovani.ftvs.example.cz {
+    encode gzip
+    reverse_proxy web:8000
+}

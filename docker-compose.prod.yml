@@ -1,0 +1,54 @@
+# Produkce na fakultním serveru.
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Rozdíly proti vývoji: gunicorn místo runserver, žádné namountované
+# zdrojáky, produkční nastavení, reverse proxy s certifikátem.
+
+services:
+  web:
+    build:
+      context: .
+      args:
+        REQUIREMENTS: requirements/base.txt
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+    volumes: []
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.prod
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      args:
+        REQUIREMENTS: requirements/base.txt
+    volumes: []
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.prod
+    restart: unless-stopped
+
+  db:
+    restart: unless-stopped
+    ports: []          # databáze ven nikdy nevystrkuje port
+
+  redis:
+    restart: unless-stopped
+
+  # Caddy si vyřídí certifikát sám. Pokud fakultní IT provozuje vlastní
+  # reverse proxy, tuhle službu vynechte a nasměrujte ji na web:8000.
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+    depends_on:
+      - web
+    restart: unless-stopped
+
+volumes:
+  caddydata:

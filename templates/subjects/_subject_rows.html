@@ -1,0 +1,13 @@
+{% for s in subjects %}
+  <tr class="border-b border-slate-100">
+    <td class="p-2"><a class="text-blue-700 hover:underline"
+                       href="{% url 'subject_detail' s.pk %}">{{ s.code }}</a></td>
+    <td class="p-2">{{ s.sport|default:"—" }}</td>
+    <td class="p-2">{{ s.team|default:"—" }}</td>
+    <td class="p-2">{{ s.get_sex_display }}</td>
+    <td class="p-2">{{ s.age|default:"—" }}</td>
+    <td class="p-2">{{ s.get_level_display }}</td>
+  </tr>
+{% empty %}
+  <tr><td colspan="6" class="p-4 text-slate-500">Nic nenalezeno.</td></tr>
+{% endfor %}

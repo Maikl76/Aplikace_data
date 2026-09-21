@@ -1,0 +1,27 @@
+# konfigurace s tajemstvími
+.env
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Django
+/media/
+/staticfiles/
+db.sqlite3
+
+# nástroje
+.idea/
+.vscode/
+.DS_Store
+
+# data – reálná data sportovců nikdy nepatří do repozitáře
+/data/
+*.xlsx
+!legacy/**/*.xlsx

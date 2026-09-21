@@ -1,0 +1,7 @@
+-r base.txt
+
+pytest>=8.2
+pytest-django>=4.8
+ruff>=0.5                       # linter + formátovač
+django-debug-toolbar>=4.4
+Faker>=25.0                     # syntetická data pro seed_demo
