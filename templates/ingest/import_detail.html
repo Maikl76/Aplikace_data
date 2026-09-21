@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-xl font-semibold mb-1">Kontrola před uložením</h1>
+<p class="text-sm text-slate-500 mb-4">{{ batch.raw_file.original_name }}</p>
+
+<div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
+  {% for popisek, hodnota in summary.items %}
+    {% if popisek not in skryte_klice %}
+      <div class="bg-white p-3 rounded-lg border border-slate-200">
+        <div class="text-lg font-semibold">{{ hodnota|default:"—" }}</div>
+        <div class="text-xs text-slate-500">{{ popisek }}</div>
+      </div>
+    {% endif %}
+  {% endfor %}
+</div>
+
+{% if summary.nezmapovane_sloupce %}
+  <div class="mb-6 p-3 rounded bg-amber-50 border border-amber-300 text-sm">
+    <strong>Nezmapované sloupce:</strong> {{ summary.nezmapovane_sloupce|join:", " }}.
+    Tyto sloupce se neimportují. Pokud je chcete, doplňte je do mapování
+    v <code>apps/catalog/seed_data.py</code>.
+  </div>
+{% endif %}
+
+{% if summary.nezname_metriky %}
+  <div class="mb-6 p-3 rounded bg-amber-50 border border-amber-300 text-sm">
+    <strong>Neznámé sloupce:</strong> {{ summary.nezname_metriky|join:", " }}.
+    Tyto hodnoty se neuloží. Doplňte metriku do katalogu nebo sloupec do mapování.
+  </div>
+{% endif %}
+
+{% if problems %}
+  <h2 class="font-semibold mb-2">Vyžaduje pozornost ({{ problems|length }})</h2>
+  <table class="w-full bg-white rounded-lg border border-slate-200 text-sm mb-6">
+    <thead class="text-left text-slate-500 border-b border-slate-200">
+      <tr>
+        <th class="p-2">Řádek</th><th class="p-2">Sportovec</th><th class="p-2">Metrika</th>
+        <th class="p-2">Hodnota</th><th class="p-2">Příznak</th><th class="p-2">Poznámka</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in problems %}
+        <tr class="border-b border-slate-100">
+          <td class="p-2">{{ r.row_number }}</td>
+          <td class="p-2">{{ r.subject_hint }}</td>
+          <td class="p-2">{{ r.metric_code }}</td>
+          <td class="p-2">{{ r.value|floatformat:2 }}</td>
+          <td class="p-2">{{ r.get_flag_display }}</td>
+          <td class="p-2 text-slate-500">{{ r.message }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+
+<h2 class="font-semibold mb-2">Ukázka načtených hodnot</h2>
+<table class="w-full bg-white rounded-lg border border-slate-200 text-sm mb-6">
+  <thead class="text-left text-slate-500 border-b border-slate-200">
+    <tr>
+      <th class="p-2">Sportovec</th><th class="p-2">Datum</th><th class="p-2">Protokol</th>
+      <th class="p-2">Metrika</th><th class="p-2">Strana</th><th class="p-2">Režim</th>
+      <th class="p-2">Rychlost</th><th class="p-2">Segment</th><th class="p-2">Hodnota</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in sample %}
+      <tr class="border-b border-slate-100">
+        <td class="p-2">{{ r.subject_hint }}</td>
+        <td class="p-2">{{ r.session_date|date:"d.m.Y"|default:"—" }}</td>
+        <td class="p-2">{{ r.protocol.name|default:r.protocol_code }}</td>
+        <td class="p-2">{{ r.metric.name|default:r.metric_code }}</td>
+        <td class="p-2">{{ r.side|default:"—" }}</td>
+        <td class="p-2">{{ r.mode|default:"—" }}</td>
+        <td class="p-2">{{ r.speed|floatformat:0|default:"—" }}</td>
+        <td class="p-2">{{ r.segment|default:"—" }}</td>
+        <td class="p-2">{{ r.value|floatformat:2 }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<form method="post" action="{% url 'import_commit' batch.pk %}"
+      class="bg-white p-4 rounded-lg border border-slate-200">
+  {% csrf_token %}
+  <div class="flex flex-wrap gap-4 items-end">
+    <label class="block">
+      <span class="text-sm text-slate-600">Datum pro řádky bez data</span>
+      <input type="date" name="default_date" value="{{ dnes|date:'Y-m-d' }}"
+             class="mt-1 block border border-slate-300 rounded px-3 py-2">
+    </label>
+    <label class="flex items-center gap-2 text-sm pb-2">
+      <input type="checkbox" name="skip_out_of_range">
+      Neukládat hodnoty mimo věrohodný rozsah
+    </label>
+    <button type="submit" class="bg-slate-900 text-white rounded px-4 py-2">
+      Uložit do databáze
+    </button>
+    <button type="submit" formaction="{% url 'import_cancel' batch.pk %}"
+            class="border border-slate-300 rounded px-4 py-2">Zrušit</button>
+  </div>
+  <p class="text-xs text-slate-500 mt-3">
+    Hodnoty mimo rozsah se ve výchozím stavu uloží označené – chyba přístroje
+    je taky informace. Jména ze souboru se neukládají: sportovci dostanou
+    pseudonymní kód a hash pro spárování při dalším importu.
+  </p>
+</form>
+{% endblock %}

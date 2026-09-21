@@ -22,6 +22,7 @@
       <nav class="flex gap-4 text-sm">
         <a href="{% url 'dashboard' %}" class="hover:underline">Přehled</a>
         <a href="{% url 'subject_list' %}" class="hover:underline">Sportovci</a>
+        <a href="{% url 'import_list' %}" class="hover:underline">Import</a>
         <a href="/admin/" class="hover:underline">Katalog</a>
       </nav>
       <span class="ml-auto text-sm text-slate-500">
@@ -33,6 +34,14 @@
 </header>
 
 <main class="max-w-7xl mx-auto px-4 py-6">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="mb-4 p-3 rounded border text-sm
+                  {% if message.tags == 'error' %}bg-red-50 border-red-300
+                  {% elif message.tags == 'success' %}bg-green-50 border-green-300
+                  {% else %}bg-blue-50 border-blue-300{% endif %}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
   {% block content %}{% endblock %}
 </main>
 </body>

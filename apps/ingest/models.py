@@ -26,8 +26,10 @@ class ImportBatch(OrgScopedModel):
     raw_file = models.ForeignKey("measurements.RawFile", verbose_name="zdrojový soubor",
                                  on_delete=models.PROTECT, related_name="import_batches")
     adapter = models.CharField("adaptér", max_length=64)
-    protocol = models.ForeignKey("catalog.Protocol", verbose_name="protokol",
-                                 on_delete=models.PROTECT, related_name="import_batches")
+    protocol = models.ForeignKey("catalog.Protocol", verbose_name="výchozí protokol",
+                                 on_delete=models.PROTECT, related_name="import_batches",
+                                 null=True, blank=True,
+                                 help_text="Použije se u řádků, které protokol neurčují samy.")
     status = models.CharField("stav", max_length=12, choices=Status.choices,
                               default=Status.UPLOADED)
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="nahrál",
@@ -43,6 +45,14 @@ class ImportBatch(OrgScopedModel):
     def __str__(self):
         return f"{self.raw_file.original_name} ({self.get_status_display()})"
 
+    def purge_staging(self):
+        """
+        Po uložení se staging maže. Obsahuje ``subject_hint`` – identifikaci
+        tak, jak stála ve zdrojovém souboru, tedy u starých Excelů jméno.
+        V provozních tabulkách už žádné jméno není, tak ať nezůstává ani tady.
+        """
+        self.staged.all().delete()
+
 
 class StagedMeasurement(models.Model):
     """Rozparsovaná hodnota čekající na potvrzení."""
@@ -57,9 +67,17 @@ class StagedMeasurement(models.Model):
     batch = models.ForeignKey(ImportBatch, verbose_name="import", on_delete=models.CASCADE,
                               related_name="staged")
     row_number = models.PositiveIntegerField("řádek zdroje", default=0)
-    subject_hint = models.CharField("identifikace ze souboru", max_length=200, blank=True)
+    subject_hint = models.CharField("identifikace ze souboru", max_length=200, blank=True,
+                                    help_text="Jen pro náhled. Po uložení se maže.")
+    subject_key = models.CharField("klíč sportovce", max_length=64, blank=True, db_index=True,
+                                   help_text="Hash identifikace ze zdroje – páruje opakované "
+                                             "importy téže osoby bez ukládání jména.")
     subject = models.ForeignKey("subjects.Subject", verbose_name="sportovec",
                                 on_delete=models.SET_NULL, null=True, blank=True)
+    protocol_code = models.CharField("kód protokolu", max_length=64, blank=True)
+    protocol = models.ForeignKey("catalog.Protocol", verbose_name="protokol",
+                                 on_delete=models.SET_NULL, null=True, blank=True)
+    session_date = models.DateField("datum měření", null=True, blank=True)
     metric_code = models.CharField("kód metriky", max_length=64, blank=True)
     metric = models.ForeignKey("catalog.MetricDef", verbose_name="metrika",
                                on_delete=models.SET_NULL, null=True, blank=True)

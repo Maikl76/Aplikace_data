@@ -8,4 +8,5 @@ urlpatterns = [
     path("ucet/odhlaseni/", auth_views.LogoutView.as_view(), name="logout"),
     path("", include("apps.core.urls")),
     path("sportovci/", include("apps.subjects.urls")),
+    path("import/", include("apps.ingest.urls")),
 ]

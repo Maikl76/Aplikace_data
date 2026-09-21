@@ -73,6 +73,10 @@ class Subject(OrgScopedModel):
                              default=Level.TRAINED)
     dominant_side = models.CharField("dominantní strana", max_length=1,
                                      choices=[("L", "Levá"), ("R", "Pravá")], blank=True)
+    source_key = models.CharField("klíč zdroje", max_length=64, blank=True, db_index=True,
+                                  help_text="Hash identifikačních údajů ze zdrojového souboru. "
+                                            "Umožňuje opakovaný import téže osoby, aniž by se "
+                                            "kamkoli ukládalo jméno.")
     is_active = models.BooleanField("aktivní", default=True)
     note = models.TextField("poznámka", blank=True,
                             help_text="Provozní poznámka. Nikdy diagnózy ani zdravotní údaje.")
