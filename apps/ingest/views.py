@@ -9,7 +9,7 @@ from apps.core.models import AuditLog
 
 from . import services
 from .adapters import registry
-from .models import ImportBatch
+from .models import ImportBatch, StagedMeasurement
 
 
 @login_required
@@ -57,15 +57,33 @@ def import_detail(request, pk):
     """Náhled před uložením: co se našlo a na co se podívat."""
     batch = get_object_or_404(ImportBatch.objects.for_user(request.user), pk=pk)
     staged = batch.staged.select_related("metric", "protocol")
+    summary = batch.summary or {}
+
+    # Nový sportovec při prvním importu není problém, je to očekávaný stav.
+    # Kdyby se míchal mezi skutečné problémy, utopil by je – u prvního
+    # importu je tak označený každý řádek.
+    problem_flags = [
+        StagedMeasurement.Flag.OUT_OF_RANGE,
+        StagedMeasurement.Flag.UNKNOWN_METRIC,
+        StagedMeasurement.Flag.DUPLICATE,
+    ]
     return render(request, "ingest/import_detail.html", {
         "batch": batch,
-        "summary": batch.summary or {},
-        "problems": staged.exclude(flag="ok")[:100],
-        "sample": staged.filter(flag="ok")[:25],
+        "summary": summary,
+        "dlazdice": [
+            ("hodnot", summary.get("hodnot")),
+            ("sportovců", summary.get("sportovcu")),
+            ("z toho nových", summary.get("novych_sportovcu")),
+            ("metrik", summary.get("metrik")),
+            ("protokolů", summary.get("protokolu")),
+            ("mimo rozsah", summary.get("mimo_rozsah")),
+        ],
+        "datum_od": summary.get("datum_od"),
+        "datum_do": summary.get("datum_do"),
+        "bez_data": summary.get("novych_hodnot_bez_data") or 0,
+        "problems": staged.filter(flag__in=problem_flags)[:100],
+        "sample": staged.exclude(flag__in=problem_flags)[:25],
         "dnes": timezone.localdate(),
-        # Klíče souhrnu, které se nezobrazují jako dlaždice.
-        "skryte_klice": ["nezname_metriky", "nezmapovane_sloupce",
-                         "subject_attrs", "vysledek"],
     })
 
 
