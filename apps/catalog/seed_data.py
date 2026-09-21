@@ -168,3 +168,81 @@ LEGACY_COLUMN_MAP = {
 # Sloupce, které nejsou měřením – popisují osobu nebo návštěvu.
 LEGACY_IDENTITY_COLUMNS = ["Jmeno", "Prijmeni", "Narozen"]
 LEGACY_META_COLUMNS = ["Identifikace", "Vek", "DatumMereni", "Pohlavi", "Sport"]
+
+
+# ---------------------------------------------------------------------------
+# PŘÍKLADY PRAVIDEL
+#
+# Pozor: prahy níže jsou ILUSTRATIVNÍ, aby bylo na čem ukázat, jak pravidla
+# fungují. NEJSOU to ověřené klinické hodnoty a nemají u sebe citace.
+#
+# Před použitím na reálných sportovcích je potřeba u každého pravidla:
+#   1. ověřit práh v literatuře nebo z vlastních dat,
+#   2. připojit citace (rules.RuleArticle),
+#   3. rozhodnout, pro který sport a populaci platí.
+#
+# Dokud se to nestane, nechte je neaktivní (is_active = False) – tak se
+# zakládají.
+# ---------------------------------------------------------------------------
+
+EXAMPLE_RULES = [
+    {
+        "code": "ir_er_pomer",
+        "name": "PŘÍKLAD: poměr IR/ER pod doporučenou hodnotou",
+        "condition": {"metric": "ir_er_ratio", "op": "<", "value": 1.0,
+                      "where": {"speed": 210}},
+        "contraindication": {"load_restriction": True},
+        "severity": "medium",
+        "finding_template": (
+            "Poměr vnitřní a vnější rotace ramene {value_txt} při {speed_txt} °/s "
+            "je pod orientační hodnotou {threshold_txt}."
+        ),
+        "recommendation_template": (
+            "Zvážit posílení zevních rotátorů ramene. Práh i postup je třeba "
+            "ověřit proti literatuře pro daný sport."
+        ),
+    },
+    {
+        "code": "asymetrie",
+        "name": "PŘÍKLAD: stranová asymetrie nad prahem",
+        "condition": {"asymmetry": "*", "op": ">", "value": 10},
+        "contraindication": {"load_restriction": True},
+        "severity": "medium",
+        "finding_template": (
+            "{metric}: rozdíl mezi stranami {index_txt} % "
+            "(levá {left_txt}, pravá {right_txt} {unit}), silnější je {silnejsi} "
+            "strana. Překračuje orientační práh {threshold_txt} %."
+        ),
+        "recommendation_template": (
+            "Zvážit jednostranné zatížení slabší strany a kontrolní měření."
+        ),
+    },
+    {
+        "code": "pokles_vysky_vyskoku",
+        "name": "PŘÍKLAD: pokles výšky výskoku nad chybu měření",
+        "condition": {"change": "cmj_height", "op": "<", "value": 0,
+                      "require_mdc": True},
+        "severity": "high",
+        "finding_template": (
+            "Výška výskoku klesla o {delta_txt} {unit} proti minulému měření "
+            "(z {predchozi} na {value_txt}). Změna přesahuje nejmenší "
+            "detekovatelnou změnu {mdc_txt} {unit}, nejde tedy o šum měření."
+        ),
+        "recommendation_template": (
+            "Prověřit tréninkové zatížení a regeneraci, zvážit kontrolní měření."
+        ),
+    },
+    {
+        "code": "vo2max_pod_normou",
+        "name": "PŘÍKLAD: VO2max pod normou",
+        "condition": {"z": "vo2max", "op": "<", "value": -1.0},
+        "severity": "low",
+        "finding_template": (
+            "VO2max {value_txt} {unit} odpovídá z-skóre {z} vůči normě "
+            "(průměr {norma} {unit}, zdroj: {citace})."
+        ),
+        "recommendation_template": (
+            "Zvážit zařazení rozvoje aerobní kapacity."
+        ),
+    },
+]

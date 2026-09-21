@@ -38,6 +38,14 @@
   <button type="submit" class="bg-slate-900 text-white rounded px-4 py-2">Přidat</button>
 </form>
 
+<form method="post" action="{% url 'report_create' session.pk %}" class="mt-6">
+  {% csrf_token %}
+  <button type="submit" class="bg-slate-900 text-white rounded px-4 py-2">
+    Vytvořit zprávu z tohoto měření
+  </button>
+  <span class="ml-2 text-sm text-slate-500">Vznikne koncept ke kontrole, nic se nevydává.</span>
+</form>
+
 <p class="mt-4 text-sm">
   <a class="text-blue-700 hover:underline"
      href="{% url 'subject_detail' session.subject.pk %}">← karta sportovce</a>

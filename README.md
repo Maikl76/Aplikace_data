@@ -153,6 +153,47 @@ Tři rozhodnutí, která stojí za vysvětlení:
 Paleta prošla kontrolou na odlišitelnost při barvosleposti a na kontrast
 vůči podkladu v obou režimech.
 
+## Doporučení a zprávy
+
+Doporučení vzniká ve třech vrstvách a v tomhle pořadí:
+
+1. **Pravidla** (`apps/rules`) — deterministická, jediné místo, kde vznikají
+   čísla. Podmínka je JSON v databázi, ne kód:
+
+   ```json
+   {"metric": "ir_er_ratio", "op": "<", "value": 1.0, "where": {"speed": 210}}
+   {"asymmetry": "*", "op": ">", "value": 10}
+   {"change": "cmj_height", "op": "<", "value": 0, "require_mdc": true}
+   {"z": "vo2max", "op": "<", "value": -1.0}
+   ```
+
+2. **Evidence** (`apps/rules/evidence.py`) — citace visí na pravidle, ne na
+   volném textu, takže je u každého tvrzení dohledatelné, odkud se vzalo.
+   Neschválený článek se do zprávy nedostane a neshoda populace se hlásí.
+
+3. **Text** (`apps/reports/narrative.py`) — výchozí implementace skládá text
+   ze šablon nálezů. Jazykový model se dá připojit na stejné rozhraní, ale
+   nesmí počítat ani přidat číslo, které nedostal; `verify_numbers()` to po
+   generování strojově kontroluje a zpráva s nepodloženým číslem se nevydá.
+
+**Kontraindikace.** Pravidlo může mít `{"load_restriction": true}` — pokud má
+sportovec platné omezení zátěže z `external.ExternalExam`, doporučení se
+nevydá. Nález se ale nezahazuje: uloží se s důvodem, aby bylo doložitelné,
+že pravidlo sedělo a proč se nic nedoporučilo.
+
+**Vydání je nevratné.** Koncept → vydání (vědomý krok) → předání. Vydanou
+zprávu nelze upravit; oprava se řeší novou verzí, která tu starou nahrazuje.
+Bez platného souhlasu (`Consent.Scope.REPORT_HANDOVER`) se zpráva nepředá.
+Ke každé se ukládá otisk vstupů a verze pravidel, takže jde zpětně
+zrekonstruovat, proč říká to, co říká.
+
+Vedle PDF vzniká **strojově čitelná příloha** (JSON) s nálezy, hodnotami
+a citacemi. Když ji přijímající systém neumí, nic se neděje; až umět bude,
+načte si hodnoty rovnou.
+
+Ukázková pravidla se zakládají **neaktivní**. Prahy v nich jsou ilustrativní
+a nemají citace — zapnout je smí až člověk, který za ně ručí.
+
 ## Stav
 
 Hotové:
@@ -162,16 +203,19 @@ Hotové:
 - import z původního Excelu: adaptér, staging s kontrolou, web i příkaz
 - zadávání měření generované z definice protokolu, uzpůsobené tabletu
 - grafy na kartě sportovce
-- Docker pro vývoj i provoz, 44 testů
+- pravidla, evidence, generování a vydávání zpráv
+- Docker pro vývoj i provoz, 71 testů
 
 Další kroky:
 
 1. **Inventář metrik** — projít reálné exporty z přístrojů, doplnit katalog
    a hlavně MDC/SWC z literatury (`seed_catalog` je schválně nechává prázdné)
-2. **Adaptéry na přístroje** — `apps/ingest/adapters/`, kostra i registr jsou
+2. **Normy a pravidla** — naplnit `catalog.Norm` a ověřit prahy v pravidlech,
+   připojit k nim literaturu; teprve pak je zapnout
+3. **Adaptéry na přístroje** — `apps/ingest/adapters/`, kostra i registr jsou
    hotové; přidat ForceDecks, Biodex/HUMAC, Cosmed
-3. **Normy** — naplnit `catalog.Norm` z literatury, ať má graf proti čemu měřit
-4. **Pravidla, evidence a generování zpráv**
+4. **Jazykový model pro text zprávy** — rozhraní i pojistka jsou připravené;
+   před připojením vyřešit, co se smí posílat ven
 
 ## Vývoj
 

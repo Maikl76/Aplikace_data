@@ -102,3 +102,42 @@ def has_side_data(subject) -> bool:
         trial__protocol_run__session__subject=subject,
         side__in=[Side.LEFT, Side.RIGHT],
     ).exists()
+
+
+def session_metric_values(session) -> dict:
+    """
+    Hodnoty jednoho testovacího dne pro vyhodnocení pravidel.
+
+    Klíč je metrika i s kvalifikátory, hodnota průměr platných pokusů –
+    pravidlo se tedy vyhodnocuje nad tím, co se ten den naměřilo, ne nad
+    jedním vybraným pokusem.
+    """
+    from apps.measurements.models import Measurement
+
+    buckets = defaultdict(list)
+    for m in (Measurement.objects
+              .filter(trial__protocol_run__session=session, trial__is_valid=True)
+              .select_related("metric")):
+        key = (m.metric.code, m.side, m.mode, m.speed, m.segment)
+        buckets[key].append((m.metric, m.value))
+
+    return {
+        key: {"metric": values[0][0],
+              "value": sum(v for _, v in values) / len(values),
+              "side": key[1], "mode": key[2], "speed": key[3], "segment": key[4]}
+        for key, values in buckets.items()
+    }
+
+
+def previous_session_values(session) -> dict:
+    """Totéž pro nejbližší předchozí testovací den, kvůli změně v čase."""
+    previous = (session.subject.sessions
+                .filter(date__lt=session.date).order_by("-date").first())
+    return session_metric_values(previous) if previous else {}
+
+
+def session_asymmetries(session, *, threshold_pct: float = 10.0) -> list[dict]:
+    rows = []
+    for run in session.protocol_runs.select_related("protocol"):
+        rows.extend(asymmetries_for_run(run, threshold_pct=threshold_pct))
+    return rows

@@ -1,0 +1,117 @@
+{% load static %}<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <title>{{ report.report_number }} — {{ report.title }}</title>
+  <style>
+    /* Samostatný styl: zpráva se tiskne a posílá, nesmí záviset na aplikaci. */
+    @page { size: A4; margin: 20mm 18mm; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+           font-size: 10.5pt; line-height: 1.5; color: #0b0b0b; }
+    h1 { font-size: 16pt; margin: 0 0 2mm; }
+    h2 { font-size: 12pt; margin: 7mm 0 2mm; }
+    .hlavicka { border-bottom: 2px solid #0b0b0b; padding-bottom: 3mm; margin-bottom: 5mm; }
+    .meta { color: #52514e; font-size: 9.5pt; }
+    table { width: 100%; border-collapse: collapse; margin: 2mm 0; }
+    th, td { text-align: left; padding: 1.5mm 2mm; border-bottom: 1px solid #e1e0d9; }
+    th { color: #52514e; font-weight: 600; font-size: 9.5pt; }
+    td.cislo { text-align: right; font-variant-numeric: tabular-nums; }
+    .nalez { margin: 0 0 2mm; padding-left: 4mm; border-left: 3px solid #c3c2b7; }
+    .nalez.high { border-left-color: #d03b3b; }
+    .nalez.medium { border-left-color: #fab219; }
+    .zavaznost { font-size: 9pt; color: #52514e; }
+    .potlaceno { background: #f0efec; padding: 3mm; margin: 2mm 0; }
+    .dolozka { margin-top: 8mm; padding: 4mm; border: 1px solid #c3c2b7;
+               font-size: 9.5pt; }
+    .citace { font-size: 9.5pt; }
+    .citace li { margin-bottom: 1.5mm; }
+    .upozorneni { color: #8a5a00; font-size: 9.5pt; }
+    footer { margin-top: 8mm; font-size: 8.5pt; color: #898781;
+             border-top: 1px solid #e1e0d9; padding-top: 2mm; }
+  </style>
+</head>
+<body>
+
+<div class="hlavicka">
+  <h1>{{ report.title }}</h1>
+  <div class="meta">
+    {{ report.report_number }}{% if report.version > 1 %}, verze {{ report.version }}{% endif %}
+    {% if report.supersedes %} — nahrazuje {{ report.supersedes.report_number }}{% endif %}
+    · Fakulta tělesné výchovy a sportu UK
+  </div>
+</div>
+
+<table>
+  <tr><th style="width:35%">Sportovec</th><td>{{ subject.code }}</td></tr>
+  <tr><th>Sport</th><td>{{ subject.sport|default:"—" }}</td></tr>
+  <tr><th>Pohlaví / věk</th>
+      <td>{{ subject.get_sex_display }}{% if subject.age %} · {{ subject.age }} let{% endif %}</td></tr>
+  {% if session %}
+    <tr><th>Datum měření</th><td>{{ session.date|date:"d.m.Y" }}</td></tr>
+    <tr><th>Protokoly</th><td>
+      {% for run in session.protocol_runs.all %}{{ run.protocol.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+    </td></tr>
+  {% endif %}
+</table>
+
+<h2>Souhrn</h2>
+<div>{{ report.summary|linebreaks }}</div>
+
+{% if report.custom_note %}
+  <h2>Komentář diagnostika</h2>
+  <div>{{ report.custom_note|linebreaks }}</div>
+{% endif %}
+
+{% if findings %}
+  <h2>Nálezy</h2>
+  {% for f in findings %}
+    <p class="nalez {{ f.severity }}">
+      {{ f.text }}
+      <span class="zavaznost">({{ f.get_severity_display|lower }}, pravidlo
+        {{ f.rule.code }} v{{ f.rule_version }})</span>
+    </p>
+  {% endfor %}
+{% endif %}
+
+{% if suppressed %}
+  <h2>Nálezy bez doporučení</h2>
+  <div class="potlaceno">
+    {% for f in suppressed %}
+      <p style="margin:0 0 2mm">{{ f.text }}<br>
+        <span class="zavaznost">Doporučení nevydáno: {{ f.suppressed_reason }}</span></p>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% if population_warnings %}
+  <h2>Omezení přenositelnosti</h2>
+  {% for w in population_warnings %}<p class="upozorneni">{{ w }}</p>{% endfor %}
+{% endif %}
+
+{% if citations %}
+  <h2>Citované zdroje</h2>
+  <ol class="citace">
+    {% for c in citations %}
+      <li>
+        {{ c.article.authors }}{% if c.article.year %} ({{ c.article.year }}){% endif %}.
+        {{ c.article.title }}.{% if c.article.journal %} <em>{{ c.article.journal }}</em>.{% endif %}
+        {% if c.article.doi %} DOI: {{ c.article.doi }}.{% endif %}
+        {% if not c.population_matches %}
+          <span class="upozorneni">— odlišná populace</span>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ol>
+{% endif %}
+
+<div class="dolozka">{{ report.disclaimer }}</div>
+
+<footer>
+  Zpracováno {{ generated_at|date:"d.m.Y H:i" }}
+  {% if report.released_by %} · vydal {{ report.released_by.get_full_name|default:report.released_by.get_username }}{% endif %}
+  {% if report.rules_version %} · sada pravidel: {{ report.rules_version }}{% endif %}
+  {% if report.input_fingerprint %}<br>Otisk vstupů: {{ report.input_fingerprint|slice:":16" }}{% endif %}
+</footer>
+
+</body>
+</html>

@@ -9,7 +9,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from apps.catalog.models import MetricDef, Protocol, ProtocolMetric
-from apps.catalog.seed_data import METRICS, PROTOCOLS
+from apps.catalog.seed_data import EXAMPLE_RULES, METRICS, PROTOCOLS
 
 
 class Command(BaseCommand):
@@ -46,8 +46,32 @@ class Command(BaseCommand):
                     },
                 )
 
+        from apps.rules.models import Rule
+
+        for spec in EXAMPLE_RULES:
+            Rule.objects.update_or_create(
+                organization=None, code=spec["code"], version=1,
+                defaults={
+                    "name": spec["name"],
+                    "condition": spec["condition"],
+                    "contraindication": spec.get("contraindication", {}),
+                    "severity": spec["severity"],
+                    "finding_template": spec["finding_template"],
+                    "recommendation_template": spec.get("recommendation_template", ""),
+                    # Příklady se zakládají NEAKTIVNÍ. Prahy v nich nejsou
+                    # ověřené a nemají citace – zapnout je smí až člověk,
+                    # který za ně ručí.
+                    "is_active": False,
+                },
+            )
+
         self.stdout.write(self.style.SUCCESS(
-            f"Katalog: {len(metrics)} metrik, {len(PROTOCOLS)} protokolů."
+            f"Katalog: {len(metrics)} metrik, {len(PROTOCOLS)} protokolů, "
+            f"{len(EXAMPLE_RULES)} ukázkových pravidel."
+        ))
+        self.stdout.write(self.style.WARNING(
+            "Pravidla jsou založená NEAKTIVNÍ. Prahy v nich jsou ilustrativní "
+            "a nemají citace – než je zapnete, ověřte je a připojte literaturu."
         ))
 
         bez_mdc = [m.code for m in metrics.values() if m.mdc is None]

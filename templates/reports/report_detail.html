@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex flex-wrap items-baseline gap-3 mb-4">
+  <h1 class="text-xl font-semibold">{{ report.report_number }}</h1>
+  <span class="text-sm px-2 py-0.5 rounded
+    {% if report.status == 'draft' %}bg-slate-200 text-slate-700
+    {% elif report.status == 'released' %}bg-green-100 text-green-800
+    {% else %}bg-amber-100 text-amber-800{% endif %}">{{ report.get_status_display }}</span>
+  <span class="text-sm text-slate-500">
+    {{ subject.code }}{% if session %} · měření {{ session.date|date:"d.m.Y" }}{% endif %}
+    {% if report.version > 1 %} · verze {{ report.version }}{% endif %}
+  </span>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-6">
+  <div class="lg:col-span-2 space-y-4">
+    <section class="bg-white p-4 rounded-lg border border-slate-200">
+      <h2 class="font-semibold mb-2">Souhrn</h2>
+      <div class="text-sm whitespace-pre-line">{{ report.summary }}</div>
+    </section>
+
+    {% if findings %}
+      <section class="bg-white p-4 rounded-lg border border-slate-200">
+        <h2 class="font-semibold mb-2">Nálezy ({{ findings|length }})</h2>
+        {% for f in findings %}
+          <div class="mb-3 pl-3 border-l-4
+            {% if f.severity == 'high' %}border-red-500
+            {% elif f.severity == 'medium' %}border-amber-400
+            {% else %}border-slate-300{% endif %}">
+            <div class="text-sm">{{ f.text }}</div>
+            <div class="text-xs text-slate-500">
+              {{ f.get_severity_display|lower }} · pravidlo {{ f.rule.code }} v{{ f.rule_version }}
+            </div>
+          </div>
+        {% endfor %}
+      </section>
+    {% endif %}
+
+    {% if suppressed %}
+      <section class="bg-slate-100 p-4 rounded-lg border border-slate-300">
+        <h2 class="font-semibold mb-2">Nálezy bez doporučení ({{ suppressed|length }})</h2>
+        {% for f in suppressed %}
+          <div class="mb-2 text-sm">
+            {{ f.text }}
+            <div class="text-xs text-slate-600">{{ f.suppressed_reason }}</div>
+          </div>
+        {% endfor %}
+      </section>
+    {% endif %}
+
+    {% if citations %}
+      <section class="bg-white p-4 rounded-lg border border-slate-200">
+        <h2 class="font-semibold mb-2">Citované zdroje ({{ citations|length }})</h2>
+        <ol class="text-sm list-decimal pl-5 space-y-1">
+          {% for c in citations %}
+            <li>
+              {{ c.article }}
+              {% if not c.population_matches %}
+                <span class="text-amber-700">— odlišná populace</span>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ol>
+      </section>
+    {% endif %}
+
+    {% if report.is_editable %}
+      <form method="post" class="bg-white p-4 rounded-lg border border-slate-200">
+        {% csrf_token %}
+        <label class="block">
+          <span class="font-semibold">Komentář diagnostika</span>
+          <textarea name="custom_note" rows="4"
+                    class="mt-2 w-full border border-slate-300 rounded px-3 py-2 text-sm"
+                    >{{ report.custom_note }}</textarea>
+        </label>
+        <button type="submit" class="mt-2 border border-slate-300 rounded px-4 py-2 text-sm">
+          Uložit komentář
+        </button>
+      </form>
+    {% elif report.custom_note %}
+      <section class="bg-white p-4 rounded-lg border border-slate-200">
+        <h2 class="font-semibold mb-2">Komentář diagnostika</h2>
+        <div class="text-sm whitespace-pre-line">{{ report.custom_note }}</div>
+      </section>
+    {% endif %}
+  </div>
+
+  <div class="space-y-4">
+    <section class="bg-white p-4 rounded-lg border border-slate-200">
+      <h2 class="font-semibold mb-2">Náhled</h2>
+      <a href="{% url 'report_preview' report.pk %}" target="_blank"
+         class="text-sm text-blue-700 hover:underline">otevřít podobu zprávy →</a>
+      {% if report.pdf %}
+        <a href="{% url 'report_pdf' report.pk %}"
+           class="block mt-1 text-sm text-blue-700 hover:underline">stáhnout PDF →</a>
+      {% endif %}
+    </section>
+
+    {% if report.is_editable %}
+      <form method="post" action="{% url 'report_release' report.pk %}"
+            class="bg-white p-4 rounded-lg border border-slate-200">
+        {% csrf_token %}
+        <h2 class="font-semibold mb-2">Vydat zprávu</h2>
+        <p class="text-sm text-slate-600 mb-3">
+          Vydání je nevratné. Vydanou zprávu už nelze upravit — oprava se řeší
+          vydáním nové verze. Zkontrolujte souhrn i komentář.
+        </p>
+        <button type="submit" class="w-full bg-slate-900 text-white rounded px-4 py-2">
+          Vydat
+        </button>
+      </form>
+    {% else %}
+      <section class="bg-white p-4 rounded-lg border border-slate-200">
+        <h2 class="font-semibold mb-2">Předání</h2>
+        {% if ma_souhlas %}
+          <form method="post" action="{% url 'report_deliver' report.pk %}" class="space-y-2">
+            {% csrf_token %}
+            <input type="text" name="recipient" required placeholder="Příjemce (např. AKESO)"
+                   class="w-full border border-slate-300 rounded px-3 py-2 text-sm">
+            <select name="channel" class="w-full border border-slate-300 rounded px-3 py-2 text-sm">
+              {% for value, label in channels %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+            </select>
+            <button type="submit" class="w-full bg-slate-900 text-white rounded px-4 py-2 text-sm">
+              Zaznamenat předání
+            </button>
+          </form>
+        {% else %}
+          <p class="text-sm text-amber-700">
+            Sportovec nemá platný souhlas s předáním zprávy poskytovateli
+            zdravotních služeb. Předání není možné.
+          </p>
+        {% endif %}
+
+        {% if report.deliveries.all %}
+          <ul class="mt-3 text-sm space-y-1">
+            {% for d in report.deliveries.all %}
+              <li class="text-slate-600">
+                {{ d.delivered_at|date:"d.m.Y H:i" }} — {{ d.recipient }}
+                ({{ d.get_channel_display|lower }})
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </section>
+
+      <form method="post" action="{% url 'report_supersede' report.pk %}"
+            class="bg-white p-4 rounded-lg border border-slate-200">
+        {% csrf_token %}
+        <h2 class="font-semibold mb-2">Oprava</h2>
+        <p class="text-sm text-slate-600 mb-3">
+          Vydanou zprávu nelze změnit. Vznikne nová verze, která tuto nahradí;
+          původní zůstává v dokumentaci příjemce.
+        </p>
+        <button type="submit" class="w-full border border-slate-300 rounded px-4 py-2 text-sm">
+          Vytvořit novou verzi
+        </button>
+      </form>
+    {% endif %}
+
+    <section class="bg-white p-4 rounded-lg border border-slate-200 text-xs text-slate-500">
+      <h2 class="font-semibold text-slate-900 text-sm mb-2">Doložitelnost</h2>
+      <div>Sada pravidel: {{ report.rules_version|default:"—" }}</div>
+      <div>Otisk vstupů: {{ report.input_fingerprint|slice:":16"|default:"—" }}</div>
+      {% if report.released_by %}<div>Vydal: {{ report.released_by }}</div>{% endif %}
+    </section>
+  </div>
+</div>
+
+<div class="mt-6 p-3 rounded bg-slate-100 border border-slate-300 text-sm">
+  {{ report.disclaimer }}
+</div>
+{% endblock %}
