@@ -1,0 +1,17 @@
+{% load charts %}
+{# Jedna figura: nadpis, slovní shrnutí, graf, zdroj normy. #}
+<figure class="bg-white rounded-lg border border-slate-200 p-4 m-0">
+  <figcaption class="mb-2">
+    <span class="font-medium text-slate-900">{{ spec.title }}</span>
+    {% if spec.subtitle %}
+      <span class="block text-sm text-slate-600">{{ spec.subtitle }}</span>
+    {% endif %}
+  </figcaption>
+  <div class="js-graf overflow-x-auto" data-target="{{ spec.element_id }}">
+    <div id="{{ spec.element_id }}"></div>
+    <script type="application/json" id="{{ spec.element_id }}-data">{{ spec.figure|figure_json }}</script>
+  </div>
+  {% if spec.note %}
+    <p class="mt-2 text-xs text-slate-500">{{ spec.note }}</p>
+  {% endif %}
+</figure>

@@ -41,10 +41,14 @@ LEGACY_ROW = {
 }
 
 
-def _legacy_excel(rows=None, name="historicka_data.xlsx") -> SimpleUploadedFile:
+def _legacy_bytes(rows=None) -> bytes:
     buffer = io.BytesIO()
     pd.DataFrame(rows or [LEGACY_ROW]).to_excel(buffer, sheet_name="data", index=False)
-    return SimpleUploadedFile(name, buffer.getvalue())
+    return buffer.getvalue()
+
+
+def _legacy_excel(rows=None, name="historicka_data.xlsx") -> SimpleUploadedFile:
+    return SimpleUploadedFile(name, _legacy_bytes(rows))
 
 
 @pytest.fixture
@@ -158,23 +162,32 @@ def test_opakovany_import_spari_tehoz_sportovce(prostredi):
 
 
 def test_ulozeny_soubor_uz_podruhe_neprojde(prostredi):
+    """
+    Kontrola je na otisk OBSAHU, takže testujeme tytéž bajty. Dva exporty
+    téhož měření z Excelu shodné nejsou – nesou v sobě čas vytvoření –
+    a ochrana proti dvojímu uložení se o ně neopírá: duplicitní hodnoty
+    zachytí až get_or_create nad kvalifikátory při ukládání.
+    """
     org, user = prostredi
-    batch = services.stage_file(uploaded_file=_legacy_excel(), user=user,
-                                organization=org, adapter_code="legacy_excel")
+    data = _legacy_bytes()
+
+    batch = services.stage_file(uploaded_file=SimpleUploadedFile("h.xlsx", data),
+                                user=user, organization=org, adapter_code="legacy_excel")
     services.commit_batch(batch, user=user)
 
     with pytest.raises(services.ImportError_, match="už byl importován"):
-        services.stage_file(uploaded_file=_legacy_excel(), user=user,
-                            organization=org, adapter_code="legacy_excel")
+        services.stage_file(uploaded_file=SimpleUploadedFile("h.xlsx", data),
+                            user=user, organization=org, adapter_code="legacy_excel")
 
 
 def test_nedokonceny_import_se_vrati_k_nahledu(prostredi):
     """Náhled bez uložení nesmí zablokovat pozdější uložení téhož souboru."""
     org, user = prostredi
-    first = services.stage_file(uploaded_file=_legacy_excel(), user=user,
-                                organization=org, adapter_code="legacy_excel")
-    again = services.stage_file(uploaded_file=_legacy_excel(), user=user,
-                                organization=org, adapter_code="legacy_excel")
+    data = _legacy_bytes()
+    first = services.stage_file(uploaded_file=SimpleUploadedFile("h.xlsx", data),
+                                user=user, organization=org, adapter_code="legacy_excel")
+    again = services.stage_file(uploaded_file=SimpleUploadedFile("h.xlsx", data),
+                                user=user, organization=org, adapter_code="legacy_excel")
 
     assert again.pk == first.pk
     assert ImportBatch.objects.count() == 1

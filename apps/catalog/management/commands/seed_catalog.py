@@ -26,15 +26,24 @@ class Command(BaseCommand):
                           "plausible_max": hi, "decimals": decimals},
             )
 
-        for code, (name, family, device, metric_codes, _trials) in PROTOCOLS.items():
+        for code, spec in PROTOCOLS.items():
             protocol, _ = Protocol.objects.update_or_create(
                 organization=None, code=code, version=1,
-                defaults={"name": name, "family": family, "device": device},
+                defaults={"name": spec["name"], "family": spec["family"],
+                          "device": spec["device"],
+                          "default_trials": spec.get("trials", 3)},
             )
-            for order, metric_code in enumerate(metric_codes):
+            for order, entry in enumerate(spec["metrics"]):
                 ProtocolMetric.objects.update_or_create(
-                    protocol=protocol, metric=metrics[metric_code],
-                    defaults={"order": order, "is_primary": order == 0},
+                    protocol=protocol, metric=metrics[entry["code"]],
+                    defaults={
+                        "order": order,
+                        "is_primary": entry.get("primary", False),
+                        "sides": entry.get("sides", []),
+                        "modes": entry.get("modes", []),
+                        "speeds": entry.get("speeds", []),
+                        "segments": entry.get("segments", []),
+                    },
                 )
 
         self.stdout.write(self.style.SUCCESS(

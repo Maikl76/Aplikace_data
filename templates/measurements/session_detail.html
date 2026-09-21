@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mb-4">
+  <h1 class="text-xl font-semibold">
+    {{ session.subject.code }} — {{ session.date|date:"d.m.Y" }}
+  </h1>
+  <p class="text-sm text-slate-500">
+    {{ session.location|default:"—" }}
+    {% if session.season_phase %} · {{ session.get_season_phase_display }}{% endif %}
+    {% if session.fatigue_rating %} · únava {{ session.fatigue_rating }}/10{% endif %}
+  </p>
+</div>
+
+<h2 class="font-semibold mb-2">Protokoly</h2>
+<div class="space-y-2 mb-6">
+  {% for run in runs %}
+    <a href="{% url 'run_entry' run.pk %}"
+       class="flex items-center justify-between bg-white p-4 rounded-lg border border-slate-200
+              hover:border-slate-400">
+      <span>
+        <span class="font-medium">{{ run.protocol.name }}</span>
+        <span class="text-sm text-slate-500 block">{{ run.protocol.device }}</span>
+      </span>
+      <span class="text-sm text-blue-700">zadat hodnoty →</span>
+    </a>
+  {% empty %}
+    <p class="text-slate-500 text-sm">Zatím žádný protokol.</p>
+  {% endfor %}
+</div>
+
+<form method="post" action="{% url 'session_add_protocol' session.pk %}"
+      class="bg-white p-4 rounded-lg border border-slate-200 flex gap-3 items-end">
+  {% csrf_token %}
+  <label class="block">
+    <span class="text-sm text-slate-600">Přidat protokol</span>
+    <div class="mt-1">{{ add_form.protocol }}</div>
+  </label>
+  <button type="submit" class="bg-slate-900 text-white rounded px-4 py-2">Přidat</button>
+</form>
+
+<p class="mt-4 text-sm">
+  <a class="text-blue-700 hover:underline"
+     href="{% url 'subject_detail' session.subject.pk %}">← karta sportovce</a>
+</p>
+{% endblock %}

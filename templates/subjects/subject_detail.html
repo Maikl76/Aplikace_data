@@ -18,6 +18,65 @@
   {% endif %}
 {% endwith %}
 
+{% if trends %}
+  <h2 class="font-semibold mb-2">Vývoj klíčových metrik</h2>
+  <div class="grid md:grid-cols-2 gap-4 mb-8">
+    {% for spec in trends %}{% include "subjects/_chart.html" %}{% endfor %}
+  </div>
+{% endif %}
+
+{% if asymetrie_chart %}
+  <h2 class="font-semibold mb-2">
+    Asymetrie
+    <span class="font-normal text-sm text-slate-500">
+      — měření {{ asymetrie_session.date|date:"d.m.Y" }}
+    </span>
+  </h2>
+  <div class="mb-3">{% include "subjects/_chart.html" with spec=asymetrie_chart %}</div>
+
+  {# Identitu nenese jen barva: co je nad prahem, je napsané. #}
+  <div class="overflow-x-auto"><table class="w-full bg-white rounded-lg border border-slate-200 text-sm mb-8">
+    <thead class="text-left text-slate-500 border-b border-slate-200">
+      <tr>
+        <th class="p-2">Metrika</th><th class="p-2 text-right">Levá</th>
+        <th class="p-2 text-right">Pravá</th><th class="p-2 text-right">Rozdíl</th>
+        <th class="p-2">Stav</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in asymetrie_rows %}
+        <tr class="border-b border-slate-100">
+          <td class="p-2">
+            {{ r.metric.name }}
+            {% if r.qualifiers.speed %}
+              <span class="text-slate-500">· {{ r.qualifiers.speed|floatformat:0 }}°/s</span>
+            {% endif %}
+            {% if r.qualifiers.segment %}
+              <span class="text-slate-500">· {{ r.qualifiers.segment }}</span>
+            {% endif %}
+          </td>
+          <td class="p-2 text-right tabular-nums">{{ r.left|floatformat:2 }}</td>
+          <td class="p-2 text-right tabular-nums">{{ r.right|floatformat:2 }}</td>
+          <td class="p-2 text-right tabular-nums">{{ r.index_pct|floatformat:1 }} %</td>
+          <td class="p-2">
+            {% if r.exceeds_threshold %}
+              <span class="text-amber-700">⚠ nad prahem 10 %</span>
+            {% else %}
+              <span class="text-slate-500">v mezích</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+{% elif not ma_strany %}
+  <div class="mb-8 p-3 rounded bg-slate-100 border border-slate-300 text-sm">
+    Tento sportovec nemá měření rozlišená na levou a pravou stranu —
+    asymetrii spočítat nelze. Data z původní aplikace stranu nenesla;
+    nová měření už ano.
+  </div>
+{% endif %}
+
 <div class="grid md:grid-cols-2 gap-6">
   <section>
     <h2 class="font-semibold mb-2">Testovací dny</h2>
@@ -49,4 +108,19 @@
     </ul>
   </section>
 </div>
+
+<script>
+  // Figury jsou sestavené v Pythonu a sem přijdou jako JSON; plotly.js je
+  // jen vykreslí. Hover je zapnutý ve všech grafech – čtení konkrétní
+  // hodnoty patří k interaktivnímu grafu, ne do popisku u každého bodu.
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".js-graf").forEach(function (wrap) {
+      var id = wrap.dataset.target;
+      var data = JSON.parse(document.getElementById(id + "-data").textContent);
+      Plotly.newPlot(id, data.data, data.layout, {
+        displayModeBar: false, responsive: true, locale: "cs",
+      });
+    });
+  });
+</script>
 {% endblock %}

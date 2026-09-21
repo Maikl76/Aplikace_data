@@ -16,7 +16,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
-from apps.catalog.models import MetricDef, Protocol, TestFamily
+from apps.catalog.models import MetricDef, Protocol
 from apps.catalog.seed_data import PROTOCOLS
 from apps.core.models import Organization, Role, User
 from apps.measurements.models import Measurement, Mode, ProtocolRun, Side, TestSession, Trial
@@ -45,8 +45,6 @@ RANGES = {
     "serve_speed": (150, 210),
 }
 
-SEGMENTED = {"segment_mass", "segment_lean_mass"}
-BILATERAL_FAMILIES = {TestFamily.SPIROERGOMETRY, TestFamily.BODY_COMPOSITION, TestFamily.FIELD}
 
 
 class Command(BaseCommand):
@@ -133,45 +131,37 @@ class Command(BaseCommand):
 
                 chosen = random.sample(list(PROTOCOLS), k=random.randint(3, len(PROTOCOLS)))
                 for code in chosen:
-                    _name, family, _device, metric_codes, n_trials = PROTOCOLS[code]
                     protocol = protocols[code]
                     run, _ = ProtocolRun.objects.get_or_create(session=session, protocol=protocol)
 
-                    for t in range(1, n_trials + 1):
+                    for t in range(1, protocol.default_trials + 1):
                         trial, _ = Trial.objects.get_or_create(protocol_run=run, number=t)
-                        for metric_code in metric_codes:
-                            created += self._make_values(
-                                trial, metrics[metric_code], metric_code, family,
-                                ability, index)
+                        # Kombinace bere z definice protokolu – stejně jako
+                        # zadávací formulář, takže demo data mají tvar,
+                        # jaký vznikne i ručním zadáním.
+                        for pm in protocol.protocol_metrics.select_related("metric"):
+                            created += self._make_values(trial, pm, ability, index)
 
         self.stdout.write(self.style.SUCCESS(
             f"Hotovo: {options['subjects']} fiktivních sportovců, {created} hodnot."
         ))
 
-    def _make_values(self, trial, metric, metric_code, family, ability, session_index) -> int:
-        low, high = RANGES[metric_code]
-        centre = low + (high - low) * (0.5 + ability[metric_code] * 0.2)
+    def _make_values(self, trial, protocol_metric, ability, session_index) -> int:
+        metric = protocol_metric.metric
+        low, high = RANGES[metric.code]
+        centre = low + (high - low) * (0.5 + ability[metric.code] * 0.2)
         trend = session_index * (high - low) * 0.015
 
-        segments = ["paze", "noha", "trup"] if metric_code in SEGMENTED else [""]
-        sides = [Side.BILATERAL] if family in BILATERAL_FAMILIES else [Side.LEFT, Side.RIGHT]
-        if metric_code in SEGMENTED:
-            sides = [Side.LEFT, Side.RIGHT]
-
-        mode = Mode.CONCENTRIC if family == TestFamily.DYNAMOMETRY else Mode.NA
-        speeds = [210.0, 300.0] if metric_code.startswith("shoulder_") or metric_code == "ir_er_ratio" else [None]
-
         made = 0
-        for segment in segments:
-            for side in sides:
-                for speed in speeds:
-                    # mírná asymetrie, ať má analytika co najít
-                    bias = 1.0 if side != Side.LEFT else random.uniform(0.9, 1.0)
-                    value = (centre + trend) * bias * random.uniform(0.97, 1.03)
-                    _, is_new = Measurement.objects.get_or_create(
-                        trial=trial, metric=metric, side=side, mode=mode,
-                        speed=speed, segment=segment,
-                        defaults={"value": round(value, 3)},
-                    )
-                    made += int(is_new)
+        for combo in protocol_metric.qualifier_combinations():
+            # mírná asymetrie, ať má analytika co najít
+            bias = random.uniform(0.9, 1.0) if combo["side"] == Side.LEFT else 1.0
+            value = (centre + trend) * bias * random.uniform(0.97, 1.03)
+            _, is_new = Measurement.objects.get_or_create(
+                trial=trial, metric=metric,
+                side=combo["side"], mode=combo["mode"] or Mode.NA,
+                speed=combo["speed"], segment=combo["segment"],
+                defaults={"value": round(value, metric.decimals)},
+            )
+            made += int(is_new)
         return made

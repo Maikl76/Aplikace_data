@@ -54,6 +54,10 @@ class Protocol(CatalogModel):
     version = models.PositiveSmallIntegerField("verze", default=1)
     description = models.TextField("popis procedury", blank=True)
     device = models.CharField("přístroj", max_length=120, blank=True)
+    default_trials = models.PositiveSmallIntegerField("počet pokusů", default=3,
+                                                      help_text="Kolik opakování se standardně "
+                                                                "měří. Zadávací formulář podle "
+                                                                "toho udělá sloupce.")
     is_active = models.BooleanField("aktivní", default=True)
 
     class Meta:
@@ -154,6 +158,18 @@ class ProtocolMetric(models.Model):
     is_primary = models.BooleanField("klíčová metrika", default=False,
                                      help_text="Zobrazuje se na kartě sportovce a v souhrnu zprávy.")
 
+    # Které kombinace kvalifikátorů se u téhle metriky v tomhle protokolu
+    # měří. Díky tomu je zadávací formulář daný daty: nový protokol se
+    # založí v administraci a obrazovka pro něj vznikne sama.
+    sides = models.JSONField("strany", default=list, blank=True,
+                             help_text='Např. ["L", "R"] nebo ["B"]. Prázdné = bez rozlišení.')
+    modes = models.JSONField("režimy", default=list, blank=True,
+                             help_text='Např. ["con", "ecc"]. Prázdné = bez rozlišení.')
+    speeds = models.JSONField("rychlosti", default=list, blank=True,
+                              help_text="Např. [210, 300]. Prázdné = bez rozlišení.")
+    segments = models.JSONField("segmenty", default=list, blank=True,
+                                help_text='Např. ["paze", "noha", "trup"].')
+
     class Meta:
         verbose_name = "metrika protokolu"
         verbose_name_plural = "metriky protokolu"
@@ -164,6 +180,25 @@ class ProtocolMetric(models.Model):
 
     def __str__(self):
         return f"{self.protocol.code} / {self.metric.code}"
+
+    def qualifier_combinations(self) -> list[dict]:
+        """
+        Kartézský součin kvalifikátorů – jeden prvek = jeden řádek
+        zadávacího formuláře. Prázdný seznam znamená "bez rozlišení",
+        proto se nahrazuje [""] / [None].
+        """
+        sides = self.sides or [""]
+        modes = self.modes or [""]
+        speeds = self.speeds or [None]
+        segments = self.segments or [""]
+
+        return [
+            {"side": side, "mode": mode, "speed": speed, "segment": segment}
+            for segment in segments
+            for side in sides
+            for mode in modes
+            for speed in speeds
+        ]
 
 
 class Norm(CatalogModel):

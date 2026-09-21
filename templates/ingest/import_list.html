@@ -28,7 +28,7 @@
 </form>
 
 <h2 class="font-semibold mb-2">Historie importů</h2>
-<table class="w-full bg-white rounded-lg border border-slate-200 text-sm">
+<div class="overflow-x-auto"><table class="w-full bg-white rounded-lg border border-slate-200 text-sm">
   <thead class="text-left text-slate-500 border-b border-slate-200">
     <tr>
       <th class="p-2">Soubor</th><th class="p-2">Formát</th><th class="p-2">Stav</th>
@@ -54,5 +54,5 @@
       <tr><td colspan="6" class="p-4 text-slate-500">Zatím žádné importy.</td></tr>
     {% endfor %}
   </tbody>
-</table>
+</table></div>
 {% endblock %}

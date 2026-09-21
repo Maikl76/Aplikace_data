@@ -5,8 +5,11 @@ Import nikdy nezapisuje rovnou do provozních tabulek. Nejdřív se všechno
 rozparsuje do stagingu a označí příznaky ("neznámý sportovec", "mimo
 věrohodný rozsah"), člověk to potvrdí, teprve pak se to uloží.
 
-Zdrojový soubor se archivuje a identifikuje otiskem obsahu – dvojí import
-téhož souboru pipeline odmítne.
+Zdrojový soubor se archivuje a identifikuje otiskem obsahu – tentýž soubor
+podruhé pipeline odmítne. Je to pojistka proti dvojkliku, ne sémantická
+deduplikace: dva exporty téhož měření se můžou lišit v bajtech (Excel si
+nese čas vytvoření). Duplicitní hodnoty proto hlídá ještě get_or_create
+nad kvalifikátory při ukládání.
 """
 
 import hashlib

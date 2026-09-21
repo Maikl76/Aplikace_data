@@ -8,7 +8,7 @@
        hx-trigger="input changed delay:300ms, search"
        hx-target="#vysledky">
 
-<table class="w-full bg-white rounded-lg border border-slate-200 text-sm">
+<div class="overflow-x-auto"><table class="w-full bg-white rounded-lg border border-slate-200 text-sm">
   <thead class="text-left text-slate-500 border-b border-slate-200">
     <tr>
       <th class="p-2">Kód</th><th class="p-2">Sport</th><th class="p-2">Tým</th>
@@ -16,5 +16,5 @@
     </tr>
   </thead>
   <tbody id="vysledky">{% include "subjects/_subject_rows.html" %}</tbody>
-</table>
+</table></div>
 {% endblock %}

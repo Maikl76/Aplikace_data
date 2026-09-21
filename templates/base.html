@@ -6,26 +6,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Funkční testování – FTVS{% endblock %}</title>
 
+  {% comment %}
+    Knihovny jsou v repozitáři, ne z CDN: fakultní server nemusí mít přístup
+    do internetu a aplikace by se pak nespustila. Viz static/vendor/README.md.
+  {% endcomment %}
+  <link rel="stylesheet" href="{% static 'vendor/tailwind.css' %}">
   {# HTMX: server vrací kousky HTML, klient je vymění. Žádný build krok. #}
-  <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
-  <script src="https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js" defer></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
+  <script src="{% static 'vendor/alpine.min.js' %}" defer></script>
   {# Grafy: figuru sestaví Python, plotly.js ji jen vykreslí. #}
-  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer></script>
+  <script src="{% static 'vendor/plotly-basic.min.js' %}" defer></script>
   {% block head %}{% endblock %}
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-slate-50 text-slate-900 overflow-x-hidden">
 <header class="bg-white border-b border-slate-200">
-  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-6">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-2">
     <a href="{% url 'dashboard' %}" class="font-semibold">Funkční testování</a>
     {% if user.is_authenticated %}
-      <nav class="flex gap-4 text-sm">
+      <nav class="flex flex-wrap gap-x-4 gap-y-1 text-sm">
         <a href="{% url 'dashboard' %}" class="hover:underline">Přehled</a>
         <a href="{% url 'subject_list' %}" class="hover:underline">Sportovci</a>
+        <a href="{% url 'session_list' %}" class="hover:underline">Měření</a>
         <a href="{% url 'import_list' %}" class="hover:underline">Import</a>
         <a href="/admin/" class="hover:underline">Katalog</a>
       </nav>
-      <span class="ml-auto text-sm text-slate-500">
+      <span class="md:ml-auto text-sm text-slate-500 w-full md:w-auto">
         {{ user.get_username }} ({{ user.get_role_display }})
         <a href="{% url 'logout' %}" class="ml-3 hover:underline">odhlásit</a>
       </span>

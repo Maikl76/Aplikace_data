@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-xl font-semibold mb-4">Nový testovací den</h1>
+<form method="post" class="bg-white p-4 rounded-lg border border-slate-200 max-w-xl space-y-4">
+  {% csrf_token %}
+  {% for field in form %}
+    <label class="block">
+      <span class="text-sm text-slate-600">{{ field.label }}</span>
+      {{ field }}
+      {% if field.help_text %}<span class="text-xs text-slate-500">{{ field.help_text }}</span>{% endif %}
+      {% for error in field.errors %}<span class="text-xs text-red-600">{{ error }}</span>{% endfor %}
+    </label>
+  {% endfor %}
+  <button type="submit" class="bg-slate-900 text-white rounded px-4 py-2">
+    Založit a přidat protokoly
+  </button>
+</form>
+{% endblock %}

@@ -74,6 +74,11 @@ identita žije šifrovaně v odděleném trezoru s vlastním oprávněním.
 Technologie: Django 5 + PostgreSQL + HTMX + Plotly, Celery/Redis na dlouhé
 úlohy, S3/MinIO na zdrojové soubory, WeasyPrint na PDF.
 
+Knihovny pro prohlížeč jsou v `static/vendor/`, ne z CDN — fakultní server
+může být za firewallem bez přístupu do internetu a aplikace načítající
+skripty z CDN by se tam nespustila. Podrobnosti a postup aktualizace jsou
+v `static/vendor/README.md`.
+
 ## Migrace dat z původní aplikace
 
 Excel ze Streamlit aplikace se importuje buď přes webové rozhraní
@@ -107,26 +112,66 @@ Jedno omezení, které nejde obejít: **původní formát nerozlišoval stranu.*
 Historická data se proto importují bez strany a asymetrii z nich spočítat
 nelze. Nová měření už stranu nesou.
 
+## Zadávání u přístroje
+
+**Měření → Nový testovací den → přidat protokol → zadat hodnoty.**
+
+Zadávací mřížka se **generuje z definice protokolu**, ne z kódu. Protokol
+v katalogu říká, jaké kombinace se u něj měří:
+
+```
+ProtocolMetric(metric=shoulder_ir_torque,
+               sides=["L","R"], modes=["con","ecc"], speeds=[210,300])
+```
+
+Z toho vznikne 8 řádků × počet pokusů. Nový protokol založený v administraci
+tedy dostane obrazovku sám, bez psaní formuláře.
+
+Obrazovka počítá s tabletem u přístroje: velká pole, číselná klávesnice
+(`inputmode="decimal"`), čárka i tečka jako oddělovač, tlačítko pro uložení
+drží dole. Hodnota mimo věrohodný rozsah se uloží **označená**, stejně jako
+při importu.
+
+## Grafy
+
+Karta sportovce ukazuje vývoj klíčových metrik a asymetrii z posledního
+měření. Figury se skládají v Pythonu (`apps/analytics/charts.py`) a do
+prohlížeče jdou jako JSON, kde je vykreslí plotly.js.
+
+Tři rozhodnutí, která stojí za vysvětlení:
+
+- **Osa pokrývá aspoň trojnásobek MDC.** Useknutá osa je nejsnazší způsob,
+  jak z grafu udělat lež — kolísání v řádu chyby měření by jinak vypadalo
+  jako dramatický vývoj.
+- **Asymetrie se vynáší v procentech, ne v absolutních hodnotách.** Newtony
+  z IMTP a bezrozměrný poměr IR/ER na jedné ose znamenají, že je vidět jen
+  ta největší veličina a zbytek splyne s nulou.
+- **Směr nese poloha, ne barva.** Červená u pravé strany by znamenala „pravá
+  je špatně“, což není pravda. Barvou se hlásí jen překročený práh a je to
+  navíc napsané v tabulce pod grafem.
+
+Paleta prošla kontrolou na odlišitelnost při barvosleposti a na kontrast
+vůči podkladu v obou režimech.
+
 ## Stav
 
-Hotová je kostra a importní vrstva:
+Hotové:
 
 - datový model, administrace katalogu, scoping podle organizace
 - analytická vrstva (MDC/SWC, asymetrie, výběr normy)
-- import z původního Excelu: adaptér, staging s kontrolou, webové rozhraní
-  i příkaz, migrace historických dat
-- přehled laboratoře, seznam a karta sportovce
-- Docker pro vývoj i provoz, 30 testů
+- import z původního Excelu: adaptér, staging s kontrolou, web i příkaz
+- zadávání měření generované z definice protokolu, uzpůsobené tabletu
+- grafy na kartě sportovce
+- Docker pro vývoj i provoz, 44 testů
 
 Další kroky:
 
 1. **Inventář metrik** — projít reálné exporty z přístrojů, doplnit katalog
    a hlavně MDC/SWC z literatury (`seed_catalog` je schválně nechává prázdné)
-2. **Adaptéry na přístroje** — `apps/ingest/adapters/`, kostra i registr
-   jsou hotové; přidat ForceDecks, Biodex/HUMAC, Cosmed
-3. **Obrazovka testovacího dne** — zadávání na tabletu u přístroje
-4. **Grafy na kartě sportovce** — trendy proti normě přes Plotly
-5. **Pravidla, evidence a generování zpráv**
+2. **Adaptéry na přístroje** — `apps/ingest/adapters/`, kostra i registr jsou
+   hotové; přidat ForceDecks, Biodex/HUMAC, Cosmed
+3. **Normy** — naplnit `catalog.Norm` z literatury, ať má graf proti čemu měřit
+4. **Pravidla, evidence a generování zpráv**
 
 ## Vývoj
 

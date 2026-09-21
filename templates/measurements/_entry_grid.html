@@ -1,0 +1,42 @@
+<div id="mrizka" class="bg-white rounded-lg border border-slate-200 overflow-x-auto">
+  {% if saved %}
+    <p class="p-3 text-sm bg-green-50 border-b border-green-200">
+      Uloženo {{ saved }} hodnot.
+    </p>
+  {% endif %}
+  <table class="w-full text-sm">
+    <thead class="text-left text-slate-500 border-b border-slate-200">
+      <tr>
+        <th class="p-3">Metrika</th>
+        {% for i in trials %}<th class="p-3 text-center">{{ i }}. pokus</th>{% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr class="border-b border-slate-100">
+          <td class="p-3">
+            <div class="font-medium">{{ row.metric.name }}</div>
+            <div class="text-xs text-slate-500">
+              {{ row.label|default:"bez rozlišení" }}
+              {% if row.metric.unit %} · {{ row.metric.unit }}{% endif %}
+            </div>
+          </td>
+          {% for cell in row.cells %}
+            <td class="p-2">
+              {# inputmode="decimal" vyvolá na tabletu číselnou klávesnici #}
+              <input type="text" inputmode="decimal" name="{{ cell.name }}"
+                     value="{{ cell.value }}"
+                     class="w-full text-center text-lg border rounded px-2 py-3
+                            {% if cell.quality == 'range' %}border-amber-400 bg-amber-50
+                            {% else %}border-slate-300{% endif %}">
+            </td>
+          {% endfor %}
+        </tr>
+      {% empty %}
+        <tr><td class="p-4 text-slate-500">
+          Protokol nemá definované metriky. Doplňte je v administraci.
+        </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

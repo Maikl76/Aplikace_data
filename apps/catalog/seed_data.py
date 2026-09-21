@@ -42,23 +42,73 @@ METRICS = [
     ("serve_speed", "Rychlost podání", TestFamily.FIELD, "km/h", Direction.HIGHER, 50, 260, 0),
 ]
 
-# kód -> (název, rodina, přístroj, [kódy metrik], počet pokusů)
+# Definice protokolů včetně toho, jaké kombinace kvalifikátorů se u nich
+# měří. Zadávací formulář se z toho generuje sám – nový protokol se založí
+# v administraci a obrazovka pro něj vznikne bez psaní kódu.
 PROTOCOLS = {
-    "cmj": ("Countermovement jump", TestFamily.FORCE_PLATE, "force plate",
-            ["cmj_height", "cmj_peak_force", "cmj_rsi_mod"], 3),
-    "imtp": ("Izometrický tah (IMTP)", TestFamily.FORCE_PLATE, "force plate",
-             ["imtp_peak_force"], 3),
-    "iso_shoulder": ("Izokinetika ramene", TestFamily.DYNAMOMETRY, "izokinetický dynamometr",
-                     ["shoulder_ir_torque", "shoulder_er_torque", "ir_er_ratio"], 3),
-    "grip": ("Síla stisku ruky", TestFamily.DYNAMOMETRY, "ruční dynamometr",
-             ["grip_strength"], 2),
-    "spiro_ramp": ("Spiroergometrie – rampový protokol", TestFamily.SPIROERGOMETRY, "spiroergometr",
-                   ["vo2max", "vt2_power"], 1),
-    "bodycomp": ("Složení těla", TestFamily.BODY_COMPOSITION, "DXA / BIA",
-                 ["body_mass", "height", "lean_mass", "body_fat_pct",
-                  "segment_mass", "segment_lean_mass"], 1),
-    "serve": ("Rychlost podání", TestFamily.FIELD, "radar",
-              ["serve_speed"], 3),
+    "cmj": {
+        "name": "Countermovement jump", "family": TestFamily.FORCE_PLATE,
+        "device": "force plate", "trials": 3,
+        "metrics": [
+            {"code": "cmj_height", "sides": ["B"], "primary": True},
+            {"code": "cmj_peak_force", "sides": ["L", "R"]},
+            {"code": "cmj_rsi_mod", "sides": ["B"]},
+        ],
+    },
+    "imtp": {
+        "name": "Izometrický tah (IMTP)", "family": TestFamily.FORCE_PLATE,
+        "device": "force plate", "trials": 3,
+        "metrics": [
+            {"code": "imtp_peak_force", "sides": ["L", "R"], "primary": True},
+        ],
+    },
+    "iso_shoulder": {
+        "name": "Izokinetika ramene", "family": TestFamily.DYNAMOMETRY,
+        "device": "izokinetický dynamometr", "trials": 3,
+        "metrics": [
+            {"code": "shoulder_ir_torque", "sides": ["L", "R"],
+             "modes": ["con", "ecc"], "speeds": [210, 300], "primary": True},
+            {"code": "shoulder_er_torque", "sides": ["L", "R"],
+             "modes": ["con", "ecc"], "speeds": [210, 300]},
+            {"code": "ir_er_ratio", "sides": ["L", "R"], "speeds": [210, 300]},
+        ],
+    },
+    "grip": {
+        "name": "Síla stisku ruky", "family": TestFamily.DYNAMOMETRY,
+        "device": "ruční dynamometr", "trials": 2,
+        "metrics": [
+            {"code": "grip_strength", "sides": ["L", "R"], "primary": True},
+        ],
+    },
+    "spiro_ramp": {
+        "name": "Spiroergometrie – rampový protokol", "family": TestFamily.SPIROERGOMETRY,
+        "device": "spiroergometr", "trials": 1,
+        "metrics": [
+            {"code": "vo2max", "sides": ["B"], "primary": True},
+            {"code": "vt2_power", "sides": ["B"]},
+        ],
+    },
+    "bodycomp": {
+        "name": "Složení těla", "family": TestFamily.BODY_COMPOSITION,
+        "device": "DXA / BIA", "trials": 1,
+        "metrics": [
+            {"code": "body_mass", "sides": ["B"], "primary": True},
+            {"code": "height", "sides": ["B"]},
+            {"code": "lean_mass", "sides": ["B"]},
+            {"code": "body_fat_pct", "sides": ["B"]},
+            {"code": "segment_mass", "sides": ["L", "R"],
+             "segments": ["paze", "noha", "trup"]},
+            {"code": "segment_lean_mass", "sides": ["L", "R"],
+             "segments": ["paze", "noha", "trup"]},
+        ],
+    },
+    "serve": {
+        "name": "Rychlost podání", "family": TestFamily.FIELD,
+        "device": "radar", "trials": 3,
+        "metrics": [
+            {"code": "serve_speed", "sides": ["B"], "primary": True},
+        ],
+    },
 }
 
 # ---------------------------------------------------------------------------

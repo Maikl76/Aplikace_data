@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-xl font-semibold">Testovací dny</h1>
+  <a href="{% url 'session_create' %}"
+     class="bg-slate-900 text-white rounded px-4 py-2 text-sm">Nový testovací den</a>
+</div>
+
+<div class="overflow-x-auto"><table class="w-full bg-white rounded-lg border border-slate-200 text-sm">
+  <thead class="text-left text-slate-500 border-b border-slate-200">
+    <tr>
+      <th class="p-2">Datum</th><th class="p-2">Sportovec</th>
+      <th class="p-2">Protokoly</th><th class="p-2">Operátor</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in sessions %}
+      <tr class="border-b border-slate-100">
+        <td class="p-2"><a class="text-blue-700 hover:underline"
+                           href="{% url 'session_detail' s.pk %}">{{ s.date|date:"d.m.Y" }}</a></td>
+        <td class="p-2">{{ s.subject.code }}</td>
+        <td class="p-2 text-slate-500">
+          {% for run in s.protocol_runs.all %}{{ run.protocol.name }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}
+        </td>
+        <td class="p-2">{{ s.operator|default:"—" }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="4" class="p-4 text-slate-500">Zatím žádné testovací dny.</td></tr>
+    {% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}
