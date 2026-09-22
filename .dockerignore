@@ -1,0 +1,38 @@
+# Bez tohohle by se do obrazu zkopírovala vývojová databáze, nahrané
+# soubory i celá historie gitu – tedy i data, která do nasazení nepatří.
+
+.git
+.gitignore
+.github
+
+# vývojová databáze a nahrané soubory
+*.sqlite3
+db.sqlite3
+/media/
+/data/
+
+# konfigurace s tajemstvími
+.env
+*.pem
+*.key
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# sestavené statické soubory se generují při buildu
+/staticfiles/
+
+# původní aplikace se do nasazení nedostává
+/legacy/
+
+# nástroje a dokumentace
+.vscode/
+.idea/
+.devcontainer/
+*.md
+!README.md

@@ -1,0 +1,50 @@
+# Nasazení ukázkové instance na Fly.io.
+#
+# Slouží k tomu, aby se kolegové mohli na aplikaci podívat a zkusit si ji.
+# NENÍ to provozní prostředí: běží v něm pouze vygenerovaná data a má
+# zapnutý DEMO_MODE, který nahrávání souborů odmítá.
+#
+# Postup nasazení je v deploy/fly.md.
+
+app = "ftvs-testovani"          # změňte na svůj název, musí být globálně unikátní
+primary_region = "fra"          # Frankfurt – nejblíž a v EU
+
+[build]
+  [build.args]
+    REQUIREMENTS = "requirements/base.txt"
+
+[env]
+  DJANGO_SETTINGS_MODULE = "config.settings.prod"
+  DEMO_MODE = "True"
+  PYTHONUNBUFFERED = "1"
+  # Statické soubory obsluhuje WhiteNoise přímo z aplikace.
+  DJANGO_SECURE_SSL_REDIRECT = "True"
+
+# Migrace se pouštějí před každým nasazením, ne za běhu aplikace.
+[deploy]
+  release_command = "python manage.py migrate --noinput"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"    # ukázka nemusí běžet v noci
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "20s"
+    method = "GET"
+    path = "/zdravi/"            # kontroluje i spojení s databází
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+
+# Nahrané soubory a vygenerovaná PDF. Bez disku by zmizely při každém
+# nasazení. Disk je vázaný na jeden stroj – pro ukázku to stačí, pro
+# provoz patří soubory do objektového úložiště (viz USE_S3).
+[[mounts]]
+  source = "ftvs_media"
+  destination = "/app/media"

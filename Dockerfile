@@ -19,5 +19,14 @@ RUN pip install -r ${REQUIREMENTS} -r requirements/pdf.txt
 
 COPY . .
 
+# Statické soubory se sestaví při buildu, ne za běhu. Proměnné jsou tu
+# jen proto, aby prod nastavení prošlo – do obrazu se nedostanou.
+RUN DJANGO_SETTINGS_MODULE=config.settings.prod \
+    DJANGO_SECRET_KEY=build-only \
+    DJANGO_ALLOWED_HOSTS=example.invalid \
+    DATABASE_URL=sqlite:///build.sqlite3 \
+    python manage.py collectstatic --noinput --clear
+
 EXPOSE 8000
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", \
+     "--workers", "2", "--timeout", "120", "--access-logfile", "-"]

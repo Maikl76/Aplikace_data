@@ -71,6 +71,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.core.context_processors.demo_mode",
             ],
         },
     },
@@ -143,6 +144,11 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_TIMEZONE = TIME_ZONE
 
 # --- vlastní nastavení aplikace --------------------------------------
+
+# Demo režim: veřejně dostupná ukázka pro kolegy. Zobrazí varovný pruh
+# a odmítne nahrávání souborů – aby se do ukázky omylem nedostala reálná
+# data sportovců. Do ostrého provozu patří False.
+DEMO_MODE = env.bool("DEMO_MODE", default=False)
 
 # Klíč pro šifrování jména a kontaktu v subjects.SubjectIdentity.
 # Prázdná hodnota = identita se neuloží (vývoj na syntetických datech).

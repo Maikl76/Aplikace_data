@@ -8,6 +8,7 @@ Reálná data se poprvé objeví až na fakultním serveru.
     python manage.py seed_demo --subjects 40 --sessions 3
 """
 
+import os
 import random
 from datetime import timedelta
 
@@ -54,6 +55,9 @@ class Command(BaseCommand):
         parser.add_argument("--subjects", type=int, default=30)
         parser.add_argument("--sessions", type=int, default=3)
         parser.add_argument("--seed", type=int, default=42)
+        parser.add_argument("--admin-password", default=None,
+                            help="Heslo správce. Mimo vývoj povinné; lze zadat "
+                                 "i proměnnou DEMO_ADMIN_PASSWORD.")
 
     @transaction.atomic
     def handle(self, *args, **options):
@@ -65,12 +69,7 @@ class Command(BaseCommand):
             short_name="ftvs", defaults={"name": "FTVS UK – laboratoř funkční diagnostiky"},
         )
 
-        if not User.objects.filter(username="admin").exists():
-            User.objects.create_superuser(
-                "admin", "admin@example.cz", "demo-heslo-1234",
-                organization=org, role=Role.ADMIN,
-            )
-            self.stdout.write("Vytvořen účet admin / demo-heslo-1234 (jen pro vývoj).")
+        self._ensure_admin(org, options.get("admin_password"))
 
         metrics = {m.code: m for m in MetricDef.objects.filter(organization=None)}
         for code, (mdc, swc) in DEMO_MDC.items():
@@ -145,6 +144,39 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f"Hotovo: {options['subjects']} fiktivních sportovců, {created} hodnot."
         ))
+
+    def _ensure_admin(self, org, password):
+        """
+        Účet správce pro demo.
+
+        Výchozí známé heslo se založí jen ve vývoji. Na veřejné adrese by
+        to byly otevřené dveře, takže tam se heslo musí zadat — jinak se
+        účet nezaloží a příkaz to řekne.
+        """
+        from django.conf import settings
+
+        if User.objects.filter(username="admin").exists():
+            return
+
+        password = password or os.environ.get("DEMO_ADMIN_PASSWORD")
+        if not password:
+            # Známé heslo jen při vývoji na vlastním stroji. Zapnutý
+            # DEMO_MODE znamená veřejně dostupnou instanci, a tam by to
+            # byly otevřené dveře bez ohledu na to, jaké nastavení běží.
+            if not settings.DEBUG or settings.DEMO_MODE:
+                self.stdout.write(self.style.ERROR(
+                    "Účet správce se nezaložil: mimo vývoj je potřeba heslo. "
+                    "Spusťte s --admin-password, nebo nastavte DEMO_ADMIN_PASSWORD."
+                ))
+                return
+            password = "demo-heslo-1234"
+            self.stdout.write("Vytvořen účet admin / demo-heslo-1234 (jen pro vývoj).")
+        else:
+            self.stdout.write("Vytvořen účet admin se zadaným heslem.")
+
+        User.objects.create_superuser(
+            "admin", "admin@example.cz", password, organization=org, role=Role.ADMIN,
+        )
 
     def _make_values(self, trial, protocol_metric, ability, session_index) -> int:
         metric = protocol_metric.metric

@@ -299,6 +299,13 @@ make logs
 
 ## Nasazení
 
+**Ukázka pro kolegy** (Fly.io, jen vygenerovaná data) — postup v
+[`deploy/fly.md`](deploy/fly.md). Má zapnutý `DEMO_MODE`: varovný pruh
+na každé stránce a vypnuté nahrávání souborů, aby se do veřejně dostupné
+instance nedostala reálná data.
+
+**Vlastní server:**
+
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```

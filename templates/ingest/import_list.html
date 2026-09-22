@@ -21,10 +21,17 @@
       Načíst a zkontrolovat
     </button>
   </div>
-  <p class="text-xs text-slate-500 mt-3">
-    Soubor se jen rozparsuje a ukáže ke kontrole. Do databáze se nic nezapíše,
-    dokud náhled nepotvrdíte.
-  </p>
+  {% if demo_mode %}
+    <p class="text-sm text-amber-800 mt-3 p-2 rounded bg-amber-50 border border-amber-300">
+      V ukázce je nahrávání vypnuté. Jak kontrola importu vypadá, je vidět
+      na dříve nahraném souboru v historii níže.
+    </p>
+  {% else %}
+    <p class="text-xs text-slate-500 mt-3">
+      Soubor se jen rozparsuje a ukáže ke kontrole. Do databáze se nic nezapíše,
+      dokud náhled nepotvrdíte.
+    </p>
+  {% endif %}
 </form>
 
 <h2 class="font-semibold mb-2">Historie importů</h2>

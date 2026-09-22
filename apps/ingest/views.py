@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
@@ -27,6 +28,16 @@ def import_list(request):
 def import_upload(request):
     """Nahrání souboru. Nic se neuloží – vznikne jen náhled ke kontrole."""
     if request.method != "POST" or "file" not in request.FILES:
+        return redirect("import_list")
+
+    # V ukázce se soubory nenahrávají. Je to jediné místo, kudy by se do
+    # veřejně dostupné instance dostala reálná data, a stačilo by jedno
+    # omylem přetažené xlsx.
+    if settings.DEMO_MODE:
+        messages.error(request, (
+            "Toto je veřejná ukázka, nahrávání souborů je v ní vypnuté. "
+            "Obrazovka kontroly importu je k vidění na již nahraném souboru."
+        ))
         return redirect("import_list")
 
     protocol = None
