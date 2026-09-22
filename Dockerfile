@@ -15,7 +15,7 @@ WORKDIR /app
 
 COPY requirements/ requirements/
 ARG REQUIREMENTS=requirements/dev.txt
-RUN pip install -r ${REQUIREMENTS}
+RUN pip install -r ${REQUIREMENTS} -r requirements/pdf.txt
 
 COPY . .
 

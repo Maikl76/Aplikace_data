@@ -13,6 +13,11 @@ nová platforma nepokryje všechno, co uměla.
 
 ## Rychlý start
 
+### S Dockerem (doporučeno)
+
+Takhle běží aplikace stejně jako na serveru — PostgreSQL, fronta úloh
+i generování PDF.
+
 ```bash
 cp .env.example .env          # doplňte DJANGO_SECRET_KEY
 make build
@@ -23,15 +28,34 @@ make up                       # http://localhost:8000
 
 Přihlášení po `make seed`: `admin` / `demo-heslo-1234` (jen pro vývoj).
 
-Bez Dockeru:
+Bez `make` jsou to tytéž příkazy přes
+`docker compose run --rm web python manage.py <příkaz>`.
+
+### Bez Dockeru, jen na prohlédnutí
+
+Když se chcete na aplikaci jen podívat a nechcete instalovat Docker.
+Data jdou do souboru SQLite místo PostgreSQL.
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements/dev.txt
-# Postgres musí běžet, viz DATABASE_URL v .env
-python manage.py migrate && python manage.py seed_demo
-python manage.py runserver
+
+export DJANGO_SECRET_KEY=jen-na-prohlednuti      # Windows: set ...
+export DATABASE_URL=sqlite:///db.sqlite3
+
+python manage.py migrate
+python manage.py seed_demo
+python manage.py runserver         # http://localhost:8000
 ```
+
+**Tohle je jen na prohlédnutí, ne na provoz.** SQLite se v typech chová
+jinak než PostgreSQL a neumí pgvector, takže na něm nelze ověřit, že
+aplikace poběží i v ostrém nasazení. Reálná data sem nepatří.
+
+Generování PDF (`requirements/pdf.txt`) je záměrně bokem — WeasyPrint
+potřebuje systémové knihovny, které se instalují nepříjemně. Bez něj
+aplikace funguje a zprávu ukáže v HTML; PDF nevyrobí a řekne to.
 
 ## Zásady, které tvarují kód
 

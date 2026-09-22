@@ -1,0 +1,12 @@
+-r base.txt
+
+# Generování PDF. Vyžaduje systémové knihovny (pango, cairo) – v Dockeru
+# jsou v obrazu, mimo Docker je potřeba je doinstalovat:
+#
+#   Linux:  apt install libpango-1.0-0 libpangoft2-1.0-0 libcairo2
+#   macOS:  brew install pango cairo libffi
+#   Windows: viz doc.courtbouillon.org/weasyprint (GTK runtime)
+#
+# Bez tohoto balíčku aplikace běží dál, jen zprávu nabídne v HTML
+# místo PDF a řekne to.
+weasyprint>=62

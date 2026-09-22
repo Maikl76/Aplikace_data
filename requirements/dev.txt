@@ -1,5 +1,7 @@
 -r base.txt
 
+# PDF není potřeba k vývoji ani k prohlížení – viz requirements/pdf.txt.
+
 pytest>=8.2
 pytest-django>=4.8
 ruff>=0.5                       # linter + formátovač
