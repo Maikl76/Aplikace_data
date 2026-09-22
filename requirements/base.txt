@@ -9,7 +9,7 @@ celery>=5.4
 redis>=5.0
 
 # --- provoz ------------------------------------------------------------
-gunicorn>=22.0
+gunicorn>=22.0; sys_platform != "win32"   # na Windows neběží, tam se vyvíjí přes runserver
 whitenoise>=6.7                 # statické soubory bez samostatného webserveru
 
 # --- úložiště raw souborů (S3 / MinIO) ---------------------------------
