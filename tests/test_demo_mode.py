@@ -86,3 +86,33 @@ def test_zdravotni_endpoint_hlasi_databazi(client, db):
     odpoved = client.get("/zdravi/")
     assert odpoved.status_code == 200
     assert odpoved.json() == {"stav": "ok", "databaze": "ok"}
+
+
+def test_bootstrap_naplni_prazdnou_instanci(db, settings):
+    from apps.subjects.models import Subject
+
+    settings.DEMO_MODE = True
+    call_command("bootstrap_demo", subjects=2, sessions=1, verbosity=0)
+    assert Subject.objects.count() == 2
+
+
+def test_bootstrap_uz_naplnenou_instanci_nechá_být(db, settings):
+    """Pouští se při každém nasazení, takže nesmí data přepsat."""
+    from apps.subjects.models import Subject
+
+    settings.DEMO_MODE = True
+    call_command("bootstrap_demo", subjects=2, sessions=1, verbosity=0)
+    Subject.objects.filter(code="FTVS-0001").update(note="ruční zásah")
+
+    call_command("bootstrap_demo", subjects=9, sessions=3, verbosity=0)
+
+    assert Subject.objects.count() == 2
+    assert Subject.objects.get(code="FTVS-0001").note == "ruční zásah"
+
+
+def test_bootstrap_mimo_ukazku_nedela_nic(db, settings):
+    from apps.subjects.models import Subject
+
+    settings.DEMO_MODE = False
+    call_command("bootstrap_demo", verbosity=0)
+    assert Subject.objects.count() == 0

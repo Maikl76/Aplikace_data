@@ -28,5 +28,8 @@ RUN DJANGO_SETTINGS_MODULE=config.settings.prod \
     python manage.py collectstatic --noinput --clear
 
 EXPOSE 8000
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", \
-     "--workers", "2", "--timeout", "120", "--access-logfile", "-"]
+# Port bere z proměnné PORT, když je nastavená – různé hostingy si ho
+# určují samy (Fly 8080, jinde 8000). Bez toho by stačilo zadat jiný port
+# a aplikace by nebyla vidět, aniž by v logu byla chyba.
+CMD ["sh", "-c", "gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8000} \
+     --workers 2 --timeout 120 --access-logfile -"]

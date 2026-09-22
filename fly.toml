@@ -20,9 +20,11 @@ primary_region = "fra"          # Frankfurt – nejblíž a v EU
   # Statické soubory obsluhuje WhiteNoise přímo z aplikace.
   DJANGO_SECURE_SSL_REDIRECT = "True"
 
-# Migrace se pouštějí před každým nasazením, ne za běhu aplikace.
+# Migrace a úvodní naplnění se pouštějí před spuštěním aplikace.
+# bootstrap_demo pracuje jen tehdy, když je databáze ještě prázdná,
+# takže další nasazení do dat nesahají.
 [deploy]
-  release_command = "python manage.py migrate --noinput"
+  release_command = "sh -c 'python manage.py migrate --noinput && python manage.py bootstrap_demo'"
 
 [http_service]
   internal_port = 8000
