@@ -8,25 +8,51 @@ Ostrý provoz s reálnými daty patří na fakultní server, ne sem.
 
 Nainstalujte `flyctl` a přihlaste se:
 
-```bash
-# Windows (PowerShell)
-iwr https://fly.io/install.ps1 -useb | iex
-# macOS / Linux
-curl -L https://fly.io/install.sh | sh
+**Windows** (v příkazovém řádku):
 
-fly auth signup     # nebo fly auth login
+```
+powershell -Command "iwr https://fly.io/install.ps1 -useb | iex"
+```
+
+Pak okno **zavřete a otevřete nové**, aby se načetla nová cesta.
+
+**macOS / Linux:**
+
+```
+curl -L https://fly.io/install.sh | sh
+```
+
+Ověření a přihlášení:
+
+```
+fly version
+fly auth login
 ```
 
 ## 1. Založení aplikace
 
-V `fly.toml` změňte `app` na svůj název (musí být globálně unikátní,
-např. `ftvs-testovani-vagner`), pak:
+V `fly.toml` změňte `app` na svůj název — musí být celosvětově unikátní,
+takže třeba `ftvs-testovani-<příjmení>`:
 
-```bash
+```
+notepad fly.toml
+```
+
+Pak:
+
+```
 fly launch --no-deploy --copy-config
 ```
 
-Region nechte `fra` (Frankfurt) — je v EU a nejblíž.
+Region nechte `fra` (Frankfurt) — je v EU a nejblíž. Na dotaz, jestli
+upravit nastavení, odpovězte **ne**; `fly.toml` je už připravený.
+
+Po doběhnutí se v `fly.toml` ujistěte, že pořád platí:
+
+```toml
+internal_port = 8000
+release_command = "sh -c 'python manage.py migrate --noinput && python manage.py bootstrap_demo'"
+```
 
 ## 2. Databáze
 
@@ -41,17 +67,27 @@ aplikace měla v proměnné `DATABASE_URL` spojení na PostgreSQL v EU.
 
 ## 3. Tajemství
 
-```bash
-fly secrets set \
-  DJANGO_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(50))')" \
-  DJANGO_ALLOWED_HOSTS="ftvs-testovani.fly.dev" \
-  DJANGO_CSRF_TRUSTED_ORIGINS="https://ftvs-testovani.fly.dev" \
-  DEMO_ADMIN_PASSWORD="<zvolte dlouhé heslo>"
+Nejdřív si vygenerujte tajný klíč:
+
+```
+python -c "import secrets; print(secrets.token_urlsafe(50))"
 ```
 
-Název domény nahraďte tím svým. `DEMO_ADMIN_PASSWORD` je heslo správce
-v ukázce — **bez něj se účet nezaloží**, což je záměr: instance na veřejné
-adrese nesmí mít účet se známým heslem.
+Pak čtyři příkazy, každý zvlášť (název domény nahraďte tím svým):
+
+```
+fly secrets set DJANGO_SECRET_KEY=<vygenerovaný klíč>
+fly secrets set DJANGO_ALLOWED_HOSTS=ftvs-testovani.fly.dev
+fly secrets set DJANGO_CSRF_TRUSTED_ORIGINS=https://ftvs-testovani.fly.dev
+fly secrets set DEMO_ADMIN_PASSWORD=<zvolte dlouhé heslo>
+```
+
+> Ve Windows se příkazy nedají zalamovat zpětným lomítkem — proto každý
+> zvlášť. Hodnoty bez uvozovek, pokud neobsahují mezery.
+
+`DEMO_ADMIN_PASSWORD` je heslo správce v ukázce — **bez něj se účet
+nezaloží**, což je záměr: instance na veřejné adrese nesmí mít účet
+se známým heslem.
 
 ## 4. Disk na soubory
 
@@ -70,12 +106,16 @@ fly deploy
 
 Migrace se pustí automaticky před spuštěním (`release_command`).
 
-## 6. Naplnění ukázkovými daty
+## 6. Naplnění daty
 
-```bash
-fly ssh console -C "python manage.py seed_catalog"
-fly ssh console -C "python manage.py seed_roles"
-fly ssh console -C "python manage.py seed_demo --subjects 30 --sessions 4"
+**Nic dělat nemusíte** — při nasazení se pustí `bootstrap_demo`, který
+prázdnou instanci naplní sám (katalog, role, vygenerovaní sportovci).
+Při dalších nasazeních už do dat nesahá.
+
+Kdyby bylo potřeba ručně:
+
+```
+fly ssh console -C "python manage.py bootstrap_demo"
 ```
 
 Hotovo — adresa je `https://<název>.fly.dev`, přihlášení `admin`
