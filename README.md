@@ -136,6 +136,54 @@ Jedno omezení, které nejde obejít: **původní formát nerozlišoval stranu.*
 Historická data se proto importují bez strany a asymetrii z nich spočítat
 nelze. Nová měření už stranu nesou.
 
+## Administrace
+
+`http://localhost:8000/admin/` — správa všeho, co se nedělá v běžném provozu.
+
+Po prvním nasazení spusťte jednou:
+
+```bash
+python manage.py seed_roles     # skupiny oprávnění pro role
+```
+
+### Nový test
+
+1. **Katalog → Metriky** — založit metriky, které test produkuje (kód,
+   jednotka, žádoucí směr, MDC/SWC, věrohodný rozsah).
+2. **Katalog → Protokoly** — založit protokol a dole v tabulce k němu
+   přidat metriky i s kvalifikátory: `sides` `["L","R"]`, `modes`
+   `["con","ecc"]`, `speeds` `[210, 300]`, `segments`.
+
+Zadávací obrazovka pro ten test vznikne sama — nic se neprogramuje.
+
+### Lidé a přístup
+
+**Uživatelé → Přidat.** Role se nastavuje rovnou při zakládání a skupina
+oprávnění se přiřadí sama:
+
+| Role | Co smí |
+|---|---|
+| **Správce** | vše včetně uživatelů |
+| **Diagnostik** | zadávat a opravovat měření, importovat, vydávat zprávy; **nesmí mazat** |
+| **Výzkumník** | jen číst; identitu sportovců nevidí |
+
+Do administrace se dostane jen uživatel s příznakem **„Stav týmu"**
+(`is_staff`).
+
+**Trenéři a sportovci sem nepatří.** Administrace Djanga umí oprávnění na
+úrovni modelu, ne řádku — trenér by v ní viděl všechny týmy. Pracují proto
+v samotné aplikaci, která hlídá, na čí data vidí.
+
+### Mazání sportovce
+
+Sportovce s naměřenými daty databáze smazat nedovolí a je to záměr:
+v longitudinálních datech by chyběl navždy. Místo toho **Deaktivovat** —
+zmizí ze seznamů, data zůstanou.
+
+Pro **výmaz podle GDPR** smažte jeho záznam v *Identity sportovců*. Měření
+pak zůstanou, ale už je nelze spojit s konkrétní osobou — což je u
+výzkumných dat obvykle to, co se po výmazu požaduje.
+
 ## Zadávání u přístroje
 
 **Měření → Nový testovací den → přidat protokol → zadat hodnoty.**
