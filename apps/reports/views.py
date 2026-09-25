@@ -8,7 +8,7 @@ from apps.core.models import AuditLog
 from apps.measurements.models import TestSession
 from apps.subjects.models import Consent
 
-from . import services
+from . import llm, services
 from .models import Report, ReportDelivery
 
 
@@ -39,17 +39,52 @@ def report_detail(request, pk):
     report = get_object_or_404(Report.objects.for_user(request.user), pk=pk)
 
     if request.method == "POST" and report.is_editable:
-        report.custom_note = request.POST.get("custom_note", "")
-        report.save(update_fields=["custom_note"])
-        messages.success(request, "Komentář uložen.")
+        problems = services.save_edits(report, summary=request.POST.get("summary", ""),
+                                       custom_note=request.POST.get("custom_note", ""))
+        record(request, AuditLog.Action.UPDATE, report, subject_code=report.subject.code)
+        messages.success(request, "Úpravy uloženy.")
+        if problems:
+            messages.warning(
+                request,
+                f"V souhrnu jsou čísla, která nejsou ve výsledcích měření: "
+                f"{', '.join(problems)}. Pokud jsou správně, můžete je ponechat.")
         return redirect("report_detail", pk=pk)
 
     context = services.report_context(report)
     context.update({
+        "llm_enabled": llm.is_enabled(),
         "ma_souhlas": Consent.has(report.subject, Consent.Scope.REPORT_HANDOVER),
         "channels": ReportDelivery.Channel.choices,
     })
     return render(request, "reports/report_detail.html", context)
+
+
+@login_required
+def report_suggest(request, pk):
+    """Návrh doporučení od modelu – vloží se do komentáře ke kontrole."""
+    report = get_object_or_404(Report.objects.for_user(request.user), pk=pk)
+    if request.method != "POST":
+        return redirect("report_detail", pk=pk)
+    try:
+        # Tlačítko je ve formuláři s úpravami – neuložený text se neztratí.
+        if "summary" in request.POST:
+            services.save_edits(report, summary=request.POST["summary"],
+                                custom_note=request.POST.get("custom_note", ""))
+        draft = services.suggest_recommendations(report)
+    except services.ReportError as exc:
+        messages.error(request, f"Návrh se nepodařil: {exc}")
+        return redirect("report_detail", pk=pk)
+
+    record(request, AuditLog.Action.UPDATE, report, subject_code=report.subject.code,
+           navrh_od=draft.model)
+    messages.info(request, f"Model {draft.model} navrhl doporučení za {draft.seconds:.0f} s. "
+                           f"Projděte je v komentáři, opravte a uložte.")
+    if draft.unverified_numbers:
+        messages.warning(
+            request,
+            f"Ověřte čísla, která nejsou ve výsledcích: {', '.join(draft.unverified_numbers)} "
+            f"(např. dávkování – model je navrhl sám).")
+    return redirect("report_detail", pk=pk)
 
 
 @login_required

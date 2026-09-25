@@ -292,3 +292,80 @@ def compose_report(session, findings, citations) -> Composition:
         text=fallback, source="šablona", facts=facts,
         note=f"Text od modelu {reply.model} byl odmítnut: {reason}. Použita šablona.",
     )
+
+
+# ---------------------------------------------------------------------------
+# Návrh doporučení pro diagnostika
+# ---------------------------------------------------------------------------
+
+RECOMMENDATION_PROMPT = """Jsi odborný asistent laboratoře funkční diagnostiky \
+na fakultě tělesné výchovy a sportu. Připravuješ NÁVRH doporučení, který \
+diagnostik před vydáním zprávy zkontroluje a upraví.
+
+Dostaneš fakta ve formátu JSON: výsledky, změny proti minulému měření, \
+stranové rozdíly, nálezy a doporučení z pravidel laboratoře.
+
+Pravidla:
+1. Doporučení z pole doporuceni_z_pravidel převezmi a můžeš je rozvést; \
+nic v nich neměň ve smyslu ani neoslabuj.
+2. Další doporučení navrhuj jen tam, kde k tomu fakta dávají důvod \
+(nález, skutečná změna, stranový rozdíl nad prahem). U každého uveď, na který \
+výsledek reaguje.
+3. Změnu „v pásmu chyby měření“ nevykládej jako zlepšení ani zhoršení.
+4. Nestanovuj diagnózy a nedoporučuj léčbu. Kde by šlo o zdravotní otázku, \
+doporuč konzultaci s lékařem nebo fyzioterapeutem.
+5. Neuváděj studie ani zdroje kromě těch v poli „citace“.
+6. Konkrétní dávkování (počty týdnů, sérií, opakování) navrhuj jen \
+střídmě; diagnostik ho bude ověřovat.
+7. Piš česky, věcně, v odrážkách „•“, nejvýš 8 odrážek. Bez úvodu a závěru."""
+
+
+@dataclass
+class RecommendationDraft:
+    text: str
+    model: str
+    seconds: float
+    unverified_numbers: list[str]
+
+
+def draft_recommendations(report) -> RecommendationDraft:
+    """
+    Návrh doporučení od modelu. Není to text zprávy: jde do komentáře
+    diagnostika a zpráva se nevydá, dokud ho člověk neprojde a neuloží.
+
+    Čísla se tu neodmítají – dávkování (3× týdně, 6 týdnů) v datech být
+    nemůže. Místo toho se vypíšou, aby je diagnostik ověřil.
+    """
+    from apps.rules import evidence
+
+    from . import facts as facts_module
+    from . import llm
+
+    session = report.session
+    findings = list(session.findings.select_related("rule")) if session else []
+    citations = evidence.articles_for(findings)
+    facts = facts_module.build(session, findings, citations)
+
+    reply = llm.chat([
+        {"role": "system", "content": RECOMMENDATION_PROMPT},
+        {"role": "user", "content":
+            "Fakta z testování:\n\n" + json.dumps(facts, ensure_ascii=False, indent=2)},
+    ])
+    return RecommendationDraft(
+        text=reply.text.strip(), model=reply.model, seconds=reply.seconds,
+        unverified_numbers=verify_numbers(reply.text, findings, facts),
+    )
+
+
+def unsupported_numbers(report, text: str) -> list[str]:
+    """Čísla v textu, která nejsou ve výsledcích – pro upozornění, ne zákaz."""
+    from apps.rules import evidence
+
+    from . import facts as facts_module
+
+    session = report.session
+    if session is None:
+        return []
+    findings = list(session.findings.select_related("rule"))
+    facts = facts_module.build(session, findings, evidence.articles_for(findings))
+    return verify_numbers(text, findings, facts)

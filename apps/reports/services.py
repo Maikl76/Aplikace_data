@@ -70,6 +70,7 @@ def build_draft(session, *, user, supersedes: Report | None = None) -> Report:
         version=(supersedes.version + 1) if supersedes else 1,
         supersedes=supersedes,
         summary=text,
+        summary_generated=text,
         rules_version=_rules_fingerprint(findings),
         llm_model=composition.source,
         generation_note=composition.note,
@@ -170,6 +171,11 @@ def release(report, *, user) -> Report:
     """Vydání. Od téhle chvíle se zpráva needituje."""
     if report.status != Report.Status.DRAFT:
         raise ReportError("Vydat lze jen koncept.")
+    if report.note_pending_review:
+        raise ReportError(
+            "Návrh doporučení od jazykového modelu ještě nikdo nezkontroloval. "
+            "Projděte ho, opravte a uložte – teprve pak lze zprávu vydat."
+        )
 
     report.status = Report.Status.RELEASED
     report.released_at = timezone.now()
@@ -248,6 +254,49 @@ def deliver(report, *, recipient, channel, user, note="") -> ReportDelivery:
         delivered_at=timezone.now(), delivered_by=user,
         consent_verified=True, note=note,
     )
+
+
+def save_edits(report, *, summary: str, custom_note: str) -> list[str]:
+    """
+    Úpravy textu diagnostikem. Vrací čísla, která v textu nemají oporu
+    v datech – jako upozornění. Člověka neblokujeme: může opravit překlep
+    modelu nebo doplnit údaj, který aplikace nezná; za text odpovídá on.
+    """
+    if not report.is_editable:
+        raise ReportError("Vydanou zprávu nelze upravit – vytvořte novou verzi.")
+
+    summary = summary.replace("\r\n", "\n").strip()
+    custom_note = custom_note.replace("\r\n", "\n").strip()
+    if not report.summary_generated:          # zprávy z doby před touto funkcí
+        report.summary_generated = report.summary
+    report.summary = summary
+    report.summary_edited = summary != report.summary_generated.strip()
+    report.custom_note = custom_note
+    report.note_pending_review = False
+    report.save(update_fields=["summary", "summary_generated", "summary_edited",
+                               "custom_note", "note_pending_review"])
+    return narrative.unsupported_numbers(report, summary)
+
+
+def suggest_recommendations(report) -> narrative.RecommendationDraft:
+    """Návrh doporučení od modelu vložený do komentáře – ke kontrole."""
+    from . import llm
+
+    if not report.is_editable:
+        raise ReportError("Vydanou zprávu nelze upravit – vytvořte novou verzi.")
+    if not llm.is_enabled():
+        raise ReportError("Jazykový model není zapnutý (LLM_ENABLED).")
+    try:
+        draft = narrative.draft_recommendations(report)
+    except llm.LLMError as exc:
+        raise ReportError(str(exc)) from exc
+
+    existing = report.custom_note.strip()
+    report.custom_note = f"{existing}\n\n{draft.text}" if existing else draft.text
+    report.note_ai_model = draft.model
+    report.note_pending_review = True
+    report.save(update_fields=["custom_note", "note_ai_model", "note_pending_review"])
+    return draft
 
 
 def supersede(report, *, user) -> Report:

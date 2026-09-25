@@ -230,7 +230,19 @@ Co ve zprávě píše model a co ne:
 | 5. Nálezy | pravidla laboratoře |
 | 6. Doporučení | pravidla laboratoře + komentář diagnostika |
 
-Model tedy nemůže změnit žádné číslo v tabulkách ani vymyslet doporučení.
+Model tedy nemůže změnit žádné číslo v tabulkách ani sám vložit doporučení
+do zprávy.
+
+**Úpravy textu.** Dokud zpráva není vydaná, souhrn i komentář jdou na
+stránce zprávy přepsat. Po uložení aplikace ohlásí čísla, která nejsou ve
+výsledcích měření (neblokuje – rozhodujete vy). Původní text od modelu
+zůstává schovaný a ve zprávě je uvedeno, že ho diagnostik upravil.
+
+**Návrh doporučení (AI).** Tlačítko pod komentářem nechá model navrhnout
+doporučení z výsledků, nálezů a pravidel. Návrh se připojí na konec
+komentáře a **zprávu nelze vydat, dokud ho neprojdete a neuložíte**.
+Čísla, která model doplnil sám (typicky dávkování), aplikace vypíše
+k ověření.
 Když v souhrnu napíše číslo, které v datech není, dostane jednu šanci text
 opravit; teprve pak se použije šablona.
 

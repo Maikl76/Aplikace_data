@@ -252,8 +252,13 @@
   {% if report.released_by %} · vydal {{ report.released_by.get_full_name|default:report.released_by.get_username }}{% endif %}
   {% if report.rules_version %} · sada pravidel: {{ report.rules_version }}{% endif %}
   {% if report.llm_model and report.llm_model != "šablona" %}
-    · text souhrnu sestavil jazykový model {{ report.llm_model }} z výsledků pravidel;
-    čísla jsou strojově ověřená proti naměřeným hodnotám
+    · text souhrnu navrhl jazykový model {{ report.llm_model }} z výsledků měření
+    {% if report.summary_edited %}a upravil diagnostik{% else %}(čísla strojově ověřena proti naměřeným hodnotám){% endif %}
+  {% elif report.summary_edited %}
+    · souhrn upravil diagnostik
+  {% endif %}
+  {% if report.note_ai_model %}
+    · návrh doporučení připravil jazykový model {{ report.note_ai_model }}, zkontroloval a schválil diagnostik
   {% endif %}
   {% if report.input_fingerprint %}<br>Otisk vstupů: {{ report.input_fingerprint|slice:":16" }}{% endif %}
 </footer>

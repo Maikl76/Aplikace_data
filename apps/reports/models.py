@@ -55,6 +55,18 @@ class Report(OrgScopedModel):
                                        help_text="Proč se model nepoužil, pokud se "
                                                  "nepoužil – např. odmítnutý text.")
     input_fingerprint = models.CharField("otisk vstupů", max_length=64, blank=True)
+
+    # Úpravy člověkem. Text od modelu je návrh: diagnostik ho smí opravit
+    # a za vydaný text odpovídá on. Původní verze se schovává kvůli
+    # dohledatelnosti, co napsal model a co člověk.
+    summary_generated = models.TextField("souhrn, jak vznikl", blank=True)
+    summary_edited = models.BooleanField("souhrn upraven diagnostikem", default=False)
+    note_ai_model = models.CharField(
+        "návrh doporučení připravil", max_length=80, blank=True,
+        help_text="Model, který navrhl text komentáře; prázdné = psal jen člověk.")
+    note_pending_review = models.BooleanField(
+        "návrh od modelu čeká na kontrolu", default=False,
+        help_text="Dokud diagnostik návrh neprojde a neuloží, zprávu nelze vydat.")
     rendered_html = models.TextField(
         "podoba při vydání", blank=True,
         help_text="Snímek zprávy pořízený při vydání; vydaná zpráva se už nepřepočítává.")

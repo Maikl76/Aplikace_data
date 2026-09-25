@@ -255,3 +255,89 @@ def test_prazdna_odpoved_se_nepouzije(mereni, model):
     assert report.llm_model == "šablona"
     assert "prázdný" in report.generation_note
     assert "0,85" in report.summary
+
+
+# --- úpravy a návrh doporučení ---------------------------------------------
+
+def test_diagnostik_muze_opravit_souhrn(mereni, settings):
+    settings.LLM_ENABLED = False
+    user, session = mereni
+    report = services.build_draft(session, user=user)
+    puvodni = report.summary
+
+    problemy = services.save_edits(report, summary="Poměr IR/ER 0,85 je nízký.",
+                                   custom_note="")
+    report.refresh_from_db()
+    assert problemy == []
+    assert report.summary == "Poměr IR/ER 0,85 je nízký."
+    assert report.summary_edited
+    assert report.summary_generated == puvodni     # co napsal stroj, zůstává dohledatelné
+    assert "upravil diagnostik" in services.render_html(report)
+
+
+def test_uprava_s_cislem_mimo_data_se_ohlasi_ale_ulozi(mereni, settings):
+    settings.LLM_ENABLED = False
+    user, session = mereni
+    report = services.build_draft(session, user=user)
+    problemy = services.save_edits(report, summary="Poměr IR/ER 0,85, minule 0,97.",
+                                   custom_note="")
+    assert problemy == ["0,97"]
+    report.refresh_from_db()
+    assert "0,97" in report.summary
+
+
+def test_vydanou_zpravu_nelze_upravit(mereni, settings):
+    settings.LLM_ENABLED = False
+    user, session = mereni
+    report = services.release(services.build_draft(session, user=user), user=user)
+    with pytest.raises(services.ReportError):
+        services.save_edits(report, summary="jiný text", custom_note="")
+
+
+def test_navrh_doporuceni_jde_do_komentare(mereni, model):
+    model.replies = ["Poměr IR/ER 0,85 je pod 1,00.",            # souhrn
+                     "• Posílit zevní rotátory ramene po dobu 6 týdnů."]  # návrh
+    user, session = mereni
+    report = services.build_draft(session, user=user)
+    report.custom_note = "Sportovkyně hlásí bolest ramene."
+    report.save()
+
+    navrh = services.suggest_recommendations(report)
+    report.refresh_from_db()
+
+    assert report.custom_note.startswith("Sportovkyně hlásí bolest ramene.")
+    assert report.custom_note.endswith("• Posílit zevní rotátory ramene po dobu 6 týdnů.")
+    assert report.note_ai_model == "testovaci-model"
+    assert report.note_pending_review
+    assert navrh.unverified_numbers == ["6"]      # dávkování – k ověření, ne k zákazu
+    prompt = model.requests[-1]["body"]["messages"][0]["content"]
+    assert "NÁVRH doporučení" in prompt
+
+
+def test_nezkontrolovany_navrh_zabrani_vydani(mereni, model):
+    model.reply = "• Posílit zevní rotátory ramene."
+    user, session = mereni
+    report = services.build_draft(session, user=user)
+    services.suggest_recommendations(report)
+
+    with pytest.raises(services.ReportError, match="nezkontroloval"):
+        services.release(report, user=user)
+
+    services.save_edits(report, summary=report.summary, custom_note=report.custom_note)
+    services.release(report, user=user)
+    assert "zkontroloval a schválil diagnostik" in services.render_html(report)
+
+
+def test_tlacitko_navrhu_neztrati_neulozene_upravy(mereni, model, client):
+    model.reply = "Poměr IR/ER 0,85 je pod 1,00."
+    user, session = mereni
+    report = services.build_draft(session, user=user)
+    client.force_login(user)
+
+    model.reply = "• Posílit zevní rotátory ramene."
+    client.post(f"/zpravy/{report.pk}/navrh-doporuceni/",
+                {"summary": "Opravený souhrn, IR/ER 0,85.", "custom_note": "Můj text."})
+    report.refresh_from_db()
+    assert report.summary == "Opravený souhrn, IR/ER 0,85."
+    assert report.custom_note == "Můj text.\n\n• Posílit zevní rotátory ramene."
+    assert report.note_pending_review

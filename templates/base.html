@@ -50,6 +50,7 @@
       <div class="mb-4 p-3 rounded border text-sm
                   {% if message.tags == 'error' %}bg-red-50 border-red-300
                   {% elif message.tags == 'success' %}bg-green-50 border-green-300
+                  {% elif message.tags == 'warning' %}bg-amber-50 border-amber-300 text-amber-900
                   {% else %}bg-blue-50 border-blue-300{% endif %}">{{ message }}</div>
     {% endfor %}
   {% endif %}

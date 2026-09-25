@@ -23,10 +23,37 @@
 
 <div class="grid lg:grid-cols-3 gap-6">
   <div class="lg:col-span-2 space-y-4">
+    {% if report.is_editable %}
+    <form method="post" id="upravy" class="space-y-4">
+      {% csrf_token %}
+      <section class="bg-white p-4 rounded-lg border border-slate-200">
+        <div class="flex flex-wrap items-baseline gap-2 mb-2">
+          <h2 class="font-semibold">Souhrn</h2>
+          <span class="text-xs text-slate-500">
+            {% if report.llm_model and report.llm_model != "šablona" %}napsal model {{ report.llm_model }}{% else %}sestavila šablona{% endif %}{% if report.summary_edited %} · upraveno diagnostikem{% endif %}
+          </span>
+        </div>
+        <textarea name="summary" rows="12"
+                  class="w-full border border-slate-300 rounded px-3 py-2 text-sm leading-relaxed"
+                  >{{ report.summary }}</textarea>
+        <p class="text-xs text-slate-500 mt-1">
+          Opravte chyby nebo formulace. Číslo, které není ve výsledcích měření,
+          aplikace po uložení ohlásí – rozhodnutí, zda ho ponechat, je na vás.
+        </p>
+        {% if report.summary_edited and report.summary_generated %}
+          <details class="mt-2 text-sm">
+            <summary class="cursor-pointer text-blue-700">původní text před úpravou</summary>
+            <div class="mt-2 p-3 bg-slate-50 rounded whitespace-pre-line text-slate-600">{{ report.summary_generated }}</div>
+          </details>
+        {% endif %}
+      </section>
+    </form>
+    {% else %}
     <section class="bg-white p-4 rounded-lg border border-slate-200">
       <h2 class="font-semibold mb-2">Souhrn</h2>
       <div class="text-sm whitespace-pre-line">{{ report.summary }}</div>
     </section>
+    {% endif %}
 
     {% if findings %}
       <section class="bg-white p-4 rounded-lg border border-slate-200">
@@ -54,7 +81,8 @@
       {% else %}
         <p class="text-sm text-slate-600">
           Žádné pravidlo laboratoře nevydalo doporučení. Vlastní doporučení
-          můžete napsat do komentáře níže – ve zprávě se objeví v části Doporučení.
+          napište do komentáře níže{% if llm_enabled %}, nebo si nechte navrhnout
+          koncept od modelu{% endif %} – ve zprávě se objeví v části Doporučení.
         </p>
       {% endif %}
     </section>
@@ -88,18 +116,42 @@
     {% endif %}
 
     {% if report.is_editable %}
-      <form method="post" class="bg-white p-4 rounded-lg border border-slate-200">
-        {% csrf_token %}
+      <section class="bg-white p-4 rounded-lg border
+        {% if report.note_pending_review %}border-amber-400{% else %}border-slate-200{% endif %}">
         <label class="block">
           <span class="font-semibold">Komentář a doporučení diagnostika</span>
-          <textarea name="custom_note" rows="4"
-                    class="mt-2 w-full border border-slate-300 rounded px-3 py-2 text-sm"
-                    >{{ report.custom_note }}</textarea>
+          <span class="block text-xs text-slate-500">ve zprávě v části Doporučení</span>
         </label>
-        <button type="submit" class="mt-2 border border-slate-300 rounded px-4 py-2 text-sm">
-          Uložit komentář
-        </button>
-      </form>
+        {% if report.note_pending_review %}
+          <div class="mt-2 p-3 rounded bg-amber-50 border border-amber-300 text-sm text-amber-900">
+            Text obsahuje <strong>návrh od modelu {{ report.note_ai_model }}</strong>.
+            Projděte ho, opravte nebo smažte, co nesedí, a uložte.
+            Dokud to neuděláte, zprávu nelze vydat.
+          </div>
+        {% endif %}
+        <textarea name="custom_note" form="upravy" rows="10"
+                  class="mt-2 w-full border border-slate-300 rounded px-3 py-2 text-sm leading-relaxed"
+                  >{{ report.custom_note }}</textarea>
+        <div class="mt-2 flex flex-wrap gap-2">
+          <button type="submit" form="upravy"
+                  class="bg-slate-900 text-white rounded px-4 py-2 text-sm">
+            Uložit úpravy
+          </button>
+          {% if llm_enabled %}
+            <button type="submit" form="upravy" formaction="{% url 'report_suggest' report.pk %}"
+                    onclick="this.textContent='Model píše návrh… může to trvat i minutu'"
+                    class="border border-slate-300 rounded px-4 py-2 text-sm">
+              Navrhnout doporučení (AI)
+            </button>
+          {% endif %}
+        </div>
+        {% if llm_enabled %}
+          <p class="text-xs text-slate-500 mt-2">
+            Návrh se připojí na konec komentáře. Vychází z výsledků, nálezů a pravidel;
+            dávkování a další čísla, která model doplní, aplikace vypíše k ověření.
+          </p>
+        {% endif %}
+      </section>
     {% elif report.custom_note %}
       <section class="bg-white p-4 rounded-lg border border-slate-200">
         <h2 class="font-semibold mb-2">Komentář diagnostika</h2>
@@ -109,15 +161,12 @@
   </div>
 
   <div class="space-y-4">
-    <section class="bg-white p-4 rounded-lg border border-slate-200">
-      <h2 class="font-semibold mb-2">Náhled</h2>
-      <a href="{% url 'report_preview' report.pk %}" target="_blank"
-         class="text-sm text-blue-700 hover:underline">otevřít podobu zprávy →</a>
-      {% if report.pdf %}
+    {% if report.pdf %}
+      <section class="bg-white p-4 rounded-lg border border-slate-200">
         <a href="{% url 'report_pdf' report.pk %}"
-           class="block mt-1 text-sm text-blue-700 hover:underline">stáhnout PDF →</a>
-      {% endif %}
-    </section>
+           class="text-sm text-blue-700 hover:underline">stáhnout PDF →</a>
+      </section>
+    {% endif %}
 
     {% if report.is_editable %}
       <form method="post" action="{% url 'report_release' report.pk %}"
@@ -126,11 +175,21 @@
         <h2 class="font-semibold mb-2">Vydat zprávu</h2>
         <p class="text-sm text-slate-600 mb-3">
           Vydání je nevratné. Vydanou zprávu už nelze upravit — oprava se řeší
-          vydáním nové verze. Zkontrolujte souhrn i komentář.
+          vydáním nové verze. Zkontrolujte souhrn i komentář a úpravy uložte.
         </p>
-        <button type="submit" class="w-full bg-slate-900 text-white rounded px-4 py-2">
-          Vydat
-        </button>
+        {% if report.note_pending_review %}
+          <p class="text-sm text-amber-800 mb-3">
+            Nejdřív zkontrolujte a uložte návrh doporučení od modelu.
+          </p>
+          <button type="button" disabled
+                  class="w-full bg-slate-300 text-slate-600 rounded px-4 py-2 cursor-not-allowed">
+            Vydat
+          </button>
+        {% else %}
+          <button type="submit" class="w-full bg-slate-900 text-white rounded px-4 py-2">
+            Vydat
+          </button>
+        {% endif %}
       </form>
     {% else %}
       <section class="bg-white p-4 rounded-lg border border-slate-200">
@@ -188,6 +247,8 @@
           {{ report.generation_note }}
         </div>
       {% endif %}
+      {% if report.summary_edited %}<div>Souhrn upraven diagnostikem.</div>{% endif %}
+      {% if report.note_ai_model %}<div>Návrh doporučení: {{ report.note_ai_model }}{% if report.note_pending_review %} (čeká na kontrolu){% else %} (zkontrolováno){% endif %}</div>{% endif %}
       <div>Sada pravidel: {{ report.rules_version|default:"—" }}</div>
       <div>Otisk vstupů: {{ report.input_fingerprint|slice:":16"|default:"—" }}</div>
       {% if report.released_by %}<div>Vydal: {{ report.released_by }}</div>{% endif %}
