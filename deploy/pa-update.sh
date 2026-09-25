@@ -19,6 +19,14 @@ git pull --ff-only
 "$VENV/bin/python" manage.py collectstatic --noinput --verbosity 0
 
 # Změna času u WSGI souboru = restart webové aplikace na PythonAnywhere.
-touch "/var/www/${USER}_eu_pythonanywhere_com_wsgi.py"
+# Doména je vždycky malými písmeny, uživatelské jméno ne – bez převodu
+# by touch u jména s velkým písmenem vytvořil nový prázdný soubor
+# a aplikace by se tiše nerestartovala.
+WSGI="/var/www/${USER,,}_eu_pythonanywhere_com_wsgi.py"
+if [ ! -f "$WSGI" ]; then
+    echo "Nenašel jsem $WSGI – je webová aplikace založená (záložka Web)?" >&2
+    exit 1
+fi
+touch "$WSGI"
 
 echo "Hotovo – ukázka běží na nové verzi."

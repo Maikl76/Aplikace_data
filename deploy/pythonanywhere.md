@@ -8,6 +8,9 @@ nahrávání souborů).
 Výsledná adresa: `https://JMENO.eu.pythonanywhere.com`
 
 Všude níže nahraďte **JMENO** svým uživatelským jménem na PythonAnywhere.
+**Pozor na velká písmena:** v cestách (`/home/JMENO/...`) piště jméno
+přesně, jak je (např. `Maikl76`); v adrese (`JMENO.eu.pythonanywhere.com`)
+je vždycky malými (`maikl76`).
 
 ---
 
@@ -37,8 +40,13 @@ cd Aplikace_data
 ## 4. Prostředí a knihovny
 
 ```
-mkvirtualenv --python=/usr/bin/python3.11 ftvs
+mkvirtualenv --python=$(which python3.11) ftvs
 ```
+
+> Cestu k Pythonu nepište napevno. Na PythonAnywhere je víc instalací
+> a při neshodě spadne instalace knihoven na
+> `No module named '_posixsubprocess'`. `$(which python3.11)` vezme tu,
+> kterou systém opravdu používá.
 
 Na začátku řádku se objeví `(ftvs)`.
 
