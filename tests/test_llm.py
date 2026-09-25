@@ -29,6 +29,7 @@ class FakeModel:
         self.reply = "Výchozí odpověď."
         self.status = 200
         self.requests = []
+        self.models = ["testovaci-model", "google/gemma-3-4b"]
 
     def handler(self):
         fake = self
@@ -39,6 +40,13 @@ class FakeModel:
                 fake.requests.append({"path": self.path, "body": body})
                 payload = json.dumps({"choices": [{"message": {"content": fake.reply}}]})
                 self.send_response(fake.status)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(payload.encode())
+
+            def do_GET(self):
+                payload = json.dumps({"data": [{"id": m} for m in fake.models]})
+                self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
                 self.wfile.write(payload.encode())
@@ -206,3 +214,19 @@ def test_kontrola_cisel_bere_i_fakta(mereni):
 ])
 def test_identifikatory_nejsou_cisla(text, ocekavano):
     assert narrative.verify_numbers(text, [], {}) == ocekavano
+
+
+def test_seznam_modelu(model):
+    assert llm.list_models() == ["testovaci-model", "google/gemma-3-4b"]
+
+
+def test_llm_check_upozorni_na_spatny_nazev(model, settings, capsys):
+    """Nejčastější chyba u LM Studia: název modelu nesedí s identifikátorem."""
+    from django.core.management import call_command
+
+    settings.LLM_MODEL = "gemma3:4b"     # název z Ollamy, v LM Studiu jiný
+    call_command("llm_check")
+    vystup = capsys.readouterr().out
+    assert "google/gemma-3-4b" in vystup
+    assert "v nabídce není" in vystup
+    assert model.requests == []          # model se vůbec nevolal

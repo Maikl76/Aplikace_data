@@ -65,7 +65,7 @@ def chat(messages: list[dict], *, model: str | None = None,
     except urllib.error.URLError as exc:
         raise LLMError(
             f"Model není dostupný na {settings.LLM_BASE_URL} ({exc.reason}). "
-            f"Běží Ollama?"
+            f"Běží Ollama, nebo LM Studio se zapnutým serverem?"
         ) from exc
     except TimeoutError as exc:
         raise LLMError(f"Model neodpověděl do {timeout or settings.LLM_TIMEOUT} s.") from exc
@@ -84,3 +84,19 @@ def chat(messages: list[dict], *, model: str | None = None,
     seconds = time.monotonic() - started
     logger.info("Model %s odpověděl za %.1f s", model, seconds)
     return LLMReply(text=text, model=model, seconds=seconds)
+
+
+def list_models(*, timeout: int = 10) -> list[str]:
+    """
+    Modely, které server nabízí (``GET /v1/models``).
+
+    Hlavně kvůli LM Studiu: název modelu v aplikaci musí přesně sedět
+    s identifikátorem na serveru a ten se od názvu v nabídce často liší.
+    """
+    url = settings.LLM_BASE_URL.rstrip("/") + "/models"
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as resp:
+            body = json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, ValueError) as exc:
+        raise LLMError(f"Seznam modelů se nepodařilo načíst: {exc}") from exc
+    return [item.get("id", "") for item in body.get("data", []) if item.get("id")]

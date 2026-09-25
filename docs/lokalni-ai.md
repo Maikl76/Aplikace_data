@@ -26,7 +26,78 @@ sestaví souvislý český souhrn s celkovým zhodnocením.
 - Zprávu vydává člověk. Text od modelu si před vydáním přečtěte – kontrola
   čísel neodhalí nešikovnou formulaci.
 
-## Instalace (Windows)
+## Instalace s LM Studiem (Windows)
+
+LM Studio je aplikace s grafickým rozhraním: modely se v ní hledají,
+stahují a zapínají klikáním.
+
+### 1. Instalace
+
+Stáhněte z **https://lmstudio.ai** a nainstalujte.
+
+### 2. Model
+
+V LM Studiu vlevo **Discover** (lupa) a vyhledejte:
+
+| Paměť | Hledejte | |
+|---|---|---|
+| 8 GB | `gemma-3-4b` | |
+| 16 GB | `gemma-3-12b` nebo `qwen3-8b` | |
+
+U výsledku LM Studio ukazuje, jestli se model do vašeho počítače vejde
+(*Full GPU offload possible* / *Likely too large*). Stáhněte variantu
+označenou **Q4_K_M** – dobrý poměr kvality a velikosti.
+
+Rychlá zkouška: záložka **Chat**, nahoře vyberte model a napište
+*„Napiš jednou větou česky, co je výskok z podřepu.“*
+
+### 3. Server
+
+Vlevo záložka **Developer** (zelená ikona `>_`):
+
+1. Nahoře vyberte stažený model (**Select a model to load**).
+2. Přepínač **Status: Stopped** → **Running**.
+
+Server běží na `http://localhost:1234`. Nechte LM Studio otevřené –
+když ho zavřete, server se vypne.
+
+### 4. Propojení s aplikací
+
+V okně, kde spouštíte aplikaci (s aktivním `(.venv)`):
+
+```
+git pull
+python manage.py migrate
+```
+
+```
+set LLM_ENABLED=True
+set LLM_BASE_URL=http://localhost:1234/v1
+set LLM_MODEL=zatim-nevim
+```
+
+```
+python manage.py llm_check
+```
+
+Příkaz vypíše, jaké modely server nabízí, a upozorní, že `zatim-nevim`
+mezi nimi není. **Zkopírujte název přesně, jak ho vypsal** (třeba
+`google/gemma-3-4b`) a nastavte ho:
+
+```
+set LLM_MODEL=google/gemma-3-4b
+python manage.py llm_check
+```
+
+Teď musí skončit `Spojení funguje, čísla sedí.`
+
+> Název modelu v LM Studiu se od toho, co vidíte v nabídce, často liší.
+> Proto ho nechte vypsat, místo abyste ho opisoval.
+
+Pak `python manage.py runserver` jako obvykle a pokračujte bodem
+*Zkouška na zprávě* níže.
+
+## Instalace s Ollamou (Windows)
 
 ### 1. Ollama
 
@@ -85,7 +156,7 @@ zasáhla.
 
 Pak `python manage.py runserver` jako obvykle.
 
-### 4. Zkouška na zprávě
+## Zkouška na zprávě
 
 **Měření → testovací den → Vytvořit zprávu z tohoto měření.** Na stránce
 zprávy vpravo v části *Doložitelnost* uvidíte, kdo text sestavil
@@ -106,7 +177,7 @@ generování přesune na pozadí.
 |---|---|---|
 | `LLM_ENABLED` | `False` | zapnutí modelu |
 | `LLM_MODEL` | `gemma3:4b` | název modelu v Ollamě |
-| `LLM_BASE_URL` | `http://localhost:11434/v1` | adresa; funguje i s LM Studiem, vLLM, llama.cpp |
+| `LLM_BASE_URL` | `http://localhost:11434/v1` | adresa serveru: Ollama `:11434`, LM Studio `http://localhost:1234/v1` |
 | `LLM_TIMEOUT` | `300` | kolik sekund čekat na odpověď |
 | `LLM_TEMPERATURE` | `0.2` | nízká = střídmější, méně vymýšlí |
 

@@ -22,6 +22,28 @@ class Command(BaseCommand):
         self.stdout.write(f"Model:   {settings.LLM_MODEL}")
         self.stdout.write(f"Zapnuto: {'ano' if settings.LLM_ENABLED else 'NE (LLM_ENABLED)'}\n")
 
+        try:
+            dostupne = llm.list_models()
+        except llm.LLMError as exc:
+            self.stdout.write(self.style.ERROR(f"Server nedostupný: {exc}"))
+            self.stdout.write(
+                "Běží Ollama? U LM Studia: záložka Developer → Start Server."
+            )
+            return
+
+        if dostupne:
+            self.stdout.write("Server nabízí:")
+            for nazev in dostupne:
+                znacka = "  ← nastavený" if nazev == settings.LLM_MODEL else ""
+                self.stdout.write(f"  {nazev}{znacka}")
+            self.stdout.write("")
+            if settings.LLM_MODEL not in dostupne:
+                self.stdout.write(self.style.WARNING(
+                    f"Nastavený model „{settings.LLM_MODEL}“ v nabídce není. "
+                    f"Zkopírujte do LLM_MODEL jeden z názvů výše přesně, jak je."
+                ))
+                return
+
         messages = [
             {"role": "system", "content":
                 "Odpovídej česky, jednou větou, a používej jen čísla ze zadání."},
