@@ -13,7 +13,10 @@ from apps.analytics import queries
 from apps.analytics.services import find_norm
 from apps.catalog.models import ProtocolMetric
 
-MAX_METRICS = 12
+from . import narrative
+from .results import change_verdict
+
+MAX_METRICS = 20
 MAX_ASYMMETRIES = 5
 
 
@@ -37,7 +40,7 @@ def build(session, findings, citations) -> dict:
             {"text": f.text, "duvod": f.suppressed_reason}
             for f in findings if f.suppressed
         ],
-        "doporuceni_z_pravidel": _recommendations(findings),
+        "doporuceni_z_pravidel": narrative.recommendations(findings),
         "klicove_metriky": _key_metrics(session),
         "asymetrie": _asymmetries(session),
         "citace": [
@@ -46,19 +49,6 @@ def build(session, findings, citations) -> dict:
             for i, c in enumerate(citations, start=1)
         ],
     }
-
-
-def _recommendations(findings) -> list[str]:
-    from apps.rules.engine import formatter
-
-    out = []
-    for f in findings:
-        if f.suppressed or not f.rule.recommendation_template:
-            continue
-        text = formatter.format_safe(f.rule.recommendation_template, f.values)
-        if text not in out:
-            out.append(text)
-    return out
 
 
 def _key_metrics(session) -> list[dict]:
@@ -86,11 +76,14 @@ def _key_metrics(session) -> list[dict]:
         if before is not None:
             delta = entry["value"] - before["value"]
             item["predchozi_hodnota"] = round(before["value"], d)
-            item["zmena"] = round(delta, d)
+            # Rozdíl zaokrouhlených hodnot, ne zaokrouhlený rozdíl: čtenář
+            # si ho ověří odečtením čísel, která vidí (37,5 − 36,9 = 0,6).
+            item["zmena"] = round(item["hodnota"] - item["predchozi_hodnota"], d)
             if metric.mdc is None:
                 item["zmena_posouzeni"] = "nelze posoudit, metrika nemá stanovenou MDC"
             elif metric.change_is_real(delta):
-                item["zmena_posouzeni"] = "skutečná změna, přesahuje chybu měření"
+                smer, _ = change_verdict(metric, delta)
+                item["zmena_posouzeni"] = f"{smer}, skutečná změna přesahující chybu měření"
                 item["mdc"] = round(metric.mdc, d)
             else:
                 item["zmena_posouzeni"] = "v pásmu chyby měření, bez prokazatelného posunu"

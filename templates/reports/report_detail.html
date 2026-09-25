@@ -12,6 +12,15 @@
   </span>
 </div>
 
+<div class="mb-4 p-3 rounded-lg bg-white border border-slate-200 flex flex-wrap items-center gap-3">
+  <a href="{% url 'report_preview' report.pk %}" target="_blank"
+     class="bg-slate-900 text-white rounded px-4 py-2 text-sm">Otevřít celou zprávu</a>
+  <span class="text-sm text-slate-600">
+    výsledky všech testů, grafy vývoje a stranových rozdílů, nálezy a doporučení –
+    v podobě pro tisk a předání
+  </span>
+</div>
+
 <div class="grid lg:grid-cols-3 gap-6">
   <div class="lg:col-span-2 space-y-4">
     <section class="bg-white p-4 rounded-lg border border-slate-200">
@@ -35,6 +44,20 @@
         {% endfor %}
       </section>
     {% endif %}
+
+    <section class="bg-white p-4 rounded-lg border border-slate-200">
+      <h2 class="font-semibold mb-2">Doporučení z pravidel ({{ recommendations|length }})</h2>
+      {% if recommendations %}
+        <ul class="text-sm list-disc pl-5 space-y-1">
+          {% for r in recommendations %}<li>{{ r }}</li>{% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-sm text-slate-600">
+          Žádné pravidlo laboratoře nevydalo doporučení. Vlastní doporučení
+          můžete napsat do komentáře níže – ve zprávě se objeví v části Doporučení.
+        </p>
+      {% endif %}
+    </section>
 
     {% if suppressed %}
       <section class="bg-slate-100 p-4 rounded-lg border border-slate-300">
@@ -68,7 +91,7 @@
       <form method="post" class="bg-white p-4 rounded-lg border border-slate-200">
         {% csrf_token %}
         <label class="block">
-          <span class="font-semibold">Komentář diagnostika</span>
+          <span class="font-semibold">Komentář a doporučení diagnostika</span>
           <textarea name="custom_note" rows="4"
                     class="mt-2 w-full border border-slate-300 rounded px-3 py-2 text-sm"
                     >{{ report.custom_note }}</textarea>

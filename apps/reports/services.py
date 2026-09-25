@@ -23,7 +23,7 @@ from django.utils import timezone
 from apps.rules import engine, evidence
 from apps.subjects.models import Consent
 
-from . import narrative
+from . import narrative, results, svg
 from .models import Report, ReportDelivery
 
 logger = logging.getLogger(__name__)
@@ -97,23 +97,58 @@ def _inputs(session, findings) -> dict:
 
 def report_context(report) -> dict:
     """Podklad pro náhled i pro PDF – jedno místo, jeden obsah."""
-    findings = list(report.session.findings.select_related("rule").all()) \
-        if report.session else []
+    session = report.session
+    findings = list(session.findings.select_related("rule").all()) if session else []
     findings.sort(key=engine.severity_order)
     citations = evidence.articles_for(findings)
-    return {
+    active = [f for f in findings if not f.suppressed]
+
+    context = {
         "report": report,
-        "session": report.session,
+        "session": session,
         "subject": report.subject,
-        "findings": [f for f in findings if not f.suppressed],
+        "findings": active,
         "suppressed": [f for f in findings if f.suppressed],
+        "recommendations": narrative.recommendations(active),
         "citations": citations,
         "population_warnings": evidence.population_warnings(citations),
         "generated_at": timezone.now(),
+        "results": [],
+        "trends": [],
+        "asymmetries": [],
+        "asymmetry_threshold": results.ASYMMETRY_THRESHOLD_PCT,
     }
+    if session is None:
+        return context
+
+    context["results"] = results.protocol_results(session)
+    context["trends"] = [
+        {
+            "title": s["metric"].name,
+            "label": results.qualifier_label(s["qualifiers"]),
+            "unit": s["metric"].unit,
+            "svg": svg.trend_svg(s["metric"], s["points"], norm=s["norm"]),
+            "caption": svg.trend_caption(s["metric"], s["points"]),
+            "norm": s["norm"],
+        }
+        for s in results.trend_series(session)
+    ]
+    asymmetries = results.asymmetries(session)
+    context["asymmetries"] = asymmetries
+    if asymmetries:
+        context["asymmetry_svg"] = svg.asymmetry_svg(
+            asymmetries[:12], threshold_pct=results.ASYMMETRY_THRESHOLD_PCT)
+    context["asymmetries_over"] = sum(r["exceeds_threshold"] for r in asymmetries)
+    return context
 
 
 def render_html(report) -> str:
+    """
+    Podoba zprávy. Vydaná zpráva se ukazuje ze snímku pořízeného při
+    vydání – pozdější oprava dat nebo pravidel ji nesmí potichu změnit.
+    """
+    if report.rendered_html:
+        return report.rendered_html
     return render_to_string("reports/report.html", report_context(report))
 
 
@@ -136,16 +171,17 @@ def release(report, *, user) -> Report:
     if report.status != Report.Status.DRAFT:
         raise ReportError("Vydat lze jen koncept.")
 
+    report.status = Report.Status.RELEASED
+    report.released_at = timezone.now()
+    report.released_by = user
+    report.rendered_html = render_html(report)
+
     if pdf := render_pdf(report):
         report.pdf.save(f"{report.report_number}.pdf", ContentFile(pdf), save=False)
 
     data = json.dumps(_machine_readable(report), ensure_ascii=False, indent=2)
     report.data_json.save(f"{report.report_number}.json",
                           ContentFile(data.encode()), save=False)
-
-    report.status = Report.Status.RELEASED
-    report.released_at = timezone.now()
-    report.released_by = user
     report.save()
 
     if report.supersedes_id:
@@ -169,6 +205,7 @@ def _machine_readable(report) -> dict:
         "vydano": report.released_at.isoformat() if report.released_at else None,
         "sportovec": {"kod": report.subject.code, "sport": str(report.subject.sport or "")},
         "mereni": {"datum": report.session.date.isoformat()} if report.session else None,
+        "vysledky": results.machine_readable(context["results"]),
         "nalezy": [
             {"pravidlo": f.rule.code, "verze_pravidla": f.rule_version,
              "zavaznost": f.severity, "text": f.text, "hodnoty": f.values}
@@ -184,6 +221,7 @@ def _machine_readable(report) -> dict:
              "populace_odpovida": c["population_matches"]}
             for c in context["citations"]
         ],
+        "doporuceni": context["recommendations"],
         "dolozka": report.disclaimer,
     }
 

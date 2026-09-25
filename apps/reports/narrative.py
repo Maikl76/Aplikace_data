@@ -43,8 +43,15 @@ def plural(count: int, one: str, few: str, many: str) -> str:
     return many
 
 
-def compose(session, findings, citations) -> str:
-    """Souvislý text ze strukturovaných nálezů."""
+def compose(session, findings, citations, facts: dict | None = None) -> str:
+    """
+    Souvislý text ze strukturovaných nálezů a klíčových výsledků – bez
+    jazykového modelu. Doporučení v něm nejsou: zpráva je má ve vlastní části.
+    """
+    if facts is None:
+        from . import facts as facts_module
+        facts = facts_module.build(session, findings, citations)
+
     active = [f for f in findings if not f.suppressed]
     suppressed = [f for f in findings if f.suppressed]
 
@@ -54,12 +61,33 @@ def compose(session, findings, citations) -> str:
             "Ve výsledcích testování nebyl nalezen žádný stav, který by podle "
             "platných pravidel vyžadoval doporučení."
         )
-    else:
-        parts.append(_finding_paragraph(active))
+    elif active:
+        parts.append("Zjištěné nálezy:\n" + "\n".join(f"• {f.text}" for f in active))
 
-    recommendations = _recommendations(active)
-    if recommendations:
-        parts.append("Doporučení:\n" + "\n".join(f"• {r}" for r in recommendations))
+    # Souhrn vypíše jen skutečné změny; ostatní klíčové ukazatele shrne
+    # jménem (bez počtu – číslo, které není ve faktech, by kontrola odmítla).
+    klicove = facts.get("klicove_metriky", [])
+    skutecne = [m for m in klicove if "skutečná změna" in m.get("zmena_posouzeni", "")]
+    if skutecne:
+        parts.append("Změny proti minulému měření, které přesahují chybu měření:\n"
+                     + "\n".join(_metric_line(m) for m in skutecne))
+    if v_chybe := _names(m for m in klicove if "v pásmu chyby" in m.get("zmena_posouzeni", "")):
+        parts.append(f"{'U ostatních' if skutecne else 'U'} klíčových ukazatelů "
+                     f"({v_chybe}) je změna v pásmu chyby měření.")
+    if bez_mdc := _names(m for m in klicove if "nelze posoudit" in m.get("zmena_posouzeni", "")):
+        parts.append(f"Změnu nelze posoudit, protože chybí MDC: {bez_mdc}.")
+    if nove := _names(m for m in klicove if "zmena" not in m):
+        parts.append(f"Poprvé měřeno: {nove}.")
+    parts.append("Úplné výsledky všech testů jsou v tabulkách níže.")
+
+    if over := [a for a in facts.get("asymetrie", []) if a["nad_prahem"]]:
+        prah = over[0]["prah_procent"]
+        parts.append(
+            f"Stranový rozdíl nad {prah} %:\n" + "\n".join(
+                f"• {a['metrika']}{' (' + a['upresneni'] + ')' if a['upresneni'] else ''}: "
+                f"{_cz(a['rozdil_procent'])} %, silnější {a['silnejsi_strana']} strana"
+                for a in over)
+        )
 
     if suppressed:
         parts.append(
@@ -67,31 +95,51 @@ def compose(session, findings, citations) -> str:
             + "\n".join(f"• {f.text} ({f.suppressed_reason})" for f in suppressed)
         )
 
+    if recommendations(active):
+        parts.append("Doporučení jsou uvedena v samostatné části zprávy.")
+
     if citations:
         pocet = len(citations)
         parts.append(
             f"Doporučení se opírají o {pocet} "
             f"{plural(pocet, 'citovaný zdroj', 'citované zdroje', 'citovaných zdrojů')} "
-            f"uvedený v závěru zprávy."
-            if pocet == 1 else
-            f"Doporučení se opírají o {pocet} "
-            f"{plural(pocet, 'citovaný zdroj', 'citované zdroje', 'citovaných zdrojů')} "
-            f"uvedené v závěru zprávy."
+            f"{'uvedený' if pocet == 1 else 'uvedené'} v závěru zprávy."
         )
     return "\n\n".join(parts)
 
 
-def _finding_paragraph(findings) -> str:
-    if not findings:
-        return "Žádný nález nad prahem."
-    return "Zjištěné nálezy:\n" + "\n".join(f"• {f.text}" for f in findings)
+def _cz(value) -> str:
+    """Číslo z faktů tak, jak tam je – jen s desetinnou čárkou."""
+    text = f"{value:.6f}".rstrip("0").rstrip(".")
+    return text.replace(".", ",").replace("-", "−")
 
 
-def _recommendations(findings) -> list[str]:
+def _names(metrics) -> str:
+    """Názvy metrik bez opakování (jedna metrika má často víc kombinací)."""
+    seen = []
+    for m in metrics:
+        if m["metrika"] not in seen:
+            seen.append(m["metrika"])
+    return ", ".join(name[0].lower() + name[1:] for name in seen)
+
+
+def _metric_line(m: dict) -> str:
+    unit = f" {m['jednotka']}" if m["jednotka"] and m["jednotka"] != "-" else ""
+    name = m["metrika"] + (f" ({m['upresneni']})" if m["upresneni"] else "")
+    zmena = m["zmena"]
+    sign = "+" if zmena > 0 else ""
+    return (f"• {name}: {_cz(m['hodnota'])}{unit}; minule {_cz(m['predchozi_hodnota'])}{unit}, "
+            f"změna {sign}{_cz(zmena)}{unit} – {m['zmena_posouzeni']}")
+
+
+def recommendations(findings) -> list[str]:
+    """Doporučení z pravidel, bez opakování a bez potlačených nálezů."""
     from apps.rules.engine import formatter
 
     out = []
     for finding in findings:
+        if finding.suppressed:
+            continue
         template = finding.rule.recommendation_template
         if not template:
             continue
@@ -172,8 +220,12 @@ nedoporučuj.
 8. Nepiš úvodní ani závěrečné fráze o sobě, nepiš doložku o lékaři – \
 tu zpráva obsahuje zvlášť.
 
-Struktura: krátké celkové zhodnocení (2–4 věty), pak „Zjištění:“ s odrážkami, \
-pak „Doporučení:“ s odrážkami převzatými z pole doporuceni_z_pravidel. \
+9. Vlastní doporučení nevymýšlej. Doporučení z pole doporuceni_z_pravidel \
+zpráva uvádí ve zvláštní části; v souhrnu na ně můžeš jen odkázat.
+
+Struktura: celkové zhodnocení (3–5 vět: co se měřilo, jak si sportovec \
+stojí, co se proti minulému měření skutečně změnilo), pak „Hlavní zjištění:“ \
+s odrážkami – nálezy, skutečné změny a stranové rozdíly nad prahem. \
 Rozsah nejvýš 250 slov."""
 
 
@@ -195,33 +247,48 @@ def compose_report(session, findings, citations) -> Composition:
     from . import facts as facts_module
     from . import llm
 
-    fallback = compose(session, findings, citations)
-    if not llm.is_enabled():
-        return Composition(text=fallback, source="šablona")
-
     facts = facts_module.build(session, findings, citations)
+    fallback = compose(session, findings, citations, facts)
+    if not llm.is_enabled():
+        return Composition(text=fallback, source="šablona", facts=facts)
+
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content":
             "Fakta z testování:\n\n" + json.dumps(facts, ensure_ascii=False, indent=2)},
     ]
 
-    try:
-        reply = llm.chat(messages)
-    except llm.LLMError as exc:
-        logger.warning("Model se pro %s nepoužil: %s", session.subject.code, exc)
-        return Composition(text=fallback, source="šablona",
-                           note=f"Jazykový model se nepoužil: {exc}")
+    seconds = 0.0
+    for attempt in (1, 2):
+        try:
+            reply = llm.chat(messages)
+        except llm.LLMError as exc:
+            logger.warning("Model se pro %s nepoužil: %s", session.subject.code, exc)
+            return Composition(text=fallback, source="šablona", facts=facts,
+                               note=f"Jazykový model se nepoužil: {exc}")
+        seconds += reply.seconds
 
-    if problems := verify_numbers(reply.text, findings, facts):
-        logger.warning("Model %s napsal nepodložená čísla %s – použita šablona.",
-                       reply.model, problems)
-        return Composition(
-            text=fallback, source="šablona", facts=facts,
-            note=(f"Text od modelu {reply.model} byl odmítnut: obsahoval čísla, "
-                  f"která v datech nejsou ({', '.join(problems[:5])}). "
-                  f"Použita šablona."),
-        )
+        problems = verify_numbers(reply.text, findings, facts)
+        if not problems:
+            return Composition(
+                text=reply.text, source=reply.model, facts=facts,
+                note=(f"Text sestavil model {reply.model} za {seconds:.0f} s"
+                      + (" (na druhý pokus)." if attempt == 2 else ".")),
+            )
 
-    return Composition(text=reply.text, source=reply.model, facts=facts,
-                       note=f"Text sestavil model {reply.model} za {reply.seconds:.0f} s.")
+        reason = f"obsahoval čísla, která v datech nejsou ({', '.join(problems[:5])})"
+        logger.warning("Model %s %s (pokus %s).", reply.model, reason, attempt)
+        # Jedna oprava: model dostane vlastní text a výčet čísel navíc.
+        # Malé modely občas něco dopočítají; napodruhé to obvykle opraví.
+        messages = messages + [
+            {"role": "assistant", "content": reply.text},
+            {"role": "user", "content":
+                f"Text obsahuje čísla, která ve faktech nejsou: {', '.join(problems)}. "
+                "Napiš ho znovu a použij jen čísla, která jsou ve faktech, "
+                "přesně jak tam jsou. Nic nepočítej."},
+        ]
+
+    return Composition(
+        text=fallback, source="šablona", facts=facts,
+        note=f"Text od modelu {reply.model} byl odmítnut: {reason}. Použita šablona.",
+    )

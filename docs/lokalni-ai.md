@@ -219,6 +219,21 @@ a za jak dlouho.
 Aby měl model o čem psát, zapněte v **Katalogu → Pravidla** ukázková
 pravidla (zakládají se vypnutá, protože jejich prahy jsou ilustrativní).
 
+Co ve zprávě píše model a co ne:
+
+| Část zprávy | Kdo ji tvoří |
+|---|---|
+| 1. Souhrn | model (nebo šablona, když model neuspěje) |
+| 2. Výsledky testů – tabulky | aplikace z naměřených hodnot |
+| 3. Vývoj v čase – grafy | aplikace |
+| 4. Stranové rozdíly | aplikace |
+| 5. Nálezy | pravidla laboratoře |
+| 6. Doporučení | pravidla laboratoře + komentář diagnostika |
+
+Model tedy nemůže změnit žádné číslo v tabulkách ani vymyslet doporučení.
+Když v souhrnu napíše číslo, které v datech není, dostane jednu šanci text
+opravit; teprve pak se použije šablona.
+
 ## Rychlost
 
 Bez grafické karty trvá souhrn jednoho sportovce řádově desítky sekund

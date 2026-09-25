@@ -55,6 +55,9 @@ class Report(OrgScopedModel):
                                        help_text="Proč se model nepoužil, pokud se "
                                                  "nepoužil – např. odmítnutý text.")
     input_fingerprint = models.CharField("otisk vstupů", max_length=64, blank=True)
+    rendered_html = models.TextField(
+        "podoba při vydání", blank=True,
+        help_text="Snímek zprávy pořízený při vydání; vydaná zpráva se už nepřepočítává.")
 
     pdf = models.FileField("PDF", upload_to="reports/%Y/%m/", blank=True)
     data_json = models.FileField("strojově čitelná příloha", upload_to="reports/%Y/%m/",

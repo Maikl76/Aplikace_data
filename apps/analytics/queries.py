@@ -7,13 +7,14 @@ from apps.measurements.models import Measurement, Side
 from .services import asymmetries_for_run, find_norm
 
 
-def primary_metric_series(subject, *, limit_metrics: int = 6):
+def primary_metric_series(subject, *, limit_metrics: int = 6, until=None):
     """
     Pro klíčové metriky vrátí vývoj v čase.
 
     Z každého testovacího dne se bere průměr platných pokusů – jeden bod
     grafu je jedna návštěva, ne jeden pokus. Kvalifikátory se rozlišují,
-    takže "210°/s koncentricky levá" je vlastní řada.
+    takže "210°/s koncentricky levá" je vlastní řada. ``until`` omezí
+    řadu na měření do daného dne včetně – zpráva nesmí ukazovat budoucnost.
     """
     measurements = (
         Measurement.objects
@@ -22,6 +23,8 @@ def primary_metric_series(subject, *, limit_metrics: int = 6):
         .select_related("metric", "trial__protocol_run__session")
         .distinct()
     )
+    if until is not None:
+        measurements = measurements.filter(trial__protocol_run__session__date__lte=until)
 
     buckets = defaultdict(list)
     for m in measurements:
@@ -130,10 +133,32 @@ def session_metric_values(session) -> dict:
 
 
 def previous_session_values(session) -> dict:
-    """Totéž pro nejbližší předchozí testovací den, kvůli změně v čase."""
-    previous = (session.subject.sessions
-                .filter(date__lt=session.date).order_by("-date").first())
-    return session_metric_values(previous) if previous else {}
+    """
+    Poslední dřívější hodnota každé metriky (i s kvalifikátory), kvůli změně
+    v čase.
+
+    Bere se nejbližší dřívější den, kdy se ta konkrétní metrika měřila –
+    ne prostě předchozí testovací den. Izokinetika se často měří jen
+    dvakrát do roka; kdyby mezi tím proběhl jen výskok, tvrdila by zpráva
+    „první měření“, zatímco graf vedle ukazuje starší bod.
+    """
+    buckets = defaultdict(list)
+    for m in (Measurement.objects
+              .filter(trial__protocol_run__session__subject=session.subject,
+                      trial__protocol_run__session__date__lt=session.date,
+                      trial__is_valid=True)
+              .select_related("metric", "trial__protocol_run__session")):
+        key = (m.metric.code, m.side, m.mode, m.speed, m.segment)
+        buckets[key].append((m.trial.protocol_run.session.date, m.metric, m.value))
+
+    out = {}
+    for key, rows in buckets.items():
+        latest = max(day for day, _, _ in rows)
+        values = [v for day, _, v in rows if day == latest]
+        out[key] = {"metric": rows[0][1], "value": sum(values) / len(values),
+                    "date": latest, "side": key[1], "mode": key[2],
+                    "speed": key[3], "segment": key[4]}
+    return out
 
 
 def session_asymmetries(session, *, threshold_pct: float = 10.0) -> list[dict]:

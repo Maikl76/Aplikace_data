@@ -27,6 +27,7 @@ class FakeModel:
 
     def __init__(self):
         self.reply = "Výchozí odpověď."
+        self.replies = []          # postupné odpovědi; po vyčerpání platí reply
         self.status = 200
         self.requests = []
         self.models = ["testovaci-model", "google/gemma-3-4b"]
@@ -38,7 +39,8 @@ class FakeModel:
             def do_POST(self):
                 body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
                 fake.requests.append({"path": self.path, "body": body})
-                payload = json.dumps({"choices": [{"message": {"content": fake.reply}}]})
+                text = fake.replies.pop(0) if fake.replies else fake.reply
+                payload = json.dumps({"choices": [{"message": {"content": text}}]})
                 self.send_response(fake.status)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
@@ -230,3 +232,26 @@ def test_llm_check_upozorni_na_spatny_nazev(model, settings, capsys):
     assert "google/gemma-3-4b" in vystup
     assert "v nabídce není" in vystup
     assert model.requests == []          # model se vůbec nevolal
+
+
+def test_model_dostane_druhou_sanci(mereni, model):
+    """Malý model občas něco dopočítá – po upozornění to obvykle opraví."""
+    model.replies = ["Poměr IR/ER 0,85 je o 15 % pod hranicí 1,00.",
+                     "Poměr IR/ER 0,85 je pod hranicí 1,00."]
+    user, session = mereni
+    report = services.build_draft(session, user=user)
+
+    assert report.llm_model == "testovaci-model"
+    assert report.summary == "Poměr IR/ER 0,85 je pod hranicí 1,00."
+    assert "druhý pokus" in report.generation_note
+    oprava = model.requests[1]["body"]["messages"][-1]["content"]
+    assert "15" in oprava and "Nic nepočítej" in oprava
+
+
+def test_prazdna_odpoved_se_nepouzije(mereni, model):
+    model.reply = "   "
+    user, session = mereni
+    report = services.build_draft(session, user=user)
+    assert report.llm_model == "šablona"
+    assert "prázdný" in report.generation_note
+    assert "0,85" in report.summary

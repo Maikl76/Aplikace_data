@@ -26,6 +26,29 @@
     .citace { font-size: 9.5pt; }
     .citace li { margin-bottom: 1.5mm; }
     .upozorneni { color: #8a5a00; font-size: 9.5pt; }
+    .protokol { margin: 4mm 0 1mm; font-size: 11pt; font-weight: 600; }
+    .protokol-meta { color: #52514e; font-size: 9pt; font-weight: normal; }
+    table.vysledky { font-size: 9.5pt; }
+    table.vysledky th, table.vysledky td { padding: 1.2mm 1.5mm; vertical-align: top; }
+    table.vysledky tr { break-inside: avoid; }
+    .upresneni { color: #52514e; font-size: 8.5pt; }
+    .pokusy { color: #898781; font-size: 8.5pt; }
+    .klicova { font-weight: 600; }
+    table.vysledky tr:has(td.pokracovani) td { border-top: 0; }
+    td.pokracovani { padding-left: 4mm; }
+    .posouzeni { white-space: nowrap; }
+    .posouzeni.worse { font-weight: 600; }
+    .grafy { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm 6mm; }
+    figure { margin: 0; break-inside: avoid; }
+    figcaption { font-size: 9pt; color: #52514e; margin-top: 1mm; }
+    .graf-nazev { font-size: 10pt; font-weight: 600; margin-bottom: 1mm; }
+    .graf-nazev span { font-weight: normal; color: #52514e; font-size: 9pt; }
+    .vysvetlivka { font-size: 8.5pt; color: #52514e; margin-top: 2mm; }
+    .doporuceni li { margin-bottom: 1.5mm; }
+    .prazdne { color: #52514e; font-style: italic; }
+    h2 { break-after: avoid; }
+    @media screen { body { max-width: 190mm; margin: 10mm auto; padding: 0 16px; } }
+    @media (max-width: 640px) { .grafy { grid-template-columns: 1fr; } }
     footer { margin-top: 8mm; font-size: 8.5pt; color: #898781;
              border-top: 1px solid #e1e0d9; padding-top: 2mm; }
   </style>
@@ -54,16 +77,118 @@
   {% endif %}
 </table>
 
-<h2>Souhrn</h2>
+<h2>1. Souhrn</h2>
 <div>{{ report.summary|linebreaks }}</div>
 
-{% if report.custom_note %}
-  <h2>Komentář diagnostika</h2>
-  <div>{{ report.custom_note|linebreaks }}</div>
+<h2>2. Výsledky testů</h2>
+{% for block in results %}
+  <div class="protokol">{{ block.protocol.name }}
+    <span class="protokol-meta">
+      {% if block.protocol.device %} · {{ block.protocol.device }}{% endif %}
+      · pokusů {{ block.trials }}{% if block.invalid %}, z toho neplatných {{ block.invalid|length }}{% endif %}
+    </span>
+  </div>
+  {% if block.rows %}
+  <table class="vysledky">
+    <thead>
+      <tr>
+        <th style="width:34%">Ukazatel</th>
+        <th class="cislo" style="text-align:right">Hodnota</th>
+        <th class="cislo" style="text-align:right">Minule</th>
+        <th class="cislo" style="text-align:right">Změna</th>
+        <th>Posouzení změny</th>
+        <th class="cislo" style="text-align:right">Norma</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for r in block.rows %}
+      <tr>
+        <td{% if not r.first_of_metric %} class="pokracovani"{% endif %}>
+          {% if r.first_of_metric %}<span {% if r.is_primary %}class="klicova"{% endif %}>{{ r.metric.name }}</span>{% if r.label %}<br>{% endif %}{% endif %}
+          {% if r.label %}<span class="upresneni">{{ r.label }}</span>{% endif %}
+        </td>
+        <td class="cislo">
+          {{ r.value_txt }}{% if r.metric.unit and r.metric.unit != "-" %} {{ r.metric.unit }}{% endif %}
+          {% if r.trials_txt %}<br><span class="pokusy">{{ r.trials_txt }}</span>{% endif %}
+        </td>
+        <td class="cislo">{{ r.previous_txt|default:"—" }}{% if r.previous_date %}<br><span class="pokusy">{{ r.previous_date|date:"d.m.y" }}</span>{% endif %}</td>
+        <td class="cislo">{{ r.delta_txt|default:"—" }}</td>
+        <td class="posouzeni {{ r.verdict_kind }}">
+          {% if r.verdict_kind == "better" %}↑ {% elif r.verdict_kind == "worse" %}↓ {% elif r.verdict_kind == "noise" %}≈ {% endif %}{{ r.verdict|default:"první měření" }}
+        </td>
+        <td class="cislo">{% if r.norm_txt %}{{ r.norm_txt }}{% if r.z_txt %}<br><span class="pokusy">z = {{ r.z_txt }}</span>{% endif %}{% else %}—{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p class="prazdne">Bez platných hodnot.</p>
+  {% endif %}
+  {% if block.invalid %}
+    <p class="vysvetlivka">Neplatné pokusy:
+      {% for t in block.invalid %}č. {{ t.number }}{% if t.invalid_reason %} ({{ t.invalid_reason }}){% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}.
+    </p>
+  {% endif %}
+{% empty %}
+  <p class="prazdne">K tomuto měření nejsou zapsané žádné výsledky.</p>
+{% endfor %}
+{% if results %}
+  <p class="vysvetlivka">
+    Hodnota = průměr platných pokusů (jednotlivé pokusy pod ní). Tučně klíčové ukazatele.
+    Změna se posuzuje proti nejmenší detekovatelné změně (MDC): změna menší než MDC
+    je „v pásmu chyby měření“ a nelze ji vykládat jako zlepšení ani zhoršení.
+    Norma = průměr ± směrodatná odchylka referenční skupiny, z = odchylka od průměru
+    v násobcích směrodatné odchylky.
+  </p>
 {% endif %}
 
+<h2>3. Vývoj v čase</h2>
+{% if trends %}
+  <div class="grafy">
+    {% for t in trends %}
+      <figure>
+        <div class="graf-nazev">{{ t.title }}{% if t.label %} <span>· {{ t.label }}</span>{% endif %}{% if t.unit and t.unit != "-" %} <span>({{ t.unit }})</span>{% endif %}</div>
+        {{ t.svg }}
+        <figcaption>{{ t.caption }}{% if t.norm %}. Šedé pásmo: norma ± SD{% endif %}</figcaption>
+      </figure>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="prazdne">Pro klíčové ukazatele zatím není starší měření – vývoj bude
+    k dispozici po dalším testování.</p>
+{% endif %}
+
+<h2>4. Stranové rozdíly</h2>
+{% if asymmetries %}
+  <figure>{{ asymmetry_svg }}
+    <figcaption>
+      Rozdíl mezi levou a pravou stranou v procentech silnější strany.
+      Šedé pásmo = tolerance ±{{ asymmetry_threshold|floatformat:0 }} %;
+      ▲ a oranžová barva = rozdíl nad tolerancí
+      ({{ asymmetries_over }} z {{ asymmetries|length }}).
+    </figcaption>
+  </figure>
+  <table class="vysledky">
+    <thead><tr><th style="width:40%">Ukazatel</th><th class="cislo" style="text-align:right">Levá</th>
+      <th class="cislo" style="text-align:right">Pravá</th><th class="cislo" style="text-align:right">Rozdíl</th><th>Silnější</th></tr></thead>
+    <tbody>
+    {% for a in asymmetries %}
+      <tr>
+        <td>{{ a.metric.name }}{% if a.label %}<br><span class="upresneni">{{ a.label }}</span>{% endif %}</td>
+        <td class="cislo">{{ a.left_txt }}</td>
+        <td class="cislo">{{ a.right_txt }}</td>
+        <td class="cislo">{% if a.exceeds_threshold %}<strong>{{ a.index_txt }} % ▲</strong>{% else %}{{ a.index_txt }} %{% endif %}</td>
+        <td>{{ a.stronger }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="prazdne">V tomto měření nejsou ukazatele měřené zvlášť pro levou a pravou stranu.</p>
+{% endif %}
+
+<h2>5. Nálezy</h2>
 {% if findings %}
-  <h2>Nálezy</h2>
   {% for f in findings %}
     <p class="nalez {{ f.severity }}">
       {{ f.text }}
@@ -71,16 +196,32 @@
         {{ f.rule.code }} v{{ f.rule_version }})</span>
     </p>
   {% endfor %}
+{% else %}
+  <p class="prazdne">Žádný výsledek nepřekročil hranice stanovené pravidly laboratoře.</p>
 {% endif %}
 
 {% if suppressed %}
-  <h2>Nálezy bez doporučení</h2>
   <div class="potlaceno">
+    <strong>Nálezy bez doporučení</strong>
     {% for f in suppressed %}
-      <p style="margin:0 0 2mm">{{ f.text }}<br>
+      <p style="margin:1mm 0 2mm">{{ f.text }}<br>
         <span class="zavaznost">Doporučení nevydáno: {{ f.suppressed_reason }}</span></p>
     {% endfor %}
   </div>
+{% endif %}
+
+<h2>6. Doporučení</h2>
+{% if recommendations %}
+  <ul class="doporuceni">
+    {% for r in recommendations %}<li>{{ r }}</li>{% endfor %}
+  </ul>
+{% endif %}
+{% if report.custom_note %}
+  <p style="margin-bottom:0"><strong>Komentář diagnostika</strong></p>
+  <div>{{ report.custom_note|linebreaks }}</div>
+{% endif %}
+{% if not recommendations and not report.custom_note %}
+  <p class="prazdne">Z výsledků nevyplývá žádné doporučení podle pravidel laboratoře.</p>
 {% endif %}
 
 {% if population_warnings %}

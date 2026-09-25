@@ -53,7 +53,9 @@ def test_koncept_obsahuje_nalezy_i_doporuceni(prostredi):
     assert report.status == Report.Status.DRAFT
     assert report.report_number.startswith("FT-")
     assert "0,85" in report.summary
-    assert "Posílit zevní rotátory" in report.summary
+    # doporučení má zpráva ve vlastní části, souhrn na ni jen odkáže
+    assert "samostatné části" in report.summary
+    assert "Posílit zevní rotátory" in services.render_html(report)
     assert report.input_fingerprint
     assert "ir_er@1" in report.rules_version
 
