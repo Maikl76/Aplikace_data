@@ -97,6 +97,50 @@ Teď musí skončit `Spojení funguje, čísla sedí.`
 Pak `python manage.py runserver` jako obvykle a pokračujte bodem
 *Zkouška na zprávě* níže.
 
+### Když model nejde načíst: diakritika ve jménu uživatele
+
+Příznak: každý model skončí hláškou *Failed to load the model … exited
+before becoming healthy. exitCode=1* a v **Developer → Logs** je
+
+```
+error while handling argument "--chat-template-file": error: failed to open file
+'C:\Users\Michal Vágner\.lmstudio\.internal\temp\...\chat-template.jinja'
+```
+
+Jádro LM Studia (llama.cpp) na Windows neotevře soubor, v jehož cestě je
+diakritika (`á`, `č`, …). Nejde o model, stahovat jiný nepomůže. Řešení
+je přestěhovat pracovní složku LM Studia na cestu bez diakritiky:
+
+1. LM Studio úplně ukončete: zavřete okno a v oznamovací oblasti
+   (ikonky vpravo dole) na ikoně LM Studia pravým tlačítkem → **Quit**.
+2. V příkazovém řádku (`cmd`) přesuňte složku:
+
+   ```
+   move "%USERPROFILE%\.lmstudio" C:\lmstudio
+   ```
+
+3. Řekněte LM Studiu, kde složka teď je:
+
+   ```
+   notepad "%USERPROFILE%\.lmstudio-home-pointer"
+   ```
+
+   V Poznámkovém bloku smažte, co tam je (nebo potvrďte vytvoření nového
+   souboru), napište jediný řádek `C:\lmstudio` a uložte.
+4. Spusťte LM Studio. Stažené modely by měly být vidět v **My Models**;
+   pokud ne, nastavte tam složku modelů na `C:\lmstudio\models`.
+
+Když se model pořád nenačte, podívejte se do logu: cesta v chybě musí
+začínat `C:\lmstudio\`. Pokud tam je pořád `C:\Users\…`, vaše verze LM
+Studia soubor `.lmstudio-home-pointer` nezná. Pak pomůže:
+
+- zapnout UTF-8 v systému: **Nastavení → Čas a jazyk → Jazyk a oblast →
+  Nastavení jazyka pro správu → Změnit místní nastavení systému** →
+  zaškrtnout *Beta: Používat Unicode UTF-8…* a restartovat počítač
+  (týká se celého systému, výjimečně může rozhodit starší programy),
+- nebo použít Ollamu (níže) se složkou modelů mimo profil
+  (`setx OLLAMA_MODELS C:\ollama\models`).
+
 ## Instalace s Ollamou (Windows)
 
 ### 1. Ollama
