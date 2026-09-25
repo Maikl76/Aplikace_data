@@ -48,11 +48,13 @@ def build_draft(session, *, user, supersedes: Report | None = None) -> Report:
     """Vyhodnotí pravidla a složí koncept zprávy."""
     findings = engine.evaluate_session(session)
     citations = evidence.articles_for(findings)
-    text = narrative.compose(session, findings, citations)
+    composition = narrative.compose_report(session, findings, citations)
+    text = composition.text
 
-    # Pojistka i pro deterministický text: kdyby ho někdy psal jazykový
-    # model, tahle kontrola odhalí číslo, které nemá oporu v nálezech.
-    if problems := narrative.verify_numbers(text, findings):
+    # Poslední pojistka: kontrola čísel nad finálním textem, proti týmž
+    # datům, která dostal model. Kdyby kontrolovala méně dat než model
+    # viděl, odmítla by i správný text zmiňující třeba věk nebo datum.
+    if problems := narrative.verify_numbers(text, findings, composition.facts):
         logger.error("Zpráva pro %s obsahuje nepodložená čísla: %s",
                      session.subject.code, problems)
         raise ReportError(
@@ -69,6 +71,8 @@ def build_draft(session, *, user, supersedes: Report | None = None) -> Report:
         supersedes=supersedes,
         summary=text,
         rules_version=_rules_fingerprint(findings),
+        llm_model=composition.source,
+        generation_note=composition.note,
     )
     report.input_fingerprint = report.compute_fingerprint(_inputs(session, findings))
     report.save()

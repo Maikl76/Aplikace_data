@@ -150,6 +150,16 @@ CELERY_TIMEZONE = TIME_ZONE
 # data sportovců. Do ostrého provozu patří False.
 DEMO_MODE = env.bool("DEMO_MODE", default=False)
 
+# Jazykový model pro text zprávy. Vypnutý = text se skládá ze šablon.
+# Rozhraní je kompatibilní s OpenAI, takže funguje s Ollamou, LM Studiem
+# i serverovými nástroji (vLLM, llama.cpp). Model běží lokálně – data
+# neopouštějí počítač ani server, na kterém aplikace běží.
+LLM_ENABLED = env.bool("LLM_ENABLED", default=False)
+LLM_BASE_URL = env("LLM_BASE_URL", default="http://localhost:11434/v1")
+LLM_MODEL = env("LLM_MODEL", default="gemma3:4b")
+LLM_TIMEOUT = env.int("LLM_TIMEOUT", default=300)
+LLM_TEMPERATURE = env.float("LLM_TEMPERATURE", default=0.2)
+
 # Klíč pro šifrování jména a kontaktu v subjects.SubjectIdentity.
 # Prázdná hodnota = identita se neuloží (vývoj na syntetických datech).
 IDENTITY_ENCRYPTION_KEY = env("IDENTITY_ENCRYPTION_KEY", default="")

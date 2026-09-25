@@ -243,10 +243,11 @@ Doporučení vzniká ve třech vrstvách a v tomhle pořadí:
    volném textu, takže je u každého tvrzení dohledatelné, odkud se vzalo.
    Neschválený článek se do zprávy nedostane a neshoda populace se hlásí.
 
-3. **Text** (`apps/reports/narrative.py`) — výchozí implementace skládá text
-   ze šablon nálezů. Jazykový model se dá připojit na stejné rozhraní, ale
-   nesmí počítat ani přidat číslo, které nedostal; `verify_numbers()` to po
-   generování strojově kontroluje a zpráva s nepodloženým číslem se nevydá.
+3. **Text** (`apps/reports/narrative.py`) — lokální jazykový model (Ollama)
+   z hotových faktů napíše souvislý český souhrn. Nic nepočítá ani
+   nehodnotí; `verify_numbers()` po generování zkontroluje, že každé číslo
+   v textu pochází z dat, a jinak použije šablonu. Bez modelu se text
+   skládá ze šablon. Návod v [`docs/lokalni-ai.md`](docs/lokalni-ai.md).
 
 **Kontraindikace.** Pravidlo může mít `{"load_restriction": true}` — pokud má
 sportovec platné omezení zátěže z `external.ExternalExam`, doporučení se
@@ -286,8 +287,8 @@ Další kroky:
    připojit k nim literaturu; teprve pak je zapnout
 3. **Adaptéry na přístroje** — `apps/ingest/adapters/`, kostra i registr jsou
    hotové; přidat ForceDecks, Biodex/HUMAC, Cosmed
-4. **Jazykový model pro text zprávy** — rozhraní i pojistka jsou připravené;
-   před připojením vyřešit, co se smí posílat ven
+4. **Generování textu na pozadí** — s modelem na CPU trvá souhrn desítky
+   sekund; pro provoz přesunout do Celery
 
 ## Vývoj
 

@@ -49,7 +49,11 @@ class Report(OrgScopedModel):
 
     # Otisk pro rekonstrukci: proč zpráva říká to, co říká.
     rules_version = models.CharField("verze sady pravidel", max_length=40, blank=True)
-    llm_model = models.CharField("použitý jazykový model", max_length=80, blank=True)
+    llm_model = models.CharField("text sestavil", max_length=80, blank=True,
+                                 help_text="Název jazykového modelu, nebo „šablona“.")
+    generation_note = models.TextField("poznámka ke vzniku textu", blank=True,
+                                       help_text="Proč se model nepoužil, pokud se "
+                                                 "nepoužil – např. odmítnutý text.")
     input_fingerprint = models.CharField("otisk vstupů", max_length=64, blank=True)
 
     pdf = models.FileField("PDF", upload_to="reports/%Y/%m/", blank=True)

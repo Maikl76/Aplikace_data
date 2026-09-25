@@ -110,6 +110,10 @@
   Zpracováno {{ generated_at|date:"d.m.Y H:i" }}
   {% if report.released_by %} · vydal {{ report.released_by.get_full_name|default:report.released_by.get_username }}{% endif %}
   {% if report.rules_version %} · sada pravidel: {{ report.rules_version }}{% endif %}
+  {% if report.llm_model and report.llm_model != "šablona" %}
+    · text souhrnu sestavil jazykový model {{ report.llm_model }} z výsledků pravidel;
+    čísla jsou strojově ověřená proti naměřeným hodnotám
+  {% endif %}
   {% if report.input_fingerprint %}<br>Otisk vstupů: {{ report.input_fingerprint|slice:":16" }}{% endif %}
 </footer>
 

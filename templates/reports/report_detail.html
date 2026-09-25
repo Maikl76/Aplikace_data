@@ -159,6 +159,12 @@
 
     <section class="bg-white p-4 rounded-lg border border-slate-200 text-xs text-slate-500">
       <h2 class="font-semibold text-slate-900 text-sm mb-2">Doložitelnost</h2>
+      <div>Text sestavil: {{ report.llm_model|default:"šablona" }}</div>
+      {% if report.generation_note %}
+        <div class="mt-1 {% if 'odmítnut' in report.generation_note or 'nepoužil' in report.generation_note %}text-amber-700{% endif %}">
+          {{ report.generation_note }}
+        </div>
+      {% endif %}
       <div>Sada pravidel: {{ report.rules_version|default:"—" }}</div>
       <div>Otisk vstupů: {{ report.input_fingerprint|slice:":16"|default:"—" }}</div>
       {% if report.released_by %}<div>Vydal: {{ report.released_by }}</div>{% endif %}
