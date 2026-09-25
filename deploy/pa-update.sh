@@ -22,9 +22,15 @@ git pull --ff-only
 # Doména je vždycky malými písmeny, uživatelské jméno ne – bez převodu
 # by touch u jména s velkým písmenem vytvořil nový prázdný soubor
 # a aplikace by se tiše nerestartovala.
-WSGI="/var/www/${USER,,}_eu_pythonanywhere_com_wsgi.py"
-if [ ! -f "$WSGI" ]; then
-    echo "Nenašel jsem $WSGI – je webová aplikace založená (záložka Web)?" >&2
+# Účet může být na evropském (…_eu_pythonanywhere_com) i hlavním
+# (…_pythonanywhere_com) serveru – zkusí se obojí.
+WSGI=""
+for candidate in "/var/www/${USER,,}_eu_pythonanywhere_com_wsgi.py" \
+                 "/var/www/${USER,,}_pythonanywhere_com_wsgi.py"; do
+    if [ -f "$candidate" ]; then WSGI="$candidate"; break; fi
+done
+if [ -z "$WSGI" ]; then
+    echo "Nenašel jsem WSGI soubor ve /var/www – je webová aplikace založená (záložka Web)?" >&2
     exit 1
 fi
 touch "$WSGI"

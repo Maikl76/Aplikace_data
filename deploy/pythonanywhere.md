@@ -17,7 +17,12 @@ je vždycky malými (`maikl76`).
 ## 1. Účet
 
 Zaregistrujte se na **https://eu.pythonanywhere.com** — pozor na `eu.`,
-jen tak budou data v EU. Zvolte bezplatný účet (*Beginner*). Platební
+jen tak budou data v EU.
+
+> Jestli účet skončil na hlavním serveru, poznáte to na záložce **Web**:
+> adresa je `JMENO.pythonanywhere.com` (bez `.eu`). Pro ukázku
+> s vygenerovanými daty to nevadí, jen v `.env` a v prohlížeči pak
+> používejte adresu bez `.eu`. Zvolte bezplatný účet (*Beginner*). Platební
 kartu nezadávejte, není potřeba.
 
 Uživatelské jméno se objeví v adrese ukázky, zvolte ho s rozmyslem.
@@ -153,9 +158,9 @@ Data zůstanou.
 
 ## Pravidelné prodloužení
 
-Bezplatná webová aplikace se musí jednou za čas prodloužit — na záložce
-**Web** tlačítkem *Run until …*. PythonAnywhere předem pošle upozornění
-e-mailem. Když to propásnete, aplikace se jen vypne; data zůstanou
+Bezplatná webová aplikace se musí **jednou měsíčně** prodloužit — na
+záložce **Web** tlačítkem *Run until 1 month from today*. Týden předem
+přijde upozornění e-mailem. Když to propásnete, aplikace se jen vypne; data zůstanou
 a po prodloužení poběží dál.
 
 ## Když něco nejde
