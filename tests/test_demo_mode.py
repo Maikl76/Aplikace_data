@@ -24,7 +24,9 @@ def uzivatel(db):
     (True, True, False),    # ukázka, i když běží ve vývojovém nastavení
     (False, False, False),  # ostrý provoz
 ])
-def test_slabe_heslo_jen_pri_vyvoji(db, settings, demo, debug, ocekavano):
+def test_slabe_heslo_jen_pri_vyvoji(db, settings, monkeypatch, demo, debug, ocekavano):
+    # Výsledek nesmí záviset na tom, co má vývojář nastavené u sebe.
+    monkeypatch.delenv("DEMO_ADMIN_PASSWORD", raising=False)
     settings.DEMO_MODE = demo
     settings.DEBUG = debug
     call_command("seed_demo", subjects=1, sessions=1, verbosity=0)

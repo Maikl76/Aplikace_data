@@ -1,0 +1,19 @@
+# Odlehčená sada pro ukázku na bezplatném hostingu (PythonAnywhere).
+#
+# Bezplatný účet má 512 MB místa. Plná sada (base.txt) se tam nevejde,
+# hlavně kvůli knihovnám pro cloudové úložiště. Ukázka je nepotřebuje:
+# běží na SQLite, bez S3 a bez fronty úloh.
+#
+# Verze drží krok s base.txt – test tests/test_requirements.py hlídá,
+# aby tu nebylo nic, co v base.txt chybí.
+#
+# Celé prostředí má s touhle sadou zhruba 275 MB.
+
+Django>=5.1,<5.2
+django-environ>=0.11
+cryptography>=42
+celery>=5.4            # importuje se při startu (config/celery.py), i když úlohy neběží
+whitenoise>=6.7
+pandas>=2.2
+numpy>=1.26
+openpyxl>=3.1

@@ -299,10 +299,13 @@ make logs
 
 ## Nasazení
 
-**Ukázka pro kolegy** (Fly.io, jen vygenerovaná data) — postup v
-[`deploy/fly.md`](deploy/fly.md). Má zapnutý `DEMO_MODE`: varovný pruh
-na každé stránce a vypnuté nahrávání souborů, aby se do veřejně dostupné
-instance nedostala reálná data.
+**Ukázka pro kolegy** — jen vygenerovaná data, zapnutý `DEMO_MODE`
+(varovný pruh na každé stránce, vypnuté nahrávání souborů):
+
+- **PythonAnywhere** — zdarma, bez platební karty, server v EU. Postup
+  v [`deploy/pythonanywhere.md`](deploy/pythonanywhere.md).
+- **Fly.io** — placené podle využití (jednotky dolarů měsíčně), plný
+  Docker včetně PDF. Postup v [`deploy/fly.md`](deploy/fly.md).
 
 **Vlastní server:**
 
