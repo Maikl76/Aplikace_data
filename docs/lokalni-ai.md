@@ -97,6 +97,16 @@ Teď musí skončit `Spojení funguje, čísla sedí.`
 Pak `python manage.py runserver` jako obvykle a pokračujte bodem
 *Zkouška na zprávě* níže.
 
+> **Aby se nastavení nemuselo psát v každém okně znovu**, vytvořte si
+> soubor `.env` ze vzoru (ve složce `Aplikace_data`):
+>
+> ```
+> copy .env.lokalne.example .env
+> ```
+>
+> Obsahuje databázi SQLite i nastavení modelu; pokud máte jiný model,
+> upravte v něm řádek `LLM_MODEL` (`notepad .env`).
+
 ### Když model nejde načíst: diakritika ve jménu uživatele
 
 Příznak: každý model skončí hláškou *Failed to load the model … exited
