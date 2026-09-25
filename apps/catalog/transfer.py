@@ -18,7 +18,7 @@ from apps.evidence.models import Article
 from apps.rules.models import Rule, RuleArticle
 from apps.subjects.models import Sport
 
-from .models import MetricDef, Norm, Protocol, ProtocolMetric
+from .models import ImportColumn, ImportProfile, MetricDef, Norm, Protocol, ProtocolMetric
 
 FORMAT_VERSION = 1
 SKIP = {"id", "created_at", "updated_at", "organization"}
@@ -69,6 +69,18 @@ def export_catalog() -> dict:
                 ],
             }
             for p in Protocol.objects.order_by("code", "version")
+        ],
+        "profily_importu": [
+            {
+                "organizace": _org(ip), "protokol": ip.protocol.code,
+                "verze_protokolu": ip.protocol.version, **_plain(ip),
+                "sloupce": [
+                    {"metrika": c.metric.code, **_plain(c, skip={"profile", "metric"})}
+                    for c in ip.columns.select_related("metric")
+                ],
+            }
+            for ip in ImportProfile.objects.select_related("protocol")
+            .order_by("device", "test_type")
         ],
         "normy": [
             {"organizace": _org(n), "metrika": n.metric.code, "sport": _sport(n.sport),
@@ -162,6 +174,26 @@ def import_catalog(data: dict, *, default_org: Organization | None = None) -> di
             imp.upsert("metriky protokolů", ProtocolMetric,
                        {"protocol": protocol, "metric": imp.metric(pm["metrika"], org)},
                        _data_fields(pm, "metrika"))
+
+    for item in data.get("profily_importu", []):
+        org = imp.org(item["organizace"])
+        protocol = (Protocol.objects.filter(code=item["protokol"],
+                                            version=item["verze_protokolu"],
+                                            organization=org).first()
+                    or Protocol.objects.filter(code=item["protokol"],
+                                               version=item["verze_protokolu"]).first())
+        if protocol is None:
+            raise ImportError_(f"Protokol „{item['protokol']}“ v souboru chybí.")
+        profile = imp.upsert(
+            "profily importu", ImportProfile,
+            {"organization": org, "device": item["device"], "test_type": item["test_type"]},
+            {**_data_fields(item, "device", "test_type", "protokol", "verze_protokolu",
+                            "sloupce"), "protocol": protocol})
+        for col in item["sloupce"]:
+            imp.upsert("importované sloupce", ImportColumn,
+                       {"profile": profile, "column": col["column"]},
+                       {"metric": imp.metric(col["metrika"], org), "factor": col["factor"],
+                        "with_sides": col.get("with_sides", True)})
 
     # Normy nemají přirozený klíč; párují se podle toho, pro koho platí.
     for item in data["normy"]:

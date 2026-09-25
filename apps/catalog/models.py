@@ -252,3 +252,69 @@ class Norm(CatalogModel):
         if self.mean is None or not self.sd:
             return None
         return (value - self.mean) / self.sd
+
+
+class ImportProfile(CatalogModel):
+    """
+    Jak číst export z přístroje: který typ testu patří ke kterému
+    protokolu a které sloupce se importují jako které metriky.
+
+    Je to data, ne kód – když přístroj přejmenuje sloupec nebo chcete
+    sledovat další metriku, doplní se tady a nic se neprogramuje.
+    """
+
+    class Device(models.TextChoices):
+        VALD_FORCEDECKS = "vald_forcedecks", "VALD ForceDecks"
+        VALD_HUMANTRAK = "vald_humantrak", "VALD HumanTrak"
+
+    device = models.CharField("přístroj", max_length=32, choices=Device.choices)
+    test_type = models.CharField("typ testu v exportu", max_length=120,
+                                 help_text="Přesně jak ho píše export, např. "
+                                           "„Countermovement Jump“.")
+    protocol = models.ForeignKey(Protocol, verbose_name="protokol", on_delete=models.PROTECT,
+                                 related_name="import_profiles")
+    is_active = models.BooleanField("aktivní", default=True)
+
+    class Meta:
+        verbose_name = "profil importu"
+        verbose_name_plural = "profily importu"
+        ordering = ["device", "test_type"]
+        constraints = [
+            models.UniqueConstraint(fields=["organization", "device", "test_type"],
+                                    name="uniq_import_profile"),
+        ]
+
+    def __str__(self):
+        return f"{self.get_device_display()}: {self.test_type} → {self.protocol.name}"
+
+
+class ImportColumn(models.Model):
+    """
+    Jeden importovaný sloupec. U ForceDecks stačí zadat souhrnný sloupec
+    (např. „Concentric Peak Force [N]“) – varianty „(Left)“ a „(Right)“
+    se najdou samy a uloží jako levá a pravá strana.
+    """
+
+    profile = models.ForeignKey(ImportProfile, verbose_name="profil", on_delete=models.CASCADE,
+                                related_name="columns")
+    column = models.CharField("sloupec v exportu", max_length=200)
+    metric = models.ForeignKey(MetricDef, verbose_name="metrika", on_delete=models.PROTECT,
+                               related_name="import_columns")
+    with_sides = models.BooleanField(
+        "i levá a pravá strana", default=True,
+        help_text="Importovat i varianty „(Left)“ a „(Right)“, pokud je export má. "
+                  "Vypněte u časů a poměrů, kde rozdíl stran nic neříká.")
+    factor = models.FloatField("násobek", default=1.0,
+                               help_text="Převod hodnoty, např. −1 pro obrácení znaménka "
+                                         "nebo 0,001 pro ms → s.")
+
+    class Meta:
+        verbose_name = "importovaný sloupec"
+        verbose_name_plural = "importované sloupce"
+        ordering = ["pk"]
+        constraints = [
+            models.UniqueConstraint(fields=["profile", "column"], name="uniq_import_column"),
+        ]
+
+    def __str__(self):
+        return f"{self.column} → {self.metric.code}"

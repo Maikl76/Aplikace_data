@@ -15,6 +15,7 @@ git pull || goto chyba
 
 rem Kdyby pribyla nova knihovna. Kdyz nic nepribylo, trva to par sekund.
 pip install --quiet -r requirements\dev.txt || goto chyba
+python manage.py zajisti_klic || goto chyba
 python manage.py migrate || goto chyba
 
 echo.

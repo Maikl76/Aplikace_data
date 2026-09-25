@@ -26,8 +26,12 @@ def import_list(request):
 
 @login_required
 def import_upload(request):
-    """Nahrání souboru. Nic se neuloží – vznikne jen náhled ke kontrole."""
-    if request.method != "POST" or "file" not in request.FILES:
+    """
+    Nahrání jednoho nebo víc souborů. Nic se neuloží – vznikne jen náhled
+    ke kontrole (u víc souborů jeden náhled na soubor).
+    """
+    files = request.FILES.getlist("file")
+    if request.method != "POST" or not files:
         return redirect("import_list")
 
     # V ukázce se soubory nenahrávají. Je to jediné místo, kudy by se do
@@ -44,23 +48,31 @@ def import_upload(request):
     if protocol_id := request.POST.get("protocol"):
         protocol = Protocol.objects.filter(pk=protocol_id).first()
 
-    try:
-        batch = services.stage_file(
-            uploaded_file=request.FILES["file"],
-            user=request.user,
-            organization=request.user.organization,
-            adapter_code=request.POST.get("adapter", "legacy_excel"),
-            protocol=protocol,
-        )
-    except services.ImportError_ as exc:
-        messages.error(request, str(exc))
-        return redirect("import_list")
+    ready = []
+    for uploaded in files:
+        try:
+            batch = services.stage_file(
+                uploaded_file=uploaded,
+                user=request.user,
+                organization=request.user.organization,
+                adapter_code=request.POST.get("adapter", "auto"),
+                protocol=protocol,
+            )
+        except services.ImportError_ as exc:
+            messages.error(request, f"{uploaded.name}: {exc}")
+            continue
+        if batch.status == ImportBatch.Status.FAILED:
+            messages.error(request, f"{uploaded.name}: soubor se nepodařilo zpracovat "
+                                    f"({batch.error})")
+            continue
+        ready.append(batch)
 
-    if batch.status == ImportBatch.Status.FAILED:
-        messages.error(request, f"Soubor se nepodařilo zpracovat: {batch.error}")
-        return redirect("import_list")
-
-    return redirect("import_detail", pk=batch.pk)
+    if len(ready) == 1:
+        return redirect("import_detail", pk=ready[0].pk)
+    if ready:
+        messages.info(request, f"Načteno {len(ready)} souborů. Zkontrolujte a uložte "
+                               f"každý zvlášť (odkaz „zkontrolovat“ v historii).")
+    return redirect("import_list")
 
 
 @login_required
@@ -73,22 +85,27 @@ def import_detail(request, pk):
     # Nový sportovec při prvním importu není problém, je to očekávaný stav.
     # Kdyby se míchal mezi skutečné problémy, utopil by je – u prvního
     # importu je tak označený každý řádek.
+    # Test, který už v aplikaci je, taky není problém – při uložení se jen
+    # aktualizuje. Hlásí se souhrnně nad tabulkou.
     problem_flags = [
         StagedMeasurement.Flag.OUT_OF_RANGE,
         StagedMeasurement.Flag.UNKNOWN_METRIC,
-        StagedMeasurement.Flag.DUPLICATE,
     ]
+    sportovci = sorted((summary.get("subjects") or {}).values(),
+                       key=lambda s: (s.get("kod") is not None, s.get("hint", "")))
     return render(request, "ingest/import_detail.html", {
         "batch": batch,
         "summary": summary,
         "dlazdice": [
-            ("hodnot", summary.get("hodnot")),
             ("sportovců", summary.get("sportovcu")),
             ("z toho nových", summary.get("novych_sportovcu")),
+            ("testů", summary.get("testu")),
+            ("hodnot", summary.get("hodnot")),
             ("metrik", summary.get("metrik")),
-            ("protokolů", summary.get("protokolu")),
             ("mimo rozsah", summary.get("mimo_rozsah")),
         ],
+        "sportovci": sportovci,
+        "ma_klic": bool(settings.IDENTITY_ENCRYPTION_KEY),
         "datum_od": summary.get("datum_od"),
         "datum_do": summary.get("datum_do"),
         "bez_data": summary.get("novych_hodnot_bez_data") or 0,
@@ -115,11 +132,35 @@ def import_commit(request, pk):
         return redirect("import_detail", pk=pk)
 
     record(request, AuditLog.Action.CREATE, batch, **result)
-    messages.success(request, (
-        f"Uloženo {result['hodnoty']} hodnot, {result['session']} testovacích dnů, "
-        f"{result['sportovci']} nových sportovců."
-    ))
+    text = (f"Uloženo {result['hodnoty']} hodnot, {result.get('testy', 0)} testů, "
+            f"{result['session']} nových testovacích dnů, {result['sportovci']} nových sportovců.")
+    if result.get("aktualizovano"):
+        text += f" Aktualizováno {result['aktualizovano']} hodnot, které VALD přepočítal."
+    messages.success(request, text)
+    if result.get("jmena_neulozena"):
+        messages.warning(request, (
+            f"Jména {result['jmena_neulozena']} nových sportovců se neuložila – chybí "
+            f"šifrovací klíč. Spusťte aplikaci přes spustit.bat, klíč se doplní sám; "
+            f"jména pak doplníte v administraci (Identity sportovců)."))
     return redirect("import_list")
+
+
+@login_required
+def import_restage(request, pk):
+    """Znovu načte uložený soubor – např. po doplnění profilu importu."""
+    batch = get_object_or_404(ImportBatch.objects.for_user(request.user), pk=pk)
+    if request.method != "POST":
+        return redirect("import_list")
+    try:
+        new_batch = services.restage(batch.raw_file, user=request.user,
+                                     organization=request.user.organization)
+    except services.ImportError_ as exc:
+        messages.error(request, str(exc))
+        return redirect("import_list")
+    if new_batch.status == ImportBatch.Status.FAILED:
+        messages.error(request, f"Soubor se nepodařilo zpracovat ({new_batch.error})")
+        return redirect("import_list")
+    return redirect("import_detail", pk=new_batch.pk)
 
 
 @login_required
@@ -127,7 +168,8 @@ def import_cancel(request, pk):
     batch = get_object_or_404(ImportBatch.objects.for_user(request.user), pk=pk)
     if request.method == "POST":
         batch.status = ImportBatch.Status.CANCELLED
-        batch.save(update_fields=["status"])
+        services.clear_personal_data(batch)
+        batch.save(update_fields=["status", "summary"])
         batch.purge_staging()
         messages.info(request, "Import zrušen, nic se neuložilo.")
     return redirect("import_list")

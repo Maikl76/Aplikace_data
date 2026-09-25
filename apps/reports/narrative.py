@@ -67,7 +67,7 @@ def compose(session, findings, citations, facts: dict | None = None) -> str:
     # Souhrn vypíše jen skutečné změny; ostatní klíčové ukazatele shrne
     # jménem (bez počtu – číslo, které není ve faktech, by kontrola odmítla).
     klicove = facts.get("klicove_metriky", [])
-    skutecne = [m for m in klicove if "skutečná změna" in m.get("zmena_posouzeni", "")]
+    skutecne = [m for m in klicove if "přesahující chybu" in m.get("zmena_posouzeni", "")]
     if skutecne:
         parts.append("Změny proti minulému měření, které přesahují chybu měření:\n"
                      + "\n".join(_metric_line(m) for m in skutecne))
@@ -78,14 +78,13 @@ def compose(session, findings, citations, facts: dict | None = None) -> str:
         parts.append(f"Změnu nelze posoudit, protože chybí MDC: {bez_mdc}.")
     if nove := _names(m for m in klicove if "zmena" not in m):
         parts.append(f"Poprvé měřeno: {nove}.")
-    parts.append("Úplné výsledky všech testů jsou v tabulkách níže.")
 
     if over := [a for a in facts.get("asymetrie", []) if a["nad_prahem"]]:
         prah = over[0]["prah_procent"]
         parts.append(
             f"Stranový rozdíl nad {prah} %:\n" + "\n".join(
                 f"• {a['metrika']}{' (' + a['upresneni'] + ')' if a['upresneni'] else ''}: "
-                f"{_cz(a['rozdil_procent'])} %, silnější {a['silnejsi_strana']} strana"
+                f"{_cz(a['rozdil_procent'])} %, vyšší hodnota {a['vyssi_hodnota']}"
                 for a in over)
         )
 
@@ -94,6 +93,8 @@ def compose(session, findings, citations, facts: dict | None = None) -> str:
             "Následující nálezy nevedly k doporučení kvůli zdravotnímu omezení:\n"
             + "\n".join(f"• {f.text} ({f.suppressed_reason})" for f in suppressed)
         )
+
+    parts.append("Úplné výsledky všech testů jsou v tabulkách níže.")
 
     if recommendations(active):
         parts.append("Doporučení jsou uvedena v samostatné části zprávy.")

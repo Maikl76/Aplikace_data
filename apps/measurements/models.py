@@ -78,10 +78,23 @@ class ProtocolRun(TimeStampedModel):
                                   help_text='Např. {"teplota": 21, "rozcvicka_min": 10}')
     note = models.TextField("poznámka", blank=True)
 
+    # Kdy přesně test proběhl. Většinou se protokol měří jednou za den,
+    # ale jde i opakovaně (před zátěží / po zátěži) – pak má každé
+    # provedení vlastní čas a jen jedno je „hlavní“ hodnotou dne.
+    started_at = models.DateTimeField("čas testu", null=True, blank=True)
+    is_primary = models.BooleanField(
+        "hlavní měření dne", default=True,
+        help_text="Z hlavního provedení se berou hodnoty dne do trendů, pravidel "
+                  "a srovnání. Opakovaná měření téhož dne se ukazují zvlášť.")
+    external_ref = models.CharField(
+        "identifikace ve zdroji", max_length=200, blank=True, db_index=True,
+        help_text="Např. ID testu z VALD. Díky ní opakovaný import téhož testu "
+                  "nic nezdvojí, jen aktualizuje hodnoty.")
+
     class Meta:
         verbose_name = "provedení protokolu"
         verbose_name_plural = "provedení protokolů"
-        ordering = ["created_at"]
+        ordering = ["started_at", "created_at"]
 
     def __str__(self):
         return f"{self.session} / {self.protocol.code}"

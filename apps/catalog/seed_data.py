@@ -15,10 +15,37 @@ from apps.catalog.models import Direction, TestFamily
 # (kód, název, rodina, jednotka, směr, min, max, desetinná místa)
 METRICS = [
     # --- force plate ---------------------------------------------------
+    # Výška výskoku z impulzu a hybnosti (VALD „Imp-Mom“) – ne z doby letu.
+    # Obě metody dávají rozdíl několika cm, takže se nesmí míchat.
     ("cmj_height", "Výška výskoku (CMJ)", TestFamily.FORCE_PLATE, "cm", Direction.HIGHER, 5, 80, 1),
-    ("cmj_peak_force", "Vrcholová síla (CMJ)", TestFamily.FORCE_PLATE, "N", Direction.HIGHER, 200, 5000, 0),
-    ("cmj_rsi_mod", "RSI modified", TestFamily.FORCE_PLATE, "-", Direction.HIGHER, 0.05, 1.2, 2),
+    ("cmj_peak_force", "Koncentrická vrcholová síla (CMJ)", TestFamily.FORCE_PLATE, "N", Direction.HIGHER, 200, 6000, 0),
+    ("cmj_rsi_mod", "RSI modified", TestFamily.FORCE_PLATE, "m/s", Direction.HIGHER, 0.05, 1.5, 2),
+    ("cmj_peak_power_bm", "Vrcholový výkon / hmotnost (CMJ)", TestFamily.FORCE_PLATE, "W/kg", Direction.HIGHER, 15, 100, 1),
+    ("cmj_depth", "Hloubka protipohybu (CMJ)", TestFamily.FORCE_PLATE, "cm", Direction.NEUTRAL, 5, 80, 1),
+    ("cmj_contraction_time", "Doba kontrakce (CMJ)", TestFamily.FORCE_PLATE, "ms", Direction.LOWER, 200, 1500, 0),
+    ("cmj_ecc_braking_rfd", "Excentrické brzdné RFD (CMJ)", TestFamily.FORCE_PLATE, "N/s", Direction.HIGHER, 100, 30000, 0),
+    ("cmj_landing_force", "Vrcholová síla při doskoku (CMJ)", TestFamily.FORCE_PLATE, "N", Direction.NEUTRAL, 300, 20000, 0),
     ("imtp_peak_force", "Vrcholová síla (IMTP)", TestFamily.FORCE_PLATE, "N", Direction.HIGHER, 300, 6000, 0),
+    ("imtp_peak_force_bm", "Vrcholová síla / hmotnost (IMTP)", TestFamily.FORCE_PLATE, "N/kg", Direction.HIGHER, 8, 70, 1),
+    ("imtp_force_100", "Síla ve 100 ms (IMTP)", TestFamily.FORCE_PLATE, "N", Direction.HIGHER, 0, 5000, 0),
+    ("imtp_force_200", "Síla ve 200 ms (IMTP)", TestFamily.FORCE_PLATE, "N", Direction.HIGHER, 0, 5000, 0),
+    ("imtp_rfd_100", "RFD 0–100 ms (IMTP)", TestFamily.FORCE_PLATE, "N/s", Direction.HIGHER, -2000, 40000, 0),
+    ("imtp_rfd_200", "RFD 0–200 ms (IMTP)", TestFamily.FORCE_PLATE, "N/s", Direction.HIGHER, -2000, 30000, 0),
+    ("imtp_time_to_peak", "Čas do vrcholové síly (IMTP)", TestFamily.FORCE_PLATE, "s", Direction.LOWER, 0.1, 10, 2),
+    ("sls_cop_area", "Plocha elipsy CoP (stoj na 1 DK)", TestFamily.FORCE_PLATE, "mm²", Direction.LOWER, 50, 30000, 0),
+    ("sls_total_excursion", "Celková dráha CoP (stoj na 1 DK)", TestFamily.FORCE_PLATE, "mm", Direction.LOWER, 100, 15000, 0),
+    ("sls_mean_velocity", "Průměrná rychlost CoP (stoj na 1 DK)", TestFamily.FORCE_PLATE, "mm/s", Direction.LOWER, 3, 500, 1),
+    # --- analýza pohybu (HumanTrak) ------------------------------------
+    ("boxlift_hip_flex_lift", "Flexe kyčle při max. flexi kolene – zvedání", TestFamily.FIELD, "°", Direction.NEUTRAL, 0, 180, 1),
+    ("boxlift_hip_flex_lower", "Flexe kyčle při max. flexi kolene – pokládání", TestFamily.FIELD, "°", Direction.NEUTRAL, 0, 180, 1),
+    ("boxlift_knee_flex_lift", "Max. flexe kolene – zvedání", TestFamily.FIELD, "°", Direction.NEUTRAL, 0, 180, 1),
+    ("boxlift_knee_flex_lower", "Max. flexe kolene – pokládání", TestFamily.FIELD, "°", Direction.NEUTRAL, 0, 180, 1),
+    ("boxlift_shoulder_flex", "Max. flexe ramene při zakládání", TestFamily.FIELD, "°", Direction.NEUTRAL, 0, 200, 1),
+    ("boxlift_trunk_ext", "Max. extenze trupu", TestFamily.FIELD, "°", Direction.NEUTRAL, -60, 90, 1),
+    ("boxlift_spine_flex_lift", "Flexe páteře při max. flexi kolene – zvedání", TestFamily.FIELD, "°", Direction.LOWER, -30, 120, 1),
+    ("boxlift_spine_flex_lower", "Flexe páteře při max. flexi kolene – pokládání", TestFamily.FIELD, "°", Direction.LOWER, -30, 120, 1),
+    ("boxlift_trunk_flex_lift", "Flexe trupu při max. flexi kolene – zvedání", TestFamily.FIELD, "°", Direction.NEUTRAL, -30, 150, 1),
+    ("boxlift_trunk_flex_lower", "Flexe trupu při max. flexi kolene – pokládání", TestFamily.FIELD, "°", Direction.NEUTRAL, -30, 150, 1),
 
     # --- dynamometrie ---------------------------------------------------
     ("shoulder_ir_torque", "Vnitřní rotace ramene – točivý moment", TestFamily.DYNAMOMETRY, "Nm", Direction.HIGHER, 3, 200, 1),
@@ -48,18 +75,55 @@ METRICS = [
 PROTOCOLS = {
     "cmj": {
         "name": "Countermovement jump", "family": TestFamily.FORCE_PLATE,
-        "device": "force plate", "trials": 3,
+        "device": "VALD ForceDecks", "trials": 3,
         "metrics": [
             {"code": "cmj_height", "sides": ["B"], "primary": True},
-            {"code": "cmj_peak_force", "sides": ["L", "R"]},
             {"code": "cmj_rsi_mod", "sides": ["B"]},
+            {"code": "cmj_peak_force", "sides": ["B", "L", "R"]},
+            {"code": "cmj_peak_power_bm", "sides": ["B"]},
+            {"code": "cmj_depth", "sides": ["B"]},
+            {"code": "cmj_contraction_time", "sides": ["B"]},
+            {"code": "cmj_ecc_braking_rfd", "sides": ["B"]},
+            {"code": "cmj_landing_force", "sides": ["B", "L", "R"]},
+            {"code": "body_mass", "sides": ["B"]},
         ],
     },
     "imtp": {
         "name": "Izometrický tah (IMTP)", "family": TestFamily.FORCE_PLATE,
-        "device": "force plate", "trials": 3,
+        "device": "VALD ForceDecks", "trials": 3,
         "metrics": [
-            {"code": "imtp_peak_force", "sides": ["L", "R"], "primary": True},
+            {"code": "imtp_peak_force", "sides": ["B", "L", "R"], "primary": True},
+            {"code": "imtp_peak_force_bm", "sides": ["B"]},
+            {"code": "imtp_force_100", "sides": ["B", "L", "R"]},
+            {"code": "imtp_force_200", "sides": ["B", "L", "R"]},
+            {"code": "imtp_rfd_100", "sides": ["B", "L", "R"]},
+            {"code": "imtp_rfd_200", "sides": ["B", "L", "R"]},
+            {"code": "imtp_time_to_peak", "sides": ["B"]},
+        ],
+    },
+    "sls": {
+        "name": "Stoj na jedné noze (SLS)", "family": TestFamily.FORCE_PLATE,
+        "device": "VALD ForceDecks", "trials": 2,
+        "metrics": [
+            {"code": "sls_cop_area", "sides": ["L", "R"], "primary": True},
+            {"code": "sls_total_excursion", "sides": ["L", "R"]},
+            {"code": "sls_mean_velocity", "sides": ["L", "R"]},
+        ],
+    },
+    "box_lift": {
+        "name": "Box lift – nad hlavu", "family": TestFamily.FIELD,
+        "device": "VALD HumanTrak", "trials": 1,
+        "metrics": [
+            {"code": "boxlift_spine_flex_lift", "sides": ["B"], "primary": True},
+            {"code": "boxlift_spine_flex_lower", "sides": ["B"]},
+            {"code": "boxlift_hip_flex_lift", "sides": ["B"]},
+            {"code": "boxlift_hip_flex_lower", "sides": ["B"]},
+            {"code": "boxlift_knee_flex_lift", "sides": ["B"]},
+            {"code": "boxlift_knee_flex_lower", "sides": ["B"]},
+            {"code": "boxlift_trunk_flex_lift", "sides": ["B"]},
+            {"code": "boxlift_trunk_flex_lower", "sides": ["B"]},
+            {"code": "boxlift_shoulder_flex", "sides": ["B"]},
+            {"code": "boxlift_trunk_ext", "sides": ["B"]},
         ],
     },
     "iso_shoulder": {
@@ -245,4 +309,53 @@ EXAMPLE_RULES = [
             "Zvážit zařazení rozvoje aerobní kapacity."
         ),
     },
+]
+
+
+# ---------------------------------------------------------------------------
+# Profily importu z přístrojů: typ testu v exportu → protokol, sloupec → metrika.
+#
+# U ForceDecks se zadává souhrnný sloupec; varianty „(Left)“ a „(Right)“
+# adaptér najde sám a uloží jako levou a pravou stranu. Třetí položka je
+# násobek (hloubka protipohybu je v exportu záporná), nepovinná čtvrtá
+# říká, zda importovat i strany (u časů rozdíl stran nic neříká).
+# ---------------------------------------------------------------------------
+IMPORT_PROFILES = [
+    ("vald_forcedecks", "Countermovement Jump", "cmj", [
+        ("Jump Height (Imp-Mom) [cm]", "cmj_height", 1),
+        ("RSI-modified (Imp-Mom) [m/s]", "cmj_rsi_mod", 1),
+        ("Concentric Peak Force [N]", "cmj_peak_force", 1),
+        ("Peak Power / BM [W/kg]", "cmj_peak_power_bm", 1),
+        ("Countermovement Depth [cm]", "cmj_depth", -1),
+        ("Contraction Time [ms]", "cmj_contraction_time", 1),
+        ("Eccentric Braking RFD [N/s]", "cmj_ecc_braking_rfd", 1),
+        ("Peak Landing Force [N]", "cmj_landing_force", 1),
+        ("Body Weight [kg]", "body_mass", 1),
+    ]),
+    ("vald_forcedecks", "Isometric Mid-Thigh Pull", "imtp", [
+        ("Peak Vertical Force [N]", "imtp_peak_force", 1),
+        ("Peak Vertical Force / BM [N/kg]", "imtp_peak_force_bm", 1),
+        ("Force at 100ms [N]", "imtp_force_100", 1),
+        ("Force at 200ms [N]", "imtp_force_200", 1),
+        ("RFD - 100ms [N/s]", "imtp_rfd_100", 1),
+        ("RFD - 200ms [N/s]", "imtp_rfd_200", 1),
+        ("Start Time to Peak Force [s]", "imtp_time_to_peak", 1, False),
+    ]),
+    ("vald_forcedecks", "Single Leg Stand", "sls", [
+        ("Area of CoP Ellipse [mm sq]", "sls_cop_area", 1),
+        ("Total Excursion [mm]", "sls_total_excursion", 1),
+        ("Mean Velocity [mm/s]", "sls_mean_velocity", 1),
+    ]),
+    ("vald_humantrak", "Box Lift - Overhead", "box_lift", [
+        ("Hip Flexion at Peak Knee Flexion During Lift[°]", "boxlift_hip_flex_lift", 1),
+        ("Hip Flexion at Peak Knee Flexion During Lower[°]", "boxlift_hip_flex_lower", 1),
+        ("Peak Knee Flexion During Lift[°]", "boxlift_knee_flex_lift", 1),
+        ("Peak Knee Flexion During Lower[°]", "boxlift_knee_flex_lower", 1),
+        ("Peak Shoulder Flexion During Place[°]", "boxlift_shoulder_flex", 1),
+        ("Peak Trunk Extension[°]", "boxlift_trunk_ext", 1),
+        ("Spinal Flexion at Peak Knee Flexion During Lift[°]", "boxlift_spine_flex_lift", 1),
+        ("Spinal Flexion at Peak Knee Flexion During Lower[°]", "boxlift_spine_flex_lower", 1),
+        ("Trunk Flexion at Peak Knee Flexion During Lift[°]", "boxlift_trunk_flex_lift", 1),
+        ("Trunk Flexion at Peak Knee Flexion During Lower[°]", "boxlift_trunk_flex_lower", 1),
+    ]),
 ]

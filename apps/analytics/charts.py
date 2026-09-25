@@ -258,7 +258,7 @@ def asymmetry_chart(rows, *, threshold_pct: float = 10.0, limit: int = 10,
     jen ta největší veličina a zbytek splyne s nulou. Procentní rozdíl
     je naopak společná míra pro všechny metriky.
 
-    Směr nese poloha vůči nule (vlevo = silnější pravá), ne barva –
+    Směr nese poloha vůči nule (vlevo = vyšší hodnota vpravo), ne barva –
     červená by tady znamenala „pravá strana je špatně“, což není pravda.
     Barvou se hlásí jen překročení prahu, a to je navíc napsané v tabulce
     pod grafem.
@@ -320,7 +320,7 @@ def asymmetry_chart(rows, *, threshold_pct: float = 10.0, limit: int = 10,
         subtitle=(f"{pocet} z {len(rows)} zobrazených nad prahem {threshold_pct:g} %"
                   if rows else "žádná oboustranná měření"),
         note=(f"Šedé pásmo = tolerance ±{cz(threshold_pct, 0)} %. Sloupec vlevo od nuly "
-              f"znamená silnější pravou stranu."),
+              f"znamená vyšší hodnotu vpravo."),
     )
 
 

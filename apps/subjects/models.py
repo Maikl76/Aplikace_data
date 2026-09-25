@@ -105,6 +105,38 @@ class Subject(OrgScopedModel):
         return self.code
 
 
+class SubjectExternalId(TimeStampedModel):
+    """
+    Jak sportovce znají přístroje a jiné systémy – např. ID ve VALD Hubu.
+
+    Import podle toho pozná, komu soubor patří, i když se jméno ve zdroji
+    napíše jinak. Identifikátory odvozené ze jména se ukládají jen jako
+    hash (``system`` začíná na „hash_“).
+    """
+
+    class System(models.TextChoices):
+        VALD = "vald", "VALD – ID sportovce"
+        EXTID = "extid", "VALD – ExtId"
+        NAME_BIRTH = "hash_jmeno_narozeni", "Jméno a datum narození (hash)"
+        NAME = "hash_jmeno", "Jméno (hash)"
+
+    subject = models.ForeignKey(Subject, verbose_name="sportovec", on_delete=models.CASCADE,
+                                related_name="external_ids")
+    system = models.CharField("systém", max_length=32, choices=System.choices)
+    value = models.CharField("hodnota", max_length=128, db_index=True)
+
+    class Meta:
+        verbose_name = "identifikátor v jiném systému"
+        verbose_name_plural = "identifikátory v jiných systémech"
+        constraints = [
+            models.UniqueConstraint(fields=["subject", "system", "value"],
+                                    name="uniq_subject_external_id"),
+        ]
+
+    def __str__(self):
+        return f"{self.subject.code}: {self.get_system_display()}"
+
+
 class SubjectIdentity(TimeStampedModel):
     """
     Oddělený trezor. Obsah je šifrovaný, klíč je v konfiguraci aplikace.

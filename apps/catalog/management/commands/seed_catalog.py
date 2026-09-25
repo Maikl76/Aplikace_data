@@ -8,8 +8,14 @@ v administraci – tohle je jen startovní obsah, ne konfigurace aplikace.
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from apps.catalog.models import MetricDef, Protocol, ProtocolMetric
-from apps.catalog.seed_data import EXAMPLE_RULES, METRICS, PROTOCOLS
+from apps.catalog.models import (
+    ImportColumn,
+    ImportProfile,
+    MetricDef,
+    Protocol,
+    ProtocolMetric,
+)
+from apps.catalog.seed_data import EXAMPLE_RULES, IMPORT_PROFILES, METRICS, PROTOCOLS
 
 
 class Command(BaseCommand):
@@ -44,6 +50,21 @@ class Command(BaseCommand):
                         "speeds": entry.get("speeds", []),
                         "segments": entry.get("segments", []),
                     },
+                )
+
+        # Profily importu se jen zakládají, nepřepisují – úpravy
+        # v administraci (další sloupce, jiné přiřazení) musí přežít.
+        for device, test_type, protocol_code, columns in IMPORT_PROFILES:
+            profile, _ = ImportProfile.objects.get_or_create(
+                organization=None, device=device, test_type=test_type,
+                defaults={"protocol": Protocol.objects.get(organization=None,
+                                                           code=protocol_code, version=1)},
+            )
+            for column, metric_code, factor, *sides in columns:
+                ImportColumn.objects.get_or_create(
+                    profile=profile, column=column,
+                    defaults={"metric": metrics[metric_code], "factor": factor,
+                              "with_sides": sides[0] if sides else True},
                 )
 
         from apps.rules.models import Rule

@@ -7,13 +7,14 @@
   {% csrf_token %}
   <div class="grid md:grid-cols-3 gap-4 items-end">
     <label class="block">
-      <span class="text-sm text-slate-600">Soubor</span>
-      <input type="file" name="file" required
+      <span class="text-sm text-slate-600">Soubory (lze vybrat víc najednou)</span>
+      <input type="file" name="file" required multiple accept=".xlsx,.xls,.csv"
              class="mt-1 block w-full text-sm border border-slate-300 rounded px-3 py-2">
     </label>
     <label class="block">
       <span class="text-sm text-slate-600">Formát</span>
       <select name="adapter" class="mt-1 block w-full border border-slate-300 rounded px-3 py-2">
+        <option value="auto">Rozpoznat automaticky</option>
         {% for a in adapters %}<option value="{{ a.code }}">{{ a.label }}</option>{% endfor %}
       </select>
     </label>
@@ -28,6 +29,9 @@
     </p>
   {% else %}
     <p class="text-xs text-slate-500 mt-3">
+      Umí exporty z VALD ForceDecks (CMJ, IMTP, stoj na jedné noze), VALD HumanTrak
+      (box lift) a původní Excel. Co se z exportu importuje, určují
+      <a class="text-blue-700 hover:underline" href="/admin/catalog/importprofile/">profily importu</a>.
       Soubor se jen rozparsuje a ukáže ke kontrole. Do databáze se nic nezapíše,
       dokud náhled nepotvrdíte.
     </p>
@@ -46,7 +50,7 @@
     {% for b in batches %}
       <tr class="border-b border-slate-100">
         <td class="p-2">{{ b.raw_file.original_name }}</td>
-        <td class="p-2">{{ b.adapter }}</td>
+        <td class="p-2">{{ b.adapter_label }}</td>
         <td class="p-2">{{ b.get_status_display }}</td>
         <td class="p-2">{{ b.uploaded_by }}</td>
         <td class="p-2">{{ b.created_at|date:"d.m.Y H:i" }}</td>
@@ -54,6 +58,13 @@
           {% if b.status == 'parsed' %}
             <a class="text-blue-700 hover:underline"
                href="{% url 'import_detail' b.pk %}">zkontrolovat</a>
+          {% elif b.status == 'committed' and not demo_mode %}
+            <form method="post" action="{% url 'import_restage' b.pk %}" class="inline">
+              {% csrf_token %}
+              <button type="submit" class="text-blue-700 hover:underline"
+                      title="Po doplnění profilu importu: doplní nové metriky, nic nezdvojí">
+                načíst znovu</button>
+            </form>
           {% endif %}
         </td>
       </tr>

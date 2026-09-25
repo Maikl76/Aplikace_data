@@ -1,7 +1,7 @@
 from django.contrib import admin, messages
 from django.db.models import ProtectedError
 
-from .models import Consent, Sport, Subject, SubjectIdentity, Team
+from .models import Consent, Sport, Subject, SubjectExternalId, SubjectIdentity, Team
 
 
 @admin.register(Sport)
@@ -20,13 +20,21 @@ class ConsentInline(admin.TabularInline):
     extra = 0
 
 
+class ExternalIdInline(admin.TabularInline):
+    """Jak sportovce znají přístroje – import ho podle toho pozná."""
+
+    model = SubjectExternalId
+    extra = 0
+    fields = ("system", "value")
+
+
 @admin.register(Subject)
 class SubjectAdmin(admin.ModelAdmin):
     list_display = ("code", "sport", "team", "sex", "birth_year", "level",
                     "pocet_mereni", "is_active")
     list_filter = ("sport", "team", "sex", "level", "is_active")
     search_fields = ("code",)
-    inlines = [ConsentInline]
+    inlines = [ConsentInline, ExternalIdInline]
     actions = ["deaktivovat", "aktivovat"]
 
     @admin.display(description="testovacích dnů")

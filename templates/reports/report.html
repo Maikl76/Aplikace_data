@@ -72,7 +72,7 @@
   {% if session %}
     <tr><th>Datum měření</th><td>{{ session.date|date:"d.m.Y" }}</td></tr>
     <tr><th>Protokoly</th><td>
-      {% for run in session.protocol_runs.all %}{{ run.protocol.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+      {% for block in results %}{{ block.protocol.name }}{% if block.repeats %} ({{ block.repeats.times|length|add:1 }}×){% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}
     </td></tr>
   {% endif %}
 </table>
@@ -84,7 +84,9 @@
 {% for block in results %}
   <div class="protokol">{{ block.protocol.name }}
     <span class="protokol-meta">
+      {% if block.repeats and block.time %} · 1. měření {{ block.time }}{% endif %}
       {% if block.protocol.device %} · {{ block.protocol.device }}{% endif %}
+      {% if block.conditions %} · {{ block.conditions }}{% endif %}
       · pokusů {{ block.trials }}{% if block.invalid %}, z toho neplatných {{ block.invalid|length }}{% endif %}
     </span>
   </div>
@@ -124,6 +126,31 @@
   {% else %}
     <p class="prazdne">Bez platných hodnot.</p>
   {% endif %}
+  {% if block.repeats %}
+    <p class="protokol-meta" style="margin:2mm 0 0">Opakovaná měření téhož dne
+      (průměr pokusů; v závorce rozdíl proti 1. měření)</p>
+    <table class="vysledky">
+      <thead><tr>
+        <th style="width:34%">Ukazatel</th>
+        <th class="cislo" style="text-align:right">1. měření{% if block.repeats.first_time %}<br>{{ block.repeats.first_time }}{% endif %}</th>
+        {% for t in block.repeats.times %}<th class="cislo" style="text-align:right">{{ t }}</th>{% endfor %}
+      </tr></thead>
+      <tbody>
+      {% for r in block.repeats.rows %}
+        <tr>
+          <td{% if not r.first_of_metric %} class="pokracovani"{% endif %}>
+            {% if r.first_of_metric %}{{ r.metric.name }}{% if r.label %}<br>{% endif %}{% endif %}
+            {% if r.label %}<span class="upresneni">{{ r.label }}</span>{% endif %}
+          </td>
+          <td class="cislo">{{ r.first_txt }}</td>
+          {% for c in r.cells %}
+            <td class="cislo">{% if c %}{{ c.value_txt }}<br><span class="pokusy">({{ c.delta_txt }})</span>{% else %}—{% endif %}</td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
   {% if block.invalid %}
     <p class="vysvetlivka">Neplatné pokusy:
       {% for t in block.invalid %}č. {{ t.number }}{% if t.invalid_reason %} ({{ t.invalid_reason }}){% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}.
@@ -135,6 +162,8 @@
 {% if results %}
   <p class="vysvetlivka">
     Hodnota = průměr platných pokusů (jednotlivé pokusy pod ní). Tučně klíčové ukazatele.
+    Když se test ten den opakoval, do grafů, pravidel a srovnání vstupuje první
+    měření; opakovaná jsou uvedena zvlášť.
     Změna se posuzuje proti nejmenší detekovatelné změně (MDC): změna menší než MDC
     je „v pásmu chyby měření“ a nelze ji vykládat jako zlepšení ani zhoršení.
     Norma = průměr ± směrodatná odchylka referenční skupiny, z = odchylka od průměru
@@ -162,7 +191,7 @@
 {% if asymmetries %}
   <figure>{{ asymmetry_svg }}
     <figcaption>
-      Rozdíl mezi levou a pravou stranou v procentech silnější strany.
+      Rozdíl mezi levou a pravou stranou v procentech vyšší z obou hodnot.
       Šedé pásmo = tolerance ±{{ asymmetry_threshold|floatformat:0 }} %;
       ▲ a oranžová barva = rozdíl nad tolerancí
       ({{ asymmetries_over }} z {{ asymmetries|length }}).
@@ -170,7 +199,7 @@
   </figure>
   <table class="vysledky">
     <thead><tr><th style="width:40%">Ukazatel</th><th class="cislo" style="text-align:right">Levá</th>
-      <th class="cislo" style="text-align:right">Pravá</th><th class="cislo" style="text-align:right">Rozdíl</th><th>Silnější</th></tr></thead>
+      <th class="cislo" style="text-align:right">Pravá</th><th class="cislo" style="text-align:right">Rozdíl</th><th>Vyšší hodnota</th></tr></thead>
     <tbody>
     {% for a in asymmetries %}
       <tr>

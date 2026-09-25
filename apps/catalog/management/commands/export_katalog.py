@@ -23,7 +23,7 @@ class Command(BaseCommand):
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n",
                         encoding="utf-8")
         self.stdout.write(self.style.SUCCESS(f"Katalog uložen do {path}"))
-        for key in ("metriky", "protokoly", "normy", "clanky", "pravidla"):
+        for key in ("metriky", "protokoly", "profily_importu", "normy", "clanky", "pravidla"):
             self.stdout.write(f"  {key}: {len(data[key])}")
         self.stdout.write("Přeneste ho gitem (commit + push) a na druhém počítači "
                           "spusťte: python manage.py import_katalog")

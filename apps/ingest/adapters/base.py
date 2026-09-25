@@ -2,7 +2,7 @@
 
 from collections.abc import Iterator
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 from typing import IO
 
 
@@ -22,8 +22,16 @@ class ParsedRow:
     value: float
     subject_hint: str = ""
     subject_attrs: dict = field(default_factory=dict)
+    # Jak sportovce zná zdroj: {"vald": "<uuid>", "hash_jmeno": "<hash>"}.
+    # Podle toho se páruje s existujícími sportovci (SubjectExternalId).
+    subject_ids: dict = field(default_factory=dict)
     protocol_code: str = ""
     session_date: date | None = None
+    # Jedno provedení testu ve zdroji (u VALD sportovec + typ + čas testu).
+    # Víc provedení téhož protokolu za den = opakované měření.
+    run_key: str = ""
+    run_started_at: datetime | None = None
+    run_conditions: dict = field(default_factory=dict)
     trial_number: int = 1
     side: str = ""
     mode: str = ""
@@ -49,6 +57,8 @@ class BaseAdapter:
         # Tiše zahozený sloupec je při migraci dat to nejhorší, co se
         # může stát – nikdo si toho nevšimne.
         self.unmapped_columns: list[str] = []
+        # Upozornění pro náhled („typ testu X nemá profil importu“).
+        self.notes: list[str] = []
 
     def parse(self, fileobj: IO[bytes]) -> Iterator[ParsedRow]:
         raise NotImplementedError
@@ -70,3 +80,17 @@ def get_adapter(code: str) -> BaseAdapter:
     if code not in registry:
         raise KeyError(f"Neznámý adaptér: {code}. Dostupné: {', '.join(sorted(registry))}")
     return registry[code]()
+
+
+def detect_adapter(fileobj: IO[bytes]) -> str | None:
+    """Pozná formát podle obsahu souboru, ne podle názvu."""
+    for code, adapter_cls in registry.items():
+        try:
+            fileobj.seek(0)
+            if adapter_cls().sniff(fileobj):
+                return code
+        except Exception:
+            continue
+        finally:
+            fileobj.seek(0)
+    return None

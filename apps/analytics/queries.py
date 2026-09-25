@@ -19,6 +19,7 @@ def primary_metric_series(subject, *, limit_metrics: int = 6, until=None):
     measurements = (
         Measurement.objects
         .filter(trial__protocol_run__session__subject=subject, trial__is_valid=True,
+                trial__protocol_run__is_primary=True,
                 metric__protocol_metrics__is_primary=True)
         .select_related("metric", "trial__protocol_run__session")
         .distinct()
@@ -93,7 +94,7 @@ def latest_asymmetries(subject, *, threshold_pct: float = 10.0):
         return None, []
 
     rows = []
-    for run in session.protocol_runs.select_related("protocol"):
+    for run in session.protocol_runs.filter(is_primary=True).select_related("protocol"):
         rows.extend(asymmetries_for_run(run, threshold_pct=threshold_pct))
     rows.sort(key=lambda r: abs(r["index_pct"]), reverse=True)
     return session, rows
@@ -113,13 +114,16 @@ def session_metric_values(session) -> dict:
 
     Klíč je metrika i s kvalifikátory, hodnota průměr platných pokusů –
     pravidlo se tedy vyhodnocuje nad tím, co se ten den naměřilo, ne nad
-    jedním vybraným pokusem.
+    jedním vybraným pokusem. Když se protokol ten den měřil víckrát (třeba
+    po zátěži), bere se jen hlavní provedení – průměr přes „před“ a „po“
+    by neodpovídal ničemu.
     """
     from apps.measurements.models import Measurement
 
     buckets = defaultdict(list)
     for m in (Measurement.objects
-              .filter(trial__protocol_run__session=session, trial__is_valid=True)
+              .filter(trial__protocol_run__session=session, trial__is_valid=True,
+                      trial__protocol_run__is_primary=True)
               .select_related("metric")):
         key = (m.metric.code, m.side, m.mode, m.speed, m.segment)
         buckets[key].append((m.metric, m.value))
@@ -146,7 +150,7 @@ def previous_session_values(session) -> dict:
     for m in (Measurement.objects
               .filter(trial__protocol_run__session__subject=session.subject,
                       trial__protocol_run__session__date__lt=session.date,
-                      trial__is_valid=True)
+                      trial__is_valid=True, trial__protocol_run__is_primary=True)
               .select_related("metric", "trial__protocol_run__session")):
         key = (m.metric.code, m.side, m.mode, m.speed, m.segment)
         buckets[key].append((m.trial.protocol_run.session.date, m.metric, m.value))
@@ -163,6 +167,6 @@ def previous_session_values(session) -> dict:
 
 def session_asymmetries(session, *, threshold_pct: float = 10.0) -> list[dict]:
     rows = []
-    for run in session.protocol_runs.select_related("protocol"):
+    for run in session.protocol_runs.filter(is_primary=True).select_related("protocol"):
         rows.extend(asymmetries_for_run(run, threshold_pct=threshold_pct))
     return rows

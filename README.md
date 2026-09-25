@@ -62,7 +62,8 @@ aplikace poběží i v ostrém nasazení. Reálná data sem nepatří.
 | `ulozit-katalog.bat` | po změně katalogu v administraci: uloží ho do repozitáře a nahraje |
 | `nacist-katalog.bat` | na druhém počítači: načte uložený katalog |
 
-Postup pro práci na víc počítačích je v [docs/vice-pocitacu.md](docs/vice-pocitacu.md).
+Postup pro práci na víc počítačích je v [docs/vice-pocitacu.md](docs/vice-pocitacu.md),
+import z VALD v [docs/import-vald.md](docs/import-vald.md).
 
 Generování PDF (`requirements/pdf.txt`) je záměrně bokem — WeasyPrint
 potřebuje systémové knihovny, které se instalují nepříjemně. Bez něj

@@ -31,7 +31,7 @@ def build(session, findings, citations) -> dict:
             "uroven": subject.get_level_display().lower(),
         },
         "datum_mereni": session.date.strftime("%d. %m. %Y"),
-        "protokoly": [run.protocol.name for run in session.protocol_runs.all()],
+        "protokoly": sorted({run.protocol.name for run in session.protocol_runs.all()}),
         "nalezy": [
             {"zavaznost": f.get_severity_display().lower(), "text": f.text}
             for f in findings if not f.suppressed
@@ -83,7 +83,8 @@ def _key_metrics(session) -> list[dict]:
                 item["zmena_posouzeni"] = "nelze posoudit, metrika nemá stanovenou MDC"
             elif metric.change_is_real(delta):
                 smer, _ = change_verdict(metric, delta)
-                item["zmena_posouzeni"] = f"{smer}, skutečná změna přesahující chybu měření"
+                smer = "posun" if smer == "skutečný posun" else smer
+                item["zmena_posouzeni"] = f"{smer} přesahující chybu měření"
                 item["mdc"] = round(metric.mdc, d)
             else:
                 item["zmena_posouzeni"] = "v pásmu chyby měření, bez prokazatelného posunu"
@@ -109,7 +110,9 @@ def _asymmetries(session, threshold_pct: float = 10.0) -> list[dict]:
             "metrika": r["metric"].name,
             "upresneni": _qualifiers(r["qualifiers"]),
             "rozdil_procent": round(abs(r["index_pct"]), 1),
-            "silnejsi_strana": "levá" if r["index_pct"] > 0 else "pravá",
+            # „vyšší“, ne „silnější“: u stability (plocha CoP) nebo časů je
+            # vyšší hodnota horší, takže „silnější strana“ by lhala.
+            "vyssi_hodnota": "vlevo" if r["index_pct"] > 0 else "vpravo",
             "nad_prahem": r["exceeds_threshold"],
             "prah_procent": round(threshold_pct),
         }

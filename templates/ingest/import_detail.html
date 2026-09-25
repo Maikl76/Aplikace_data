@@ -22,25 +22,65 @@
   {% if bez_data %} {{ bez_data }} hodnot je bez data.{% endif %}
 </p>
 
+{% for poznamka in summary.poznamky %}
+  <div class="mb-3 p-3 rounded bg-slate-50 border border-slate-200 text-sm">{{ poznamka }}</div>
+{% endfor %}
+
 {% if summary.nezmapovane_sloupce %}
   <div class="mb-6 p-3 rounded bg-amber-50 border border-amber-300 text-sm">
     <strong>Nezmapované sloupce:</strong> {{ summary.nezmapovane_sloupce|join:", " }}.
-    Tyto sloupce se neimportují. Pokud je chcete, doplňte je do mapování
-    v <code>apps/catalog/seed_data.py</code>.
+    Tyto sloupce se neimportují.
   </div>
 {% endif %}
 
 {% if summary.nezname_metriky %}
   <div class="mb-6 p-3 rounded bg-amber-50 border border-amber-300 text-sm">
-    <strong>Neznámé sloupce:</strong> {{ summary.nezname_metriky|join:", " }}.
-    Tyto hodnoty se neuloží. Doplňte metriku do katalogu nebo sloupec do mapování.
+    <strong>Neznámé metriky:</strong> {{ summary.nezname_metriky|join:", " }}.
+    Tyto hodnoty se neuloží. Doplňte metriku do katalogu.
   </div>
 {% endif %}
 
-{% if summary.novych_sportovcu %}
+{% if summary.existujici_testy %}
+  <div class="mb-6 p-3 rounded bg-blue-50 border border-blue-200 text-sm">
+    {{ summary.existujici_testy }} testů z tohoto souboru už v aplikaci je.
+    Nezdvojí se: chybějící hodnoty se doplní a hodnoty, které VALD mezitím
+    přepočítal, se aktualizují.
+  </div>
+{% endif %}
+
+{% if sportovci %}
+  <h2 class="font-semibold mb-2">Sportovci v souboru ({{ sportovci|length }})</h2>
+  <div class="overflow-x-auto"><table class="w-full bg-white rounded-lg border border-slate-200 text-sm mb-2">
+    <thead class="text-left text-slate-500 border-b border-slate-200">
+      <tr><th class="p-2">Ve zdroji</th><th class="p-2">V aplikaci</th>
+          <th class="p-2">Poznán podle</th><th class="p-2 text-right">Testů</th></tr>
+    </thead>
+    <tbody>
+      {% for s in sportovci %}
+        <tr class="border-b border-slate-100">
+          <td class="p-2">{{ s.hint }}</td>
+          <td class="p-2">{% if s.kod %}{{ s.kod }}{% else %}<span class="text-blue-700">nový – založí se</span>{% endif %}</td>
+          <td class="p-2 text-slate-500">{{ s.shoda|default:"—" }}
+            {% if s.upozorneni %}<div class="text-amber-800">{{ s.upozorneni }}</div>{% endif %}</td>
+          <td class="p-2 text-right">{{ s.testu }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+  <p class="text-xs text-slate-500 mb-6">
+    {% if ma_klic %}
+      Noví sportovci dostanou kód a jméno se uloží do šifrované identity.
+    {% else %}
+      Noví sportovci dostanou kód. <strong>Jména se neuloží</strong> – v nastavení
+      chybí šifrovací klíč (IDENTITY_ENCRYPTION_KEY); spusťte <code>spustit.bat</code>,
+      který ho doplní.
+    {% endif %}
+    Příště je aplikace pozná sama (podle ID ve VALD, jinak podle jména a data narození).
+  </p>
+{% elif summary.novych_sportovcu %}
   <div class="mb-6 p-3 rounded bg-blue-50 border border-blue-200 text-sm">
     {{ summary.novych_sportovcu }} sportovců v souboru zatím v databázi není —
-    při uložení se založí s pseudonymním kódem. Jméno ze souboru se neuloží.
+    při uložení se založí s pseudonymním kódem.
   </div>
 {% endif %}
 
@@ -102,16 +142,19 @@
       class="bg-white p-4 rounded-lg border border-slate-200">
   {% csrf_token %}
   <div class="flex flex-wrap gap-4 items-end">
+    {% if bez_data %}
     <label class="block">
       <span class="text-sm text-slate-600">Datum pro řádky bez data</span>
       <input type="date" name="default_date" value="{{ dnes|date:'Y-m-d' }}"
              class="mt-1 block border border-slate-300 rounded px-3 py-2">
     </label>
+    {% endif %}
     <label class="flex items-center gap-2 text-sm pb-2">
       <input type="checkbox" name="skip_out_of_range">
       Neukládat hodnoty mimo věrohodný rozsah
     </label>
-    <button type="submit" class="bg-slate-900 text-white rounded px-4 py-2">
+    <button type="submit" class="bg-slate-900 text-white rounded px-4 py-2"
+            onclick="this.textContent='Ukládám…'">
       Uložit do databáze
     </button>
     <button type="submit" formaction="{% url 'import_cancel' batch.pk %}"
@@ -119,8 +162,7 @@
   </div>
   <p class="text-xs text-slate-500 mt-3">
     Hodnoty mimo rozsah se ve výchozím stavu uloží označené – chyba přístroje
-    je taky informace. Jména ze souboru se neukládají: sportovci dostanou
-    pseudonymní kód a hash pro spárování při dalším importu.
+    je taky informace. Uložení velkého souboru může trvat několik desítek sekund.
   </p>
 </form>
 {% endblock %}

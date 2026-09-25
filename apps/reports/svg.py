@@ -160,8 +160,8 @@ def asymmetry_svg(rows, *, threshold_pct: float) -> str:
                                size=10, anchor="middle"))
     parts.append(f'<line x1="{center:.1f}" x2="{center:.1f}" y1="{top}" y2="{plot_bottom}" '
                  f'stroke="{C["axis"]}" stroke-width="1"/>')
-    parts.append(_text(center - 8, height - 6, "← silnější pravá", size=10, anchor="end"))
-    parts.append(_text(center + 8, height - 6, "silnější levá →", size=10))
+    parts.append(_text(center - 8, height - 6, "← vyšší vpravo", size=10, anchor="end"))
+    parts.append(_text(center + 8, height - 6, "vyšší vlevo →", size=10))
 
     for i, r in enumerate(rows):
         mid = top + row_h * i + row_h / 2

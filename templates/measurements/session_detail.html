@@ -19,9 +19,11 @@
               hover:border-slate-400">
       <span>
         <span class="font-medium">{{ run.protocol.name }}</span>
-        <span class="text-sm text-slate-500 block">{{ run.protocol.device }}</span>
+        {% if run.started_at %}<span class="text-sm text-slate-600"> · {{ run.started_at|time:"H:i" }}</span>{% endif %}
+        {% if not run.is_primary %}<span class="text-xs ml-1 px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">opakované měření</span>{% endif %}
+        <span class="text-sm text-slate-500 block">{{ run.protocol.device }}{% if run.external_ref %} · importováno{% endif %}</span>
       </span>
-      <span class="text-sm text-blue-700">zadat hodnoty →</span>
+      <span class="text-sm text-blue-700">{% if run.external_ref %}zobrazit hodnoty →{% else %}zadat hodnoty →{% endif %}</span>
     </a>
   {% empty %}
     <p class="text-slate-500 text-sm">Zatím žádný protokol.</p>

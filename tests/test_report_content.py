@@ -89,7 +89,7 @@ def test_zprava_obsahuje_vysledky_grafy_a_asymetrii(lab):
     assert "Výskok z podřepu" in html
     assert "41,0" in html
     assert "<svg" in html                     # graf vývoje i asymetrie
-    assert "silnější levá" in html
+    assert "vyšší vlevo" in html
     assert "25,0 % ▲" in html                 # (40 − 30) / 40 = 25 % nad tolerancí
 
 

@@ -5,7 +5,7 @@ nový protokol nebo metrika se zakládá tady, ne v kódu.
 
 from django.contrib import admin
 
-from .models import MetricDef, Norm, Protocol, ProtocolMetric
+from .models import ImportColumn, ImportProfile, MetricDef, Norm, Protocol, ProtocolMetric
 
 
 class ProtocolMetricInline(admin.TabularInline):
@@ -47,3 +47,26 @@ class NormAdmin(admin.ModelAdmin):
     list_filter = ("metric__family", "sport", "sex")
     search_fields = ("metric__code", "metric__name", "source_citation")
     autocomplete_fields = ["metric"]
+
+
+class ImportColumnInline(admin.TabularInline):
+    model = ImportColumn
+    extra = 1
+    autocomplete_fields = ["metric"]
+
+
+@admin.register(ImportProfile)
+class ImportProfileAdmin(admin.ModelAdmin):
+    """
+    Které sloupce exportu z přístroje se importují. Nová metrika z VALD =
+    nový řádek tady (a metrika v katalogu), nic se neprogramuje.
+    """
+
+    list_display = ("test_type", "device", "protocol", "pocet_sloupcu", "is_active")
+    list_filter = ("device", "is_active")
+    search_fields = ("test_type",)
+    inlines = [ImportColumnInline]
+
+    @admin.display(description="sloupců")
+    def pocet_sloupcu(self, obj):
+        return obj.columns.count()

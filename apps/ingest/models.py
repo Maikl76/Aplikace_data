@@ -45,6 +45,13 @@ class ImportBatch(OrgScopedModel):
     def __str__(self):
         return f"{self.raw_file.original_name} ({self.get_status_display()})"
 
+    @property
+    def adapter_label(self) -> str:
+        from .adapters import registry
+
+        adapter = registry.get(self.adapter)
+        return adapter.label if adapter else self.adapter
+
     def purge_staging(self):
         """
         Po uložení se staging maže. Obsahuje ``subject_hint`` – identifikaci
@@ -62,7 +69,7 @@ class StagedMeasurement(models.Model):
         UNKNOWN_SUBJECT = "unknown_subject", "Neznámý sportovec"
         UNKNOWN_METRIC = "unknown_metric", "Neznámá metrika"
         OUT_OF_RANGE = "range", "Mimo věrohodný rozsah"
-        DUPLICATE = "duplicate", "Duplicita"
+        DUPLICATE = "duplicate", "Test už je v aplikaci"
 
     batch = models.ForeignKey(ImportBatch, verbose_name="import", on_delete=models.CASCADE,
                               related_name="staged")
@@ -81,6 +88,8 @@ class StagedMeasurement(models.Model):
     metric_code = models.CharField("kód metriky", max_length=64, blank=True)
     metric = models.ForeignKey("catalog.MetricDef", verbose_name="metrika",
                                on_delete=models.SET_NULL, null=True, blank=True)
+    run_key = models.CharField("identifikace testu ve zdroji", max_length=200, blank=True)
+    run_started_at = models.DateTimeField("čas testu", null=True, blank=True)
     trial_number = models.PositiveSmallIntegerField("pokus", default=1)
     side = models.CharField("strana", max_length=1, blank=True)
     mode = models.CharField("režim", max_length=3, blank=True)

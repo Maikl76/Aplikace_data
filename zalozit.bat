@@ -25,6 +25,9 @@ if not exist .env (
   echo Vytvoren soubor .env se zakladnim nastavenim.
 )
 
+rem Klic k sifrovanym jmenum sportovcu (doplni se jen jednou).
+python manage.py zajisti_klic || goto chyba
+
 set NOVA_DATABAZE=0
 if not exist db.sqlite3 set NOVA_DATABAZE=1
 

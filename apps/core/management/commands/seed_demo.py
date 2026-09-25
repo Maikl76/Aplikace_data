@@ -44,6 +44,17 @@ RANGES = {
     "body_mass": (58, 92), "height": (162, 196), "lean_mass": (48, 72),
     "body_fat_pct": (8, 22), "segment_mass": (3, 12), "segment_lean_mass": (2.5, 10),
     "serve_speed": (150, 210),
+    "cmj_peak_power_bm": (40, 65), "cmj_depth": (25, 40), "cmj_contraction_time": (650, 900),
+    "cmj_ecc_braking_rfd": (3000, 9000), "cmj_landing_force": (3500, 7000),
+    "imtp_peak_force_bm": (25, 42), "imtp_force_100": (900, 1800), "imtp_force_200": (1300, 2400),
+    "imtp_rfd_100": (4000, 9000), "imtp_rfd_200": (3000, 6500), "imtp_time_to_peak": (1.2, 3.5),
+    "sls_cop_area": (600, 2500), "sls_total_excursion": (900, 2200),
+    "sls_mean_velocity": (30, 75),
+    "boxlift_hip_flex_lift": (90, 125), "boxlift_hip_flex_lower": (85, 120),
+    "boxlift_knee_flex_lift": (70, 130), "boxlift_knee_flex_lower": (65, 125),
+    "boxlift_shoulder_flex": (60, 125), "boxlift_trunk_ext": (0, 18),
+    "boxlift_spine_flex_lift": (15, 45), "boxlift_spine_flex_lower": (15, 45),
+    "boxlift_trunk_flex_lift": (40, 80), "boxlift_trunk_flex_lower": (40, 85),
 }
 
 
@@ -188,6 +199,10 @@ class Command(BaseCommand):
         for combo in protocol_metric.qualifier_combinations():
             # mírná asymetrie, ať má analytika co najít
             bias = random.uniform(0.9, 1.0) if combo["side"] == Side.LEFT else 1.0
+            # Když se měří celek i strany (síla na plošině), připadá na
+            # každou nohu zhruba polovina.
+            if combo["side"] in (Side.LEFT, Side.RIGHT) and "B" in protocol_metric.sides:
+                bias /= 2
             value = (centre + trend) * bias * random.uniform(0.97, 1.03)
             _, is_new = Measurement.objects.get_or_create(
                 trial=trial, metric=metric,
