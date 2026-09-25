@@ -53,6 +53,17 @@ python manage.py runserver         # http://localhost:8000
 jinak než PostgreSQL a neumí pgvector, takže na něm nelze ověřit, že
 aplikace poběží i v ostrém nasazení. Reálná data sem nepatří.
 
+### Windows na dvojklik
+
+| Soubor | Kdy |
+|---|---|
+| `zalozit.bat` | jednou na novém počítači: prostředí, knihovny, `.env`, databáze, ukázková data |
+| `spustit.bat` | pokaždé: stáhne novou verzi (`git pull`), upraví databázi a spustí aplikaci |
+| `ulozit-katalog.bat` | po změně katalogu v administraci: uloží ho do repozitáře a nahraje |
+| `nacist-katalog.bat` | na druhém počítači: načte uložený katalog |
+
+Postup pro práci na víc počítačích je v [docs/vice-pocitacu.md](docs/vice-pocitacu.md).
+
 Generování PDF (`requirements/pdf.txt`) je záměrně bokem — WeasyPrint
 potřebuje systémové knihovny, které se instalují nepříjemně. Bez něj
 aplikace funguje a zprávu ukáže v HTML; PDF nevyrobí a řekne to.

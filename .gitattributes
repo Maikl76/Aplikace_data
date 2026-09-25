@@ -1,0 +1,2 @@
+# Dávkové soubory pro Windows musí mít konce řádků CRLF, jinak je cmd špatně čte.
+*.bat text eol=crlf
