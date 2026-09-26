@@ -143,3 +143,10 @@ def test_spravne_heslo_prihlasi(client, uzivatel):
         "username": uzivatel.username, "password": "spravne-heslo-123",
     })
     assert odpoved.status_code == 302
+
+
+def test_styly_maji_otisk_proti_staremu_cache(client, db):
+    """Po aktualizaci nesmí prohlížeč použít starý soubor stylů (rozsypaný vzhled)."""
+    html = client.get("/ucet/prihlaseni/").content.decode()
+    assert "vendor/tailwind.css?v=" in html
+    assert "css/app.css?v=" in html

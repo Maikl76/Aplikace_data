@@ -64,6 +64,10 @@ body {
 }
 .tabular-nums, .cislo { font-variant-numeric: tabular-nums; }
 
+/* Pojistka: ikona bez rozměru by se roztáhla přes celou obrazovku.
+   :where má nulovou váhu, takže třídy jako w-4 / h-4 vždy vyhrají. */
+:where(svg[aria-hidden="true"]) { width: 1.15em; height: 1.15em; }
+
 /* --- rozvržení --------------------------------------------------------- */
 .app-sidebar {
   background: var(--surface);

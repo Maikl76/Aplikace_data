@@ -5,6 +5,10 @@ Ikony jsou jednoduché čárové SVG přímo v kódu – žádná knihovna z int
 (fakultní server nemusí mít přístup ven) a barvu přebírají z textu.
 """
 
+import hashlib
+import os
+from functools import lru_cache
+
 from django import template
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
@@ -70,3 +74,31 @@ def nav_link(context, url_name: str, label: str, icon_name: str, prefix: str = "
     active = path == url if url == "/" else path.startswith(prefix or url)
     return format_html('<a href="{}" class="nav-link{}">{}<span>{}</span></a>',
                        url, " active" if active else "", mark_safe(icon(icon_name)), label)
+
+
+@register.simple_tag
+def static_v(path: str) -> str:
+    """
+    Adresa statického souboru s otiskem obsahu (?v=…).
+
+    Prohlížeč si styly a skripty pamatuje. Po aktualizaci aplikace by pak
+    ukazoval novou stránku se starými styly – rozsypaný vzhled. Otisk se
+    změní s obsahem souboru, takže prohlížeč pozná, že má stáhnout nový.
+    """
+    from django.contrib.staticfiles import finders
+    from django.templatetags.static import static
+
+    url = static(path)
+    if "?" in url or len(url.rsplit("/", 1)[-1].split(".")) > 2:
+        return url  # už má otisk v názvu (produkční manifest)
+    found = finders.find(path)
+    if not found:
+        return url
+    return f"{url}?v={_digest(found, os.path.getmtime(found))}"
+
+
+@lru_cache(maxsize=64)
+def _digest(file_path: str, mtime: float) -> str:
+    """Otisk obsahu; počítá se znovu jen po změně souboru (mtime je v klíči)."""
+    with open(file_path, "rb") as fh:
+        return hashlib.md5(fh.read(), usedforsecurity=False).hexdigest()[:10]

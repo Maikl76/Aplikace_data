@@ -21,15 +21,15 @@
     Knihovny jsou v repozitáři, ne z CDN: fakultní server nemusí mít přístup
     do internetu a aplikace by se pak nespustila. Viz static/vendor/README.md.
   {% endcomment %}
-  <link rel="stylesheet" href="{% static 'vendor/tailwind.css' %}">
-  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="stylesheet" href="{% static_v 'vendor/tailwind.css' %}">
+  <link rel="stylesheet" href="{% static_v 'css/app.css' %}">
   <style>[x-cloak] { display: none !important; }</style>
   {# HTMX: server vrací kousky HTML, klient je vymění. Žádný build krok. #}
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
   <script src="{% static 'vendor/alpine.min.js' %}" defer></script>
   {# Grafy: figuru sestaví Python, plotly.js ji jen vykreslí. #}
   <script src="{% static 'vendor/plotly-basic.min.js' %}" defer></script>
-  <script src="{% static 'js/grafy.js' %}" defer></script>
+  <script src="{% static_v 'js/grafy.js' %}" defer></script>
   {% block head %}{% endblock %}
 </head>
 <body class="overflow-x-hidden">
