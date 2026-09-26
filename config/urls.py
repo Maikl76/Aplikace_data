@@ -3,6 +3,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
 from apps.core.forms import LoginForm
+from apps.measurements import views as measurement_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -11,6 +12,8 @@ urlpatterns = [
     path("ucet/odhlaseni/", auth_views.LogoutView.as_view(), name="logout"),
     path("", include("apps.core.urls")),
     path("sportovci/", include("apps.subjects.urls")),
+    path("sporty/", include("apps.catalog.urls")),
+    path("testovani/", measurement_views.today, name="today"),
     path("mereni/", include("apps.measurements.urls")),
     path("zpravy/", include("apps.reports.urls")),
     path("import/", include("apps.ingest.urls")),

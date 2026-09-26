@@ -32,7 +32,7 @@
   <script src="{% static_v 'js/grafy.js' %}" defer></script>
   {% block head %}{% endblock %}
 </head>
-<body class="overflow-x-hidden">
+<body class="overflow-x-hidden" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 {% if demo_mode %}
   <div class="bg-amber-500 text-black text-sm font-medium px-4 py-2 text-center">
     UKÁZKA — data jsou vygenerovaná. Nevkládejte sem reálná data sportovců.
@@ -58,9 +58,11 @@
     <nav class="flex-1 p-3 space-y-1">
       {% nav_link "dashboard" "Přehled" "home" %}
       {% nav_link "subject_list" "Sportovci" "users" %}
+      {% nav_link "today" "Dnešní testování" "calendar" %}
       {% nav_link "session_list" "Měření" "activity" %}
       {% nav_link "report_list" "Zprávy" "file" %}
       {% nav_link "import_list" "Import" "upload" %}
+      {% nav_link "sport_list" "Sporty a testy" "list" %}
       <div class="pt-3 mt-3 border-t" style="border-color: var(--border)">
         {% nav_link "/admin/" "Katalog a nastavení" "settings" "/admin/" %}
       </div>

@@ -1,0 +1,14 @@
+<div id="testy">
+  <div class="flex items-baseline justify-between mb-1">
+    <span class="text-sm text-2">Testy</span>
+    {% if battery %}<span class="text-xs text-muted">podle baterie: {{ battery.label }}</span>
+    {% elif subject %}<span class="text-xs text-muted">sport nemá baterii – <a class="link" href="{% url 'sport_list' %}">nastavit</a></span>{% endif %}
+  </div>
+  <div class="grid sm:grid-cols-2 gap-1.5">
+    {% for choice in form.protocols %}
+      <label class="flex items-center gap-2 text-sm px-2 py-1.5 rounded cursor-pointer" style="background: var(--surface-2)">
+        {{ choice.tag }} <span>{{ choice.choice_label }}</span>
+      </label>
+    {% endfor %}
+  </div>
+</div>

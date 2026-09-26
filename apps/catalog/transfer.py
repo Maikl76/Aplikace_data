@@ -18,7 +18,16 @@ from apps.evidence.models import Article
 from apps.rules.models import Rule, RuleArticle
 from apps.subjects.models import Sport
 
-from .models import ImportColumn, ImportProfile, MetricDef, Norm, Protocol, ProtocolMetric
+from .models import (
+    BatteryItem,
+    ImportColumn,
+    ImportProfile,
+    MetricDef,
+    Norm,
+    Protocol,
+    ProtocolMetric,
+    TestBattery,
+)
 
 FORMAT_VERSION = 1
 SKIP = {"id", "created_at", "updated_at", "organization"}
@@ -81,6 +90,13 @@ def export_catalog() -> dict:
             }
             for ip in ImportProfile.objects.select_related("protocol")
             .order_by("device", "test_type")
+        ],
+        "baterie": [
+            {"sport": _sport(b.sport), "category": b.category, "name": b.name, "note": b.note,
+             "protokoly": [{"kod": i.protocol.code, "verze": i.protocol.version}
+                           for i in b.items.select_related("protocol")]}
+            for b in TestBattery.objects.select_related("sport", "sport__organization")
+            .order_by("sport__code", "category")
         ],
         "normy": [
             {"organizace": _org(n), "metrika": n.metric.code, "sport": _sport(n.sport),
@@ -194,6 +210,21 @@ def import_catalog(data: dict, *, default_org: Organization | None = None) -> di
                        {"profile": profile, "column": col["column"]},
                        {"metric": imp.metric(col["metrika"], org), "factor": col["factor"],
                         "with_sides": col.get("with_sides", True)})
+
+    # Baterie: chybějící testy se doplní a pořadí srovná podle souboru;
+    # testy, které v souboru nejsou, zůstanou (import nic nemaže).
+    for item in data.get("baterie", []):
+        sport = imp.sport(item["sport"])
+        battery = imp.upsert("baterie testů", TestBattery,
+                             {"sport": sport, "category": item["category"]},
+                             {"organization": sport.organization, "name": item["name"],
+                              "note": item.get("note", "")})
+        for order, ref in enumerate(item["protokoly"], start=1):
+            protocol = Protocol.objects.filter(code=ref["kod"], version=ref["verze"]).first()
+            if protocol is None:
+                raise ImportError_(f"Protokol „{ref['kod']}“ z baterie v souboru chybí.")
+            BatteryItem.objects.update_or_create(battery=battery, protocol=protocol,
+                                                 defaults={"order": order})
 
     # Normy nemají přirozený klíč; párují se podle toho, pro koho platí.
     for item in data["normy"]:

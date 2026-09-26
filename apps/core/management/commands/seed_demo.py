@@ -18,7 +18,6 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.catalog.models import MetricDef, Protocol
-from apps.catalog.seed_data import PROTOCOLS
 from apps.core.models import Organization, Role, User
 from apps.measurements.models import Measurement, Mode, ProtocolRun, Side, TestSession, Trial
 from apps.subjects.models import Consent, Sex, Sport, Subject, Team
@@ -55,7 +54,19 @@ RANGES = {
     "boxlift_shoulder_flex": (60, 125), "boxlift_trunk_ext": (0, 18),
     "boxlift_spine_flex_lift": (15, 45), "boxlift_spine_flex_lower": (15, 45),
     "boxlift_trunk_flex_lift": (40, 80), "boxlift_trunk_flex_lower": (40, 85),
+    "sj_height": (26, 44), "sj_peak_power_bm": (40, 60),
+    "wingate_pmax": (850, 1350), "wingate_pmin": (330, 520), "wingate_p5s_max": (830, 1320),
+    "wingate_p5s_min": (320, 500), "wingate_work": (20, 32), "wingate_fatigue_index": (45, 72),
+    "wingate_revolutions": (55, 80), "lactate_max": (9, 16), "hr_max": (170, 200),
 }
+
+# Baterie testů pro demo sporty (kód sportu, kategorie, protokoly v pořadí).
+DEMO_BATTERIES = [
+    ("tenis", "", ["bodycomp", "cmj", "grip", "iso_shoulder", "serve"]),
+    ("veslovani", "", ["bodycomp", "spiro_ramp", "imtp", "cmj"]),
+    ("atletika", "", ["bodycomp", "cmj", "sj", "imtp", "sls"]),
+    ("hokej", "dorost", ["bodycomp", "wingate", "sj", "cmj", "imtp"]),
+]
 
 
 
@@ -92,7 +103,8 @@ class Command(BaseCommand):
         protocols = {p.code: p for p in Protocol.objects.filter(organization=None)}
 
         sports = {}
-        for name, code in [("Tenis", "tenis"), ("Veslování", "veslovani"), ("Atletika", "atletika")]:
+        for name, code in [("Tenis", "tenis"), ("Veslování", "veslovani"),
+                           ("Atletika", "atletika"), ("Lední hokej", "hokej")]:
             sports[code], _ = Sport.objects.get_or_create(
                 organization=org, code=code, defaults={"name": name},
             )
@@ -102,6 +114,15 @@ class Command(BaseCommand):
             )[0]
             for code, sport in sports.items()
         }
+
+        from apps.catalog.models import BatteryItem, TestBattery
+
+        for sport_code, category, codes in DEMO_BATTERIES:
+            battery, _ = TestBattery.objects.get_or_create(
+                organization=org, sport=sports[sport_code], category=category)
+            for order, code in enumerate(codes, start=1):
+                BatteryItem.objects.get_or_create(battery=battery, protocol=protocols[code],
+                                                  defaults={"order": order})
 
         today = timezone.localdate()
         created = 0
@@ -114,7 +135,10 @@ class Command(BaseCommand):
                     "sport": sports[sport_code],
                     "team": teams[sport_code],
                     "sex": random.choice([Sex.FEMALE, Sex.MALE]),
-                    "birth_year": random.randint(today.year - 32, today.year - 17),
+                    "birth_year": (random.randint(today.year - 18, today.year - 16)
+                                   if sport_code == "hokej"
+                                   else random.randint(today.year - 32, today.year - 17)),
+                    "category": "dorost" if sport_code == "hokej" else "",
                     "level": random.choice([Subject.Level.TRAINED, Subject.Level.NATIONAL]),
                     "dominant_side": random.choice(["L", "R"]),
                 },
@@ -139,9 +163,10 @@ class Command(BaseCommand):
                               "fatigue_rating": random.randint(2, 7)},
                 )
 
-                # DSI se neměří, dopočítá se z CMJ a IMTP (analytics/derived).
-                measured = [code for code in PROTOCOLS if code != "dsi"]
-                chosen = random.sample(measured, k=random.randint(3, len(measured)))
+                # Měří se podle baterie sportu; občas jeden test vypadne,
+                # ať data vypadají jako ze skutečného provozu.
+                battery = next(codes for code, _, codes in DEMO_BATTERIES if code == sport_code)
+                chosen = [c for c in battery if len(battery) < 4 or random.random() > 0.12]
                 for code in chosen:
                     protocol = protocols[code]
                     run, _ = ProtocolRun.objects.get_or_create(session=session, protocol=protocol)
@@ -197,7 +222,11 @@ class Command(BaseCommand):
         )
 
     def _make_values(self, trial, protocol_metric, ability, session_index) -> int:
+        from apps.analytics.derived import DERIVED_METRICS
+
         metric = protocol_metric.metric
+        if metric.code in DERIVED_METRICS:  # W/kg apod. se dopočítá
+            return 0
         low, high = RANGES[metric.code]
         centre = low + (high - low) * (0.5 + ability[metric.code] * 0.2)
         trend = session_index * (high - low) * 0.015

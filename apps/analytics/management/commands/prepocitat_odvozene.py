@@ -12,7 +12,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         pocet = 0
         sessions = TestSession.objects.filter(
-            protocol_runs__protocol__code__in=["cmj", "imtp", "dsi"]).distinct()
+            protocol_runs__protocol__code__in=["cmj", "imtp", "dsi", "sj", "eur",
+                                               "wingate"]).distinct()
         for session in sessions.iterator():
             pocet += recompute(session)
         self.stdout.write(f"Odvozené ukazatele: {pocet} hodnot.")

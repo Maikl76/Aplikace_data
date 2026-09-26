@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <div class="eyebrow">Nastavení testování</div>
+    <h1 class="text-2xl font-semibold">Sporty a baterie testů</h1>
+    <p class="text-sm text-muted mt-1 max-w-2xl">Baterie určuje, které testy se sportovci daného
+      sportu (a kategorie) předvyplní při novém testovacím dni. Úpravy nemění nic
+      z toho, co už je naměřené.</p>
+  </div>
+  <form method="post" class="flex gap-2">
+    {% csrf_token %}
+    <input name="name" required placeholder="Nový sport, např. Lední hokej" class="input w-64">
+    <button type="submit" class="btn btn-primary">{% icon "plus" %}Přidat sport</button>
+  </form>
+</div>
+
+<div class="grid lg:grid-cols-2 gap-4">
+  {% for sport in sports %}
+    <section class="card p-4 min-w-0">
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="text-lg font-semibold">{{ sport.name }}</h2>
+        <a class="text-sm link" href="{% url 'subject_list' %}?sport={{ sport.pk }}">{{ sport.pocet_sportovcu }} sportovců</a>
+      </div>
+      <div class="space-y-3">
+        {% for battery in sport.baterie %}{% include "catalog/_battery.html" %}{% endfor %}
+      </div>
+      <details class="mt-3">
+        <summary class="text-sm link cursor-pointer">+ baterie pro kategorii</summary>
+        <form method="post" action="{% url 'battery_add' sport.pk %}" class="mt-2 flex flex-wrap gap-2">
+          {% csrf_token %}
+          <input name="category" required placeholder="Kategorie, např. dorost" class="input w-48">
+          <input name="name" placeholder="Název (nepovinné)" class="input w-48">
+          <button type="submit" class="btn btn-sm">Založit</button>
+        </form>
+        <p class="text-xs text-muted mt-1">Sportovec s touto kategorií dostane tuto baterii; ostatní baterii celého sportu.</p>
+      </details>
+    </section>
+  {% empty %}
+    <div class="card p-6 text-sm text-muted">Zatím žádné sporty. Přidejte první nahoře.</div>
+  {% endfor %}
+</div>
+{% endblock %}

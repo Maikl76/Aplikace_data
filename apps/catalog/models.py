@@ -12,7 +12,7 @@ Záznamy s ``organization = NULL`` jsou sdílené napříč pracovišti.
 
 from django.db import models
 
-from apps.core.models import Organization, TimeStampedModel
+from apps.core.models import Organization, OrgScopedModel, TimeStampedModel
 
 
 class TestFamily(models.TextChoices):
@@ -332,3 +332,68 @@ class ImportColumn(models.Model):
 
     def __str__(self):
         return f"{self.column} → {self.metric.code}"
+
+
+class TestBattery(OrgScopedModel):
+    """
+    Baterie testů: které protokoly se u sportu (případně kategorie) měří
+    a v jakém pořadí. Nový testovací den se podle ní předvyplní.
+
+    Odebrání testu z baterie nemaže žádná naměřená data – změní jen to,
+    co se bude nabízet příště.
+    """
+
+    sport = models.ForeignKey("subjects.Sport", verbose_name="sport", on_delete=models.CASCADE,
+                              related_name="batteries")
+    category = models.CharField("kategorie", max_length=60, blank=True,
+                                help_text="Např. „dorost“. Prázdné = platí pro celý sport.")
+    name = models.CharField("název", max_length=120, blank=True)
+    note = models.TextField("poznámka", blank=True)
+
+    class Meta:
+        verbose_name = "baterie testů"
+        verbose_name_plural = "baterie testů"
+        ordering = ["sport__name", "category"]
+
+    def __str__(self):
+        return self.label
+
+    @property
+    def label(self) -> str:
+        if self.name:
+            return self.name
+        return f"{self.sport.name} – {self.category}" if self.category else self.sport.name
+
+    def protocols(self):
+        return [item.protocol for item in self.items.select_related("protocol")]
+
+    @classmethod
+    def for_subject(cls, subject):
+        """Baterie pro sport a kategorii sportovce; když pro kategorii není, tak pro sport."""
+        if not subject.sport_id:
+            return None
+        qs = cls.objects.filter(sport_id=subject.sport_id)
+        if subject.category:
+            exact = qs.filter(category__iexact=subject.category).first()
+            if exact:
+                return exact
+        return qs.filter(category="").first()
+
+
+class BatteryItem(models.Model):
+    battery = models.ForeignKey(TestBattery, verbose_name="baterie", on_delete=models.CASCADE,
+                                related_name="items")
+    protocol = models.ForeignKey(Protocol, verbose_name="protokol", on_delete=models.PROTECT,
+                                 related_name="battery_items")
+    order = models.PositiveSmallIntegerField("pořadí", default=0)
+
+    class Meta:
+        verbose_name = "test v baterii"
+        verbose_name_plural = "testy v baterii"
+        ordering = ["order", "pk"]
+        constraints = [
+            models.UniqueConstraint(fields=["battery", "protocol"], name="uniq_battery_protocol"),
+        ]
+
+    def __str__(self):
+        return f"{self.battery} / {self.protocol.name}"

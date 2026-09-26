@@ -1,0 +1,44 @@
+{% load ui %}
+<div id="baterie-{{ battery.pk }}" class="rounded-lg border p-3" style="border-color: var(--border)">
+  <div class="flex items-center justify-between gap-2 mb-2">
+    <div>
+      <span class="font-medium">{% if battery.category %}{{ battery.category|capfirst }}{% else %}Celý sport{% endif %}</span>
+      {% if battery.name %}<span class="text-xs text-muted"> · {{ battery.name }}</span>{% endif %}
+    </div>
+    <form method="post" action="{% url 'battery_delete' battery.pk %}"
+          onsubmit="return confirm('Smazat baterii? Naměřená data zůstanou.')">
+      {% csrf_token %}
+      <button type="submit" class="text-xs text-muted hover:underline">smazat baterii</button>
+    </form>
+  </div>
+  <ol class="space-y-1">
+    {% for item in battery.items.all %}
+      <li class="flex items-center gap-2 text-sm px-2 py-1.5 rounded" style="background: var(--surface-2)">
+        <span class="w-5 text-muted tabular-nums">{{ forloop.counter }}.</span>
+        <span class="flex-1 min-w-0 truncate">{{ item.protocol.name }}
+          <span class="text-xs text-muted">· {{ item.protocol.device|default:"" }}</span></span>
+        <button class="px-1 text-muted hover:opacity-70" title="Posunout výš"
+                hx-post="{% url 'battery_item_move' item.pk 'nahoru' %}"
+                hx-target="#baterie-{{ battery.pk }}" hx-swap="outerHTML"
+                {% if forloop.first %}disabled style="opacity:.3"{% endif %}>↑</button>
+        <button class="px-1 text-muted hover:opacity-70" title="Posunout níž"
+                hx-post="{% url 'battery_item_move' item.pk 'dolu' %}"
+                hx-target="#baterie-{{ battery.pk }}" hx-swap="outerHTML"
+                {% if forloop.last %}disabled style="opacity:.3"{% endif %}>↓</button>
+        <button class="px-1 hover:opacity-70" style="color: var(--bad)" title="Odebrat z baterie"
+                hx-post="{% url 'battery_item_remove' item.pk %}"
+                hx-target="#baterie-{{ battery.pk }}" hx-swap="outerHTML">✕</button>
+      </li>
+    {% empty %}
+      <li class="text-sm text-muted px-2 py-1.5">Zatím žádné testy.</li>
+    {% endfor %}
+  </ol>
+  <form class="mt-2 flex gap-2" hx-post="{% url 'battery_item_add' battery.pk %}"
+        hx-target="#baterie-{{ battery.pk }}" hx-swap="outerHTML">
+    <select name="protocol" class="input text-sm py-1.5" required>
+      <option value="">Přidat test…</option>
+      {% for p in battery.available %}<option value="{{ p.pk }}">{{ p.name }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn btn-sm">{% icon "plus" %}Přidat</button>
+  </form>
+</div>

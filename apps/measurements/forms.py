@@ -19,21 +19,36 @@ class TestSessionForm(forms.ModelForm):
         model = TestSession
         fields = ["subject", "date", "location", "season_phase", "fatigue_rating", "note"]
         widgets = {
-            "date": forms.DateInput(attrs={"type": "date"}),
+            "date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "note": forms.Textarea(attrs={"rows": 2}),
             "fatigue_rating": forms.NumberInput(attrs={"min": 1, "max": 10,
                                                        "inputmode": "numeric"}),
         }
 
+    protocols = forms.ModelMultipleChoiceField(
+        queryset=Protocol.objects.filter(is_active=True).exclude(code__in=["dsi", "eur"]),
+        required=False, label="Testy", widget=forms.CheckboxSelectMultiple,
+        help_text="Předvyplněno podle baterie sportu. Další test jde přidat i později.")
+
+    field_order = ["subject", "date", "protocols", "location", "season_phase",
+                   "fatigue_rating", "note"]
+
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         if user is not None:
-            self.fields["subject"].queryset = (
-                Subject.objects.for_user(user).filter(is_active=True)
-            )
-        for field in self.fields.values():
-            css = "w-full border border-slate-300 rounded px-3 py-2"
-            field.widget.attrs["class"] = f"{field.widget.attrs.get('class', '')} {css}".strip()
+            subjects = Subject.objects.for_user(user).filter(is_active=True)
+            self.fields["subject"].queryset = subjects
+            # Jméno (kdo ho smí vidět) je pro výběr srozumitelnější než kód.
+            from apps.subjects.search import names_for
+
+            names = names_for(subjects, user)
+            self.fields["subject"].label_from_instance = (
+                lambda s: f"{names[s.pk]} ({s.code})" if s.pk in names else s.code)
+        for name, field in self.fields.items():
+            if name == "protocols":
+                field.label_from_instance = lambda p: p.name
+                continue
+            field.widget.attrs["class"] = f"{field.widget.attrs.get('class', '')} input".strip()
 
 
 class AddProtocolForm(forms.Form):
@@ -86,7 +101,12 @@ def build_grid(protocol_run) -> list[dict]:
 
     trials = list(range(1, protocol_run.protocol.default_trials + 1))
     rows = []
+    from apps.analytics.derived import DERIVED_METRICS
+
     for pm in protocol_run.protocol.protocol_metrics.select_related("metric").all():
+        # Vypočtené hodnoty (W/kg z W a hmotnosti) se nezadávají – přepočítají se samy.
+        if pm.metric.code in DERIVED_METRICS:
+            continue
         for combo in pm.qualifier_combinations():
             cells = []
             for trial_number in trials:

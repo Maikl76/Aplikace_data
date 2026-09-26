@@ -9,7 +9,7 @@
     <h1 class="text-2xl font-semibold leading-tight">{{ display_name }}</h1>
     <div class="mt-1 flex flex-wrap gap-1.5 text-sm">
       {% if display_name != subject.code %}<span class="badge">{{ subject.code }}</span>{% endif %}
-      <span class="badge">{{ subject.sport|default:"bez sportu" }}</span>
+      <span class="badge">{{ subject.sport|default:"bez sportu" }}{% if subject.category %} · {{ subject.category }}{% endif %}</span>
       <span class="badge">{{ subject.get_level_display }}</span>
       {% if subject.age %}<span class="badge">{{ subject.age }} let</span>{% endif %}
       <span class="badge">{{ subject.get_sex_display }}</span>
@@ -131,6 +131,7 @@
             <span class="flex-1 min-w-0 flex flex-wrap gap-1.5">
               {% for p in s.protokoly %}<span class="badge">{{ p }}</span>{% empty %}<span class="text-sm text-muted">bez protokolu</span>{% endfor %}
             </span>
+            {% if not s.hodnot %}<span class="badge">naplánováno</span>{% endif %}
             {% if s.reports.all %}<span class="badge badge-accent">{% icon "file" "w-3.5 h-3.5" %}zpráva</span>{% endif %}
             <span class="text-muted">{% icon "chevron-right" "w-4 h-4" %}</span>
           </a>

@@ -5,7 +5,16 @@ nový protokol nebo metrika se zakládá tady, ne v kódu.
 
 from django.contrib import admin
 
-from .models import ImportColumn, ImportProfile, MetricDef, Norm, Protocol, ProtocolMetric
+from .models import (
+    BatteryItem,
+    ImportColumn,
+    ImportProfile,
+    MetricDef,
+    Norm,
+    Protocol,
+    ProtocolMetric,
+    TestBattery,
+)
 
 
 class ProtocolMetricInline(admin.TabularInline):
@@ -70,3 +79,18 @@ class ImportProfileAdmin(admin.ModelAdmin):
     @admin.display(description="sloupců")
     def pocet_sloupcu(self, obj):
         return obj.columns.count()
+
+
+class BatteryItemInline(admin.TabularInline):
+    model = BatteryItem
+    extra = 1
+    autocomplete_fields = ["protocol"]
+
+
+@admin.register(TestBattery)
+class TestBatteryAdmin(admin.ModelAdmin):
+    """Pohodlněji se baterie upravují v aplikaci (Sporty a testy); tady pro úplnost."""
+
+    list_display = ("sport", "category", "name")
+    list_filter = ("sport",)
+    inlines = [BatteryItemInline]

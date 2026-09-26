@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count
 from django.shortcuts import get_object_or_404, render
 
 from apps.analytics import charts, overview, queries
@@ -54,10 +55,14 @@ def subject_detail(request, pk):
     sessions = list(
         TestSession.objects.filter(subject=subject)
         .prefetch_related("protocol_runs__protocol", "reports")
+        .annotate(hodnot=Count("protocol_runs__trials__measurements"))
         .order_by("-date")
     )
     for session in sessions:
         session.protokoly = sorted({run.protocol.name for run in session.protocol_runs.all()})
+    # „Poslední měření“ = poslední den, kdy se něco naměřilo; den jen
+    # naplánovaný podle baterie (zatím prázdný) se nepočítá.
+    measured = [s for s in sessions if s.hodnot]
 
     trends = [
         _both_themes(lambda theme, s=s: charts.trend_chart(
@@ -70,7 +75,7 @@ def subject_detail(request, pk):
         "subject": subject,
         "display_name": subject.display_for(request.user),
         "sessions": sessions,
-        "last_session": sessions[0] if sessions else None,
+        "last_session": measured[0] if measured else None,
         "tiles": overview.kpi_tiles(subject),
         "external_exams": subject.external_exams.order_by("-date"),
         "reports": subject.reports.order_by("-created_at")[:10],

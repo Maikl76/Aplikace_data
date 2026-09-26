@@ -442,16 +442,35 @@ def commit_batch(batch, *, user, default_date=None, skip_out_of_range=False) -> 
             if row.run_key and row.run_key in existing_refs:
                 run, is_existing = existing_refs[row.run_key], True
             elif row.run_key:
-                run = ProtocolRun.objects.create(
-                    session=session_for(subject, day), protocol=row.protocol,
-                    started_at=row.run_started_at, external_ref=row.run_key,
-                    conditions=runs_info.get(row.run_key, {}).get("conditions", {}),
-                )
+                session = session_for(subject, day)
+                conditions = runs_info.get(row.run_key, {}).get("conditions", {})
+                # Test naplánovaný podle baterie (prázdné provedení) se vyplní,
+                # místo aby vedle něj vzniklo druhé.
+                from apps.measurements.planning import empty_run
+
+                run = empty_run(session, row.protocol)
+                if run is not None:
+                    run.started_at, run.external_ref = row.run_started_at, row.run_key
+                    run.conditions = {**run.conditions, **conditions}
+                    run.save(update_fields=["started_at", "external_ref", "conditions"])
+                else:
+                    run = ProtocolRun.objects.create(
+                        session=session, protocol=row.protocol,
+                        started_at=row.run_started_at, external_ref=row.run_key,
+                        conditions=conditions,
+                    )
                 is_existing = False
                 result["testy"] += 1
             else:
-                run, created = ProtocolRun.objects.get_or_create(
-                    session=session_for(subject, day), protocol=row.protocol)
+                # Zdroj bez identifikace testu (starý Excel): první provedení
+                # protokolu toho dne, jinak nové. get_or_create by spadl, když
+                # jich je víc (opakované měření).
+                session = session_for(subject, day)
+                run = (session.protocol_runs.filter(protocol=row.protocol)
+                       .order_by("started_at", "pk").first())
+                created = run is None
+                if created:
+                    run = ProtocolRun.objects.create(session=session, protocol=row.protocol)
                 is_existing = not created
                 result["testy"] += int(created)
             runs[run_key], run_is_existing[run_key] = run, is_existing

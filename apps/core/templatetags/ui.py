@@ -39,6 +39,9 @@ _PATHS = {
     "alert": '<path d="M12 3l10 18H2z"/><path d="M12 10v4M12 17.5v.5"/>',
     "calendar": '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
     "chevron-right": '<path d="M9 5l7 7-7 7"/>',
+    "list": '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/>'
+            '<circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
+    "check": '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
 }
 
 

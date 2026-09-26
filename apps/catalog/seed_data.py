@@ -38,6 +38,26 @@ METRICS = [
     ("sls_cop_area", "Plocha elipsy CoP (stoj na 1 DK)", TestFamily.FORCE_PLATE, "mm²", Direction.LOWER, 50, 30000, 0),
     ("sls_total_excursion", "Celková dráha CoP (stoj na 1 DK)", TestFamily.FORCE_PLATE, "mm", Direction.LOWER, 100, 15000, 0),
     ("sls_mean_velocity", "Průměrná rychlost CoP (stoj na 1 DK)", TestFamily.FORCE_PLATE, "mm/s", Direction.LOWER, 3, 500, 1),
+    ("sj_height", "Výška výskoku (SJ)", TestFamily.FORCE_PLATE, "cm", Direction.HIGHER, 5, 80, 1),
+    ("sj_peak_power_bm", "Vrcholový výkon / hmotnost (SJ)", TestFamily.FORCE_PLATE, "W/kg", Direction.HIGHER, 15, 100, 1),
+    # Eccentric Utilization Ratio = výška CMJ ÷ výška SJ; dopočítá se.
+    ("eur", "Eccentric Utilization Ratio (CMJ ÷ SJ)", TestFamily.FORCE_PLATE, "-", Direction.NEUTRAL, 0.7, 1.6, 2),
+    # --- Wingate (anaerobní test 30 s) ------------------------------------
+    ("wingate_pmax", "Maximální výkon (Wingate)", TestFamily.SPIROERGOMETRY, "W", Direction.HIGHER, 200, 2500, 0),
+    ("wingate_pmin", "Minimální výkon (Wingate)", TestFamily.SPIROERGOMETRY, "W", Direction.HIGHER, 50, 1500, 0),
+    ("wingate_p5s_max", "Nejvyšší pětivteřinový průměr (Wingate)", TestFamily.SPIROERGOMETRY, "W", Direction.HIGHER, 200, 2500, 1),
+    ("wingate_p5s_min", "Nejnižší pětivteřinový průměr (Wingate)", TestFamily.SPIROERGOMETRY, "W", Direction.HIGHER, 50, 1500, 1),
+    ("wingate_work", "Celková práce (Wingate)", TestFamily.SPIROERGOMETRY, "kJ", Direction.HIGHER, 3, 60, 1),
+    ("wingate_fatigue_index", "Index únavy (Wingate)", TestFamily.SPIROERGOMETRY, "%", Direction.LOWER, 5, 95, 1),
+    ("wingate_revolutions", "Počet otáček (Wingate)", TestFamily.SPIROERGOMETRY, "", Direction.HIGHER, 10, 200, 0),
+    ("lactate_max", "Laktát maximální", TestFamily.SPIROERGOMETRY, "mmol/l", Direction.NEUTRAL, 1, 30, 1),
+    ("hr_max", "Maximální tepová frekvence", TestFamily.SPIROERGOMETRY, "BPM", Direction.NEUTRAL, 100, 230, 0),
+    # relativní hodnoty – dopočítají se z hmotnosti (TH) a aktivní hmoty (ATH)
+    ("wingate_pmax_th", "Maximální výkon / TH (Wingate)", TestFamily.SPIROERGOMETRY, "W/kg", Direction.HIGHER, 3, 30, 1),
+    ("wingate_pmax_ath", "Maximální výkon / ATH (Wingate)", TestFamily.SPIROERGOMETRY, "W/kg", Direction.HIGHER, 3, 35, 1),
+    ("wingate_pmin_th", "Minimální výkon / TH (Wingate)", TestFamily.SPIROERGOMETRY, "W/kg", Direction.HIGHER, 1, 20, 1),
+    ("wingate_work_th", "Celková práce / TH (Wingate) – anaerobní kapacita", TestFamily.SPIROERGOMETRY, "J/kg", Direction.HIGHER, 50, 700, 0),
+    ("wingate_work_ath", "Celková práce / ATH (Wingate)", TestFamily.SPIROERGOMETRY, "J/kg", Direction.HIGHER, 50, 800, 0),
     # --- analýza pohybu (HumanTrak) ------------------------------------
     ("boxlift_hip_flex_lift", "Flexe kyčle při max. flexi kolene – zvedání", TestFamily.FIELD, "°", Direction.NEUTRAL, 0, 180, 1),
     ("boxlift_hip_flex_lower", "Flexe kyčle při max. flexi kolene – pokládání", TestFamily.FIELD, "°", Direction.NEUTRAL, 0, 180, 1),
@@ -102,6 +122,39 @@ PROTOCOLS = {
             {"code": "imtp_rfd_100", "sides": ["B", "L", "R"]},
             {"code": "imtp_rfd_200", "sides": ["B", "L", "R"]},
             {"code": "imtp_time_to_peak", "sides": ["B"]},
+        ],
+    },
+    "sj": {
+        "name": "Squat jump", "family": TestFamily.FORCE_PLATE,
+        "device": "VALD ForceDecks", "trials": 3,
+        "metrics": [
+            {"code": "sj_height", "sides": ["B"], "primary": True},
+            {"code": "sj_peak_power_bm", "sides": ["B"]},
+        ],
+    },
+    "eur": {
+        "name": "Eccentric Utilization Ratio", "family": TestFamily.FORCE_PLATE,
+        "device": "výpočet z CMJ a SJ", "trials": 1,
+        "metrics": [{"code": "eur", "sides": ["B"], "primary": True}],
+    },
+    "wingate": {
+        "name": "Wingate test 30 s", "family": TestFamily.SPIROERGOMETRY,
+        "device": "bicyklový ergometr", "trials": 1,
+        "metrics": [
+            {"code": "wingate_pmax", "sides": ["B"]},
+            {"code": "wingate_pmax_th", "sides": ["B"], "primary": True},
+            {"code": "wingate_pmax_ath", "sides": ["B"]},
+            {"code": "wingate_p5s_max", "sides": ["B"]},
+            {"code": "wingate_pmin", "sides": ["B"]},
+            {"code": "wingate_pmin_th", "sides": ["B"]},
+            {"code": "wingate_p5s_min", "sides": ["B"]},
+            {"code": "wingate_work", "sides": ["B"]},
+            {"code": "wingate_work_th", "sides": ["B"], "primary": True},
+            {"code": "wingate_work_ath", "sides": ["B"]},
+            {"code": "wingate_fatigue_index", "sides": ["B"]},
+            {"code": "wingate_revolutions", "sides": ["B"]},
+            {"code": "lactate_max", "sides": ["B"]},
+            {"code": "hr_max", "sides": ["B"]},
         ],
     },
     "dsi": {
@@ -350,6 +403,10 @@ IMPORT_PROFILES = [
         ("RFD - 100ms [N/s]", "imtp_rfd_100", 1),
         ("RFD - 200ms [N/s]", "imtp_rfd_200", 1),
         ("Start Time to Peak Force [s]", "imtp_time_to_peak", 1, False),
+    ]),
+    ("vald_forcedecks", "Squat Jump", "sj", [
+        ("Jump Height (Imp-Mom) [cm]", "sj_height", 1),
+        ("Peak Power / BM [W/kg]", "sj_peak_power_bm", 1),
     ]),
     ("vald_forcedecks", "Single Leg Stand", "sls", [
         ("Area of CoP Ellipse [mm sq]", "sls_cop_area", 1),

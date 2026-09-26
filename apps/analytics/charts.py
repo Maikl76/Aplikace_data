@@ -177,7 +177,8 @@ def trend_chart(metric, points, *, qualifiers=None, norm=None,
         "name": metric.name,
     })
 
-    layout = _base_layout(colors, height=240, y_title=metric.unit or "")
+    layout = _base_layout(colors, height=240,
+                          y_title="" if metric.unit in ("", "-") else metric.unit)
     # Krátké období: den a měsíc, jinak by osa opakovala „09/2026“ pětkrát.
     span_days = (points[-1][0] - points[0][0]).days if len(points) > 1 else 0
     layout["xaxis"]["tickformat"] = "%d.%m." if span_days < 90 else "%m/%Y"

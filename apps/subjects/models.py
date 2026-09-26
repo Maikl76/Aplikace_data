@@ -69,6 +69,9 @@ class Subject(OrgScopedModel):
     sex = models.CharField("pohlaví", max_length=1, choices=Sex.choices, default=Sex.OTHER)
     birth_year = models.PositiveSmallIntegerField("rok narození", null=True, blank=True,
                                                   help_text="Jen rok – přesné datum není potřeba.")
+    category = models.CharField("kategorie", max_length=60, blank=True,
+                                help_text="Věková nebo výkonnostní kategorie, např. „dorost“. "
+                                          "Podle ní se vybírá baterie testů.")
     level = models.CharField("úroveň", max_length=20, choices=Level.choices,
                              default=Level.TRAINED)
     dominant_side = models.CharField("dominantní strana", max_length=1,

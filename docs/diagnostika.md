@@ -53,3 +53,19 @@ téhož dne neliší víc, než je obvyklé:
 - ve **zprávě** u dané hodnoty („rozptyl pokusů 11,8 % ▲“).
 
 Mez je výchozí nastavení laboratoře, ne norma – upravte ji podle zkušenosti.
+
+## Eccentric Utilization Ratio (EUR)
+
+**EUR = výška CMJ ÷ výška squat jumpu** téhož dne – jak sportovec využije
+protipohyb (cyklus natažení a zkrácení). Dopočítá se sám, když jsou v den
+měření oba skoky. Výklad v literatuře není jednotný, proto k němu zatím
+žádné pravidlo není.
+
+## Wingate test – relativní hodnoty
+
+Maximální a minimální výkon a celková práce se kromě absolutních hodnot
+dopočítají i **na kg tělesné hmotnosti (TH)** a **na kg aktivní tělesné hmoty
+(ATH = beztuková hmota)** – stejně jako ve výstupu laboratoře pro lední hokej.
+Hmotnost i aktivní hmota se berou ze stejného dne (Složení těla, případně
+hmotnost z CMJ). Vypočtené hodnoty se nezadávají, v zadávací tabulce nejsou
+a přepočítají se, kdykoli se změní vstupy.

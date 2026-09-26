@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <div class="eyebrow">Měření</div>
+    <h1 class="text-2xl font-semibold">Testování {{ day|date:"j. n. Y" }}</h1>
+  </div>
+  <form method="get" class="flex flex-wrap gap-2 items-center justify-end">
+    <select name="baterie" class="input w-auto" onchange="this.form.submit()">
+      {% for b in batteries %}<option value="{{ b.pk }}" {% if b == battery %}selected{% endif %}>{{ b.label }}</option>{% endfor %}
+    </select>
+    <input type="date" name="datum" value="{{ day|date:'Y-m-d' }}" class="input w-auto" onchange="this.form.submit()">
+  </form>
+</div>
+
+{% if not battery %}
+  <div class="card p-6 text-sm">
+    Zatím nemáte žádnou baterii testů. Nastavte ji v
+    <a class="link" href="{% url 'sport_list' %}">Sporty a testy</a> – určí, které testy se u sportu měří.
+  </div>
+{% elif not rows %}
+  <div class="card p-6 text-sm text-2">
+    U sportu {{ battery.sport.name }}{% if battery.category %} v kategorii „{{ battery.category }}“{% endif %}
+    zatím nejsou žádní aktivní sportovci. Kategorii nastavíte u sportovce (úprava údajů).
+  </div>
+{% else %}
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-5">
+    <div class="card p-4"><div class="kpi-value tabular-nums">{{ rows|length }}</div><div class="text-sm text-muted">sportovců</div></div>
+    <div class="card p-4"><div class="kpi-value tabular-nums">{{ protocols|length }}</div><div class="text-sm text-muted">testů v baterii</div></div>
+    <div class="card p-4"><div class="kpi-value tabular-nums">{{ hotovo }} <span class="kpi-unit">/ {{ celkem }}</span></div><div class="text-sm text-muted">změřeno</div></div>
+  </div>
+
+  <form method="post" x-data="{ vse: false }">
+    {% csrf_token %}
+    <input type="hidden" name="datum" value="{{ day|date:'Y-m-d' }}">
+    <input type="hidden" name="baterie" value="{{ battery.pk }}">
+    <div class="card overflow-x-auto">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="w-8"><input type="checkbox" x-model="vse" title="Vybrat všechny"
+                @change="$el.closest('table').querySelectorAll('.vyber').forEach(c => c.checked = vse)"></th>
+            <th>Sportovec</th>
+            {% for p in protocols %}<th class="text-center whitespace-nowrap">{{ p.name }}</th>{% endfor %}
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <td><input type="checkbox" class="vyber" name="sportovec" value="{{ row.subject.pk }}"></td>
+              <td class="whitespace-nowrap">
+                <a href="{% url 'subject_detail' row.subject.pk %}" class="flex items-center gap-2">
+                  <span class="avatar w-7 h-7 text-xs">{{ row.subject.zobrazeni|initials }}</span>
+                  <span class="font-medium">{{ row.subject.zobrazeni }}</span>
+                </a>
+              </td>
+              {% for c in row.cells %}
+                <td class="text-center">
+                  {% if c.stav == "hotovo" %}
+                    <a href="{% url 'run_entry' c.run.pk %}" class="badge badge-good" title="Změřeno – zobrazit">{% icon "check" "w-3.5 h-3.5" %}hotovo</a>
+                  {% elif c.stav == "zalozeno" %}
+                    <a href="{% url 'run_entry' c.run.pk %}" class="badge badge-accent" title="Založeno – zadat hodnoty nebo nahrát export">zadat</a>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+              {% endfor %}
+              <td class="text-right whitespace-nowrap">
+                {% if row.session %}<a class="text-sm link" href="{% url 'session_detail' row.session.pk %}">den →</a>{% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="flex flex-wrap items-center gap-3 mt-4">
+      <button type="submit" class="btn btn-primary">{% icon "plus" %}Založit testování pro vybrané</button>
+      <span class="text-sm text-muted">Vybraným se založí testovací den {{ day|date:"j. n." }} se všemi testy baterie
+        (co už existuje, zůstane). Výsledky pak zadáte ručně nebo nahrajete export – import je doplní
+        do založených testů.</span>
+    </div>
+  </form>
+{% endif %}
+{% endblock %}
