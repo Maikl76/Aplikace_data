@@ -157,6 +157,25 @@ body {
 .dark .rezim-svetly { display: contents !important; }
 .dark .rezim-tmavy { display: none !important; }
 
+/* vyhledávání v horní liště: nenápadné, rozbalí se až při psaní */
+.search-input {
+  width: 100%; height: 2.1rem; padding: 0 1.9rem 0 2.1rem; border-radius: 8px;
+  font-size: .85rem; color: var(--text);
+  background: var(--surface-2); border: 1px solid transparent;
+  transition: border-color .12s, background .12s;
+}
+.search-input::placeholder { color: var(--muted); }
+.search-input:hover { border-color: var(--border); }
+.search-input:focus { outline: none; background: var(--surface); border-color: var(--accent); }
+.search-input::-webkit-search-cancel-button { display: none; }
+.search-kbd {
+  position: absolute; right: .5rem; top: 50%; transform: translateY(-50%);
+  font: 500 .7rem/1 system-ui, sans-serif; color: var(--muted);
+  border: 1px solid var(--border-strong); border-radius: 4px; padding: .15rem .35rem;
+  pointer-events: none;
+}
+.search-input:focus + .search-kbd { display: none; }
+
 /* vyhledávání */
 .search-results { background: var(--surface); border: 1px solid var(--border);
                   border-radius: 10px; box-shadow: 0 8px 24px rgba(16, 24, 40, .12); }
@@ -196,3 +215,4 @@ body {
    později). Tyhle kombinace se v šablonách používají, tak je vrátíme. */
 .input.pl-9 { padding-left: 2.25rem; }
 @media (min-width: 768px) { .btn.md\:hidden { display: none; } }
+.btn-sm { padding: .35rem .75rem; font-size: .82rem; }

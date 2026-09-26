@@ -19,7 +19,7 @@
 </div>
 
 <div class="grid lg:grid-cols-3 gap-4">
-  <section class="lg:col-span-2 card">
+  <section class="lg:col-span-2 card min-w-0">
     <div class="px-4 pt-4 pb-2 flex items-baseline justify-between">
       <h2 class="card-title">Poslední testovací dny</h2>
       <a href="{% url 'session_list' %}" class="text-sm link">všechny</a>
@@ -45,7 +45,7 @@
     </ul>
   </section>
 
-  <section class="card">
+  <section class="card min-w-0">
     <div class="px-4 pt-4 pb-2 flex items-baseline justify-between">
       <h2 class="card-title">Zprávy ke kontrole</h2>
       <a href="{% url 'report_list' %}" class="text-sm link">všechny</a>
