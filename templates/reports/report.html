@@ -38,6 +38,15 @@
     td.pokracovani { padding-left: 4mm; }
     .posouzeni { white-space: nowrap; }
     .posouzeni.worse { font-weight: 600; }
+    .ods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; margin: 2mm 0 1mm;
+           break-inside: avoid; }
+    .ods-sloupec { border: 1px solid #e1e0d9; border-radius: 2mm; padding: 2mm 2.5mm; }
+    .ods-nadpis { font-weight: 600; font-size: 9.5pt; margin-bottom: 1mm; }
+    .ods-nadpis span { font-weight: normal; color: #52514e; font-size: 8.5pt; }
+    .ods-radek { display: flex; justify-content: space-between; gap: 2mm; font-size: 9pt;
+                 margin-top: 1mm; }
+    .ods-text { font-size: 9.5pt; margin: 1mm 0 2mm; }
+    .rozptyl { color: #8a5a00; }
     .grafy { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm 6mm; }
     figure { margin: 0; break-inside: avoid; }
     figcaption { font-size: 9pt; color: #52514e; margin-top: 1mm; }
@@ -90,6 +99,23 @@
       · pokusů {{ block.trials }}{% if block.invalid %}, z toho neplatných {{ block.invalid|length }}{% endif %}
     </span>
   </div>
+  {% if block.ods %}
+    <div class="ods">
+      {% for g in block.ods.groups %}
+        <div class="ods-sloupec">
+          <div class="ods-nadpis">{{ g.title }} <span>· {{ g.hint }}</span></div>
+          {% for r in g.rows %}
+            <div class="ods-radek">
+              <span>{{ r.metric.name }}</span>
+              <span class="cislo">{{ r.value_txt }}{% if r.metric.unit and r.metric.unit != "-" %} {{ r.metric.unit }}{% endif %}{% if r.delta_txt %} <span class="pokusy">({{ r.delta_txt }})</span>{% endif %}</span>
+            </div>
+            {% if r.verdict %}<div class="pokusy">{% if r.verdict_kind == "better" %}↑ {% elif r.verdict_kind == "worse" %}↓ {% elif r.verdict_kind == "noise" %}≈ {% endif %}{{ r.verdict }}</div>{% endif %}
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+    <p class="ods-text">{{ block.ods.text }}</p>
+  {% endif %}
   {% if block.rows %}
   <table class="vysledky">
     <thead>
@@ -112,6 +138,7 @@
         <td class="cislo">
           {{ r.value_txt }}{% if r.metric.unit and r.metric.unit != "-" %} {{ r.metric.unit }}{% endif %}
           {% if r.trials_txt %}<br><span class="pokusy">{{ r.trials_txt }}</span>{% endif %}
+          {% if r.cv_warn %}<br><span class="rozptyl">rozptyl pokusů {{ r.cv_txt }} % ▲</span>{% endif %}
         </td>
         <td class="cislo">{{ r.previous_txt|default:"—" }}{% if r.previous_date %}<br><span class="pokusy">{{ r.previous_date|date:"d.m.y" }}</span>{% endif %}</td>
         <td class="cislo">{{ r.delta_txt|default:"—" }}</td>
@@ -125,6 +152,18 @@
   </table>
   {% else %}
     <p class="prazdne">Bez platných hodnot.</p>
+  {% endif %}
+  {% if block.protocol.code == "dsi" %}
+    <p class="vysvetlivka">DSI = koncentrická vrcholová síla v CMJ ÷ vrcholová síla v IMTP
+      téhož dne. Orientačně: pod 0,60 sportovec v dynamickém pohybu využije jen malou část
+      své maximální síly (prostor pro balistický trénink), nad 0,80 velkou část (prostor pro
+      rozvoj maximální síly). DSI samo neříká, jak byl skok proveden – čtěte ho spolu
+      s ukazateli strategie CMJ.</p>
+  {% endif %}
+  {% if block.unstable %}
+    <p class="vysvetlivka rozptyl">▲ Pokusy se liší víc, než je u
+      {% for r in block.unstable %}{{ r.metric.name|lower }}{% if r.label %} ({{ r.label }}){% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}
+      obvyklé – hodnotu dne berte s rezervou.</p>
   {% endif %}
   {% if block.repeats %}
     <p class="protokol-meta" style="margin:2mm 0 0">Opakovaná měření téhož dne

@@ -36,8 +36,12 @@ def session_create(request):
 def session_detail(request, pk):
     session = get_object_or_404(
         TestSession.objects.for_user(request.user).select_related("subject"), pk=pk)
+    from apps.reports.results import protocol_results
+
+    unstable = [(block, row) for block in protocol_results(session) for row in block["unstable"]]
     return render(request, "measurements/session_detail.html", {
         "session": session,
+        "unstable": unstable,
         "runs": session.protocol_runs.select_related("protocol"),
         "add_form": AddProtocolForm(),
     })
@@ -126,4 +130,8 @@ def _save_grid(request, run) -> tuple[int, int]:
 
     record(request, AuditLog.Action.UPDATE, run,
            subject_code=run.session.subject.code, hodnot=saved)
+    # Nové hodnoty CMJ nebo IMTP mění i odvozené ukazatele (DSI).
+    from apps.analytics.derived import recompute
+
+    recompute(run.session)
     return saved, flagged

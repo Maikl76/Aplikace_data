@@ -32,6 +32,9 @@ METRICS = [
     ("imtp_rfd_100", "RFD 0–100 ms (IMTP)", TestFamily.FORCE_PLATE, "N/s", Direction.HIGHER, -2000, 40000, 0),
     ("imtp_rfd_200", "RFD 0–200 ms (IMTP)", TestFamily.FORCE_PLATE, "N/s", Direction.HIGHER, -2000, 30000, 0),
     ("imtp_time_to_peak", "Čas do vrcholové síly (IMTP)", TestFamily.FORCE_PLATE, "s", Direction.LOWER, 0.1, 10, 2),
+    # Dynamic Strength Index = koncentrická vrcholová síla v CMJ ÷ vrcholová
+    # síla v IMTP. Nepočítá se ručně – dopočítá ho aplikace (analytics/derived).
+    ("dsi", "Dynamic Strength Index (CMJ ÷ IMTP)", TestFamily.FORCE_PLATE, "-", Direction.NEUTRAL, 0.2, 1.6, 2),
     ("sls_cop_area", "Plocha elipsy CoP (stoj na 1 DK)", TestFamily.FORCE_PLATE, "mm²", Direction.LOWER, 50, 30000, 0),
     ("sls_total_excursion", "Celková dráha CoP (stoj na 1 DK)", TestFamily.FORCE_PLATE, "mm", Direction.LOWER, 100, 15000, 0),
     ("sls_mean_velocity", "Průměrná rychlost CoP (stoj na 1 DK)", TestFamily.FORCE_PLATE, "mm/s", Direction.LOWER, 3, 500, 1),
@@ -99,6 +102,13 @@ PROTOCOLS = {
             {"code": "imtp_rfd_100", "sides": ["B", "L", "R"]},
             {"code": "imtp_rfd_200", "sides": ["B", "L", "R"]},
             {"code": "imtp_time_to_peak", "sides": ["B"]},
+        ],
+    },
+    "dsi": {
+        "name": "Dynamic Strength Index", "family": TestFamily.FORCE_PLATE,
+        "device": "výpočet z CMJ a IMTP", "trials": 1,
+        "metrics": [
+            {"code": "dsi", "sides": ["B"], "primary": True},
         ],
     },
     "sls": {
@@ -358,4 +368,98 @@ IMPORT_PROFILES = [
         ("Trunk Flexion at Peak Knee Flexion During Lift[°]", "boxlift_trunk_flex_lift", 1),
         ("Trunk Flexion at Peak Knee Flexion During Lower[°]", "boxlift_trunk_flex_lower", 1),
     ]),
+]
+
+
+# ---------------------------------------------------------------------------
+# Doplňkové vlastnosti metrik. Zakládají se jen tam, kde zatím nic není –
+# úpravy v administraci se nepřepisují.
+#
+# ods: role v systému Outcome–Driver–Strategy (co sportovec dokázal / co to
+#      pohání / jak pohyb provedl).
+# cv:  orientační horní mez rozptylu pokusů téhož dne (variační koeficient
+#      v %). Vyšší rozptyl = pokus stojí za zopakování. Hodnoty jsou
+#      výchozí nastavení laboratoře, ne normy – upravte podle zkušenosti.
+# ---------------------------------------------------------------------------
+METRIC_EXTRAS = {
+    "cmj_height": {"ods": "vysledek", "cv": 10},
+    "cmj_rsi_mod": {"ods": "vysledek", "cv": 10},
+    "cmj_peak_force": {"ods": "pricina", "cv": 10},
+    "cmj_peak_power_bm": {"ods": "pricina", "cv": 10},
+    "cmj_ecc_braking_rfd": {"ods": "pricina"},
+    "cmj_depth": {"ods": "strategie"},
+    "cmj_contraction_time": {"ods": "strategie"},
+    "imtp_peak_force": {"cv": 10},
+}
+
+
+# Články k odvozeným ukazatelům. Zakládají se jako NAVRŽENÉ – do zprávy se
+# dostanou až po schválení člověkem (Katalog → Články).
+SEED_ARTICLES = [
+    {
+        "doi": "10.3390/sports5040072", "pmid": "29910432", "year": 2017,
+        "title": "Influence of Dynamic Strength Index on Countermovement Jump Force-, "
+                 "Power-, Velocity-, and Displacement-Time Curves",
+        "authors": "McMahon JJ, Jones PA, Dos'Santos T, Comfort P",
+        "journal": "Sports (Basel)", "evidence_level": "cross",
+        "population_sex": "M", "population_level": "univerzitní sportovci",
+        "sample_size": 53,
+        "curator_note": "Nízké DSI (0,55) × vysoké (0,92): nízké DSI mělo vyšší sílu v IMTP, "
+                        "ale větší brzdný impulz v CMJ. Podporuje balistický trénink při "
+                        "nízkém a silový při vysokém DSI.",
+    },
+    {
+        "doi": "10.3390/sports6040176", "pmid": "30572561", "year": 2018,
+        "title": "Changes in Dynamic Strength Index in Response to Strength Training",
+        "authors": "Comfort P, Thomas C, Dos'Santos T, Suchomel TJ, Jones PA, McMahon JJ",
+        "journal": "Sports (Basel)", "evidence_level": "cohort",
+        "population_sex": "B", "population_level": "univerzitní sportovci",
+        "sample_size": 24,
+        "curator_note": "Čtyři týdny silového tréninku snížily DSI u sportovců s vysokým DSI "
+                        "(0,85 → 0,74), u nízkého DSI beze změny.",
+    },
+    {
+        "doi": "10.1123/ijspp.2017-0255", "pmid": "28714767", "year": 2018,
+        "title": "Comparison of Methods of Calculating Dynamic Strength Index",
+        "authors": "Comfort P, Thomas C, Dos'Santos T, Jones PA, Suchomel TJ, McMahon JJ",
+        "journal": "Int J Sports Physiol Perform", "evidence_level": "cross",
+        "population_sex": "M", "population_age_min": 16, "population_age_max": 18,
+        "population_level": "mládež – fotbal, ragby", "sample_size": 27,
+        "curator_note": "DSI z CMJ je spolehlivější než ze squat jumpu (CV 3,8–4,6 %).",
+    },
+]
+
+DSI_RULES = [
+    {
+        "code": "dsi_nizky",
+        "name": "DSI nízký – prostor pro balistický trénink",
+        "condition": {"metric": "dsi", "op": "<", "value": 0.60},
+        "contraindication": {"load_restriction": True},
+        "severity": "low",
+        "finding_template": (
+            "Dynamic Strength Index {value_txt} je pod orientační hranicí {threshold_txt}: "
+            "sportovec v dynamickém pohybu využije jen menší část své maximální síly."
+        ),
+        "recommendation_template": (
+            "Zvážit důraz na balistický a rychlostně-silový trénink (skoky, odhody, "
+            "vzpěračské varianty); maximální síla je vůči projevu v pohybu dostatečná."
+        ),
+        "articles": ["10.3390/sports5040072", "10.1123/ijspp.2017-0255"],
+    },
+    {
+        "code": "dsi_vysoky",
+        "name": "DSI vysoký – prostor pro rozvoj maximální síly",
+        "condition": {"metric": "dsi", "op": ">", "value": 0.80},
+        "contraindication": {"load_restriction": True},
+        "severity": "low",
+        "finding_template": (
+            "Dynamic Strength Index {value_txt} je nad orientační hranicí {threshold_txt}: "
+            "sportovec v dynamickém pohybu využívá velkou část své maximální síly."
+        ),
+        "recommendation_template": (
+            "Zvážit důraz na rozvoj maximální síly (těžký silový trénink); v dynamickém "
+            "projevu je sportovec vůči své maximální síle dobře využitý."
+        ),
+        "articles": ["10.3390/sports5040072", "10.3390/sports6040176"],
+    },
 ]

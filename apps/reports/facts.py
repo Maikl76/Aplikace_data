@@ -43,6 +43,7 @@ def build(session, findings, citations) -> dict:
         "doporuceni_z_pravidel": narrative.recommendations(findings),
         "klicove_metriky": _key_metrics(session),
         "asymetrie": _asymmetries(session),
+        "cmj_ods": _ods(session),
         "citace": [
             {"cislo": i, "zdroj": str(c["article"]),
              "populace_odpovida": c["population_matches"]}
@@ -100,6 +101,29 @@ def _key_metrics(session) -> list[dict]:
         if len(out) >= MAX_METRICS:
             break
     return out
+
+
+def _ods(session) -> dict | None:
+    """Výsledek – příčina – strategie u CMJ, aby model uměl říct, proč se výška změnila."""
+    from .results import protocol_results
+
+    for block in protocol_results(session):
+        if not block["ods"]:
+            continue
+        out = {"interpretace": block["ods"]["text"]}
+        for group in block["ods"]["groups"]:
+            items = []
+            for row in group["rows"]:
+                d = row["metric"].decimals
+                item = {"metrika": row["metric"].name, "hodnota": round(row["value"], d),
+                        "jednotka": row["metric"].unit}
+                if row["verdict"]:
+                    item["zmena_posouzeni"] = row["verdict"]
+                    item["zmena"] = float(row["delta_txt"].replace("−", "-").replace(",", "."))
+                items.append(item)
+            out[group["role"]] = items
+        return out
+    return None
 
 
 def _asymmetries(session, threshold_pct: float = 10.0) -> list[dict]:

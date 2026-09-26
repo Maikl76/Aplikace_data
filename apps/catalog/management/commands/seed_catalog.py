@@ -15,7 +15,15 @@ from apps.catalog.models import (
     Protocol,
     ProtocolMetric,
 )
-from apps.catalog.seed_data import EXAMPLE_RULES, IMPORT_PROFILES, METRICS, PROTOCOLS
+from apps.catalog.seed_data import (
+    DSI_RULES,
+    EXAMPLE_RULES,
+    IMPORT_PROFILES,
+    METRIC_EXTRAS,
+    METRICS,
+    PROTOCOLS,
+    SEED_ARTICLES,
+)
 
 
 class Command(BaseCommand):
@@ -31,6 +39,18 @@ class Command(BaseCommand):
                           "direction": direction, "plausible_min": lo,
                           "plausible_max": hi, "decimals": decimals},
             )
+
+        for code, extras in METRIC_EXTRAS.items():
+            metric = metrics[code]
+            changed = []
+            if extras.get("ods") and not metric.ods_role:
+                metric.ods_role = extras["ods"]
+                changed.append("ods_role")
+            if extras.get("cv") and metric.trial_cv_limit is None:
+                metric.trial_cv_limit = extras["cv"]
+                changed.append("trial_cv_limit")
+            if changed:
+                metric.save(update_fields=changed)
 
         for code, spec in PROTOCOLS.items():
             protocol, _ = Protocol.objects.update_or_create(
@@ -67,7 +87,30 @@ class Command(BaseCommand):
                               "with_sides": sides[0] if sides else True},
                 )
 
-        from apps.rules.models import Rule
+        from apps.evidence.models import Article
+        from apps.rules.models import Rule, RuleArticle
+
+        articles = {}
+        for spec in SEED_ARTICLES:
+            articles[spec["doi"]], _ = Article.objects.get_or_create(
+                doi=spec["doi"], defaults={k: v for k, v in spec.items() if k != "doi"})
+
+        # Pravidla k DSI mají literaturu, ale prahy jsou orientační –
+        # zakládají se neaktivní stejně jako ostatní příklady.
+        for spec in DSI_RULES:
+            rule, _ = Rule.objects.get_or_create(
+                organization=None, code=spec["code"], version=1,
+                defaults={
+                    "name": spec["name"], "condition": spec["condition"],
+                    "contraindication": spec.get("contraindication", {}),
+                    "severity": spec["severity"],
+                    "finding_template": spec["finding_template"],
+                    "recommendation_template": spec.get("recommendation_template", ""),
+                    "is_active": False,
+                },
+            )
+            for doi in spec.get("articles", []):
+                RuleArticle.objects.get_or_create(rule=rule, article=articles[doi])
 
         for spec in EXAMPLE_RULES:
             Rule.objects.update_or_create(

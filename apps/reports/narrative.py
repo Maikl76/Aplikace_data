@@ -121,7 +121,15 @@ def _names(metrics) -> str:
     for m in metrics:
         if m["metrika"] not in seen:
             seen.append(m["metrika"])
-    return ", ".join(name[0].lower() + name[1:] for name in seen)
+    return ", ".join(_lower_first(name) for name in seen)
+
+
+def _lower_first(name: str) -> str:
+    """„Výška výskoku“ → „výška výskoku“, ale „Dynamic Strength Index“ a „RSI“ zůstanou."""
+    words = name.split()
+    if not words or words[0].isupper() or (len(words) > 1 and words[1][:1].isupper()):
+        return name
+    return name[0].lower() + name[1:]
 
 
 def _metric_line(m: dict) -> str:
@@ -221,7 +229,11 @@ nedoporučuj.
 8. Nepiš úvodní ani závěrečné fráze o sobě, nepiš doložku o lékaři – \
 tu zpráva obsahuje zvlášť.
 
-9. Vlastní doporučení nevymýšlej. Doporučení z pole doporuceni_z_pravidel \
+9. Pole cmj_ods dělí ukazatele skoku na výsledek, příčinu a strategii. \
+Změnu výsledku vysvětluj jen změnami příčin a strategie, které mají posouzení \
+„zlepšení“, „zhoršení“ nebo „skutečný posun“; hotové vysvětlení je v poli \
+„interpretace“.
+10. Vlastní doporučení nevymýšlej. Doporučení z pole doporuceni_z_pravidel \
 zpráva uvádí ve zvláštní části; v souhrnu na ně můžeš jen odkázat.
 
 Struktura: celkové zhodnocení (3–5 vět: co se měřilo, jak si sportovec \

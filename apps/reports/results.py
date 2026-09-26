@@ -65,6 +65,80 @@ def _run_values(run) -> tuple[dict, dict]:
     return buckets, metrics
 
 
+def trial_cv(values: list[float]) -> float | None:
+    """Variační koeficient pokusů v % (výběrová SD / průměr). Pro 1 pokus nic."""
+    if len(values) < 2:
+        return None
+    mean = sum(values) / len(values)
+    if mean == 0:
+        return None
+    variance = sum((v - mean) ** 2 for v in values) / (len(values) - 1)
+    return abs(variance ** 0.5 / mean * 100)
+
+
+ODS_ORDER = [("vysledek", "Výsledek", "co sportovec dokázal"),
+             ("pricina", "Příčina", "co výsledek pohání"),
+             ("strategie", "Strategie", "jak skok provedl")]
+
+
+def ods_summary(rows) -> dict | None:
+    """
+    Výsledek – příčina – strategie (ODS). Jen souhrnné hodnoty (ne strany)
+    a jen když protokol nějaké metriky s rolí má (typicky CMJ).
+    """
+    groups = {role: [] for role, _, _ in ODS_ORDER}
+    for row in rows:
+        role = row["metric"].ods_role
+        if role in groups and row["qualifiers"]["side"] in ("B", ""):
+            groups[role].append(row)
+    if not any(groups.values()):
+        return None
+    return {
+        "groups": [{"role": role, "title": title, "hint": hint, "rows": groups[role]}
+                   for role, title, hint in ODS_ORDER if groups[role]],
+        "text": ods_interpretation(groups),
+    }
+
+
+def _names(rows) -> str:
+    from .narrative import _lower_first
+
+    return ", ".join(_lower_first(r["metric"].name.replace(" (CMJ)", "")) for r in rows)
+
+
+def ods_interpretation(groups: dict) -> str:
+    """
+    Proč se výsledek změnil – jen z toho, co se skutečně (nad MDC) změnilo.
+    U metrik bez MDC se nic netvrdí, jen se řekne, že to posoudit nejde.
+    """
+    real = ("better", "worse", "shift")
+    outcome = [r for r in groups["vysledek"] if r["verdict_kind"] in real]
+    drivers = [r for r in groups["pricina"] if r["verdict_kind"] in real]
+    strategy = [r for r in groups["strategie"] if r["verdict_kind"] in real]
+    unknown = [r for r in groups["pricina"] + groups["strategie"]
+               if r["verdict_kind"] == "unknown"]
+    has_previous = any(r["verdict"] for rows in groups.values() for r in rows)
+    if not has_previous:
+        return "První měření – vysvětlení změn bude možné po dalším testování."
+
+    if not outcome:
+        text = "Výsledek skoku se proti minulému měření prokazatelně nezměnil."
+        if drivers or strategy:
+            text += (" Změnil se ale způsob provedení nebo hnací síla ("
+                     + _names(drivers + strategy) + ") – stejného výsledku dosáhl jinak.")
+        return text
+
+    text = f"Skutečná změna výsledku ({_names(outcome)})."
+    if drivers:
+        text += f" Souvisí se změnou hnacích ukazatelů: {_names(drivers)}."
+    if strategy:
+        text += f" Změnila se i strategie skoku: {_names(strategy)}."
+    if not drivers and not strategy:
+        text += (" U hnacích a strategických ukazatelů se prokazatelná změna nenašla"
+                 + (" (část z nich nemá stanovenou MDC)." if unknown else "."))
+    return text
+
+
 def _time(run) -> str:
     return timezone.localtime(run.started_at).strftime("%H:%M") if run.started_at else ""
 
@@ -105,8 +179,13 @@ def protocol_results(session) -> list[dict]:
             _, side, mode, speed, segment = key
             qualifiers = {"side": side, "mode": mode, "speed": speed, "segment": segment}
             value = sum(values) / len(values)
+            cv = trial_cv(values)
             row = {
                 "key": key,
+                "cv": cv,
+                "cv_txt": cz(cv, 1) if cv is not None else "",
+                "cv_warn": (cv is not None and metric.trial_cv_limit is not None
+                            and cv > metric.trial_cv_limit),
                 "metric": metric,
                 "qualifiers": qualifiers,
                 "label": qualifier_label(qualifiers),
@@ -150,6 +229,8 @@ def protocol_results(session) -> list[dict]:
         blocks.append({
             "protocol": run.protocol,
             "run": run,
+            "ods": ods_summary(rows),
+            "unstable": [r for r in rows if r["cv_warn"]],
             "time": _time(run),
             "conditions": _conditions_text(run.conditions),
             "rows": rows,

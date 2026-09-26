@@ -48,6 +48,29 @@
   </div>
 {% endif %}
 
+{% if summary.nestabilnich_celkem %}
+  <h2 class="font-semibold mb-2">Nestabilní pokusy ({{ summary.nestabilnich_celkem }})</h2>
+  <p class="text-sm text-slate-600 mb-2">Pokusy téhož testu se liší víc, než je u metriky obvyklé
+    (mez je v katalogu u metriky). Pokud je sportovec ještě v laboratoři, stojí za to test zopakovat.</p>
+  <div class="overflow-x-auto"><table class="w-full bg-white rounded-lg border border-slate-200 text-sm mb-6">
+    <thead class="text-left text-slate-500 border-b border-slate-200">
+      <tr><th class="p-2">Sportovec</th><th class="p-2">Datum</th><th class="p-2">Ukazatel</th>
+          <th class="p-2">Pokusy</th><th class="p-2 text-right">Rozptyl (CV)</th></tr>
+    </thead>
+    <tbody>
+      {% for u in summary.nestabilni_pokusy %}
+        <tr class="border-b border-slate-100">
+          <td class="p-2">{{ u.sportovec }}</td>
+          <td class="p-2">{{ u.datum }}{% if u.cas %} {{ u.cas|slice:"11:16" }}{% endif %}</td>
+          <td class="p-2">{{ u.metrika }}{% if u.strana == "L" %} · levá{% elif u.strana == "R" %} · pravá{% endif %}</td>
+          <td class="p-2 tabular-nums">{{ u.hodnoty|join:" · " }}</td>
+          <td class="p-2 text-right tabular-nums">{{ u.cv }} % <span class="text-slate-500">(mez {{ u.mez|floatformat:0 }} %)</span></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table></div>
+{% endif %}
+
 {% if sportovci %}
   <h2 class="font-semibold mb-2">Sportovci v souboru ({{ sportovci|length }})</h2>
   <div class="overflow-x-auto"><table class="w-full bg-white rounded-lg border border-slate-200 text-sm mb-2">

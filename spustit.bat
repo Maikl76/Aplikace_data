@@ -17,6 +17,7 @@ rem Kdyby pribyla nova knihovna. Kdyz nic nepribylo, trva to par sekund.
 pip install --quiet -r requirements\dev.txt || goto chyba
 python manage.py zajisti_klic || goto chyba
 python manage.py migrate || goto chyba
+python manage.py prepocitat_odvozene || goto chyba
 
 echo.
 echo Aplikace bezi na http://localhost:8000  (ukonceni: Ctrl+C)

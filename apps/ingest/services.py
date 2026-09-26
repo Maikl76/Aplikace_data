@@ -260,6 +260,7 @@ def _stage_rows(batch, rows, *, protocol=None):
         ))
 
     StagedMeasurement.objects.bulk_create(staged, batch_size=1000)
+    unstable = _unstable_trials(rows, metrics)
 
     # Údaje o osobách (jméno pro založení identity, identifikátory) se drží
     # v souhrnu jen do uložení nebo zrušení importu – pak se mažou.
@@ -273,7 +274,44 @@ def _stage_rows(batch, rows, *, protocol=None):
         },
         "runs": runs,
         "existujici_testy": len(existing_runs),
+        "nestabilni_pokusy": unstable[:30],
+        "nestabilnich_celkem": len(unstable),
     }
+
+
+def _unstable_trials(rows, metrics) -> list[dict]:
+    """
+    Testy, kde se pokusy liší víc, než je u metriky obvyklé (CV nad mezí
+    z katalogu). Ukáže se v náhledu – ještě v laboratoři jde pokus zopakovat.
+    """
+    from collections import defaultdict
+
+    from apps.reports.results import trial_cv
+
+    groups = defaultdict(list)
+    info = {}
+    for row in rows:
+        metric = metrics.get(row.metric_code)
+        if metric is None or metric.trial_cv_limit is None:
+            continue
+        key = (row.run_key or f"{row.subject_key}:{row.session_date}:{row.protocol_code}",
+               row.metric_code, row.side, row.mode, row.speed, row.segment)
+        groups[key].append(row.value)
+        info[key] = (row, metric)
+
+    out = []
+    for key, values in groups.items():
+        cv = trial_cv(values)
+        row, metric = info[key]
+        if cv is not None and cv > metric.trial_cv_limit:
+            out.append({"sportovec": row.subject_hint,
+                        "datum": row.session_date.isoformat() if row.session_date else "",
+                        "cas": row.run_started_at.isoformat() if row.run_started_at else "",
+                        "metrika": metric.name, "strana": row.side,
+                        "cv": round(cv, 1), "mez": metric.trial_cv_limit,
+                        "hodnoty": [round(v, metric.decimals) for v in values]})
+    out.sort(key=lambda u: -u["cv"])
+    return out
 
 
 def summarize(batch) -> dict:
@@ -306,6 +344,8 @@ def summarize(batch) -> dict:
         "subjects": subjects,
         "runs": runs,
         "subject_attrs": previous.get("subject_attrs", {}),
+        "nestabilni_pokusy": previous.get("nestabilni_pokusy", []),
+        "nestabilnich_celkem": previous.get("nestabilnich_celkem", 0),
     }
 
 
@@ -315,6 +355,7 @@ def clear_personal_data(batch):
     subjects = summary.pop("subjects", {})
     summary.pop("subject_attrs", None)
     summary.pop("runs", None)
+    summary.pop("nestabilni_pokusy", None)
     summary["sportovci_kody"] = sorted({i.get("kod") for i in subjects.values() if i.get("kod")})
     batch.summary = summary
 
@@ -455,6 +496,11 @@ def commit_batch(batch, *, user, default_date=None, skip_out_of_range=False) -> 
             result["aktualizovano"] += 1
 
     _mark_primary_runs(touched)
+    # Odvozené ukazatele (DSI z CMJ a IMTP) podle nových hodnot.
+    from apps.analytics.derived import recompute
+
+    for session in TestSession.objects.filter(pk__in={s for s, _ in touched}):
+        recompute(session)
 
     batch.status = ImportBatch.Status.COMMITTED
     batch.summary = {**summary, "vysledek": result}

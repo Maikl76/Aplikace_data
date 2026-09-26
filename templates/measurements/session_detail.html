@@ -11,6 +11,19 @@
   </p>
 </div>
 
+{% if unstable %}
+  <div class="card px-4 py-3 mb-4 text-sm border-l-4" style="border-left-color: var(--warn)">
+    <strong>Pokusy se liší víc, než je obvyklé</strong> – pokud je sportovec ještě tady, zvažte další pokus:
+    <ul class="mt-1 list-disc pl-5">
+      {% for block, r in unstable %}
+        <li>{{ block.protocol.name }}: {{ r.metric.name }}{% if r.label %} ({{ r.label }}){% endif %}
+          – pokusy {{ r.trials_txt }}, rozptyl {{ r.cv_txt }} %
+          (mez {{ r.metric.trial_cv_limit|floatformat:0 }} %)</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+
 <h2 class="font-semibold mb-2">Protokoly</h2>
 <div class="space-y-2 mb-6">
   {% for run in runs %}
@@ -21,7 +34,7 @@
         <span class="font-medium">{{ run.protocol.name }}</span>
         {% if run.started_at %}<span class="text-sm text-slate-600"> · {{ run.started_at|time:"H:i" }}</span>{% endif %}
         {% if not run.is_primary %}<span class="text-xs ml-1 px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">opakované měření</span>{% endif %}
-        <span class="text-sm text-slate-500 block">{{ run.protocol.device }}{% if run.external_ref %} · importováno{% endif %}</span>
+        <span class="text-sm text-slate-500 block">{{ run.protocol.device }}{% if run.external_ref|slice:":9" == "odvozeno:" %} · vypočteno automaticky{% elif run.external_ref %} · importováno{% endif %}</span>
       </span>
       <span class="text-sm text-blue-700">{% if run.external_ref %}zobrazit hodnoty →{% else %}zadat hodnoty →{% endif %}</span>
     </a>

@@ -139,7 +139,9 @@ class Command(BaseCommand):
                               "fatigue_rating": random.randint(2, 7)},
                 )
 
-                chosen = random.sample(list(PROTOCOLS), k=random.randint(3, len(PROTOCOLS)))
+                # DSI se neměří, dopočítá se z CMJ a IMTP (analytics/derived).
+                measured = [code for code in PROTOCOLS if code != "dsi"]
+                chosen = random.sample(measured, k=random.randint(3, len(measured)))
                 for code in chosen:
                     protocol = protocols[code]
                     run, _ = ProtocolRun.objects.get_or_create(session=session, protocol=protocol)
@@ -151,6 +153,11 @@ class Command(BaseCommand):
                         # jaký vznikne i ručním zadáním.
                         for pm in protocol.protocol_metrics.select_related("metric"):
                             created += self._make_values(trial, pm, ability, index)
+
+        from apps.analytics.derived import recompute
+
+        for session in TestSession.objects.filter(organization=org):
+            recompute(session)
 
         self.stdout.write(self.style.SUCCESS(
             f"Hotovo: {options['subjects']} fiktivních sportovců, {created} hodnot."

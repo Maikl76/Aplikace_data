@@ -113,6 +113,20 @@ class MetricDef(CatalogModel):
     plausible_max = models.FloatField("věrohodné maximum", null=True, blank=True)
 
     decimals = models.PositiveSmallIntegerField("desetinná místa", default=2)
+
+    class OdsRole(models.TextChoices):
+        OUTCOME = "vysledek", "Výsledek (co sportovec dokázal)"
+        DRIVER = "pricina", "Příčina (co výsledek pohání)"
+        STRATEGY = "strategie", "Strategie (jak pohyb provedl)"
+
+    # Rozdělení metrik podle ODS (Outcome – Driver – Strategy). Zpráva pak
+    # umí říct, proč se výsledek změnil: silou, nebo jiným provedením skoku.
+    ods_role = models.CharField("role v ODS", max_length=10, choices=OdsRole.choices,
+                                blank=True)
+    trial_cv_limit = models.FloatField(
+        "max. rozptyl pokusů (CV %)", null=True, blank=True,
+        help_text="Když se pokusy téhož dne liší víc (variační koeficient), aplikace "
+                  "upozorní, že je vhodné pokus zopakovat. Prázdné = nekontroluje se.")
     loinc_code = models.CharField("kód LOINC", max_length=20, blank=True,
                                   help_text="Jen tam, kde standard existuje (složení těla, laboratoř).")
     is_active = models.BooleanField("aktivní", default=True)
