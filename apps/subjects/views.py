@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from apps.analytics import charts, overview, queries
 from apps.core.audit import record
@@ -86,3 +87,59 @@ def subject_detail(request, pk):
         "asymetrie_session": posledni,
         "ma_strany": queries.has_side_data(subject),
     })
+
+
+def _cards(request, subjects):
+    """Kartičky s QR kódem: naskenováním se otevře dnešní testování sportovce."""
+    from apps.measurements import questionnaires
+
+    subjects = search.label(subjects, request.user, subject=lambda s: s)
+    for s in subjects:
+        s.qr = questionnaires.qr_svg(
+            request.build_absolute_uri(reverse("subject_today", args=[s.pk])))
+    return render(request, "subjects/qr_cards.html", {
+        "subjects": subjects, "reachable": questionnaires.reachable_from_phone(request)})
+
+
+@login_required
+def subject_qr(request, pk):
+    subject = get_object_or_404(Subject.objects.for_user(request.user), pk=pk)
+    return _cards(request, [subject])
+
+
+@login_required
+def team_qr(request):
+    from apps.catalog.models import TestBattery
+
+    battery = get_object_or_404(TestBattery.objects.filter(
+        sport__in=Sport.objects.for_user(request.user)), pk=request.GET.get("baterie"))
+    subjects = Subject.objects.for_user(request.user).filter(sport=battery.sport, is_active=True)
+    if battery.category:
+        subjects = subjects.filter(category__iexact=battery.category)
+    return _cards(request, list(subjects.order_by("code")))
+
+
+@login_required
+def subject_today(request, pk):
+    """
+    Cíl QR kódu z kartičky: dnešní testovací den sportovce. Když ještě
+    neexistuje, nabídne ho založit podle baterie jeho sportu.
+    """
+    from django.utils import timezone
+
+    from apps.measurements import planning
+
+    subject = get_object_or_404(Subject.objects.for_user(request.user), pk=pk)
+    today = timezone.localdate()
+    session = TestSession.objects.filter(subject=subject, date=today).first()
+    if session:
+        return redirect("session_detail", pk=session.pk)
+    if request.method == "POST":
+        session = TestSession.objects.create(organization=subject.organization,
+                                             subject=subject, date=today,
+                                             operator=request.user)
+        planning.ensure_runs(session, planning.battery_protocols(subject))
+        return redirect("session_detail", pk=session.pk)
+    search.label([subject], request.user, subject=lambda s: s)
+    return render(request, "subjects/today_confirm.html", {
+        "subject": subject, "today": today, "protocols": planning.battery_protocols(subject)})

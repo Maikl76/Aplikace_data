@@ -13,6 +13,8 @@ from .models import (
     Norm,
     Protocol,
     ProtocolMetric,
+    Question,
+    Questionnaire,
     TestBattery,
 )
 
@@ -45,6 +47,7 @@ class MetricDefAdmin(admin.ModelAdmin):
                            "změnu od chyby měření. Doplňte z literatury nebo "
                            "z vlastní reliability studie.",
         }),
+        ("Pokusy a diagnostika", {"fields": ("trial_rule", "trial_cv_limit", "ods_role")}),
         ("Validace importu", {"fields": ("plausible_min", "plausible_max")}),
         ("Mapování na standardy", {"fields": ("loinc_code",), "classes": ("collapse",)}),
     )
@@ -94,3 +97,15 @@ class TestBatteryAdmin(admin.ModelAdmin):
     list_display = ("sport", "category", "name")
     list_filter = ("sport",)
     inlines = [BatteryItemInline]
+
+
+class QuestionInline(admin.StackedInline):
+    model = Question
+    extra = 0
+
+
+@admin.register(Questionnaire)
+class QuestionnaireAdmin(admin.ModelAdmin):
+    list_display = ("name", "code", "organization", "is_active")
+    search_fields = ("code", "name")
+    inlines = [QuestionInline]

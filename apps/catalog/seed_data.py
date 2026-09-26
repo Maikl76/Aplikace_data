@@ -90,6 +90,9 @@ METRICS = [
 
     # --- terénní ----------------------------------------------------------
     ("serve_speed", "Rychlost podání", TestFamily.FIELD, "km/h", Direction.HIGHER, 50, 260, 0),
+    ("sprint_5m", "Sprint – čas na 5 m", TestFamily.FIELD, "s", Direction.LOWER, 0.7, 3, 2),
+    ("sprint_10m", "Sprint – čas na 10 m", TestFamily.FIELD, "s", Direction.LOWER, 1.3, 4, 2),
+    ("sprint_30m", "Sprint – čas na 30 m", TestFamily.FIELD, "s", Direction.LOWER, 3, 8, 2),
 ]
 
 # Definice protokolů včetně toho, jaké kombinace kvalifikátorů se u nich
@@ -139,7 +142,7 @@ PROTOCOLS = {
     },
     "wingate": {
         "name": "Wingate test 30 s", "family": TestFamily.SPIROERGOMETRY,
-        "device": "bicyklový ergometr", "trials": 1,
+        "device": "bicyklový ergometr", "trials": 1, "rpe": True,
         "metrics": [
             {"code": "wingate_pmax", "sides": ["B"]},
             {"code": "wingate_pmax_th", "sides": ["B"], "primary": True},
@@ -209,7 +212,7 @@ PROTOCOLS = {
     },
     "spiro_ramp": {
         "name": "Spiroergometrie – rampový protokol", "family": TestFamily.SPIROERGOMETRY,
-        "device": "spiroergometr", "trials": 1,
+        "device": "spiroergometr", "trials": 1, "rpe": True,
         "metrics": [
             {"code": "vo2max", "sides": ["B"], "primary": True},
             {"code": "vt2_power", "sides": ["B"]},
@@ -227,6 +230,15 @@ PROTOCOLS = {
              "segments": ["paze", "noha", "trup"]},
             {"code": "segment_lean_mass", "sides": ["L", "R"],
              "segments": ["paze", "noha", "trup"]},
+        ],
+    },
+    "sprint30": {
+        "name": "Sprint 30 m", "family": TestFamily.FIELD,
+        "device": "fotobuňky", "trials": 3, "rest": 180,
+        "metrics": [
+            {"code": "sprint_5m", "sides": ["B"]},
+            {"code": "sprint_10m", "sides": ["B"]},
+            {"code": "sprint_30m", "sides": ["B"], "primary": True},
         ],
     },
     "serve": {
@@ -447,7 +459,34 @@ METRIC_EXTRAS = {
     "cmj_depth": {"ods": "strategie"},
     "cmj_contraction_time": {"ods": "strategie"},
     "imtp_peak_force": {"cv": 10},
+    # rule: hodnota dne z pokusů – u sprintu a stisku se bere nejlepší pokus
+    "grip_strength": {"rule": "nejlepsi"},
+    "serve_speed": {"rule": "nejlepsi"},
+    "sprint_5m": {"rule": "nejlepsi"},
+    "sprint_10m": {"rule": "nejlepsi"},
+    "sprint_30m": {"rule": "nejlepsi"},
 }
+
+
+# Dotazníky, které vyplňuje sportovec. Zatím jen RPE – další se přidají
+# v administraci nebo sem.
+QUESTIONNAIRES = [
+    {
+        "code": "rpe",
+        "name": "RPE – vnímané úsilí (CR-10)",
+        "description": "Vyberte číslo, které nejlépe odpovídá celkovému úsilí.",
+        "questions": [
+            {
+                "code": "rpe", "text": "Jak náročné to pro vás bylo?",
+                "min": 0, "max": 10,
+                # Borgova škála CR-10 v úpravě Fostera (session RPE).
+                "anchors": {"0": "klid", "1": "velmi, velmi lehké", "2": "lehké",
+                            "3": "středně těžké", "4": "poněkud těžké", "5": "těžké",
+                            "7": "velmi těžké", "10": "maximální"},
+            },
+        ],
+    },
+]
 
 
 # Články k odvozeným ukazatelům. Zakládají se jako NAVRŽENÉ – do zprávy se

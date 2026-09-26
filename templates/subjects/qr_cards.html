@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5 no-print">
+  <div>
+    <div class="eyebrow">Testování</div>
+    <h1 class="text-2xl font-semibold">QR karty sportovců</h1>
+    <p class="text-sm text-muted mt-1">Naskenováním karty tabletem se otevře dnešní testovací den sportovce.</p>
+  </div>
+  <button type="button" class="btn btn-primary" onclick="window.print()">{% icon "printer" %}Vytisknout</button>
+</div>
+{% if not reachable %}
+  <div class="card px-4 py-3 mb-4 text-sm border-l-4 no-print" style="border-left-color: var(--warn)">
+    Aplikace teď běží jen na tomto počítači (127.0.0.1), takže kód z tabletu nepůjde otevřít.
+    Karty tiskněte z adresy, pod kterou aplikaci otevírá tablet – viz docs/terenni-testovani.md.
+  </div>
+{% endif %}
+<div class="qr-karty">
+  {% for s in subjects %}
+    <div class="qr-karta">
+      <div class="qr-obrazek">{{ s.qr|safe }}</div>
+      <div class="min-w-0">
+        <div class="font-semibold text-lg leading-tight">{{ s.jmeno }}</div>
+        {% if s.jmeno != s.code %}<div class="text-sm text-muted">{{ s.code }}</div>{% endif %}
+        <div class="text-sm text-2 mt-1">{{ s.sport|default:"" }}{% if s.category %} · {{ s.category }}{% endif %}</div>
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-muted">Ve skupině nejsou žádní aktivní sportovci.</p>
+  {% endfor %}
+</div>
+{% endblock %}

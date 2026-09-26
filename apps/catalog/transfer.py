@@ -26,6 +26,8 @@ from .models import (
     Norm,
     Protocol,
     ProtocolMetric,
+    Question,
+    Questionnaire,
     TestBattery,
 )
 
@@ -97,6 +99,11 @@ def export_catalog() -> dict:
                            for i in b.items.select_related("protocol")]}
             for b in TestBattery.objects.select_related("sport", "sport__organization")
             .order_by("sport__code", "category")
+        ],
+        "dotazniky": [
+            {"organizace": _org(q), **_plain(q),
+             "otazky": [_plain(o, skip={"questionnaire"}) for o in q.questions.all()]}
+            for q in Questionnaire.objects.order_by("code")
         ],
         "normy": [
             {"organizace": _org(n), "metrika": n.metric.code, "sport": _sport(n.sport),
@@ -225,6 +232,16 @@ def import_catalog(data: dict, *, default_org: Organization | None = None) -> di
                 raise ImportError_(f"Protokol „{ref['kod']}“ z baterie v souboru chybí.")
             BatteryItem.objects.update_or_create(battery=battery, protocol=protocol,
                                                  defaults={"order": order})
+
+    for item in data.get("dotazniky", []):
+        questionnaire = imp.upsert(
+            "dotazníky", Questionnaire,
+            {"organization": imp.org(item["organizace"]), "code": item["code"]},
+            _data_fields(item, "code", "otazky"))
+        for q in item["otazky"]:
+            imp.upsert("otázky dotazníků", Question,
+                       {"questionnaire": questionnaire, "code": q["code"]},
+                       _data_fields(q, "code"))
 
     # Normy nemají přirozený klíč; párují se podle toho, pro koho platí.
     for item in data["normy"]:

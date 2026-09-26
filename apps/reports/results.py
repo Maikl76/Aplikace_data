@@ -169,6 +169,8 @@ def protocol_results(session) -> list[dict]:
         primary = {pm.metric_id for pm in run.protocol.protocol_metrics.all() if pm.is_primary}
 
         trials = list(run.trials.all())
+        if not trials and not repeats:
+            continue  # naplánovaný, ale neměřený test do zprávy nepatří
         invalid = [t for t in trials if not t.is_valid]
         buckets, metrics = _run_values(run)
 
@@ -178,7 +180,7 @@ def protocol_results(session) -> list[dict]:
             d = metric.decimals
             _, side, mode, speed, segment = key
             qualifiers = {"side": side, "mode": mode, "speed": speed, "segment": segment}
-            value = sum(values) / len(values)
+            value = metric.day_value(values)
             cv = trial_cv(values)
             row = {
                 "key": key,
@@ -226,9 +228,13 @@ def protocol_results(session) -> list[dict]:
         for i, row in enumerate(rows):
             row["first_of_metric"] = i == 0 or rows[i - 1]["metric"].pk != row["metric"].pk
 
+        rpe = rpe_for_run(run)
         blocks.append({
             "protocol": run.protocol,
             "run": run,
+            "rpe_txt": (f"RPE {rpe.value:g}/{rpe.question.scale_max}"
+                        + (f" ({rpe.question.label(rpe.value)})"
+                           if rpe.question.label(rpe.value) else "")) if rpe else "",
             "ods": ods_summary(rows),
             "unstable": [r for r in rows if r["cv_warn"]],
             "time": _time(run),
@@ -242,6 +248,37 @@ def protocol_results(session) -> list[dict]:
     return blocks
 
 
+def rpe_for_run(run):
+    from apps.measurements.questionnaires import rpe_for_run as lookup
+
+    return lookup(run)
+
+
+def session_conditions(session) -> list[tuple[str, str]]:
+    """Podmínky dne do hlavičky zprávy: [(popisek, hodnota)]."""
+    from apps.measurements import questionnaires
+
+    rows = []
+    if session.season_phase:
+        rows.append(("Fáze sezóny", session.get_season_phase_display()))
+    if session.fatigue_rating:
+        rows.append(("Subjektivní únava", f"{session.fatigue_rating}/10"))
+    env = []
+    if session.temperature_c is not None:
+        env.append(f"{cz(session.temperature_c, 1).replace(',0', '')} °C")
+    if session.humidity_pct is not None:
+        env.append(f"vlhkost {cz(session.humidity_pct, 0)} %")
+    if env:
+        rows.append(("Prostředí", ", ".join(env)))
+    for item in questionnaires.summary(session):
+        if item["run"] is not None:
+            continue  # RPE po konkrétním testu je u testu
+        for a in item["answers"]:
+            rows.append((f"{item['questionnaire'].name.split(' – ')[0]} za celý den",
+                         f"{a['value_txt']}/{a['max']}" + (f" ({a['label']})" if a["label"] else "")))
+    return rows
+
+
 def _repeat_table(first_run, rows, repeats) -> dict:
     """Opakovaná měření téhož dne vedle prvního: řádek = ukazatel, sloupec = čas."""
     columns = [_run_values(r)[0] for r in repeats]
@@ -252,9 +289,9 @@ def _repeat_table(first_run, rows, repeats) -> dict:
         for values in columns:
             vals = values.get(row["key"])
             if vals:
-                mean = sum(vals) / len(vals)
-                cells.append({"value_txt": cz(mean, d),
-                              "delta_txt": signed(round(mean, d) - round(row["value"], d), d)})
+                value = row["metric"].day_value(vals)
+                cells.append({"value_txt": cz(value, d),
+                              "delta_txt": signed(round(value, d) - round(row["value"], d), d)})
             else:
                 cells.append(None)
         table.append({"metric": row["metric"], "label": row["label"],

@@ -42,6 +42,12 @@ _PATHS = {
     "list": '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/>'
             '<circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
     "check": '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    "timer": '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4M12 2v3"/>',
+    "qr": '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>'
+          '<rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01'
+          'M17 17h4v4h-4"/>',
+    "printer": '<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/>'
+               '<path d="M7 14h10v7H7z"/>',
     "grid": '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 4v16"/>',
     "download": '<path d="M12 4v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/>',
 }
@@ -55,6 +61,16 @@ def icon(name: str, css: str = "") -> str:
         f'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" '
         f'aria-hidden="true">{paths}</svg>'
     )
+
+
+@register.filter
+def mmss(seconds) -> str:
+    """180 → „3:00“ (délka pauzy a podobně)."""
+    try:
+        seconds = int(seconds)
+    except (TypeError, ValueError):
+        return ""
+    return f"{seconds // 60}:{seconds % 60:02d}"
 
 
 @register.filter

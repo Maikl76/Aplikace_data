@@ -18,12 +18,16 @@ from .planning import DERIVED_PROTOCOLS
 class TestSessionForm(forms.ModelForm):
     class Meta:
         model = TestSession
-        fields = ["subject", "date", "location", "season_phase", "fatigue_rating", "note"]
+        fields = ["subject", "date", "location", "season_phase", "fatigue_rating",
+                  "temperature_c", "humidity_pct", "note"]
         widgets = {
             "date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
             "note": forms.Textarea(attrs={"rows": 2}),
             "fatigue_rating": forms.NumberInput(attrs={"min": 1, "max": 10,
                                                        "inputmode": "numeric"}),
+            "temperature_c": forms.NumberInput(attrs={"step": "0.1", "inputmode": "decimal"}),
+            "humidity_pct": forms.NumberInput(attrs={"step": "1", "min": 0, "max": 100,
+                                                     "inputmode": "numeric"}),
         }
 
     protocols = forms.ModelMultipleChoiceField(
@@ -32,7 +36,7 @@ class TestSessionForm(forms.ModelForm):
         help_text="Předvyplněno podle baterie sportu. Další test jde přidat i později.")
 
     field_order = ["subject", "date", "protocols", "location", "season_phase",
-                   "fatigue_rating", "note"]
+                   "fatigue_rating", "temperature_c", "humidity_pct", "note"]
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -76,6 +80,26 @@ def field_name(protocol_metric, combo: dict, trial_number: int) -> str:
         "v", str(protocol_metric.pk), combo["side"], combo["mode"],
         speed, combo["segment"], str(trial_number),
     ])
+
+
+def parse_value(raw) -> float | None:
+    """
+    Číslo z políčka: „12,5“, „12.5“ i čas „1:23,45“ (min:s – převede se
+    na sekundy). Nesmyslný vstup vrátí None.
+    """
+    text = str(raw).strip().replace(",", ".").replace(" ", "")
+    if not text:
+        return None
+    try:
+        if ":" in text:
+            minutes, seconds = text.split(":", 1)
+            if float(seconds) >= 60:
+                return None
+            sign = -1 if minutes.startswith("-") else 1
+            return sign * (abs(int(minutes)) * 60 + float(seconds))
+        return float(text)
+    except ValueError:
+        return None
 
 
 def parse_field_name(name: str) -> dict | None:
@@ -131,6 +155,9 @@ def build_grid(protocol_run) -> list[dict]:
             rows.append({
                 "protocol_metric": pm,
                 "metric": pm.metric,
+                # U časů v sekundách se nabízí stopky; delší časy jde psát jako min:s.
+                "is_time": pm.metric.unit == "s",
+                "long_time": pm.metric.unit == "s" and (pm.metric.plausible_max or 0) > 60,
                 "combo": combo,
                 "label": _combo_label(combo),
                 "cells": cells,

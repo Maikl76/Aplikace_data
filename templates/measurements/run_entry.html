@@ -1,12 +1,33 @@
 {% extends "base.html" %}
-{% load ui %}
+{% load ui static %}
+{# Bez defer: funkce stopek musí existovat dřív, než se spustí Alpine. #}
+{% block head %}<script src="{% static_v 'js/zadavani.js' %}"></script>{% endblock %}
 {% block content %}
-<div class="mb-5">
-  <a href="{% url 'session_detail' run.session_id %}" class="text-sm link">← {{ run.session.jmeno }} · {{ run.session.date|date:"j. n. Y" }}</a>
-  <h1 class="text-2xl font-semibold mt-1">{{ run.protocol.name }}</h1>
-  <p class="text-sm text-muted">
-    {% if run.protocol.device %}{{ run.protocol.device }}{% endif %}{% if run.started_at %} · {{ run.started_at|time:"H:i" }}{% endif %}{% if run.external_ref|slice:":9" == "odvozeno:" %} · vypočteno automaticky z ostatních testů{% elif run.external_ref %} · importováno z přístroje{% endif %}
-  </p>
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <a href="{% url 'session_detail' run.session_id %}" class="text-sm link">← {{ run.session.jmeno }} · {{ run.session.date|date:"j. n. Y" }}</a>
+    <h1 class="text-2xl font-semibold mt-1">{{ run.protocol.name }}</h1>
+    <p class="text-sm text-muted">
+      {% if run.protocol.device %}{{ run.protocol.device }}{% endif %}{% if run.started_at %} · {{ run.started_at|time:"H:i" }}{% endif %}{% if run.external_ref|slice:":9" == "odvozeno:" %} · vypočteno automaticky z ostatních testů{% elif run.external_ref %} · importováno z přístroje{% endif %}
+    </p>
+  </div>
+  {% if run.protocol.rest_seconds %}
+    <button type="button" class="btn" x-data
+            @click="$dispatch('pauza', {sekundy: {{ run.protocol.rest_seconds }} })">
+      {% icon "timer" %}Pauza {{ run.protocol.rest_seconds|mmss }}</button>
+  {% endif %}
+</div>
+
+{# Odpočet pauzy mezi pokusy – na konci pípne a zavibruje. #}
+<div x-data="pauza()" @pauza.window="spustit($event.detail.sekundy)" x-show="bezi || hotovo" x-cloak
+     class="card px-4 py-3 mb-4 flex items-center gap-4 sticky top-16 z-10"
+     :style="hotovo ? 'border-color: var(--good); background: var(--good-soft)' : ''">
+  <span class="kpi-value tabular-nums" x-text="text"></span>
+  <div class="flex-1 h-2 rounded-full overflow-hidden" style="background: var(--surface-2)">
+    <div class="h-full" style="background: var(--accent)" :style="`width: ${procenta}%`"></div>
+  </div>
+  <span class="text-sm" x-show="hotovo" style="color: var(--good)">Pauza skončila – další pokus</span>
+  <button type="button" class="btn btn-sm" @click="zastavit()">Zavřít</button>
 </div>
 
 <form method="post"
@@ -15,13 +36,53 @@
   {% csrf_token %}
   {% include "measurements/_entry_grid.html" %}
 
-  {# Velké tlačítko dole – u přístroje se ovládá palcem na tabletu. #}
+  {% if rpe_question %}
+    <section class="card p-4 mt-4">
+      <div class="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+        <h2 class="card-title">RPE po testu <span class="text-muted font-normal text-sm">– {{ rpe_question.text|lower }}</span></h2>
+        <a class="text-sm link" href="{% url 'session_detail' run.session_id %}#dotazniky">nebo ať vyplní sportovec přes QR →</a>
+      </div>
+      <div class="rpe-skala">
+        {% for value, label in rpe_question.points %}
+          <label class="rpe-bod">
+            <input type="radio" name="q_{{ rpe_question.code }}" value="{{ value }}" {% if rpe_value == value %}checked{% endif %}>
+            <span class="rpe-cislo">{{ value }}</span>
+            <span class="rpe-popis">{{ label }}</span>
+          </label>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  {# Velká tlačítka dole – u přístroje se ovládá palcem na tabletu. #}
   <div class="sticky bottom-0 py-4 mt-4 flex flex-wrap items-center gap-3 no-print"
        style="background: var(--page); border-top: 1px solid var(--border)">
-    <button type="submit" class="btn btn-primary w-full md:w-auto px-6 py-3 text-base">
+    <button type="submit" class="btn btn-primary px-6 py-3 text-base">
       {% icon "check" %}Uložit hodnoty
     </button>
-    <span class="text-sm text-muted">Desetinnou čárku i tečku lze psát obojí. Prázdná pole se neukládají.</span>
+    <button type="submit" name="dalsi" value="1" class="btn px-6 py-3 text-base">
+      {% if next_run %}Uložit a další: {{ next_run.protocol.name }}{% else %}Uložit a zpět na den{% endif %}
+      {% icon "chevron-right" %}
+    </button>
+    <span class="text-sm text-muted">Desetinná čárka i tečka, u časů i min:s. Prázdná pole se neukládají.</span>
   </div>
 </form>
+
+{# Stopky pro časy – výsledek se zapíše do políčka, u kterého se otevřely. #}
+<div x-data="stopky()" @stopky.window="otevrit($event.detail)" @keydown.window.space="mezernik($event)"
+     @keydown.window.escape="open = false"
+     x-show="open" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+  <div class="card p-6 w-full max-w-sm text-center" @click.outside="open = false">
+    <div class="eyebrow mb-2">Stopky</div>
+    <div class="stopky-cas tabular-nums" x-text="text"></div>
+    <div class="grid grid-cols-2 gap-3 mt-5">
+      <button type="button" class="btn py-4 text-base" :class="bezi ? '' : 'btn-primary'" @click="prepnout()"
+              x-text="bezi ? 'Stop' : (ubehlo ? 'Pokračovat' : 'Start')"></button>
+      <button type="button" class="btn py-4 text-base" @click="vynulovat()" :disabled="bezi">Vynulovat</button>
+    </div>
+    <button type="button" class="btn btn-primary w-full mt-3 py-3" @click="zapsat()" :disabled="bezi || !ubehlo">
+      {% icon "check" %}Zapsat <span x-text="vysledek"></span> s</button>
+    <p class="text-xs text-muted mt-3">Mezerník = start / stop</p>
+  </div>
+</div>
 {% endblock %}

@@ -10,7 +10,7 @@
         <a href="{% url 'subject_detail' session.subject.pk %}" class="hover:underline">{{ session.jmeno }}</a>
       </h1>
       <p class="text-sm text-muted">
-        {{ session.subject.sport|default:"bez sportu" }}{% if session.location %} · {{ session.location }}{% endif %}{% if session.season_phase %} · {{ session.get_season_phase_display }}{% endif %}{% if session.fatigue_rating %} · únava {{ session.fatigue_rating }}/10{% endif %}
+        {{ session.subject.sport|default:"bez sportu" }}{% if session.location %} · {{ session.location }}{% endif %}{% if session.season_phase %} · {{ session.get_season_phase_display }}{% endif %}{% if session.fatigue_rating %} · únava {{ session.fatigue_rating }}/10{% endif %}{% if session.temperature_c is not None %} · {{ session.temperature_c|floatformat:"-1" }} °C{% endif %}{% if session.humidity_pct is not None %} · vlhkost {{ session.humidity_pct|floatformat:"0" }} %{% endif %}
       </p>
     </div>
   </div>
@@ -74,7 +74,8 @@
     </form>
   </section>
 
-  <section class="card min-w-0 self-start">
+  <div class="space-y-4 min-w-0">
+  <section class="card min-w-0">
     <div class="px-4 pt-4 pb-2"><h2 class="card-title">Zprávy z tohoto dne</h2></div>
     <ul>
       {% for r in reports %}
@@ -91,5 +92,72 @@
       {% endfor %}
     </ul>
   </section>
+
+  {% if rpe_question %}
+  <section class="card min-w-0" id="dotazniky" x-data="{ beh: '', qr: false }">
+    <div class="px-4 pt-4 pb-2 flex items-baseline justify-between gap-2">
+      <h2 class="card-title">RPE – vnímané úsilí</h2>
+      <span class="text-xs text-muted">škála {{ rpe_question.scale_min }}–{{ rpe_question.scale_max }}</span>
+    </div>
+    {% if responses %}
+      <ul class="px-4 pb-2 space-y-1.5">
+        {% for r in responses %}{% for a in r.answers %}
+          <li class="flex items-center gap-2 text-sm">
+            <span class="badge badge-accent tabular-nums">{{ a.value_txt }}</span>
+            <span class="flex-1 min-w-0">{{ r.after|default:"celý testovací den" }}{% if a.label %} <span class="text-muted">– {{ a.label }}</span>{% endif %}</span>
+            <span class="text-xs text-muted" title="{{ r.response.get_source_display }}">{% if r.response.source == "sportovec" %}sportovec{% else %}operátor{% endif %}</span>
+          </li>
+        {% endfor %}{% endfor %}
+      </ul>
+    {% endif %}
+    <form method="post" action="{% url 'session_questionnaire' session.pk %}"
+          class="px-4 py-3 border-t space-y-3" style="border-color: var(--border)">
+      {% csrf_token %}
+      <input type="hidden" name="dotaznik" value="{{ rpe.code }}">
+      <label class="block">
+        <span class="block text-sm text-2">Po čem</span>
+        <select name="beh" x-model="beh" class="input mt-1">
+          <option value="">celý testovací den</option>
+          {% for run in rpe_runs %}<option value="{{ run.pk }}">{{ run.protocol.name }}{% if run.started_at %} ({{ run.started_at|time:"H:i" }}){% endif %}</option>{% endfor %}
+        </select>
+      </label>
+      <div class="rpe-skala rpe-mala">
+        {% for value, label in rpe_question.points %}
+          <label class="rpe-bod" title="{{ label }}">
+            <input type="radio" name="q_{{ rpe_question.code }}" value="{{ value }}">
+            <span class="rpe-cislo">{{ value }}</span>
+          </label>
+        {% endfor %}
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button type="submit" class="btn btn-primary btn-sm">{% icon "check" %}Zapsat</button>
+        <button type="button" class="btn btn-sm" @click="qr = !qr">{% icon "qr" %}Vyplní sportovec (QR)</button>
+      </div>
+      <div x-show="qr" x-cloak class="pt-2 text-sm text-muted"
+           x-effect="if (qr) fetch('{% url 'session_questionnaire_qr' session.pk %}?dotaznik={{ rpe.code }}&beh=' + beh).then(r => r.text()).then(h => $el.innerHTML = h)">
+        Připravuji QR kód…</div>
+    </form>
+  </section>
+  {% endif %}
+
+  <section class="card min-w-0 p-4">
+    <h2 class="card-title mb-2">Prostředí</h2>
+    <form method="post" action="{% url 'session_conditions' session.pk %}" class="flex flex-wrap items-end gap-2">
+      {% csrf_token %}
+      <label class="block w-24">
+        <span class="block text-xs text-muted">teplota °C</span>
+        <input type="text" inputmode="decimal" name="temperature_c" class="input mt-1 tabular-nums"
+               value="{% if session.temperature_c is not None %}{{ session.temperature_c|floatformat:'-1' }}{% endif %}">
+      </label>
+      <label class="block w-24">
+        <span class="block text-xs text-muted">vlhkost %</span>
+        <input type="text" inputmode="decimal" name="humidity_pct" class="input mt-1 tabular-nums"
+               value="{% if session.humidity_pct is not None %}{{ session.humidity_pct|floatformat:'0' }}{% endif %}">
+      </label>
+      <button type="submit" class="btn btn-sm mb-0.5">Uložit</button>
+    </form>
+    <p class="text-xs text-muted mt-2">U terénních testů a Wingate ovlivňuje výkon – objeví se ve zprávě.</p>
+  </section>
+  </div>
 </div>
 {% endblock %}

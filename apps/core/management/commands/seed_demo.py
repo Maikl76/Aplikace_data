@@ -19,7 +19,16 @@ from django.utils import timezone
 
 from apps.catalog.models import MetricDef, Protocol
 from apps.core.models import Organization, Role, User
-from apps.measurements.models import Measurement, Mode, ProtocolRun, Side, TestSession, Trial
+from apps.measurements import questionnaires
+from apps.measurements.models import (
+    Measurement,
+    Mode,
+    ProtocolRun,
+    QuestionnaireResponse,
+    Side,
+    TestSession,
+    Trial,
+)
 from apps.subjects.models import Consent, Sex, Sport, Subject, Team
 
 # MDC a SWC jsou tu VYMYŠLENÉ, jen aby měla analytika na demo datech co
@@ -150,6 +159,7 @@ class Command(BaseCommand):
                 )
 
             ability = {code: random.uniform(-1, 1) for code in RANGES}
+            rpe = questionnaires.questionnaire(questionnaires.RPE)
 
             for index in range(options["sessions"]):
                 day = today - timedelta(
@@ -160,7 +170,9 @@ class Command(BaseCommand):
                               "season_phase": random.choice(
                                   [TestSession.SeasonPhase.PREPARATION,
                                    TestSession.SeasonPhase.COMPETITION]),
-                              "fatigue_rating": random.randint(2, 7)},
+                              "fatigue_rating": random.randint(2, 7),
+                              "temperature_c": round(random.uniform(19, 24), 1),
+                              "humidity_pct": random.randint(35, 60)},
                 )
 
                 # Měří se podle baterie sportu; občas jeden test vypadne,
@@ -178,6 +190,9 @@ class Command(BaseCommand):
                         # jaký vznikne i ručním zadáním.
                         for pm in protocol.protocol_metrics.select_related("metric"):
                             created += self._make_values(trial, pm, ability, index)
+                    if protocol.rpe_after and rpe:
+                        questionnaires.save(session, rpe, {rpe.questions.first(): random.randint(7, 10)},
+                                            run=run, source=QuestionnaireResponse.Source.SUBJECT)
 
         from apps.analytics.derived import recompute
 

@@ -44,12 +44,43 @@ def build(session, findings, citations) -> dict:
         "klicove_metriky": _key_metrics(session),
         "asymetrie": _asymmetries(session),
         "cmj_ods": _ods(session),
+        "podminky": _conditions(session),
+        "rpe": _rpe(session),
         "citace": [
             {"cislo": i, "zdroj": str(c["article"]),
              "populace_odpovida": c["population_matches"]}
             for i, c in enumerate(citations, start=1)
         ],
     }
+
+
+def _conditions(session) -> dict:
+    """Prostředí a stav sportovce – jen to, co je vyplněné."""
+    out = {}
+    if session.temperature_c is not None:
+        out["teplota_c"] = round(session.temperature_c, 1)
+    if session.humidity_pct is not None:
+        out["vlhkost_procent"] = round(session.humidity_pct)
+    if session.fatigue_rating:
+        out["subjektivni_unava_1_10"] = session.fatigue_rating
+    if session.season_phase:
+        out["faze_sezony"] = session.get_season_phase_display().lower()
+    return out
+
+
+def _rpe(session) -> list[dict]:
+    """Vnímané úsilí (RPE) po testech nebo za celý den."""
+    from apps.measurements import questionnaires
+
+    out = []
+    for item in questionnaires.summary(session):
+        if item["questionnaire"].code != questionnaires.RPE:
+            continue
+        for a in item["answers"]:
+            out.append({"po_testu": item["after"] or "celý testovací den",
+                        "hodnota": a["value"], "skala": f"0–{a['max']}",
+                        "slovne": a["label"]})
+    return out
 
 
 def _key_metrics(session) -> list[dict]:

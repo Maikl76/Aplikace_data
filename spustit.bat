@@ -22,9 +22,20 @@ python manage.py seed_catalog --jen-chybejici || goto chyba
 python manage.py prepocitat_odvozene || goto chyba
 
 echo.
+if /i "%~1"=="sit" goto sit
 echo Aplikace bezi na http://localhost:8000  (ukonceni: Ctrl+C)
 start "" http://localhost:8000
 python manage.py runserver
+exit /b 0
+
+:sit
+rem Pristup z tabletu a telefonu v mistni siti (jen pro sit laboratore!).
+echo Aplikace bezi i pro tablety a telefony v teto siti.
+echo Na tabletu otevrete adresu http://ADRESA-POCITACE:8000  - adresa je radek IPv4:
+ipconfig | findstr /c:"IPv4"
+echo Kdyz se Windows zepta na branu firewall, povolte jen soukromou sit.
+start "" http://localhost:8000
+python manage.py runserver 0.0.0.0:8000
 exit /b 0
 
 :chyba

@@ -11,7 +11,8 @@ def primary_metric_series(subject, *, limit_metrics: int = 6, until=None):
     """
     Pro klíčové metriky vrátí vývoj v čase.
 
-    Z každého testovacího dne se bere průměr platných pokusů – jeden bod
+    Z každého testovacího dne se bere hodnota dne z platných pokusů (průměr,
+    nebo nejlepší pokus – podle metriky) – jeden bod
     grafu je jedna návštěva, ne jeden pokus. Kvalifikátory se rozlišují,
     takže "210°/s koncentricky levá" je vlastní řada. ``until`` omezí
     řadu na měření do daného dne včetně – zpráva nesmí ukazovat budoucnost.
@@ -23,6 +24,7 @@ def primary_metric_series(subject, *, limit_metrics: int = 6, until=None):
                 metric__protocol_metrics__is_primary=True)
         .select_related("metric", "trial__protocol_run__session")
         .distinct()
+        .order_by("trial__number")
     )
     if until is not None:
         measurements = measurements.filter(trial__protocol_run__session__date__lte=until)
@@ -37,7 +39,7 @@ def primary_metric_series(subject, *, limit_metrics: int = 6, until=None):
         by_date = defaultdict(list)
         for day, value in values:
             by_date[day].append(value)
-        points = sorted((day, sum(v) / len(v)) for day, v in by_date.items())
+        points = sorted((day, metric.day_value(v)) for day, v in by_date.items())
         if not points:
             continue
         series.append({
@@ -124,13 +126,13 @@ def session_metric_values(session) -> dict:
     for m in (Measurement.objects
               .filter(trial__protocol_run__session=session, trial__is_valid=True,
                       trial__protocol_run__is_primary=True)
-              .select_related("metric")):
+              .select_related("metric").order_by("trial__number")):
         key = (m.metric.code, m.side, m.mode, m.speed, m.segment)
         buckets[key].append((m.metric, m.value))
 
     return {
         key: {"metric": values[0][0],
-              "value": sum(v for _, v in values) / len(values),
+              "value": values[0][0].day_value([v for _, v in values]),
               "side": key[1], "mode": key[2], "speed": key[3], "segment": key[4]}
         for key, values in buckets.items()
     }
@@ -151,7 +153,8 @@ def previous_session_values(session) -> dict:
               .filter(trial__protocol_run__session__subject=session.subject,
                       trial__protocol_run__session__date__lt=session.date,
                       trial__is_valid=True, trial__protocol_run__is_primary=True)
-              .select_related("metric", "trial__protocol_run__session")):
+              .select_related("metric", "trial__protocol_run__session")
+              .order_by("trial__number")):
         key = (m.metric.code, m.side, m.mode, m.speed, m.segment)
         buckets[key].append((m.trial.protocol_run.session.date, m.metric, m.value))
 
@@ -159,7 +162,7 @@ def previous_session_values(session) -> dict:
     for key, rows in buckets.items():
         latest = max(day for day, _, _ in rows)
         values = [v for day, _, v in rows if day == latest]
-        out[key] = {"metric": rows[0][1], "value": sum(values) / len(values),
+        out[key] = {"metric": rows[0][1], "value": rows[0][1].day_value(values),
                     "date": latest, "side": key[1], "mode": key[2],
                     "speed": key[3], "segment": key[4]}
     return out

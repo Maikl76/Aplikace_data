@@ -26,6 +26,7 @@
                 title="Zpráva z měření {{ last_session.date|date:'d.m.Y' }}">{% icon "file" %}<span>Zpráva z posledního měření</span></button>
       </form>
     {% endif %}
+    <a href="{% url 'subject_qr' subject.pk %}" class="btn" title="QR karta – naskenováním otevřete dnešní testování">{% icon "qr" %}</a>
     <a href="/admin/subjects/subject/{{ subject.pk }}/change/" class="btn" title="Upravit údaje sportovce">{% icon "edit" %}</a>
   </div>
 </div>

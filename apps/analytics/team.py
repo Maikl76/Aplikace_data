@@ -76,6 +76,7 @@ def team_table(subjects, columns, *, today) -> dict:
                     .filter(trial__protocol_run__session__subject__in=subjects,
                             trial__protocol_run__is_primary=True, trial__is_valid=True,
                             metric__in={c["metric"].pk for c in columns})
+                    .order_by("trial__number")
                     .values_list("trial__protocol_run__session__subject_id",
                                  "trial__protocol_run__session__date",
                                  "metric_id", "side", "mode", "speed", "segment", "value"))
@@ -89,7 +90,8 @@ def team_table(subjects, columns, *, today) -> dict:
         cells = []
         for index, col in enumerate(columns):
             metric = col["metric"]
-            history = sorted((d, sum(v) / len(v)) for d, v in days[(subject.pk, index)].items())
+            history = sorted((d, metric.day_value(v))
+                             for d, v in days[(subject.pk, index)].items())
             if not history:
                 cells.append(None)
                 continue

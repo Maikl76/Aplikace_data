@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+<div class="card p-6 max-w-lg">
+  <div class="flex items-center gap-3 mb-4">
+    <span class="avatar w-11 h-11">{{ subject.jmeno|initials }}</span>
+    <div>
+      <div class="eyebrow">{{ today|date:"j. n. Y" }}</div>
+      <h1 class="text-xl font-semibold">{{ subject.jmeno }}</h1>
+    </div>
+  </div>
+  <p class="text-2 mb-3">Dnes zatím nemá založený testovací den.</p>
+  {% if protocols %}
+    <p class="text-sm text-muted mb-2">Založí se s testy baterie sportu:</p>
+    <div class="flex flex-wrap gap-1 mb-5">{% for p in protocols %}<span class="badge">{{ p.name }}</span>{% endfor %}</div>
+  {% else %}
+    <p class="text-sm text-muted mb-5">Sport nemá baterii testů – testy přidáte v testovacím dni.</p>
+  {% endif %}
+  <form method="post" class="flex flex-wrap gap-2">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">{% icon "plus" %}Založit dnešní testování</button>
+    <a href="{% url 'subject_detail' subject.pk %}" class="btn">Karta sportovce</a>
+  </form>
+</div>
+{% endblock %}

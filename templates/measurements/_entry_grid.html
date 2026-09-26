@@ -1,3 +1,4 @@
+{% load ui %}
 <div id="mrizka" class="card overflow-x-auto">
   {% if saved %}
     <p class="px-4 py-3 text-sm border-b" style="background: var(--good-soft); color: var(--good); border-color: var(--border)">
@@ -17,16 +18,24 @@
           <td class="min-w-[11rem]">
             <div class="font-medium">{{ row.metric.name }}</div>
             <div class="text-xs text-muted">
-              {{ row.label|default:"bez rozlišení" }}{% if row.metric.unit and row.metric.unit != "-" %} · {{ row.metric.unit }}{% endif %}
+              {{ row.label|default:"bez rozlišení" }}{% if row.metric.unit and row.metric.unit != "-" %} · {{ row.metric.unit }}{% endif %}{% if row.metric.trial_rule_note %} · počítá se {{ row.metric.trial_rule_note }}{% endif %}{% if row.long_time %} · lze psát i min:s{% endif %}
             </div>
           </td>
           {% for cell in row.cells %}
             <td class="min-w-[6.5rem]">
-              {# inputmode="decimal" vyvolá na tabletu číselnou klávesnici #}
-              <input type="text" inputmode="decimal" name="{{ cell.name }}"
-                     value="{{ cell.value }}" aria-label="{{ row.metric.name }} {{ row.label }} – {{ forloop.counter }}. pokus"
-                     class="input text-center text-lg py-2.5 tabular-nums"
-                     {% if cell.quality == 'range' %}style="border-color: var(--warn); background: var(--warn-soft)" title="Mimo věrohodný rozsah – zkontrolujte"{% endif %}>
+              <div class="relative">
+                {# inputmode="decimal" vyvolá na tabletu číselnou klávesnici; min:s potřebuje dvojtečku #}
+                <input type="text" inputmode="{% if row.long_time %}text{% else %}decimal{% endif %}" name="{{ cell.name }}"
+                       value="{{ cell.value }}" autocomplete="off"
+                       aria-label="{{ row.metric.name }} {{ row.label }} – {{ forloop.counter }}. pokus"
+                       class="input text-center text-lg py-2.5 tabular-nums{% if row.is_time %} pr-9{% endif %}"
+                       {% if cell.quality == 'range' %}style="border-color: var(--warn); background: var(--warn-soft)" title="Mimo věrohodný rozsah – zkontrolujte"{% endif %}>
+                {% if row.is_time %}
+                  <button type="button" class="stopky-tlacitko" title="Změřit stopkami"
+                          onclick="window.dispatchEvent(new CustomEvent('stopky', {detail: {pole: this.previousElementSibling, des: {{ row.metric.decimals }}}}))">
+                    {% icon "timer" "w-5 h-5" %}</button>
+                {% endif %}
+              </div>
             </td>
           {% endfor %}
         </tr>

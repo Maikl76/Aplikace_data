@@ -14,6 +14,8 @@ from apps.catalog.models import (
     MetricDef,
     Protocol,
     ProtocolMetric,
+    Question,
+    Questionnaire,
 )
 from apps.catalog.seed_data import (
     DSI_RULES,
@@ -22,6 +24,7 @@ from apps.catalog.seed_data import (
     METRIC_EXTRAS,
     METRICS,
     PROTOCOLS,
+    QUESTIONNAIRES,
     SEED_ARTICLES,
 )
 
@@ -42,14 +45,16 @@ class Command(BaseCommand):
         # Při doplňování se existující záznamy nemění (get_or_create),
         # při zakládání databáze se srovnají s výchozí sadou (update_or_create).
         save = "get_or_create" if only_missing else "update_or_create"
-        metrics = {}
+        metrics, created = {}, set()
         for code, name, family, unit, direction, lo, hi, decimals in METRICS:
-            metrics[code], _ = getattr(MetricDef.objects, save)(
+            metrics[code], is_new = getattr(MetricDef.objects, save)(
                 organization=None, code=code,
                 defaults={"name": name, "family": family, "unit": unit,
                           "direction": direction, "plausible_min": lo,
                           "plausible_max": hi, "decimals": decimals},
             )
+            if is_new or not only_missing:
+                created.add(code)
 
         for code, extras in METRIC_EXTRAS.items():
             metric = metrics[code]
@@ -60,6 +65,11 @@ class Command(BaseCommand):
             if extras.get("cv") and metric.trial_cv_limit is None:
                 metric.trial_cv_limit = extras["cv"]
                 changed.append("trial_cv_limit")
+            # Pravidlo pokusů má výchozí hodnotu, takže nejde poznat, zda ho
+            # někdo změnil – nastaví se jen nové metrice (a při zakládání).
+            if extras.get("rule") and code in created:
+                metric.trial_rule = extras["rule"]
+                changed.append("trial_rule")
             if changed:
                 metric.save(update_fields=changed)
 
@@ -68,7 +78,9 @@ class Command(BaseCommand):
                 organization=None, code=code, version=1,
                 defaults={"name": spec["name"], "family": spec["family"],
                           "device": spec["device"],
-                          "default_trials": spec.get("trials", 3)},
+                          "default_trials": spec.get("trials", 3),
+                          "rest_seconds": spec.get("rest"),
+                          "rpe_after": spec.get("rpe", False)},
             )
             for order, entry in enumerate(spec["metrics"]):
                 getattr(ProtocolMetric.objects, save)(
@@ -97,6 +109,16 @@ class Command(BaseCommand):
                     defaults={"metric": metrics[metric_code], "factor": factor,
                               "with_sides": sides[0] if sides else True},
                 )
+
+        for spec in QUESTIONNAIRES:
+            questionnaire, _ = Questionnaire.objects.get_or_create(
+                organization=None, code=spec["code"],
+                defaults={"name": spec["name"], "description": spec["description"]})
+            for order, q in enumerate(spec["questions"]):
+                Question.objects.get_or_create(
+                    questionnaire=questionnaire, code=q["code"],
+                    defaults={"text": q["text"], "order": order, "scale_min": q["min"],
+                              "scale_max": q["max"], "anchors": q["anchors"]})
 
         from apps.evidence.models import Article
         from apps.rules.models import Rule, RuleArticle

@@ -65,7 +65,8 @@ aplikace poběží i v ostrém nasazení. Reálná data sem nepatří.
 Postup pro práci na víc počítačích je v [docs/vice-pocitacu.md](docs/vice-pocitacu.md),
 import z VALD v [docs/import-vald.md](docs/import-vald.md),
 DSI, ODS a kontrola pokusů v [docs/diagnostika.md](docs/diagnostika.md),
-baterie testů a Dnešní testování v [docs/baterie.md](docs/baterie.md).
+baterie testů, Dnešní testování a týmový přehled v [docs/baterie.md](docs/baterie.md),
+stopky, RPE, QR karty a tablet v síti v [docs/terenni-testovani.md](docs/terenni-testovani.md).
 
 Generování PDF (`requirements/pdf.txt`) je záměrně bokem — WeasyPrint
 potřebuje systémové knihovny, které se instalují nepříjemně. Bez něj

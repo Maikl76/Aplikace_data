@@ -17,3 +17,4 @@ whitenoise>=6.7
 pandas>=2.2
 numpy>=1.26
 openpyxl>=3.1
+segno>=1.6

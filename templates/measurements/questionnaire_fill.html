@@ -1,0 +1,65 @@
+{% load ui %}<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>{% if questionnaire %}{{ questionnaire.name }}{% else %}Dotazník{% endif %}</title>
+  <script>
+    (function () {
+      if (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches)
+        document.documentElement.classList.add("dark");
+    })();
+  </script>
+  <link rel="stylesheet" href="{% static_v 'vendor/tailwind.css' %}">
+  <link rel="stylesheet" href="{% static_v 'css/app.css' %}">
+</head>
+<body>
+<main class="min-h-screen max-w-md mx-auto px-4 py-6">
+  <div class="flex items-center gap-2 mb-5">
+    <span class="avatar w-8 h-8 text-xs" style="background: var(--accent); color: #fff">FT</span>
+    <span class="text-sm text-muted">Funkční testování FTVS UK</span>
+  </div>
+
+  {% if invalid %}
+    <div class="card p-5">
+      <h1 class="text-xl font-semibold mb-2">Odkaz už neplatí</h1>
+      <p class="text-2">Požádejte diagnostika o nový QR kód.</p>
+    </div>
+  {% elif done %}
+    <div class="card p-6 text-center">
+      <span class="avatar w-12 h-12 mb-3" style="background: var(--good-soft); color: var(--good)">{% icon "check" "w-6 h-6" %}</span>
+      <h1 class="text-xl font-semibold mb-1">Děkujeme, uloženo</h1>
+      <p class="text-2">Můžete telefon odložit. Kdybyste se překlikli, vyplňte znovu – uloží se poslední odpověď.</p>
+      <a href="" class="btn mt-4">Vyplnit znovu</a>
+    </div>
+  {% else %}
+    <form method="post" class="space-y-5">
+      {% csrf_token %}
+      <div>
+        <div class="eyebrow">{{ questionnaire.name|cut:" (CR-10)" }} · {{ session.date|date:"j. n. Y" }}</div>
+        {% if run %}<div class="text-sm text-2 mt-0.5">po testu {{ run.protocol.name }}</div>{% endif %}
+        {# U jedné otázky je nadpisem rovnou otázka – na telefonu je to srozumitelnější. #}
+        <h1 class="text-2xl font-semibold mt-1">{% if questions|length == 1 %}{{ questions.0.text }}{% else %}{{ questionnaire.name }}{% endif %}</h1>
+        {% if questionnaire.description %}<p class="text-2 mt-1">{{ questionnaire.description }}</p>{% endif %}
+      </div>
+      {% for question in questions %}
+        <fieldset class="card p-3">
+          {% if questions|length > 1 %}<legend class="font-medium px-1">{{ question.text }}</legend>{% endif %}
+          <div class="rpe-svisle">
+            {% for value, label in question.points %}
+              <label class="rpe-radek">
+                <input type="radio" name="q_{{ question.code }}" value="{{ value }}" required>
+                <span class="rpe-cislo">{{ value }}</span>
+                <span class="rpe-text">{{ label }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary w-full py-3 text-base">Odeslat</button>
+    </form>
+  {% endif %}
+</main>
+</body>
+</html>

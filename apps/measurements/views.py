@@ -2,16 +2,18 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Count, Q
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from apps.core.audit import record
 from apps.core.models import AuditLog
 from apps.subjects.models import Subject
 
-from . import planning
-from .forms import AddProtocolForm, TestSessionForm, build_grid, parse_field_name
-from .models import Measurement, ProtocolRun, TestSession, Trial
+from . import planning, questionnaires
+from .forms import AddProtocolForm, TestSessionForm, build_grid, parse_field_name, parse_value
+from .models import Measurement, ProtocolRun, QuestionnaireResponse, TestSession, Trial
 
 
 @login_required
@@ -158,7 +160,6 @@ def _team_csv(battery, columns, rows):
     """Tabulka pro Excel: středník a desetinná čárka, jak je v Česku zvykem."""
     import csv
 
-    from django.http import HttpResponse
     from django.utils.text import slugify
 
     response = HttpResponse(content_type="text/csv; charset=utf-8")
@@ -189,15 +190,104 @@ def session_detail(request, pk):
 
     label([session], request.user)
     unstable = [(block, row) for block in protocol_results(session) for row in block["unstable"]]
-    runs = (session.protocol_runs.select_related("protocol")
-            .annotate(hodnot=Count("trials__measurements"), pokusu=Count("trials", distinct=True))
-            .order_by("protocol__name", "started_at", "pk"))
+    runs = _in_battery_order(session, session.protocol_runs.select_related("protocol").annotate(
+        hodnot=Count("trials__measurements"), pokusu=Count("trials", distinct=True)))
+    rpe = questionnaires.questionnaire(questionnaires.RPE, session.organization)
     return render(request, "measurements/session_detail.html", {
         "session": session,
         "unstable": unstable,
         "runs": runs,
         "reports": session.reports.order_by("-created_at"),
         "add_form": AddProtocolForm(),
+        "rpe": rpe,
+        "rpe_question": rpe.questions.first() if rpe else None,
+        "rpe_runs": [r for r in runs if r.protocol.code not in planning.DERIVED_PROTOCOLS],
+        "responses": questionnaires.summary(session),
+    })
+
+
+@login_required
+def session_conditions(request, pk):
+    """Prostředí testovacího dne (teplota, vlhkost) – zadává se až na místě."""
+    session = get_object_or_404(TestSession.objects.for_user(request.user), pk=pk)
+    if request.method == "POST":
+        for field in ("temperature_c", "humidity_pct"):
+            setattr(session, field, parse_value(request.POST.get(field, "")))
+        session.save(update_fields=["temperature_c", "humidity_pct"])
+        messages.success(request, "Prostředí uloženo.")
+    return redirect("session_detail", pk=pk)
+
+
+def _session_questionnaire(request, session):
+    """Dotazník a test z formuláře nebo parametrů (?beh=)."""
+    questionnaire = questionnaires.questionnaire(
+        request.POST.get("dotaznik") or request.GET.get("dotaznik") or questionnaires.RPE,
+        session.organization)
+    run_id = request.POST.get("beh") or request.GET.get("beh")
+    run = session.protocol_runs.filter(pk=run_id).first() if run_id else None
+    return questionnaire, run
+
+
+@login_required
+def session_questionnaire(request, pk):
+    """Operátor zapíše odpověď za sportovce (např. RPE nahlas)."""
+    session = get_object_or_404(TestSession.objects.for_user(request.user), pk=pk)
+    questionnaire, run = _session_questionnaire(request, session)
+    if request.method == "POST" and questionnaire:
+        answers = questionnaires.parse_answers(questionnaire, request.POST)
+        if answers:
+            questionnaires.save(session, questionnaire, answers, run=run,
+                                source=QuestionnaireResponse.Source.OPERATOR)
+            record(request, AuditLog.Action.UPDATE, session,
+                   subject_code=session.subject.code, dotaznik=questionnaire.code)
+            messages.success(request, f"{questionnaire.name}: uloženo.")
+        else:
+            messages.warning(request, "Vyberte hodnotu na škále.")
+    return redirect(f"{reverse('session_detail', args=[pk])}#dotazniky")
+
+
+@login_required
+def session_questionnaire_qr(request, pk):
+    """QR kód s odkazem, přes který dotazník vyplní sportovec na svém telefonu."""
+    session = get_object_or_404(TestSession.objects.for_user(request.user), pk=pk)
+    questionnaire, run = _session_questionnaire(request, session)
+    if questionnaire is None:
+        return HttpResponse(status=404)
+    token = questionnaires.make_token(session, questionnaire, run)
+    url = request.build_absolute_uri(reverse("questionnaire_fill", args=[token]))
+    return render(request, "measurements/_questionnaire_qr.html", {
+        "qr": questionnaires.qr_svg(url), "url": url, "run": run,
+        "questionnaire": questionnaire,
+        "reachable": questionnaires.reachable_from_phone(request),
+        "hours": questionnaires.TOKEN_MAX_AGE // 3600,
+    })
+
+
+def questionnaire_fill(request, token):
+    """
+    Vyplnění dotazníku sportovcem – bez přihlášení, jen s podepsaným odkazem.
+    Neukazuje jméno ani výsledky, jen otázku.
+    """
+    from apps.catalog.models import Questionnaire
+
+    data = questionnaires.read_token(token)
+    session = TestSession.objects.filter(pk=(data or {}).get("s")).first()
+    questionnaire = (Questionnaire.objects.filter(pk=data.get("q")).first()
+                     if data and session else None)
+    if questionnaire is None:
+        return render(request, "measurements/questionnaire_fill.html",
+                      {"invalid": True}, status=410)
+    run = session.protocol_runs.filter(pk=data.get("r")).select_related("protocol").first()
+    done = False
+    if request.method == "POST":
+        answers = questionnaires.parse_answers(questionnaire, request.POST)
+        if answers:
+            questionnaires.save(session, questionnaire, answers, run=run,
+                                source=QuestionnaireResponse.Source.SUBJECT)
+            done = True
+    return render(request, "measurements/questionnaire_fill.html", {
+        "questionnaire": questionnaire, "run": run, "session": session, "done": done,
+        "questions": questionnaire.questions.all(),
     })
 
 
@@ -235,20 +325,62 @@ def run_entry(request, pk):
             messages.warning(request, message)
         else:
             messages.success(request, message)
+        if "dalsi" in request.POST:
+            target = _next_run_url(run)
+            if request.headers.get("HX-Request"):
+                response = HttpResponse(status=204)
+                response["HX-Redirect"] = target
+                return response
+            return redirect(target)
         if request.headers.get("HX-Request"):
-            return render(request, "measurements/_entry_grid.html", {
-                "run": run,
-                "rows": build_grid(run),
-                "trials": range(1, run.protocol.default_trials + 1),
-                "saved": saved,
-            })
+            return render(request, "measurements/_entry_grid.html",
+                          {**_entry_context(run), "saved": saved})
         return redirect("session_detail", pk=run.session_id)
 
-    return render(request, "measurements/run_entry.html", {
+    return render(request, "measurements/run_entry.html", _entry_context(run))
+
+
+def _entry_context(run) -> dict:
+    rpe = (questionnaires.questionnaire(questionnaires.RPE, run.session.organization)
+           if run.protocol.rpe_after else None)
+    answer = questionnaires.rpe_for_run(run) if rpe else None
+    return {
         "run": run,
         "rows": build_grid(run),
         "trials": range(1, run.protocol.default_trials + 1),
-    })
+        "rpe_question": rpe.questions.first() if rpe else None,
+        "rpe_value": int(answer.value) if answer and answer.value is not None else None,
+        "next_run": _next_run(run),
+    }
+
+
+def _in_battery_order(session, runs) -> list:
+    """Testy v pořadí baterie sportu (tak se obvykle měří), ostatní podle názvu."""
+    battery = planning.battery_for(session.subject)
+    order = ({item.protocol_id: item.order for item in battery.items.all()}
+             if battery else {})
+    return sorted(runs, key=lambda r: (order.get(r.protocol_id, 10_000), r.protocol.name,
+                                       r.started_at or r.created_at, r.pk))
+
+
+def _session_runs(session):
+    """Měřené testy dne v pořadí, v jakém se zobrazují (a měří)."""
+    return _in_battery_order(session, session.protocol_runs.select_related("protocol")
+                             .exclude(protocol__code__in=planning.DERIVED_PROTOCOLS))
+
+
+def _next_run(run):
+    runs = _session_runs(run.session)
+    ids = [r.pk for r in runs]
+    if run.pk in ids and ids.index(run.pk) + 1 < len(runs):
+        return runs[ids.index(run.pk) + 1]
+    return None
+
+
+def _next_run_url(run) -> str:
+    following = _next_run(run)
+    return (reverse("run_entry", args=[following.pk]) if following
+            else reverse("session_detail", args=[run.session_id]))
 
 
 @transaction.atomic
@@ -265,9 +397,8 @@ def _save_grid(request, run) -> tuple[int, int]:
         metric = metrics.get(parsed["protocol_metric_id"])
         if metric is None:
             continue
-        try:
-            value = float(str(raw).replace(",", "."))
-        except ValueError:
+        value = parse_value(raw)
+        if value is None:
             continue
 
         number = parsed["trial_number"]
@@ -284,6 +415,12 @@ def _save_grid(request, run) -> tuple[int, int]:
             defaults={"value": value, "quality": quality},
         )
         saved += 1
+
+    if run.protocol.rpe_after and (rpe := questionnaires.questionnaire(
+            questionnaires.RPE, run.session.organization)):
+        if answers := questionnaires.parse_answers(rpe, request.POST):
+            questionnaires.save(run.session, rpe, answers, run=run,
+                                source=QuestionnaireResponse.Source.OPERATOR)
 
     record(request, AuditLog.Action.UPDATE, run,
            subject_code=run.session.subject.code, hodnot=saved)

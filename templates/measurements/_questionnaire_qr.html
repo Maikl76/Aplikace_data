@@ -1,0 +1,15 @@
+<div class="flex flex-col items-center gap-2 text-center">
+  <div class="rounded-lg overflow-hidden" style="width: 11rem">{{ qr|safe }}</div>
+  <div class="text-sm" style="color: var(--text)">
+    Sportovec naskenuje kód telefonem a vyplní {{ questionnaire.name|cut:" (CR-10)" }}{% if run %} po testu {{ run.protocol.name }}{% endif %}.
+  </div>
+  <div class="text-xs">Odkaz platí {{ hours }} hodin, neukazuje jméno ani výsledky.</div>
+  {% if not reachable %}
+    <div class="text-xs px-3 py-2 rounded-lg" style="background: var(--warn-soft); color: var(--warn)">
+      Aplikace běží jen na tomto počítači (adresa 127.0.0.1), telefon ji neotevře.
+      Pro vyplnění z telefonu ji spusťte pro místní síť – viz docs/terenni-testovani.md.
+      Hodnotu můžete zatím zapsat sami tlačítkem Zapsat.
+    </div>
+  {% endif %}
+  <a class="text-xs link break-all" href="{{ url }}" target="_blank">{{ url }}</a>
+</div>

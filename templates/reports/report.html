@@ -80,6 +80,7 @@
       <td>{{ subject.get_sex_display }}{% if subject.age %} · {{ subject.age }} let{% endif %}</td></tr>
   {% if session %}
     <tr><th>Datum měření</th><td>{{ session.date|date:"d.m.Y" }}</td></tr>
+    {% for label, value in conditions %}<tr><th>{{ label }}</th><td>{{ value }}</td></tr>{% endfor %}
     <tr><th>Protokoly</th><td>
       {% for block in results %}{{ block.protocol.name }}{% if block.repeats %} ({{ block.repeats.times|length|add:1 }}×){% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}
     </td></tr>
@@ -96,6 +97,7 @@
       {% if block.repeats and block.time %} · 1. měření {{ block.time }}{% endif %}
       {% if block.protocol.device %} · {{ block.protocol.device }}{% endif %}
       {% if block.conditions %} · {{ block.conditions }}{% endif %}
+      {% if block.rpe_txt %} · {{ block.rpe_txt }}{% endif %}
       · pokusů {{ block.trials }}{% if block.invalid %}, z toho neplatných {{ block.invalid|length }}{% endif %}
     </span>
   </div>
@@ -137,7 +139,7 @@
         </td>
         <td class="cislo">
           {{ r.value_txt }}{% if r.metric.unit and r.metric.unit != "-" %} {{ r.metric.unit }}{% endif %}
-          {% if r.trials_txt %}<br><span class="pokusy">{{ r.trials_txt }}</span>{% endif %}
+          {% if r.trials_txt %}<br><span class="pokusy">{{ r.trials_txt }}{% if r.metric.trial_rule_note %} · {{ r.metric.trial_rule_note }}{% endif %}</span>{% endif %}
           {% if r.cv_warn %}<br><span class="rozptyl">rozptyl pokusů {{ r.cv_txt }} % ▲</span>{% endif %}
         </td>
         <td class="cislo">{{ r.previous_txt|default:"—" }}{% if r.previous_date %}<br><span class="pokusy">{{ r.previous_date|date:"d.m.y" }}</span>{% endif %}</td>
@@ -167,7 +169,7 @@
   {% endif %}
   {% if block.repeats %}
     <p class="protokol-meta" style="margin:2mm 0 0">Opakovaná měření téhož dne
-      (průměr pokusů; v závorce rozdíl proti 1. měření)</p>
+      (hodnota dne z pokusů; v závorce rozdíl proti 1. měření)</p>
     <table class="vysledky">
       <thead><tr>
         <th style="width:34%">Ukazatel</th>
@@ -200,7 +202,7 @@
 {% endfor %}
 {% if results %}
   <p class="vysvetlivka">
-    Hodnota = průměr platných pokusů (jednotlivé pokusy pod ní). Tučně klíčové ukazatele.
+    Hodnota = průměr platných pokusů, u ukazatelů s poznámkou „nejlepší pokus“ nejlepší z nich (jednotlivé pokusy pod ní). Tučně klíčové ukazatele.
     Když se test ten den opakoval, do grafů, pravidel a srovnání vstupuje první
     měření; opakovaná jsou uvedena zvlášť.
     Změna se posuzuje proti nejmenší detekovatelné změně (MDC): změna menší než MDC

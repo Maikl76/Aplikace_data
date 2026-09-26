@@ -12,6 +12,7 @@
       {% for b in batteries %}<option value="{{ b.pk }}" {% if b == battery %}selected{% endif %}>{{ b.label }}</option>{% endfor %}
     </select>
     <a href="?baterie={{ battery.pk }}&format=csv" class="btn">{% icon "download" %}CSV pro Excel</a>
+    <a href="{% url 'team_qr' %}?baterie={{ battery.pk }}" class="btn" title="Kartičky s QR kódem pro celou skupinu">{% icon "qr" %}QR karty</a>
   </form>
   {% endif %}
 </div>

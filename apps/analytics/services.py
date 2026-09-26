@@ -7,7 +7,6 @@ protokolu do katalogu tyhle funkce začnou fungovat i pro něj.
 """
 
 from dataclasses import dataclass
-from statistics import mean
 
 from apps.catalog.models import Direction, Norm
 from apps.measurements.models import Measurement, Side
@@ -102,7 +101,7 @@ def asymmetries_for_run(protocol_run, *, threshold_pct: float = 10.0) -> list[di
     measurements = (
         Measurement.objects
         .filter(trial__protocol_run=protocol_run, trial__is_valid=True)
-        .select_related("metric")
+        .select_related("metric").order_by("trial__number")
     )
 
     by_key: dict[tuple, dict[str, list[float]]] = {}
@@ -115,9 +114,9 @@ def asymmetries_for_run(protocol_run, *, threshold_pct: float = 10.0) -> list[di
     for key, sides in by_key.items():
         if Side.LEFT not in sides or Side.RIGHT not in sides:
             continue
-        left, right = mean(sides[Side.LEFT]), mean(sides[Side.RIGHT])
-        index = asymmetry_index(left, right)
         metric = next(m.metric for m in measurements if m.qualifier_key == key)
+        left, right = metric.day_value(sides[Side.LEFT]), metric.day_value(sides[Side.RIGHT])
+        index = asymmetry_index(left, right)
         results.append({
             "metric": metric,
             "qualifiers": {"mode": key[1], "speed": key[2], "segment": key[3]},

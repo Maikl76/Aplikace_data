@@ -58,6 +58,13 @@ class Protocol(CatalogModel):
                                                       help_text="Kolik opakování se standardně "
                                                                 "měří. Zadávací formulář podle "
                                                                 "toho udělá sloupce.")
+    rest_seconds = models.PositiveSmallIntegerField(
+        "pauza mezi pokusy (s)", null=True, blank=True,
+        help_text="Při zadávání se nabídne odpočet pauzy. Prázdné = bez odpočtu.")
+    rpe_after = models.BooleanField(
+        "po testu zaznamenat RPE", default=False,
+        help_text="Při zadávání se nabídne škála RPE (subjektivně vnímané úsilí). "
+                  "Hodí se u zátěžových testů – Wingate, spiroergometrie, terénní běhy.")
     is_active = models.BooleanField("aktivní", default=True)
 
     class Meta:
@@ -127,6 +134,18 @@ class MetricDef(CatalogModel):
         "max. rozptyl pokusů (CV %)", null=True, blank=True,
         help_text="Když se pokusy téhož dne liší víc (variační koeficient), aplikace "
                   "upozorní, že je vhodné pokus zopakovat. Prázdné = nekontroluje se.")
+    class TrialRule(models.TextChoices):
+        MEAN = "prumer", "Průměr platných pokusů"
+        BEST = "nejlepsi", "Nejlepší pokus"
+        LAST = "posledni", "Poslední pokus"
+
+    # Jak z pokusů vznikne hodnota dne. U výskoků se obvykle průměruje,
+    # u sprintu nebo síly stisku se bere nejlepší pokus.
+    trial_rule = models.CharField(
+        "hodnota dne z pokusů", max_length=10, choices=TrialRule.choices,
+        default=TrialRule.MEAN,
+        help_text="Nejlepší = nejvyšší, nebo nejnižší hodnota podle žádoucího směru "
+                  "(u času sprintu nejkratší). U ukazatelů bez směru se průměruje.")
     loinc_code = models.CharField("kód LOINC", max_length=20, blank=True,
                                   help_text="Jen tam, kde standard existuje (složení těla, laboratoř).")
     is_active = models.BooleanField("aktivní", default=True)
@@ -141,6 +160,29 @@ class MetricDef(CatalogModel):
 
     def __str__(self):
         return f"{self.name} [{self.unit}]" if self.unit else self.name
+
+    def day_value(self, values: list[float]) -> float:
+        """Hodnota dne z pokusů (seřazených podle pořadí) podle pravidla metriky."""
+        if not values:
+            raise ValueError("žádné pokusy")
+        if self.trial_rule == self.TrialRule.LAST:
+            return values[-1]
+        if self.trial_rule == self.TrialRule.BEST:
+            if self.direction == Direction.HIGHER:
+                return max(values)
+            if self.direction == Direction.LOWER:
+                return min(values)
+        return sum(values) / len(values)
+
+    @property
+    def trial_rule_note(self) -> str:
+        """Krátká poznámka do tabulek, když se nepočítá průměr."""
+        if self.trial_rule == self.TrialRule.LAST:
+            return "poslední pokus"
+        if self.trial_rule == self.TrialRule.BEST and self.direction in (Direction.HIGHER,
+                                                                          Direction.LOWER):
+            return "nejlepší pokus"
+        return ""
 
     def is_plausible(self, value: float) -> bool:
         if self.plausible_min is not None and value < self.plausible_min:
@@ -397,3 +439,61 @@ class BatteryItem(models.Model):
 
     def __str__(self):
         return f"{self.battery} / {self.protocol.name}"
+
+
+class Questionnaire(CatalogModel):
+    """
+    Dotazník nebo škála, kterou vyplňuje sportovec (nebo za něj operátor),
+    např. RPE. Otázky jsou data – další dotazník se založí v administraci.
+    """
+
+    code = models.SlugField("kód", max_length=64)
+    name = models.CharField("název", max_length=200)
+    description = models.TextField("pokyn pro sportovce", blank=True)
+    is_active = models.BooleanField("aktivní", default=True)
+
+    class Meta:
+        verbose_name = "dotazník"
+        verbose_name_plural = "dotazníky"
+        ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(fields=["organization", "code"],
+                                    name="uniq_questionnaire_code"),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class Question(models.Model):
+    """Jedna otázka dotazníku. Zatím škála (celá čísla od–do s popisky)."""
+
+    questionnaire = models.ForeignKey(Questionnaire, verbose_name="dotazník",
+                                      on_delete=models.CASCADE, related_name="questions")
+    code = models.SlugField("kód", max_length=64)
+    text = models.CharField("otázka", max_length=300)
+    order = models.PositiveSmallIntegerField("pořadí", default=0)
+    scale_min = models.SmallIntegerField("škála od", default=0)
+    scale_max = models.SmallIntegerField("škála do", default=10)
+    anchors = models.JSONField(
+        "popisky bodů škály", default=dict, blank=True,
+        help_text='Např. {"0": "klid", "10": "maximální úsilí"}. Body bez popisku '
+                  "se ukážou jen číslem.")
+
+    class Meta:
+        verbose_name = "otázka"
+        verbose_name_plural = "otázky"
+        ordering = ["order"]
+        constraints = [
+            models.UniqueConstraint(fields=["questionnaire", "code"], name="uniq_question_code"),
+        ]
+
+    def __str__(self):
+        return self.text
+
+    def points(self) -> list[tuple[int, str]]:
+        return [(v, self.anchors.get(str(v), "")) for v in range(self.scale_min,
+                                                               self.scale_max + 1)]
+
+    def label(self, value) -> str:
+        return self.anchors.get(str(int(value)), "") if value is not None else ""

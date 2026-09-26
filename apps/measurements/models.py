@@ -55,6 +55,9 @@ class TestSession(OrgScopedModel):
                                     choices=SeasonPhase.choices, blank=True)
     fatigue_rating = models.PositiveSmallIntegerField("subjektivní únava (1–10)",
                                                       null=True, blank=True)
+    # Prostředí – u terénních testů a Wingate ovlivňuje výkon.
+    temperature_c = models.FloatField("teplota (°C)", null=True, blank=True)
+    humidity_pct = models.FloatField("vlhkost (%)", null=True, blank=True)
     note = models.TextField("poznámka", blank=True)
 
     class Meta:
@@ -208,3 +211,50 @@ class RawFile(TimeStampedModel):
 
     def __str__(self):
         return self.original_name
+
+
+class QuestionnaireResponse(TimeStampedModel):
+    """
+    Vyplněný dotazník (např. RPE) k testovacímu dni, případně ke konkrétnímu
+    testu. Vyplnit ho může operátor, nebo sportovec sám přes QR kód.
+    """
+
+    class Source(models.TextChoices):
+        OPERATOR = "operator", "Zadal operátor"
+        SUBJECT = "sportovec", "Vyplnil sportovec"
+
+    session = models.ForeignKey(TestSession, verbose_name="testovací den",
+                                on_delete=models.CASCADE, related_name="responses")
+    protocol_run = models.ForeignKey(ProtocolRun, verbose_name="po testu",
+                                     on_delete=models.CASCADE, null=True, blank=True,
+                                     related_name="responses")
+    questionnaire = models.ForeignKey("catalog.Questionnaire", verbose_name="dotazník",
+                                      on_delete=models.PROTECT, related_name="responses")
+    source = models.CharField("kdo vyplnil", max_length=10, choices=Source.choices,
+                              default=Source.OPERATOR)
+
+    class Meta:
+        verbose_name = "vyplněný dotazník"
+        verbose_name_plural = "vyplněné dotazníky"
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"{self.session} / {self.questionnaire.code}"
+
+
+class Answer(models.Model):
+    response = models.ForeignKey(QuestionnaireResponse, verbose_name="vyplněný dotazník",
+                                 on_delete=models.CASCADE, related_name="answers")
+    question = models.ForeignKey("catalog.Question", verbose_name="otázka",
+                                 on_delete=models.PROTECT, related_name="answers")
+    value = models.FloatField("hodnota", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "odpověď"
+        verbose_name_plural = "odpovědi"
+        constraints = [
+            models.UniqueConstraint(fields=["response", "question"], name="uniq_answer"),
+        ]
+
+    def __str__(self):
+        return f"{self.question.code} = {self.value}"

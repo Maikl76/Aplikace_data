@@ -123,6 +123,7 @@ def report_context(report) -> dict:
         return context
 
     context["results"] = results.protocol_results(session)
+    context["conditions"] = results.session_conditions(session)
     context["trends"] = [
         {
             "title": s["metric"].name,

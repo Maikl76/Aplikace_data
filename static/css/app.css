@@ -237,3 +237,49 @@ th[aria-sort] .tym-razeni { color: var(--accent-strong); }
 .tym-stare { opacity: .55; }
 .tym-vzorek { display: inline-block; width: 1rem; height: .8rem; border-radius: 3px;
               border: 1px solid var(--border); }
+
+/* zadávání u přístroje: stopky, RPE */
+.stopky-tlacitko {
+  position: absolute; right: .35rem; top: 50%; transform: translateY(-50%);
+  padding: .3rem; border-radius: 6px; color: var(--muted);
+}
+.stopky-tlacitko:hover { color: var(--accent-strong); background: var(--accent-soft); }
+.input.pr-9 { padding-right: 2.25rem; }
+.stopky-cas { font-size: 3.2rem; font-weight: 650; line-height: 1; letter-spacing: -.02em; }
+.rpe-skala { display: grid; grid-template-columns: repeat(auto-fill, minmax(4.6rem, 1fr)); gap: .5rem; }
+.rpe-bod { position: relative; cursor: pointer; }
+.rpe-bod input { position: absolute; opacity: 0; pointer-events: none; }
+.rpe-bod .rpe-cislo {
+  display: flex; align-items: center; justify-content: center; height: 3rem;
+  border: 1px solid var(--border-strong); border-radius: 10px; font-size: 1.3rem; font-weight: 600;
+  background: var(--surface);
+}
+.rpe-bod .rpe-popis { display: block; min-height: 2.2em; margin-top: .25rem; font-size: .72rem;
+                      line-height: 1.1; text-align: center; color: var(--muted); }
+.rpe-bod input:checked + .rpe-cislo { background: var(--accent); border-color: var(--accent); color: #fff; }
+.rpe-bod input:focus-visible + .rpe-cislo { outline: 2px solid var(--accent); outline-offset: 1px; }
+.rpe-mala { grid-template-columns: repeat(auto-fill, minmax(2.4rem, 1fr)); gap: .35rem; }
+.rpe-mala .rpe-cislo { height: 2.4rem; font-size: 1rem; }
+/* telefon sportovce: škála pod sebou, velké řádky na palec */
+.rpe-svisle { display: flex; flex-direction: column-reverse; gap: .35rem; }
+.rpe-radek { display: flex; align-items: center; gap: .75rem; cursor: pointer; position: relative; }
+.rpe-radek input { position: absolute; opacity: 0; pointer-events: none; }
+.rpe-radek .rpe-cislo {
+  flex: none; width: 3rem; height: 3rem; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border-strong); border-radius: 10px; font-size: 1.25rem; font-weight: 650;
+}
+.rpe-radek .rpe-text { color: var(--text-2); }
+.rpe-radek input:checked + .rpe-cislo { background: var(--accent); border-color: var(--accent); color: #fff; }
+.rpe-radek input:checked ~ .rpe-text { color: var(--text); font-weight: 600; }
+.rpe-radek input:focus-visible + .rpe-cislo { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* QR karty sportovců – na tisk 2 sloupce, karta se nerozdělí mezi stránky */
+.qr-karty { display: grid; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); gap: 1rem; }
+.qr-karta { display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: var(--radius);
+            background: var(--surface); border: 1px dashed var(--border-strong); break-inside: avoid; }
+.qr-obrazek { flex: none; width: 7.5rem; }
+.qr-obrazek svg, .qr-obrazek img { width: 100%; height: auto; display: block; }
+@media print {
+  .qr-karty { grid-template-columns: 1fr 1fr; gap: .5cm; }
+  .qr-karta { background: #fff; color: #000; border-color: #999; }
+  main { padding: 0 !important; }
+}
