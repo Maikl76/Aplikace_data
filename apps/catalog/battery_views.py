@@ -58,6 +58,7 @@ def sport_list(request):
         by_sport.setdefault(battery.sport_id, []).append(battery)
     for sport in sports:
         sport.baterie = by_sport.get(sport.pk, [])
+        sport.ma_obecnou = any(not b.category for b in sport.baterie)
     return render(request, "catalog/sports.html", {"sports": sports})
 
 

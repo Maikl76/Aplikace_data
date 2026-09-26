@@ -186,3 +186,11 @@ def test_baterie_se_prenese_s_katalogem(lab):
     import_catalog(data)
     battery = TestBattery.objects.get(category="dorost")
     assert [p.code for p in battery.protocols()] == ["wingate", "sj"]
+
+
+def test_sport_bez_baterie_si_ji_muze_zalozit(lab):
+    *_, hokej, client = lab
+    assert "Založit baterii pro celý sport" in client.get("/sporty/").content.decode()
+    client.post(f"/sporty/{hokej.pk}/baterie/", {"category": ""})
+    assert TestBattery.objects.filter(sport=hokej, category="").count() == 1
+    assert "Založit baterii pro celý sport" not in client.get("/sporty/").content.decode()

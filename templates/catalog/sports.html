@@ -25,6 +25,13 @@
       </div>
       <div class="space-y-3">
         {% for battery in sport.baterie %}{% include "catalog/_battery.html" %}{% endfor %}
+        {% if not sport.ma_obecnou %}
+          <form method="post" action="{% url 'battery_add' sport.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="category" value="">
+            <button type="submit" class="btn btn-sm">{% icon "plus" %}Založit baterii pro celý sport</button>
+          </form>
+        {% endif %}
       </div>
       <details class="mt-3">
         <summary class="text-sm link cursor-pointer">+ baterie pro kategorii</summary>
