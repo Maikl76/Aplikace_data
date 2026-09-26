@@ -121,10 +121,10 @@ def test_bootstrap_mimo_ukazku_nedela_nic(db, settings):
 
 
 def test_prihlasovaci_pole_jsou_videt(client, db):
-    """Pole bez tříd Tailwind je neviditelné – heslo nesmí vypadat, že chybí."""
+    """Pole bez stylu je neviditelné – heslo nesmí vypadat, že chybí."""
     html = client.get("/ucet/prihlaseni/").content.decode()
     assert 'type="password"' in html
-    assert html.count("border-slate-300") >= 2
+    assert html.count('class="input mt-1"') >= 2
 
 
 def test_spatne_heslo_rekne_proc(client, uzivatel):

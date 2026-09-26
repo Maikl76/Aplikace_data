@@ -1,0 +1,20 @@
+{% load ui %}
+{% if results %}
+  {% if not q %}<div class="px-3 pt-2 pb-1 eyebrow">Naposledy měření</div>{% endif %}
+  {% for s in results %}
+    <a href="{% url 'subject_detail' s.pk %}">
+      <span class="avatar w-8 h-8 text-xs">{{ s.zobrazeni|initials }}</span>
+      <span class="min-w-0 flex-1 leading-tight">
+        <span class="block text-sm font-medium truncate">{{ s.zobrazeni }}</span>
+        <span class="block text-xs text-muted">
+          {% if s.jmeno %}{{ s.code }} · {% endif %}{{ s.sport|default:"bez sportu" }}{% if s.posledni_mereni %} · {{ s.posledni_mereni|date:"d.m.Y" }}{% endif %}
+        </span>
+      </span>
+      <span class="text-muted">{% icon "chevron-right" "w-4 h-4" %}</span>
+    </a>
+  {% endfor %}
+{% else %}
+  <div class="px-4 py-3 text-sm text-muted">
+    {% if q %}Nikdo neodpovídá „{{ q }}“.{% else %}Zatím žádní sportovci.{% endif %}
+  </div>
+{% endif %}

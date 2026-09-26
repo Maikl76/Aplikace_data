@@ -1,10 +1,11 @@
 {% extends "base.html" %}
-{% block content %}
-<div class="max-w-sm mx-auto bg-white p-6 rounded-lg border border-slate-200">
-  <h1 class="text-lg font-semibold mb-4">Přihlášení</h1>
+{% block content_anon %}
+<div class="card p-6">
+  <h1 class="text-lg font-semibold mb-1">Přihlášení</h1>
+  <p class="text-sm text-muted mb-5">Laboratoř funkční diagnostiky</p>
 
   {% if form.non_field_errors %}
-    <div class="mb-4 p-3 rounded bg-red-50 border border-red-300 text-sm">
+    <div class="mb-4 px-3 py-2 rounded-lg text-sm badge-bad" style="display:block">
       Uživatelské jméno nebo heslo nesedí. Pozor na velká a malá písmena.
     </div>
   {% endif %}
@@ -12,16 +13,14 @@
   <form method="post" class="space-y-4">
     {% csrf_token %}
     <label class="block">
-      <span class="text-sm text-slate-600">Uživatelské jméno</span>
+      <span class="text-sm text-2">Uživatelské jméno</span>
       {{ form.username }}
     </label>
     <label class="block">
-      <span class="text-sm text-slate-600">Heslo</span>
+      <span class="text-sm text-2">Heslo</span>
       {{ form.password }}
     </label>
-    <button type="submit" class="w-full bg-slate-900 text-white rounded px-4 py-2">
-      Přihlásit
-    </button>
+    <button type="submit" class="btn btn-primary w-full">Přihlásit</button>
   </form>
 </div>
 {% endblock %}

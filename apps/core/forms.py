@@ -1,6 +1,6 @@
 from django.contrib.auth.forms import AuthenticationForm
 
-FIELD_CSS = "mt-1 block w-full rounded border border-slate-300 px-3 py-2"
+FIELD_CSS = "input mt-1"
 
 
 class LoginForm(AuthenticationForm):

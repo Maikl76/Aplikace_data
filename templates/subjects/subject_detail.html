@@ -1,126 +1,165 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block content %}
-<div class="flex items-baseline gap-3 mb-4">
-  <h1 class="text-xl font-semibold">{{ display_name }}</h1>
-  <span class="text-sm text-slate-500">
-    {{ subject.sport|default:"—" }} · {{ subject.get_level_display }}
-    {% if subject.age %} · {{ subject.age }} let{% endif %}
-  </span>
+
+{# --- hlavička -------------------------------------------------------------- #}
+<div class="card p-5 mb-5 flex flex-wrap items-center gap-4">
+  <span class="avatar w-14 h-14 text-lg">{{ display_name|initials }}</span>
+  <div class="min-w-0 flex-1">
+    <h1 class="text-2xl font-semibold leading-tight">{{ display_name }}</h1>
+    <div class="mt-1 flex flex-wrap gap-1.5 text-sm">
+      {% if display_name != subject.code %}<span class="badge">{{ subject.code }}</span>{% endif %}
+      <span class="badge">{{ subject.sport|default:"bez sportu" }}</span>
+      <span class="badge">{{ subject.get_level_display }}</span>
+      {% if subject.age %}<span class="badge">{{ subject.age }} let</span>{% endif %}
+      <span class="badge">{{ subject.get_sex_display }}</span>
+      {% if subject.dominant_side %}<span class="badge">dominantní {{ subject.get_dominant_side_display|lower }}</span>{% endif %}
+      {% if subject.team %}<span class="badge">{{ subject.team }}</span>{% endif %}
+    </div>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <a href="{% url 'session_create' %}?sportovec={{ subject.pk }}" class="btn btn-primary">{% icon "plus" %}Nové měření</a>
+    {% if last_session %}
+      <form method="post" action="{% url 'report_create' last_session.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn" onclick="this.querySelector('span').textContent='Připravuji zprávu…'"
+                title="Zpráva z měření {{ last_session.date|date:'d.m.Y' }}">{% icon "file" %}<span>Zpráva z posledního měření</span></button>
+      </form>
+    {% endif %}
+    <a href="/admin/subjects/subject/{{ subject.pk }}/change/" class="btn" title="Upravit údaje sportovce">{% icon "edit" %}</a>
+  </div>
 </div>
 
 {% with restriction=subject.external_exams.first %}
   {% if restriction and restriction.restriction_is_active %}
-    <div class="mb-4 p-3 rounded bg-amber-50 border border-amber-300 text-sm">
-      <strong>Platné omezení zátěže</strong> ({{ restriction.get_load_restriction_display }})
-      z {{ restriction.date|date:"d.m.Y" }}, {{ restriction.provider }}.
-      Doporučení vyžadující zátěž se negenerují.
+    <div class="card px-4 py-3 mb-5 text-sm border-l-4 flex gap-3 items-start" style="border-left-color: var(--warn)">
+      <span style="color: var(--warn)">{% icon "alert" "w-5 h-5" %}</span>
+      <div><strong>Platné omezení zátěže</strong> ({{ restriction.get_load_restriction_display }})
+        z {{ restriction.date|date:"d.m.Y" }}, {{ restriction.provider }}.
+        Doporučení vyžadující zátěž se negenerují.</div>
     </div>
   {% endif %}
 {% endwith %}
 
+{# --- hlavní čísla ---------------------------------------------------------- #}
+{% if tiles %}
+  <div class="flex items-baseline justify-between mb-2">
+    <h2 class="eyebrow">Klíčové ukazatele</h2>
+    {% if last_session %}<span class="text-xs text-muted">poslední měření {{ last_session.date|date:"d.m.Y" }}</span>{% endif %}
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
+    {% for t in tiles %}
+      <div class="card p-4 flex flex-col gap-2">
+        <div class="flex items-start justify-between gap-2">
+          <div class="text-sm text-2 leading-snug">{{ t.metric.name }}{% if t.label %}<span class="text-muted"> · {{ t.label }}</span>{% endif %}</div>
+          {% if t.verdict %}
+            <span class="badge {{ t.verdict.css }} whitespace-nowrap">{% icon t.verdict.icon "w-3.5 h-3.5" %}{{ t.verdict.text }}</span>
+          {% endif %}
+        </div>
+        <div class="flex items-end justify-between gap-3">
+          <div>
+            <span class="kpi-value tabular-nums">{{ t.value_txt }}</span><span class="kpi-unit">{{ t.unit }}</span>
+            <div class="text-xs text-muted mt-1 tabular-nums">
+              {% if t.delta_txt %}{{ t.delta_txt }} {{ t.unit }} proti minule · {% endif %}{{ t.date|date:"d.m.Y" }}
+            </div>
+          </div>
+          <div class="w-28 shrink-0" title="Vývoj za posledních {{ t.count }} měření">{{ t.spark }}</div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{# --- vývoj ------------------------------------------------------------------ #}
 {% if trends %}
-  <h2 class="font-semibold mb-2">Vývoj klíčových metrik</h2>
-  <div class="grid md:grid-cols-2 gap-4 mb-8">
+  <h2 class="eyebrow mb-2">Vývoj v čase</h2>
+  <div class="grid lg:grid-cols-2 gap-4 mb-8">
     {% for spec in trends %}{% include "subjects/_chart.html" %}{% endfor %}
   </div>
 {% endif %}
 
+{# --- asymetrie -------------------------------------------------------------- #}
 {% if asymetrie_chart %}
-  <h2 class="font-semibold mb-2">
-    Asymetrie
-    <span class="font-normal text-sm text-slate-500">
-      — měření {{ asymetrie_session.date|date:"d.m.Y" }}
-    </span>
-  </h2>
-  <div class="mb-3">{% include "subjects/_chart.html" with spec=asymetrie_chart %}</div>
-
-  {# Identitu nenese jen barva: co je nad prahem, je napsané. #}
-  <div class="overflow-x-auto"><table class="w-full bg-white rounded-lg border border-slate-200 text-sm mb-8">
-    <thead class="text-left text-slate-500 border-b border-slate-200">
-      <tr>
-        <th class="p-2">Metrika</th><th class="p-2 text-right">Levá</th>
-        <th class="p-2 text-right">Pravá</th><th class="p-2 text-right">Rozdíl</th>
-        <th class="p-2">Stav</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for r in asymetrie_rows %}
-        <tr class="border-b border-slate-100">
-          <td class="p-2">
-            {{ r.metric.name }}
-            {% if r.qualifiers.speed %}
-              <span class="text-slate-500">· {{ r.qualifiers.speed|floatformat:0 }}°/s</span>
-            {% endif %}
-            {% if r.qualifiers.segment %}
-              <span class="text-slate-500">· {{ r.qualifiers.segment }}</span>
-            {% endif %}
-          </td>
-          <td class="p-2 text-right tabular-nums">{{ r.left|floatformat:2 }}</td>
-          <td class="p-2 text-right tabular-nums">{{ r.right|floatformat:2 }}</td>
-          <td class="p-2 text-right tabular-nums">{{ r.index_pct|floatformat:1 }} %</td>
-          <td class="p-2">
-            {% if r.exceeds_threshold %}
-              <span class="text-amber-700">⚠ nad prahem 10 %</span>
-            {% else %}
-              <span class="text-slate-500">v mezích</span>
-            {% endif %}
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table></div>
-{% elif not ma_strany %}
-  <div class="mb-8 p-3 rounded bg-slate-100 border border-slate-300 text-sm">
-    Tento sportovec nemá měření rozlišená na levou a pravou stranu —
-    asymetrii spočítat nelze. Data z původní aplikace stranu nenesla;
-    nová měření už ano.
+  <div class="flex items-baseline justify-between mb-2">
+    <h2 class="eyebrow">Stranové rozdíly</h2>
+    <span class="text-xs text-muted">měření {{ asymetrie_session.date|date:"d.m.Y" }}</span>
+  </div>
+  <div class="grid lg:grid-cols-5 gap-4 mb-8">
+    {# Na telefonu je graf s dlouhými popisky nečitelný – stačí tabulka vedle. #}
+    <div class="lg:col-span-3 hidden sm:block">{% include "subjects/_chart.html" with spec=asymetrie_chart %}</div>
+    {# Identitu nenese jen barva: co je nad prahem, je napsané. #}
+    <div class="lg:col-span-2 card overflow-x-auto">
+      <table class="table">
+        <thead><tr><th>Ukazatel</th><th class="text-right">Rozdíl</th><th>Stav</th></tr></thead>
+        <tbody>
+          {% for r in asymetrie_rows|slice:":10" %}
+            <tr>
+              <td>{{ r.metric.name }}
+                {% if r.qualifiers.speed %}<span class="text-muted">· {{ r.qualifiers.speed|floatformat:0 }}°/s</span>{% endif %}
+                {% if r.qualifiers.segment %}<span class="text-muted">· {{ r.qualifiers.segment }}</span>{% endif %}
+              </td>
+              <td class="text-right tabular-nums">{{ r.index_pct|floatformat:1 }} %</td>
+              <td>{% if r.exceeds_threshold %}<span class="badge badge-warn">{% icon "alert" "w-3.5 h-3.5" %}nad 10 %</span>{% else %}<span class="text-muted text-xs">v mezích</span>{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% elif not ma_strany and sessions %}
+  <div class="card px-4 py-3 mb-8 text-sm text-2">
+    Tento sportovec nemá měření rozlišená na levou a pravou stranu — asymetrii
+    spočítat nelze. Data z původní aplikace stranu nenesla; nová měření už ano.
   </div>
 {% endif %}
 
-<div class="grid md:grid-cols-2 gap-6">
-  <section>
-    <h2 class="font-semibold mb-2">Testovací dny</h2>
-    <ul class="bg-white rounded-lg border border-slate-200 divide-y divide-slate-100 text-sm">
+{# --- historie a zprávy -------------------------------------------------------- #}
+<div class="grid lg:grid-cols-3 gap-4">
+  <section class="lg:col-span-2 card">
+    <div class="px-4 pt-4 pb-2 flex items-baseline justify-between">
+      <h2 class="card-title">Testovací dny</h2>
+      <span class="text-xs text-muted">{{ sessions|length }}</span>
+    </div>
+    <ul>
       {% for s in sessions %}
-        <li class="p-3">
-          <div class="font-medium">{{ s.date|date:"d.m.Y" }}</div>
-          <div class="text-slate-500">
-            {% for run in s.protocol_runs.all %}{{ run.protocol.name }}{% if not forloop.last %}, {% endif %}{% empty %}bez protokolu{% endfor %}
-          </div>
+        <li class="border-t" style="border-color: var(--border)">
+          <a href="{% url 'session_detail' s.pk %}" class="flex items-center gap-4 px-4 py-3 hover:opacity-90">
+            <span class="text-center w-12 shrink-0 leading-tight">
+              <span class="block text-lg font-semibold tabular-nums">{{ s.date|date:"j." }}</span>
+              <span class="block text-xs text-muted">{{ s.date|date:"n. Y" }}</span>
+            </span>
+            <span class="flex-1 min-w-0 flex flex-wrap gap-1.5">
+              {% for p in s.protokoly %}<span class="badge">{{ p }}</span>{% empty %}<span class="text-sm text-muted">bez protokolu</span>{% endfor %}
+            </span>
+            {% if s.reports.all %}<span class="badge badge-accent">{% icon "file" "w-3.5 h-3.5" %}zpráva</span>{% endif %}
+            <span class="text-muted">{% icon "chevron-right" "w-4 h-4" %}</span>
+          </a>
         </li>
       {% empty %}
-        <li class="p-3 text-slate-500">Zatím žádná měření.</li>
+        <li class="px-4 py-6 text-sm text-muted border-t" style="border-color: var(--border)">
+          Zatím žádná měření. Začněte tlačítkem <strong>Nové měření</strong> nebo nahrajte export z přístroje v Importu.
+        </li>
       {% endfor %}
     </ul>
   </section>
 
-  <section>
-    <h2 class="font-semibold mb-2">Zprávy</h2>
-    <ul class="bg-white rounded-lg border border-slate-200 divide-y divide-slate-100 text-sm">
+  <section class="card">
+    <div class="px-4 pt-4 pb-2"><h2 class="card-title">Zprávy</h2></div>
+    <ul>
       {% for r in reports %}
-        <li class="p-3">
-          {{ r.report_number }} — {{ r.get_status_display }}
-          <span class="text-slate-500">({{ r.created_at|date:"d.m.Y" }})</span>
+        <li class="border-t" style="border-color: var(--border)">
+          <a href="{% url 'report_detail' r.pk %}" class="flex items-center gap-3 px-4 py-3">
+            <span class="flex-1">
+              <span class="block text-sm font-medium">{{ r.report_number }}</span>
+              <span class="block text-xs text-muted">{{ r.created_at|date:"d.m.Y" }}{% if r.session %} · měření {{ r.session.date|date:"d.m.Y" }}{% endif %}</span>
+            </span>
+            <span class="badge {% if r.status == 'released' %}badge-good{% elif r.status == 'draft' %}{% else %}badge-warn{% endif %}">{{ r.get_status_display }}</span>
+          </a>
         </li>
       {% empty %}
-        <li class="p-3 text-slate-500">Zatím žádné zprávy.</li>
+        <li class="px-4 py-6 text-sm text-muted border-t" style="border-color: var(--border)">Zatím žádné zprávy.</li>
       {% endfor %}
     </ul>
   </section>
 </div>
-
-<script>
-  // Figury jsou sestavené v Pythonu a sem přijdou jako JSON; plotly.js je
-  // jen vykreslí. Hover je zapnutý ve všech grafech – čtení konkrétní
-  // hodnoty patří k interaktivnímu grafu, ne do popisku u každého bodu.
-  document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".js-graf").forEach(function (wrap) {
-      var id = wrap.dataset.target;
-      var data = JSON.parse(document.getElementById(id + "-data").textContent);
-      Plotly.newPlot(id, data.data, data.layout, {
-        displayModeBar: false, responsive: true, locale: "cs",
-      });
-    });
-  });
-</script>
 {% endblock %}

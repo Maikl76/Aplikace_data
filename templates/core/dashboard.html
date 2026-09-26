@@ -1,44 +1,72 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block content %}
-<h1 class="text-xl font-semibold mb-4">Přehled laboratoře</h1>
-
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-  <div class="bg-white p-4 rounded-lg border border-slate-200">
-    <div class="text-2xl font-semibold">{{ pocet_sportovcu }}</div>
-    <div class="text-sm text-slate-500">aktivních sportovců</div>
-  </div>
-  <div class="bg-white p-4 rounded-lg border border-slate-200">
-    <div class="text-2xl font-semibold">{{ pocet_mereni }}</div>
-    <div class="text-sm text-slate-500">uložených hodnot</div>
-  </div>
-  <div class="bg-white p-4 rounded-lg border border-slate-200">
-    <div class="text-2xl font-semibold">{{ reporty_koncepty }}</div>
-    <div class="text-sm text-slate-500">zpráv v konceptu</div>
-  </div>
-  <div class="bg-white p-4 rounded-lg border border-slate-200">
-    <div class="text-2xl font-semibold">{{ dnes|date:"d.m.Y" }}</div>
-    <div class="text-sm text-slate-500">dnešní datum</div>
-  </div>
+<div class="mb-6">
+  <div class="eyebrow">{{ dnes|date:"l j. F Y" }}</div>
+  <h1 class="text-2xl font-semibold">Přehled laboratoře</h1>
 </div>
 
-<h2 class="font-semibold mb-2">Poslední testovací dny</h2>
-<div class="overflow-x-auto"><table class="w-full bg-white rounded-lg border border-slate-200 text-sm">
-  <thead class="text-left text-slate-500 border-b border-slate-200">
-    <tr><th class="p-2">Datum</th><th class="p-2">Sportovec</th><th class="p-2">Místo</th></tr>
-  </thead>
-  <tbody>
-    {% for s in posledni_session %}
-      <tr class="border-b border-slate-100">
-        <td class="p-2">{{ s.date|date:"d.m.Y" }}</td>
-        <td class="p-2"><a class="text-blue-700 hover:underline"
-                           href="{% url 'subject_detail' s.subject.pk %}">{{ s.subject.code }}</a></td>
-        <td class="p-2">{{ s.location|default:"—" }}</td>
-      </tr>
-    {% empty %}
-      <tr><td colspan="3" class="p-4 text-slate-500">
-        Zatím žádná data. Spusťte <code>python manage.py seed_demo</code>.
-      </td></tr>
-    {% endfor %}
-  </tbody>
-</table></div>
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  {% for popisek, hodnota, ikona in tiles %}
+    <div class="card p-4 flex items-center gap-4">
+      <span class="avatar w-11 h-11">{% icon ikona "w-5 h-5" %}</span>
+      <div>
+        <div class="kpi-value tabular-nums">{{ hodnota }}</div>
+        <div class="text-sm text-muted">{{ popisek }}</div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="grid lg:grid-cols-3 gap-4">
+  <section class="lg:col-span-2 card">
+    <div class="px-4 pt-4 pb-2 flex items-baseline justify-between">
+      <h2 class="card-title">Poslední testovací dny</h2>
+      <a href="{% url 'session_list' %}" class="text-sm link">všechny</a>
+    </div>
+    <ul>
+      {% for s in posledni_session %}
+        <li class="border-t" style="border-color: var(--border)">
+          <a href="{% url 'subject_detail' s.subject.pk %}" class="flex items-center gap-3 px-4 py-3">
+            <span class="avatar w-9 h-9 text-xs">{{ s.jmeno|initials }}</span>
+            <span class="flex-1 min-w-0 leading-tight">
+              <span class="block text-sm font-medium truncate">{{ s.jmeno }}</span>
+              <span class="block text-xs text-muted truncate">{{ s.protokoly|join:", "|default:"bez protokolu" }}</span>
+            </span>
+            <span class="text-sm tabular-nums text-2">{{ s.date|date:"d.m.Y" }}</span>
+          </a>
+        </li>
+      {% empty %}
+        <li class="px-4 py-6 text-sm text-muted border-t" style="border-color: var(--border)">
+          Zatím žádná data. Nahrajte export z přístroje v <a class="link" href="{% url 'import_list' %}">Importu</a>
+          nebo založte <a class="link" href="{% url 'session_create' %}">nové měření</a>.
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="card">
+    <div class="px-4 pt-4 pb-2 flex items-baseline justify-between">
+      <h2 class="card-title">Zprávy ke kontrole</h2>
+      <a href="{% url 'report_list' %}" class="text-sm link">všechny</a>
+    </div>
+    <ul>
+      {% for r in koncepty %}
+        <li class="border-t" style="border-color: var(--border)">
+          <a href="{% url 'report_detail' r.pk %}" class="flex items-center gap-3 px-4 py-3">
+            <span class="flex-1 min-w-0 leading-tight">
+              <span class="block text-sm font-medium truncate">{{ r.jmeno }}</span>
+              <span class="block text-xs text-muted">{{ r.report_number }} · {{ r.created_at|date:"d.m.Y" }}</span>
+            </span>
+            {% if r.note_pending_review %}<span class="badge badge-warn">návrh AI</span>{% else %}<span class="badge">koncept</span>{% endif %}
+          </a>
+        </li>
+      {% empty %}
+        <li class="px-4 py-6 text-sm text-muted border-t" style="border-color: var(--border)">Žádná zpráva nečeká na vydání.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+
+<p class="mt-6 text-xs text-muted">V databázi je {{ pocet_mereni }} naměřených hodnot.</p>
 {% endblock %}

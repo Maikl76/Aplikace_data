@@ -63,14 +63,17 @@ class ChartSpec:
     title: str
     subtitle: str = ""
     note: str = ""
+    figure_dark: dict | None = None   # táž figura v barvách tmavého režimu
 
 
 def _base_layout(colors: dict, *, height: int, y_title: str = "") -> dict:
     return {
         "height": height,
         "margin": {"l": 56, "r": 16, "t": 8, "b": 40},
-        "paper_bgcolor": colors["surface"],
-        "plot_bgcolor": colors["surface"],
+        # Průhledné pozadí: graf leží na kartě, jejíž barvu určuje vzhled
+        # aplikace (světlý / tmavý režim).
+        "paper_bgcolor": "rgba(0,0,0,0)",
+        "plot_bgcolor": "rgba(0,0,0,0)",
         "font": {"family": FONT, "size": 12, "color": colors["text_secondary"]},
         # České oddělovače: desetinná čárka, tisíce mezerou. Bez tohohle
         # by graf psal 9.8 a tabulka vedle něj 9,8.
@@ -175,7 +178,10 @@ def trend_chart(metric, points, *, qualifiers=None, norm=None,
     })
 
     layout = _base_layout(colors, height=240, y_title=metric.unit or "")
-    layout["xaxis"]["tickformat"] = "%m/%Y"
+    # Krátké období: den a měsíc, jinak by osa opakovala „09/2026“ pětkrát.
+    span_days = (points[-1][0] - points[0][0]).days if len(points) > 1 else 0
+    layout["xaxis"]["tickformat"] = "%d.%m." if span_days < 90 else "%m/%Y"
+    layout["xaxis"]["nticks"] = 6
     layout["yaxis"]["range"] = _y_range(metric, values, norm)
     label = qualifier_label(qualifiers)
     return ChartSpec(

@@ -1,13 +1,21 @@
+{% load ui %}
 {% for s in subjects %}
-  <tr class="border-b border-slate-100">
-    <td class="p-2"><a class="text-blue-700 hover:underline"
-                       href="{% url 'subject_detail' s.pk %}">{{ s.code }}</a></td>
-    <td class="p-2">{{ s.sport|default:"—" }}</td>
-    <td class="p-2">{{ s.team|default:"—" }}</td>
-    <td class="p-2">{{ s.get_sex_display }}</td>
-    <td class="p-2">{{ s.age|default:"—" }}</td>
-    <td class="p-2">{{ s.get_level_display }}</td>
+  <tr class="cursor-pointer" onclick="location.href='{% url 'subject_detail' s.pk %}'">
+    <td>
+      <a href="{% url 'subject_detail' s.pk %}" class="flex items-center gap-3">
+        <span class="avatar w-8 h-8 text-xs">{{ s.zobrazeni|initials }}</span>
+        <span class="leading-tight">
+          <span class="block font-medium">{{ s.zobrazeni }}</span>
+          {% if s.jmeno %}<span class="block text-xs text-muted">{{ s.code }}</span>{% endif %}
+        </span>
+      </a>
+    </td>
+    <td>{{ s.sport|default:"—" }}</td>
+    <td class="tabular-nums">{{ s.age|default:"—" }}</td>
+    <td>{{ s.get_level_display }}</td>
+    <td class="text-right tabular-nums">{{ s.pocet_mereni }}</td>
+    <td class="tabular-nums">{{ s.posledni_mereni|date:"d.m.Y"|default:"—" }}</td>
   </tr>
 {% empty %}
-  <tr><td colspan="6" class="p-4 text-slate-500">Nic nenalezeno.</td></tr>
+  <tr><td colspan="6" class="text-muted py-6 text-center">Nikdo neodpovídá hledání.</td></tr>
 {% endfor %}

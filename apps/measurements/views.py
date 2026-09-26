@@ -20,7 +20,8 @@ def session_list(request):
 
 @login_required
 def session_create(request):
-    form = TestSessionForm(request.POST or None, user=request.user)
+    initial = {"subject": request.GET.get("sportovec")} if request.GET.get("sportovec") else None
+    form = TestSessionForm(request.POST or None, user=request.user, initial=initial)
     if request.method == "POST" and form.is_valid():
         session = form.save(commit=False)
         session.organization = request.user.organization

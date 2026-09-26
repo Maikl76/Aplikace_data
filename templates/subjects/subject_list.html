@@ -1,20 +1,35 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block content %}
-<h1 class="text-xl font-semibold mb-4">Sportovci</h1>
+<div class="flex flex-wrap items-end gap-3 mb-5">
+  <div>
+    <div class="eyebrow">Evidence</div>
+    <h1 class="text-2xl font-semibold">Sportovci</h1>
+  </div>
+</div>
 
-<input type="search" name="q" value="{{ q }}" placeholder="Hledat podle kódu…"
-       class="mb-4 w-full md:w-80 rounded border border-slate-300 px-3 py-2"
-       hx-get="{% url 'subject_list' %}"
-       hx-trigger="input changed delay:300ms, search"
-       hx-target="#vysledky">
+<form class="card p-3 mb-4 flex flex-wrap gap-3 items-center"
+      hx-get="{% url 'subject_list' %}" hx-trigger="input delay:250ms, change"
+      hx-target="#vysledky">
+  <div class="relative flex-1 min-w-[14rem]">
+    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted">{% icon "search" "w-4 h-4" %}</span>
+    <input type="search" name="q" value="{{ q }}" placeholder="Jméno nebo kód…" class="input pl-9">
+  </div>
+  <select name="sport" class="input w-auto">
+    <option value="">Všechny sporty</option>
+    {% for sp in sports %}<option value="{{ sp.pk }}" {% if sport_id == sp.pk|stringformat:"s" %}selected{% endif %}>{{ sp.name }}</option>{% endfor %}
+  </select>
+</form>
 
-<div class="overflow-x-auto"><table class="w-full bg-white rounded-lg border border-slate-200 text-sm">
-  <thead class="text-left text-slate-500 border-b border-slate-200">
-    <tr>
-      <th class="p-2">Kód</th><th class="p-2">Sport</th><th class="p-2">Tým</th>
-      <th class="p-2">Pohlaví</th><th class="p-2">Věk</th><th class="p-2">Úroveň</th>
-    </tr>
-  </thead>
-  <tbody id="vysledky">{% include "subjects/_subject_rows.html" %}</tbody>
-</table></div>
+<div class="card overflow-x-auto">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Sportovec</th><th>Sport</th><th>Věk</th><th>Úroveň</th>
+        <th class="text-right">Měření</th><th>Naposledy</th>
+      </tr>
+    </thead>
+    <tbody id="vysledky">{% include "subjects/_subject_rows.html" %}</tbody>
+  </table>
+</div>
 {% endblock %}

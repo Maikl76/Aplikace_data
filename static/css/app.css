@@ -1,0 +1,198 @@
+/*
+  Vzhled aplikace: barvy jako proměnné, světlý a tmavý režim.
+
+  Rozvržení řeší třídy Tailwindu přímo v šablonách; tady jsou barvy,
+  komponenty (karta, tlačítko, odznak…) a převod běžných tailwindových
+  barev do tmavého režimu. Díky tomu tmavý režim funguje i na obrazovkách,
+  které se zatím nepřepisovaly.
+
+  Barvy grafů odpovídají paletě v apps/analytics/charts.py (ověřená na
+  barvoslepost a kontrast v obou režimech).
+*/
+
+:root {
+  --page: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #f0f1f4;
+  --border: #e3e4e8;
+  --border-strong: #cfd1d7;
+  --text: #0f1115;
+  --text-2: #4b5060;
+  --muted: #7a7f8c;
+  --accent: #2a78d6;
+  --accent-strong: #1f63b8;
+  --accent-soft: #e8f1fc;
+  --good: #1f8a4c;
+  --good-soft: #e7f5ec;
+  --warn: #b7791f;
+  --warn-soft: #fdf4e3;
+  --bad: #c2372f;
+  --bad-soft: #fcebea;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .06);
+  --radius: 12px;
+  color-scheme: light;
+}
+
+.dark {
+  --page: #0f1012;
+  --surface: #17181b;
+  --surface-2: #1f2024;
+  --border: #2a2c31;
+  --border-strong: #3a3d44;
+  --text: #f3f4f6;
+  --text-2: #c3c6cf;
+  --muted: #8d919c;
+  --accent: #3987e5;
+  --accent-strong: #5b9df0;
+  --accent-soft: #16263b;
+  --good: #3fb870;
+  --good-soft: #13271b;
+  --warn: #e0a43c;
+  --warn-soft: #2b2112;
+  --bad: #ef6a60;
+  --bad-soft: #2d1614;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4);
+  color-scheme: dark;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--page);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-feature-settings: "tnum" 0;
+}
+.tabular-nums, .cislo { font-variant-numeric: tabular-nums; }
+
+/* --- rozvržení --------------------------------------------------------- */
+.app-sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+.nav-link {
+  display: flex; align-items: center; gap: .75rem;
+  padding: .55rem .75rem; border-radius: 8px;
+  color: var(--text-2); font-size: .9rem; font-weight: 500;
+}
+.nav-link:hover { background: var(--surface-2); color: var(--text); }
+.nav-link.active { background: var(--accent-soft); color: var(--accent-strong); }
+.nav-link svg { width: 18px; height: 18px; flex: none; }
+.app-topbar {
+  background: color-mix(in srgb, var(--page) 85%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+
+/* --- komponenty -------------------------------------------------------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.card-title { font-weight: 600; font-size: .95rem; }
+.eyebrow {
+  font-size: .72rem; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--muted);
+}
+.text-muted { color: var(--muted); }
+.text-2 { color: var(--text-2); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: .45rem; justify-content: center;
+  padding: .5rem .9rem; border-radius: 8px; font-size: .875rem; font-weight: 500;
+  border: 1px solid var(--border-strong); background: var(--surface); color: var(--text);
+  transition: background .12s, border-color .12s;
+}
+.btn:hover { background: var(--surface-2); }
+.btn svg { width: 16px; height: 16px; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+
+.input {
+  width: 100%; padding: .5rem .75rem; border-radius: 8px; font-size: .9rem;
+  border: 1px solid var(--border-strong); background: var(--surface); color: var(--text);
+}
+.input:focus, .btn:focus-visible, .nav-link:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 1px;
+}
+
+.badge {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .1rem .5rem; border-radius: 999px; font-size: .75rem; font-weight: 500;
+  background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border);
+}
+.badge-good { background: var(--good-soft); color: var(--good); border-color: transparent; }
+.badge-warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.badge-bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+.badge-accent { background: var(--accent-soft); color: var(--accent-strong); border-color: transparent; }
+
+.avatar {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  border-radius: 999px; font-weight: 600;
+  background: var(--accent-soft); color: var(--accent-strong);
+}
+
+.table { width: 100%; font-size: .875rem; }
+.table th {
+  text-align: left; font-weight: 500; font-size: .78rem; color: var(--muted);
+  padding: .6rem .75rem; border-bottom: 1px solid var(--border);
+}
+.table td { padding: .6rem .75rem; border-bottom: 1px solid var(--border); }
+.table tr:last-child td { border-bottom: 0; }
+.table tbody tr:hover { background: var(--surface-2); }
+
+.link { color: var(--accent-strong); }
+.link:hover { text-decoration: underline; }
+
+/* KPI dlaždice */
+.kpi-value { font-size: 1.6rem; font-weight: 650; line-height: 1.1; letter-spacing: -.01em; }
+.kpi-unit { font-size: .85rem; font-weight: 500; color: var(--muted); margin-left: .2rem; }
+.spark { display: block; width: 100%; height: 36px; }
+.spark path { stroke: var(--accent); }
+.spark circle { fill: var(--accent); stroke: var(--surface); }
+
+/* přepínač režimu ukazuje, kam se přepne */
+.rezim-svetly { display: none !important; }
+.dark .rezim-svetly { display: contents !important; }
+.dark .rezim-tmavy { display: none !important; }
+
+/* vyhledávání */
+.search-results { background: var(--surface); border: 1px solid var(--border);
+                  border-radius: 10px; box-shadow: 0 8px 24px rgba(16, 24, 40, .12); }
+.search-results a { display: flex; gap: .6rem; align-items: center; padding: .5rem .75rem; }
+.search-results a:hover, .search-results a:focus { background: var(--surface-2); }
+
+/* --- tmavý režim pro starší obrazovky (utility třídy Tailwindu) ---------- */
+.dark .bg-white { background-color: var(--surface) !important; }
+.dark .bg-slate-50 { background-color: var(--page) !important; }
+.dark .bg-slate-100 { background-color: var(--surface-2) !important; }
+.dark .bg-slate-900 { background-color: var(--accent) !important; }
+.dark .border-slate-100, .dark .border-slate-200, .dark .border-slate-300,
+.dark .divide-slate-100 > * + * { border-color: var(--border) !important; }
+.dark .text-slate-900 { color: var(--text) !important; }
+.dark .text-slate-700, .dark .text-slate-600 { color: var(--text-2) !important; }
+.dark .text-slate-500 { color: var(--muted) !important; }
+.dark .text-blue-700 { color: var(--accent-strong) !important; }
+.dark .bg-amber-50 { background-color: var(--warn-soft) !important; }
+.dark .border-amber-300, .dark .border-amber-400 { border-color: #5a4418 !important; }
+.dark .text-amber-700, .dark .text-amber-800, .dark .text-amber-900 { color: var(--warn) !important; }
+.dark .bg-blue-50 { background-color: var(--accent-soft) !important; }
+.dark .border-blue-200, .dark .border-blue-300 { border-color: #1f3a5c !important; }
+.dark .bg-green-50, .dark .bg-green-100 { background-color: var(--good-soft) !important; }
+.dark .border-green-300 { border-color: #1f4a2e !important; }
+.dark .text-green-800 { color: var(--good) !important; }
+.dark .bg-red-50 { background-color: var(--bad-soft) !important; }
+.dark .border-red-300 { border-color: #5a2320 !important; }
+.dark input:not([type=checkbox]):not([type=radio]), .dark select, .dark textarea {
+  background-color: var(--surface); color: var(--text); border-color: var(--border-strong);
+}
+
+@media print {
+  .app-sidebar, .app-topbar, .no-print { display: none !important; }
+}
+
+/* Třídy komponent výše přebíjejí některé utility Tailwindu (načítají se
+   později). Tyhle kombinace se v šablonách používají, tak je vrátíme. */
+.input.pl-9 { padding-left: 2.25rem; }
+@media (min-width: 768px) { .btn.md\:hidden { display: none; } }
