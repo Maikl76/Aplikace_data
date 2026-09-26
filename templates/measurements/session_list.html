@@ -1,32 +1,31 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block content %}
-<div class="flex items-center justify-between mb-4">
-  <h1 class="text-xl font-semibold">Testovací dny</h1>
-  <a href="{% url 'session_create' %}"
-     class="bg-slate-900 text-white rounded px-4 py-2 text-sm">Nový testovací den</a>
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <div class="eyebrow">Měření</div>
+    <h1 class="text-2xl font-semibold">Testovací dny</h1>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <a href="{% url 'today' %}" class="btn">{% icon "calendar" %}Dnešní testování</a>
+    <a href="{% url 'session_create' %}" class="btn btn-primary">{% icon "plus" %}Nový testovací den</a>
+  </div>
 </div>
 
-<div class="overflow-x-auto"><table class="w-full bg-white rounded-lg border border-slate-200 text-sm">
-  <thead class="text-left text-slate-500 border-b border-slate-200">
-    <tr>
-      <th class="p-2">Datum</th><th class="p-2">Sportovec</th>
-      <th class="p-2">Protokoly</th><th class="p-2">Operátor</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for s in sessions %}
-      <tr class="border-b border-slate-100">
-        <td class="p-2"><a class="text-blue-700 hover:underline"
-                           href="{% url 'session_detail' s.pk %}">{{ s.date|date:"d.m.Y" }}</a></td>
-        <td class="p-2">{{ s.subject.code }}</td>
-        <td class="p-2 text-slate-500">
-          {% for run in s.protocol_runs.all %}{{ run.protocol.name }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}
-        </td>
-        <td class="p-2">{{ s.operator|default:"—" }}</td>
-      </tr>
-    {% empty %}
-      <tr><td colspan="4" class="p-4 text-slate-500">Zatím žádné testovací dny.</td></tr>
-    {% endfor %}
-  </tbody>
-</table></div>
+<form class="card p-3 mb-4" hx-get="{% url 'session_list' %}" hx-trigger="input delay:250ms"
+      hx-target="#dny" onsubmit="return false">
+  <div class="relative max-w-md">
+    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-muted">{% icon "search" "w-4 h-4" %}</span>
+    <input type="search" name="q" value="{{ q }}" placeholder="Sportovec (jméno nebo kód)…" class="input pl-9">
+  </div>
+</form>
+
+<div class="card overflow-x-auto">
+  <table class="table">
+    <thead>
+      <tr><th>Datum</th><th>Sportovec</th><th>Testy</th><th class="text-right">Změřeno</th><th class="max-md:hidden">Operátor</th></tr>
+    </thead>
+    <tbody id="dny">{% include "measurements/_session_rows.html" %}</tbody>
+  </table>
+</div>
 {% endblock %}

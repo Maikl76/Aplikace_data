@@ -14,9 +14,16 @@ from .models import Report, ReportDelivery
 
 @login_required
 def report_list(request):
-    reports = (Report.objects.for_user(request.user)
-               .select_related("subject", "session")[:100])
-    return render(request, "reports/report_list.html", {"reports": reports})
+    from apps.subjects.search import label
+
+    reports = Report.objects.for_user(request.user).select_related("subject", "session")
+    stav = request.GET.get("stav", "")
+    if stav in Report.Status.values:
+        reports = reports.filter(status=stav)
+    reports = label(reports.order_by("-created_at")[:150], request.user)
+    return render(request, "reports/report_list.html", {
+        "reports": reports, "stav": stav, "stavy": [(Report.Status.DRAFT, "Koncepty"), (Report.Status.RELEASED, "Vydané"),
+                  (Report.Status.SUPERSEDED, "Nahrazené")]})
 
 
 @login_required
@@ -50,6 +57,9 @@ def report_detail(request, pk):
                 f"{', '.join(problems)}. Pokud jsou správně, můžete je ponechat.")
         return redirect("report_detail", pk=pk)
 
+    from apps.subjects.search import label
+
+    label([report], request.user)
     context = services.report_context(report)
     context.update({
         "llm_enabled": llm.is_enabled(),

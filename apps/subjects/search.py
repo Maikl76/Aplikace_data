@@ -65,3 +65,16 @@ def search(user, query: str, *, limit: int | None = 8, base=None) -> list:
     by_name = {pk for pk, name in names_for(qs, user).items() if needle in _plain(name)}
     found = qs.filter(pk__in=by_code | by_name).order_by("code")
     return annotate(found, user, limit=limit)
+
+
+def label(items, user, subject=lambda item: item.subject) -> list:
+    """
+    Doplní k záznamům (testovací den, zpráva…) jméno sportovce k zobrazení:
+    ``item.jmeno`` je jméno, nebo kód, pokud jméno uživatel nevidí.
+    """
+    items = list(items)
+    names = names_for([subject(i) for i in items], user)
+    for item in items:
+        s = subject(item)
+        item.jmeno = names.get(s.pk) or s.code
+    return items

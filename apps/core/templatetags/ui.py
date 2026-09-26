@@ -42,6 +42,8 @@ _PATHS = {
     "list": '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/>'
             '<circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
     "check": '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    "grid": '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 4v16"/>',
+    "download": '<path d="M12 4v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/>',
 }
 
 

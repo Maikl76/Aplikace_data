@@ -1,39 +1,37 @@
-<div id="mrizka" class="bg-white rounded-lg border border-slate-200 overflow-x-auto">
+<div id="mrizka" class="card overflow-x-auto">
   {% if saved %}
-    <p class="p-3 text-sm bg-green-50 border-b border-green-200">
+    <p class="px-4 py-3 text-sm border-b" style="background: var(--good-soft); color: var(--good); border-color: var(--border)">
       Uloženo {{ saved }} hodnot.
     </p>
   {% endif %}
-  <table class="w-full text-sm">
-    <thead class="text-left text-slate-500 border-b border-slate-200">
+  <table class="table">
+    <thead>
       <tr>
-        <th class="p-3">Metrika</th>
-        {% for i in trials %}<th class="p-3 text-center">{{ i }}. pokus</th>{% endfor %}
+        <th>Ukazatel</th>
+        {% for i in trials %}<th class="text-center">{{ i }}. pokus</th>{% endfor %}
       </tr>
     </thead>
     <tbody>
       {% for row in rows %}
-        <tr class="border-b border-slate-100">
-          <td class="p-3">
+        <tr>
+          <td class="min-w-[11rem]">
             <div class="font-medium">{{ row.metric.name }}</div>
-            <div class="text-xs text-slate-500">
-              {{ row.label|default:"bez rozlišení" }}
-              {% if row.metric.unit %} · {{ row.metric.unit }}{% endif %}
+            <div class="text-xs text-muted">
+              {{ row.label|default:"bez rozlišení" }}{% if row.metric.unit and row.metric.unit != "-" %} · {{ row.metric.unit }}{% endif %}
             </div>
           </td>
           {% for cell in row.cells %}
-            <td class="p-2">
+            <td class="min-w-[6.5rem]">
               {# inputmode="decimal" vyvolá na tabletu číselnou klávesnici #}
               <input type="text" inputmode="decimal" name="{{ cell.name }}"
-                     value="{{ cell.value }}"
-                     class="w-full text-center text-lg border rounded px-2 py-3
-                            {% if cell.quality == 'range' %}border-amber-400 bg-amber-50
-                            {% else %}border-slate-300{% endif %}">
+                     value="{{ cell.value }}" aria-label="{{ row.metric.name }} {{ row.label }} – {{ forloop.counter }}. pokus"
+                     class="input text-center text-lg py-2.5 tabular-nums"
+                     {% if cell.quality == 'range' %}style="border-color: var(--warn); background: var(--warn-soft)" title="Mimo věrohodný rozsah – zkontrolujte"{% endif %}>
             </td>
           {% endfor %}
         </tr>
       {% empty %}
-        <tr><td class="p-4 text-slate-500">
+        <tr><td class="text-muted py-6">
           Protokol nemá definované metriky. Doplňte je v administraci.
         </td></tr>
       {% endfor %}

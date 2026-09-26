@@ -1,0 +1,1 @@
+{% if r.status == "released" %}<span class="badge badge-good">vydáno</span>{% elif r.status == "superseded" %}<span class="badge">nahrazeno</span>{% elif r.note_pending_review %}<span class="badge badge-warn">návrh AI ke kontrole</span>{% else %}<span class="badge badge-accent">koncept</span>{% endif %}

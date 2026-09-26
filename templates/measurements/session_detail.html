@@ -1,20 +1,31 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block content %}
-<div class="mb-4">
-  <h1 class="text-xl font-semibold">
-    {{ session.subject.code }} — {{ session.date|date:"d.m.Y" }}
-  </h1>
-  <p class="text-sm text-slate-500">
-    {{ session.location|default:"—" }}
-    {% if session.season_phase %} · {{ session.get_season_phase_display }}{% endif %}
-    {% if session.fatigue_rating %} · únava {{ session.fatigue_rating }}/10{% endif %}
-  </p>
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div class="flex items-center gap-3 min-w-0">
+    <span class="avatar w-11 h-11">{{ session.jmeno|initials }}</span>
+    <div class="min-w-0">
+      <div class="eyebrow">Testovací den {{ session.date|date:"j. n. Y" }}</div>
+      <h1 class="text-2xl font-semibold truncate">
+        <a href="{% url 'subject_detail' session.subject.pk %}" class="hover:underline">{{ session.jmeno }}</a>
+      </h1>
+      <p class="text-sm text-muted">
+        {{ session.subject.sport|default:"bez sportu" }}{% if session.location %} · {{ session.location }}{% endif %}{% if session.season_phase %} · {{ session.get_season_phase_display }}{% endif %}{% if session.fatigue_rating %} · únava {{ session.fatigue_rating }}/10{% endif %}
+      </p>
+    </div>
+  </div>
+  <form method="post" action="{% url 'report_create' session.pk %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary" title="Vznikne koncept ke kontrole, nic se nevydává">
+      {% icon "file" %}Vytvořit zprávu</button>
+  </form>
 </div>
 
 {% if unstable %}
   <div class="card px-4 py-3 mb-4 text-sm border-l-4" style="border-left-color: var(--warn)">
-    <strong>Pokusy se liší víc, než je obvyklé</strong> – pokud je sportovec ještě tady, zvažte další pokus:
-    <ul class="mt-1 list-disc pl-5">
+    <div class="flex items-center gap-2 font-medium" style="color: var(--warn)">{% icon "alert" "w-4 h-4" %}Pokusy se liší víc, než je obvyklé</div>
+    <p class="text-2 mt-1">Pokud je sportovec ještě tady, zvažte další pokus:</p>
+    <ul class="mt-1 list-disc pl-5 text-2">
       {% for block, r in unstable %}
         <li>{{ block.protocol.name }}: {{ r.metric.name }}{% if r.label %} ({{ r.label }}){% endif %}
           – pokusy {{ r.trials_txt }}, rozptyl {{ r.cv_txt }} %
@@ -24,45 +35,61 @@
   </div>
 {% endif %}
 
-<h2 class="font-semibold mb-2">Protokoly</h2>
-<div class="space-y-2 mb-6">
-  {% for run in runs %}
-    <a href="{% url 'run_entry' run.pk %}"
-       class="flex items-center justify-between bg-white p-4 rounded-lg border border-slate-200
-              hover:border-slate-400">
-      <span>
-        <span class="font-medium">{{ run.protocol.name }}</span>
-        {% if run.started_at %}<span class="text-sm text-slate-600"> · {{ run.started_at|time:"H:i" }}</span>{% endif %}
-        {% if not run.is_primary %}<span class="text-xs ml-1 px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">opakované měření</span>{% endif %}
-        <span class="text-sm text-slate-500 block">{{ run.protocol.device }}{% if run.external_ref|slice:":9" == "odvozeno:" %} · vypočteno automaticky{% elif run.external_ref %} · importováno{% endif %}</span>
-      </span>
-      <span class="text-sm text-blue-700">{% if run.external_ref %}zobrazit hodnoty →{% else %}zadat hodnoty →{% endif %}</span>
-    </a>
-  {% empty %}
-    <p class="text-slate-500 text-sm">Zatím žádný protokol.</p>
-  {% endfor %}
+<div class="grid lg:grid-cols-3 gap-4">
+  <section class="lg:col-span-2 card min-w-0">
+    <div class="px-4 pt-4 pb-2"><h2 class="card-title">Testy</h2></div>
+    <ul>
+      {% for run in runs %}
+        <li class="border-t" style="border-color: var(--border)">
+          <a href="{% url 'run_entry' run.pk %}" class="flex items-center gap-3 px-4 py-3 hover:bg-[var(--surface-2)]">
+            <span class="flex-1 min-w-0 leading-tight">
+              <span class="block text-sm font-medium">{{ run.protocol.name }}
+                {% if run.started_at %}<span class="text-muted font-normal tabular-nums"> · {{ run.started_at|time:"H:i" }}</span>{% endif %}
+                {% if not run.is_primary %}<span class="badge ml-1">opakované měření</span>{% endif %}
+              </span>
+              <span class="block text-xs text-muted">
+                {{ run.protocol.device|default:"" }}{% if run.external_ref|slice:":9" == "odvozeno:" %}{% if run.protocol.device %} · {% endif %}vypočteno automaticky{% elif run.external_ref %}{% if run.protocol.device %} · {% endif %}importováno{% endif %}
+              </span>
+            </span>
+            {% if run.hodnot %}
+              <span class="badge badge-good">{% icon "check" "w-3.5 h-3.5" %}{{ run.hodnot }} hodnot</span>
+            {% else %}
+              <span class="badge badge-accent">zadat hodnoty</span>
+            {% endif %}
+            <span class="text-muted">{% icon "chevron-right" "w-4 h-4" %}</span>
+          </a>
+        </li>
+      {% empty %}
+        <li class="px-4 py-6 text-sm text-muted border-t" style="border-color: var(--border)">
+          Zatím žádný test. Přidejte ho níže, nebo nahrajte export z přístroje v <a class="link" href="{% url 'import_list' %}">Importu</a>.
+        </li>
+      {% endfor %}
+    </ul>
+    <form method="post" action="{% url 'session_add_protocol' session.pk %}"
+          class="flex flex-wrap gap-2 items-center px-4 py-3 border-t" style="border-color: var(--border)">
+      {% csrf_token %}
+      <label class="text-sm text-2" for="id_protocol">Přidat test</label>
+      {{ add_form.protocol }}
+      <button type="submit" class="btn">{% icon "plus" %}Přidat</button>
+    </form>
+  </section>
+
+  <section class="card min-w-0 self-start">
+    <div class="px-4 pt-4 pb-2"><h2 class="card-title">Zprávy z tohoto dne</h2></div>
+    <ul>
+      {% for r in reports %}
+        <li class="border-t" style="border-color: var(--border)">
+          <a href="{% url 'report_detail' r.pk %}" class="flex items-center gap-3 px-4 py-3">
+            <span class="flex-1 text-sm font-medium">{{ r.report_number }}{% if r.version > 1 %} <span class="text-muted font-normal">v{{ r.version }}</span>{% endif %}</span>
+            {% include "reports/_status.html" %}
+          </a>
+        </li>
+      {% empty %}
+        <li class="px-4 py-4 text-sm text-muted border-t" style="border-color: var(--border)">
+          Zatím žádná. Tlačítko „Vytvořit zprávu“ založí koncept ke kontrole – nic se nevydává.
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
 </div>
-
-<form method="post" action="{% url 'session_add_protocol' session.pk %}"
-      class="bg-white p-4 rounded-lg border border-slate-200 flex gap-3 items-end">
-  {% csrf_token %}
-  <label class="block">
-    <span class="text-sm text-slate-600">Přidat protokol</span>
-    <div class="mt-1">{{ add_form.protocol }}</div>
-  </label>
-  <button type="submit" class="bg-slate-900 text-white rounded px-4 py-2">Přidat</button>
-</form>
-
-<form method="post" action="{% url 'report_create' session.pk %}" class="mt-6">
-  {% csrf_token %}
-  <button type="submit" class="bg-slate-900 text-white rounded px-4 py-2">
-    Vytvořit zprávu z tohoto měření
-  </button>
-  <span class="ml-2 text-sm text-slate-500">Vznikne koncept ke kontrole, nic se nevydává.</span>
-</form>
-
-<p class="mt-4 text-sm">
-  <a class="text-blue-700 hover:underline"
-     href="{% url 'subject_detail' session.subject.pk %}">← karta sportovce</a>
-</p>
 {% endblock %}

@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <div class="eyebrow">Skupina</div>
+    <h1 class="text-2xl font-semibold">Týmový přehled</h1>
+  </div>
+  {% if battery %}
+  <form method="get" class="flex flex-wrap gap-2 items-center justify-end">
+    <select name="baterie" class="input w-auto" onchange="this.form.submit()" aria-label="Skupina a baterie testů">
+      {% for b in batteries %}<option value="{{ b.pk }}" {% if b == battery %}selected{% endif %}>{{ b.label }}</option>{% endfor %}
+    </select>
+    <a href="?baterie={{ battery.pk }}&format=csv" class="btn">{% icon "download" %}CSV pro Excel</a>
+  </form>
+  {% endif %}
+</div>
+
+{% if not battery %}
+  <div class="card p-6 text-sm">
+    Přehled se skládá podle baterie testů sportu. Zatím žádnou nemáte – nastavte ji v
+    <a class="link" href="{% url 'sport_list' %}">Sporty a testy</a>.
+  </div>
+{% elif not rows %}
+  <div class="card p-6 text-sm text-2">
+    U sportu {{ battery.sport.name }}{% if battery.category %} v kategorii „{{ battery.category }}“{% endif %}
+    zatím nejsou žádní aktivní sportovci.
+  </div>
+{% elif not columns %}
+  <div class="card p-6 text-sm text-2">
+    Testy v baterii nemají označené klíčové metriky. Označíte je v katalogu u protokolu
+    (metrika protokolu → „klíčová metrika“).
+  </div>
+{% else %}
+  <div class="card overflow-x-auto tym">
+    <table class="table" id="tym">
+      <thead>
+        <tr>
+          <th class="tym-prvni"><button type="button" class="tym-razeni" data-col="0">Sportovec</button></th>
+          {% for c in columns %}
+            <th class="text-right align-bottom">
+              <button type="button" class="tym-razeni text-right" data-col="{{ forloop.counter }}"
+                      title="{{ c.protocol.name }} – řadit">
+                <span class="block text-muted font-normal">{{ c.protocol.name }}</span>
+                <span class="block font-medium" style="color: var(--text)">{{ c.metric.name }}</span>
+                {% if c.label or c.unit %}<span class="block font-normal">{{ c.label }}{% if c.label and c.unit %} · {% endif %}{{ c.unit }}</span>{% endif %}
+              </button>
+            </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td class="tym-prvni whitespace-nowrap" data-v="{{ row.subject.jmeno }}">
+              <a href="{% url 'subject_detail' row.subject.pk %}" class="flex items-center gap-2">
+                <span class="avatar w-7 h-7 text-xs">{{ row.subject.jmeno|initials }}</span>
+                <span class="font-medium">{{ row.subject.jmeno }}</span>
+              </a>
+            </td>
+            {% for cell in row.cells %}
+              {% if cell %}
+                <td class="text-right whitespace-nowrap tym-{{ cell.tier|default:'nic' }}{% if cell.stale %} tym-stare{% endif %}"
+                    data-v="{{ cell.value|stringformat:'f' }}"
+                    title="naměřeno {{ cell.date|date:'j. n. Y' }}{% if cell.z_txt %} · {{ cell.z_txt }} SD od průměru týmu{% endif %}{% if cell.verdict %} · proti {{ cell.verdict.previous_date|date:'j. n. Y' }}: {{ cell.verdict.delta_txt }} ({{ cell.verdict.text }}){% endif %}{% if cell.stale %} · starší než {{ stale_days }} dní{% endif %}">
+                  <span class="tabular-nums font-medium">{{ cell.value_txt }}</span>
+                  {% if cell.verdict %}
+                    <span class="badge {{ cell.verdict.css }} ml-1 px-1" aria-label="{{ cell.verdict.text }}">{% icon cell.verdict.icon "w-3 h-3" %}</span>
+                  {% endif %}
+                </td>
+              {% else %}
+                <td class="text-right text-muted" data-v="">—</td>
+              {% endif %}
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td class="tym-prvni text-xs text-muted">Průměr ± SD (n)</td>
+          {% for c, s in summary %}
+            <td class="text-right text-xs text-muted whitespace-nowrap tabular-nums">
+              {% if s.mean_txt %}{{ s.mean_txt }} ± {{ s.sd_txt }} ({{ s.n }}){% elif s.n %}({{ s.n }}){% else %}—{% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div class="flex flex-wrap gap-x-5 gap-y-2 mt-4 text-xs text-2">
+    <span class="flex items-center gap-1.5"><span class="tym-vzorek tym-top"></span>o 1 SD a víc lepší než průměr týmu</span>
+    <span class="flex items-center gap-1.5"><span class="tym-vzorek tym-low"></span>o 1 SD a víc horší než průměr týmu</span>
+    <span class="flex items-center gap-1.5"><span class="badge badge-good px-1">{% icon "arrow-up" "w-3 h-3" %}</span>zlepšení proti minulému měření (nad MDC)</span>
+    <span class="flex items-center gap-1.5"><span class="badge badge-warn px-1">{% icon "arrow-down" "w-3 h-3" %}</span>zhoršení (nad MDC)</span>
+    <span class="flex items-center gap-1.5"><span class="badge px-1">{% icon "minus" "w-3 h-3" %}</span>změna v pásmu chyby</span>
+    <span class="flex items-center gap-1.5"><span class="tym-vzorek tym-far"></span><span class="badge badge-accent px-1">{% icon "activity" "w-3 h-3" %}</span>u ukazatelů bez „lepší–horší“ (hmotnost): výrazná odchylka od týmu / skutečný posun</span>
+    <span class="flex items-center gap-1.5"><span class="tym-stare tabular-nums">12,3</span>měřeno před víc než {{ stale_days }} dny</span>
+  </div>
+  <p class="text-xs text-muted mt-2">
+    Ukazuje se poslední hlavní měření každého sportovce; podrobnosti po najetí myší na hodnotu.
+    Srovnání s týmem je orientační a počítá se až od {{ min_group }} změřených sportovců.
+    Klepnutím na záhlaví sloupce se řadí.
+  </p>
+
+  <script>
+    (function () {
+      var tabulka = document.getElementById("tym");
+      var smer = {};
+      tabulka.querySelectorAll(".tym-razeni").forEach(function (tlacitko) {
+        tlacitko.addEventListener("click", function () {
+          var col = +tlacitko.dataset.col;
+          smer[col] = smer[col] === "desc" ? "asc" : (col === 0 && !smer[col] ? "asc" : "desc");
+          var tbody = tabulka.tBodies[0];
+          var radky = Array.prototype.slice.call(tbody.rows);
+          radky.sort(function (a, b) {
+            var x = a.cells[col].dataset.v, y = b.cells[col].dataset.v;
+            if (x === "" || y === "") return (x === "") - (y === "");  // prázdné vždy dolů
+            var r = col === 0 ? x.localeCompare(y, "cs") : parseFloat(x) - parseFloat(y);
+            return smer[col] === "asc" ? r : -r;
+          });
+          radky.forEach(function (r) { tbody.appendChild(r); });
+          tabulka.querySelectorAll("th").forEach(function (th) { th.removeAttribute("aria-sort"); });
+          tlacitko.closest("th").setAttribute("aria-sort", smer[col] === "asc" ? "ascending" : "descending");
+        });
+      });
+    })();
+  </script>
+{% endif %}
+{% endblock %}

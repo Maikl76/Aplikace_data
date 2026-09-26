@@ -14,6 +14,7 @@ urlpatterns = [
     path("sportovci/", include("apps.subjects.urls")),
     path("sporty/", include("apps.catalog.urls")),
     path("testovani/", measurement_views.today, name="today"),
+    path("tym/", measurement_views.team, name="team"),
     path("mereni/", include("apps.measurements.urls")),
     path("zpravy/", include("apps.reports.urls")),
     path("import/", include("apps.ingest.urls")),

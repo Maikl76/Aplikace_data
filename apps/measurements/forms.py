@@ -12,6 +12,7 @@ from apps.catalog.models import Protocol
 from apps.subjects.models import Subject
 
 from .models import TestSession
+from .planning import DERIVED_PROTOCOLS
 
 
 class TestSessionForm(forms.ModelForm):
@@ -26,7 +27,7 @@ class TestSessionForm(forms.ModelForm):
         }
 
     protocols = forms.ModelMultipleChoiceField(
-        queryset=Protocol.objects.filter(is_active=True).exclude(code__in=["dsi", "eur"]),
+        queryset=Protocol.objects.filter(is_active=True).exclude(code__in=DERIVED_PROTOCOLS),
         required=False, label="Testy", widget=forms.CheckboxSelectMultiple,
         help_text="Předvyplněno podle baterie sportu. Další test jde přidat i později.")
 
@@ -53,10 +54,16 @@ class TestSessionForm(forms.ModelForm):
 
 class AddProtocolForm(forms.Form):
     protocol = forms.ModelChoiceField(
-        queryset=Protocol.objects.filter(is_active=True),
-        label="Protokol",
-        widget=forms.Select(attrs={"class": "border border-slate-300 rounded px-3 py-2"}),
+        # Odvozené ukazatele (DSI, EUR) se neměří, dopočítají se samy.
+        queryset=Protocol.objects.filter(is_active=True).exclude(code__in=DERIVED_PROTOCOLS)
+        .order_by("name"),
+        label="Protokol", empty_label="vyberte test…",
+        widget=forms.Select(attrs={"class": "input w-auto flex-1 min-w-[12rem]"}),
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["protocol"].label_from_instance = lambda p: p.name
 
 
 def field_name(protocol_metric, combo: dict, trial_number: int) -> str:

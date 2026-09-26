@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -15,10 +16,24 @@ from .models import Measurement, ProtocolRun, TestSession, Trial
 
 @login_required
 def session_list(request):
+    from apps.subjects.search import label, search
+
     sessions = (TestSession.objects.for_user(request.user)
-                .select_related("subject", "operator")
-                .prefetch_related("protocol_runs__protocol")[:100])
-    return render(request, "measurements/session_list.html", {"sessions": sessions})
+                .select_related("subject", "subject__sport", "operator")
+                .prefetch_related("protocol_runs__protocol")
+                .annotate(testu=Count("protocol_runs", distinct=True),
+                          zmereno=Count("protocol_runs", distinct=True, filter=Q(
+                              protocol_runs__trials__measurements__isnull=False)))
+                .order_by("-date", "-pk"))
+    q = request.GET.get("q", "").strip()
+    if q:
+        sessions = sessions.filter(subject__in=[s.pk for s in search(request.user, q, limit=None)])
+    sessions = label(sessions[:150], request.user)
+    for s in sessions:
+        s.protokoly = [run.protocol.name for run in s.protocol_runs.all()]
+    template = ("measurements/_session_rows.html" if request.headers.get("HX-Request")
+                else "measurements/session_list.html")
+    return render(request, template, {"sessions": sessions, "q": q})
 
 
 @login_required
@@ -53,34 +68,44 @@ def session_battery(request):
         "subject": subject})
 
 
+def _pick_battery(request):
+    """Baterie, ze kterých lze vybírat, a ta vybraná (?baterie=, jinak první)."""
+    from apps.catalog.models import TestBattery
+    from apps.subjects.models import Sport
+
+    batteries = list(TestBattery.objects.filter(sport__in=Sport.objects.for_user(request.user))
+                     .select_related("sport").prefetch_related("items__protocol"))
+    battery_id = request.GET.get("baterie") or request.POST.get("baterie")
+    battery = next((b for b in batteries if str(b.pk) == str(battery_id)), None)
+    if battery is None and batteries:
+        battery = batteries[0]
+    return batteries, battery
+
+
+def _battery_subjects(request, battery):
+    subjects = Subject.objects.for_user(request.user).filter(sport=battery.sport, is_active=True)
+    if battery.category:
+        subjects = subjects.filter(category__iexact=battery.category)
+    return list(subjects.order_by("code"))
+
+
 @login_required
 def today(request):
     """Dnešní testování: skupina sportovců × testy baterie, co je hotové a co chybí."""
     from datetime import date as date_cls
 
-    from apps.catalog.models import TestBattery
-    from apps.subjects.models import Sport
     from apps.subjects.search import names_for
 
-    batteries = list(TestBattery.objects.filter(sport__in=Sport.objects.for_user(request.user))
-                     .select_related("sport").prefetch_related("items__protocol"))
+    batteries, battery = _pick_battery(request)
     try:
         day = date_cls.fromisoformat(request.GET.get("datum") or request.POST.get("datum") or "")
     except ValueError:
         day = timezone.localdate()
-    battery_id = request.GET.get("baterie") or request.POST.get("baterie")
-    battery = next((b for b in batteries if str(b.pk) == str(battery_id)), None)
-    if battery is None and batteries:
-        battery = batteries[0]
 
     rows, protocols = [], []
     if battery:
         protocols = [p for p in battery.protocols() if p.code not in planning.DERIVED_PROTOCOLS]
-        subjects = Subject.objects.for_user(request.user).filter(sport=battery.sport,
-                                                                 is_active=True)
-        if battery.category:
-            subjects = subjects.filter(category__iexact=battery.category)
-        subjects = list(subjects.order_by("code"))
+        subjects = _battery_subjects(request, battery)
 
         if request.method == "POST":
             chosen = [s for s in subjects if str(s.pk) in request.POST.getlist("sportovec")]
@@ -109,16 +134,69 @@ def today(request):
 
 
 @login_required
+def team(request):
+    """Týmový přehled: sportovci skupiny × klíčové ukazatele její baterie testů."""
+    from apps.analytics.team import MIN_GROUP, STALE_DAYS, columns_for, team_table
+    from apps.subjects.search import label
+
+    batteries, battery = _pick_battery(request)
+    context = {"batteries": batteries, "battery": battery, "rows": [], "columns": [],
+               "min_group": MIN_GROUP, "stale_days": STALE_DAYS}
+    if battery:
+        subjects = label(_battery_subjects(request, battery), request.user, subject=lambda s: s)
+        subjects.sort(key=lambda s: s.jmeno.lower())
+        columns = columns_for(battery.protocols())
+        table = team_table(subjects, columns, today=timezone.localdate())
+        context.update(columns=columns, rows=table["rows"],
+                       summary=list(zip(columns, table["summary"], strict=True)))
+        if request.GET.get("format") == "csv":
+            return _team_csv(battery, columns, table["rows"])
+    return render(request, "measurements/team.html", context)
+
+
+def _team_csv(battery, columns, rows):
+    """Tabulka pro Excel: středník a desetinná čárka, jak je v Česku zvykem."""
+    import csv
+
+    from django.http import HttpResponse
+    from django.utils.text import slugify
+
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = (f'attachment; filename="tym-{slugify(battery.label)}-'
+                                       f'{timezone.localdate():%Y-%m-%d}.csv"')
+    response.write("\ufeff")  # ať Excel pozná UTF-8
+    writer = csv.writer(response, delimiter=";")
+    header = ["Sportovec"]
+    for c in columns:
+        name = f"{c['metric'].name}{' – ' + c['label'] if c['label'] else ''}"
+        header += [f"{name} [{c['unit']}]" if c["unit"] else name, f"{name} – datum"]
+    writer.writerow(header)
+    for row in rows:
+        line = [row["subject"].jmeno]
+        for cell in row["cells"]:
+            line += ([cell["value_txt"], f"{cell['date']:%d.%m.%Y}"]
+                     if cell else ["", ""])
+        writer.writerow(line)
+    return response
+
+
+@login_required
 def session_detail(request, pk):
     session = get_object_or_404(
         TestSession.objects.for_user(request.user).select_related("subject"), pk=pk)
     from apps.reports.results import protocol_results
+    from apps.subjects.search import label
 
+    label([session], request.user)
     unstable = [(block, row) for block in protocol_results(session) for row in block["unstable"]]
+    runs = (session.protocol_runs.select_related("protocol")
+            .annotate(hodnot=Count("trials__measurements"), pokusu=Count("trials", distinct=True))
+            .order_by("protocol__name", "started_at", "pk"))
     return render(request, "measurements/session_detail.html", {
         "session": session,
         "unstable": unstable,
-        "runs": session.protocol_runs.select_related("protocol"),
+        "runs": runs,
+        "reports": session.reports.order_by("-created_at"),
         "add_form": AddProtocolForm(),
     })
 
@@ -144,6 +222,9 @@ def run_entry(request, pk):
         ProtocolRun.objects.select_related("protocol", "session__subject"), pk=pk)
     if run.session.organization_id != request.user.organization_id and not request.user.is_superuser:
         return redirect("session_list")
+    from apps.subjects.search import label
+
+    label([run.session], request.user)
 
     if request.method == "POST":
         saved, flagged = _save_grid(request, run)

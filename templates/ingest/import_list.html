@@ -1,76 +1,87 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block content %}
-<h1 class="text-xl font-semibold mb-4">Import dat</h1>
+<div class="mb-5">
+  <div class="eyebrow">Data z přístrojů</div>
+  <h1 class="text-2xl font-semibold">Import</h1>
+</div>
 
 <form method="post" action="{% url 'import_upload' %}" enctype="multipart/form-data"
-      class="bg-white p-4 rounded-lg border border-slate-200 mb-6">
+      class="card p-5 mb-6" x-data="{ soubory: [], tahne: false }">
   {% csrf_token %}
-  <div class="grid md:grid-cols-3 gap-4 items-end">
+  <label class="flex flex-col items-center justify-center gap-2 text-center rounded-xl px-4 py-8 cursor-pointer"
+         style="border: 2px dashed var(--border-strong)"
+         :style="tahne && 'border-color: var(--accent); background: var(--accent-soft)'"
+         @dragover.prevent="tahne = true" @dragleave="tahne = false"
+         @drop.prevent="tahne = false; $refs.soubor.files = $event.dataTransfer.files; soubory = [...$refs.soubor.files].map(f => f.name)">
+    <span class="avatar w-11 h-11">{% icon "upload" "w-5 h-5" %}</span>
+    <span class="font-medium">Přetáhněte sem exporty, nebo klikněte a vyberte</span>
+    <span class="text-sm text-muted">.xlsx nebo .csv, lze víc souborů najednou</span>
+    <span class="text-sm" x-show="soubory.length" x-cloak x-text="soubory.join(', ')" style="color: var(--accent-strong)"></span>
+    <input type="file" name="file" required multiple accept=".xlsx,.xls,.csv" x-ref="soubor" class="sr-only"
+           @change="soubory = [...$event.target.files].map(f => f.name)">
+  </label>
+  <div class="flex flex-wrap items-end gap-3 mt-4">
     <label class="block">
-      <span class="text-sm text-slate-600">Soubory (lze vybrat víc najednou)</span>
-      <input type="file" name="file" required multiple accept=".xlsx,.xls,.csv"
-             class="mt-1 block w-full text-sm border border-slate-300 rounded px-3 py-2">
-    </label>
-    <label class="block">
-      <span class="text-sm text-slate-600">Formát</span>
-      <select name="adapter" class="mt-1 block w-full border border-slate-300 rounded px-3 py-2">
+      <span class="block text-sm text-2">Formát</span>
+      <select name="adapter" class="input mt-1 w-auto">
         <option value="auto">Rozpoznat automaticky</option>
         {% for a in adapters %}<option value="{{ a.code }}">{{ a.label }}</option>{% endfor %}
       </select>
     </label>
-    <button type="submit" class="bg-slate-900 text-white rounded px-4 py-2">
-      Načíst a zkontrolovat
-    </button>
+    <button type="submit" class="btn btn-primary" {% if demo_mode %}disabled{% endif %}>Načíst a zkontrolovat</button>
   </div>
   {% if demo_mode %}
-    <p class="text-sm text-amber-800 mt-3 p-2 rounded bg-amber-50 border border-amber-300">
+    <p class="text-sm mt-3 px-3 py-2 rounded-lg" style="background: var(--warn-soft); color: var(--warn)">
       V ukázce je nahrávání vypnuté. Jak kontrola importu vypadá, je vidět
       na dříve nahraném souboru v historii níže.
     </p>
   {% else %}
-    <p class="text-xs text-slate-500 mt-3">
-      Umí exporty z VALD ForceDecks (CMJ, IMTP, stoj na jedné noze), VALD HumanTrak
+    <p class="text-xs text-muted mt-3">
+      Umí exporty z VALD ForceDecks (CMJ, IMTP, SJ, stoj na jedné noze), VALD HumanTrak
       (box lift) a původní Excel. Co se z exportu importuje, určují
-      <a class="text-blue-700 hover:underline" href="/admin/catalog/importprofile/">profily importu</a>.
-      Soubor se jen rozparsuje a ukáže ke kontrole. Do databáze se nic nezapíše,
-      dokud náhled nepotvrdíte.
+      <a class="link" href="/admin/catalog/importprofile/">profily importu</a>.
+      Soubor se nejdřív jen ukáže ke kontrole – do databáze se nic nezapíše, dokud náhled nepotvrdíte.
     </p>
   {% endif %}
 </form>
 
-<h2 class="font-semibold mb-2">Historie importů</h2>
-<div class="overflow-x-auto"><table class="w-full bg-white rounded-lg border border-slate-200 text-sm">
-  <thead class="text-left text-slate-500 border-b border-slate-200">
-    <tr>
-      <th class="p-2">Soubor</th><th class="p-2">Formát</th><th class="p-2">Stav</th>
-      <th class="p-2">Nahrál</th><th class="p-2">Kdy</th><th class="p-2"></th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for b in batches %}
-      <tr class="border-b border-slate-100">
-        <td class="p-2">{{ b.raw_file.original_name }}</td>
-        <td class="p-2">{{ b.adapter_label }}</td>
-        <td class="p-2">{{ b.get_status_display }}</td>
-        <td class="p-2">{{ b.uploaded_by }}</td>
-        <td class="p-2">{{ b.created_at|date:"d.m.Y H:i" }}</td>
-        <td class="p-2">
-          {% if b.status == 'parsed' %}
-            <a class="text-blue-700 hover:underline"
-               href="{% url 'import_detail' b.pk %}">zkontrolovat</a>
-          {% elif b.status == 'committed' and not demo_mode %}
-            <form method="post" action="{% url 'import_restage' b.pk %}" class="inline">
-              {% csrf_token %}
-              <button type="submit" class="text-blue-700 hover:underline"
-                      title="Po doplnění profilu importu: doplní nové metriky, nic nezdvojí">
-                načíst znovu</button>
-            </form>
-          {% endif %}
-        </td>
-      </tr>
-    {% empty %}
-      <tr><td colspan="6" class="p-4 text-slate-500">Zatím žádné importy.</td></tr>
-    {% endfor %}
-  </tbody>
-</table></div>
+<div class="card overflow-x-auto">
+  <div class="px-4 pt-4 pb-2"><h2 class="card-title">Historie importů</h2></div>
+  <table class="table">
+    <thead>
+      <tr><th>Soubor</th><th class="max-md:hidden">Formát</th><th>Stav</th>
+          <th class="max-md:hidden">Nahrál</th><th>Kdy</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for b in batches %}
+        <tr>
+          <td class="font-medium break-all">{{ b.raw_file.original_name }}</td>
+          <td class="text-2 max-md:hidden">{{ b.adapter_label }}</td>
+          <td>
+            {% if b.status == "committed" %}<span class="badge badge-good">uloženo</span>
+            {% elif b.status == "parsed" %}<span class="badge badge-warn">čeká na kontrolu</span>
+            {% elif b.status == "failed" %}<span class="badge badge-bad">{{ b.get_status_display|lower }}</span>
+            {% else %}<span class="badge">{{ b.get_status_display|lower }}</span>{% endif %}
+          </td>
+          <td class="text-2 max-md:hidden">{{ b.uploaded_by }}</td>
+          <td class="tabular-nums whitespace-nowrap text-2">{{ b.created_at|date:"d.m.Y H:i" }}</td>
+          <td class="text-right whitespace-nowrap">
+            {% if b.status == 'parsed' %}
+              <a class="btn btn-sm btn-primary" href="{% url 'import_detail' b.pk %}">zkontrolovat</a>
+            {% elif b.status == 'committed' and not demo_mode %}
+              <form method="post" action="{% url 'import_restage' b.pk %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm"
+                        title="Po doplnění profilu importu: doplní nové metriky, nic nezdvojí">načíst znovu</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="text-muted py-6 text-center">Zatím žádné importy.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

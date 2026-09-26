@@ -34,3 +34,23 @@ nahrajete export z přístroje: **import doplní hodnoty do založených testů*
 (nevznikne vedle nich druhý).
 
 Vypočtené ukazatele (DSI, EUR) se v baterii nezakládají, dopočítají se samy.
+
+## Týmový přehled
+
+Menu **Týmový přehled** ukáže všechny aktivní sportovce skupiny (sport, případně
+kategorie podle baterie) a v sloupcích klíčové ukazatele testů baterie –
+tedy metriky, které mají v katalogu u protokolu zaškrtnuté „klíčová metrika“.
+
+V každé buňce je poslední hlavní měření sportovce (opakování po zátěži se
+nepočítá) a dvě informace, které se nepletou:
+
+- **šipka** – změna proti minulému měření téhož sportovce, posouzená proti MDC
+  stejně jako ve zprávě (bez MDC se o zlepšení nemluví),
+- **barva pozadí** – postavení v týmu: zelená = o 1 SD a víc lepší než průměr
+  skupiny, oranžová = o 1 SD a víc horší. Bere se ohled na to, zda je lepší
+  vyšší, nebo nižší hodnota (u plochy CoP je lepší menší). Počítá se až od
+  4 změřených sportovců.
+
+Hodnoty starší než 120 dní jsou zašedlé. Podrobnosti (datum, změna, odchylka
+od průměru) se ukážou po najetí myší. Klepnutím na záhlaví se řadí, tlačítko
+**CSV pro Excel** stáhne tabulku (středník, desetinná čárka).

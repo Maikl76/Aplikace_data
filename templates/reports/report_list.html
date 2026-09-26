@@ -1,29 +1,44 @@
 {% extends "base.html" %}
+{% load ui %}
 {% block content %}
-<h1 class="text-xl font-semibold mb-4">Zprávy</h1>
-<div class="overflow-x-auto"><table class="w-full bg-white rounded-lg border border-slate-200 text-sm">
-  <thead class="text-left text-slate-500 border-b border-slate-200">
-    <tr>
-      <th class="p-2">Číslo</th><th class="p-2">Sportovec</th><th class="p-2">Měření</th>
-      <th class="p-2">Stav</th><th class="p-2">Vydáno</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for r in reports %}
-      <tr class="border-b border-slate-100">
-        <td class="p-2"><a class="text-blue-700 hover:underline"
-                           href="{% url 'report_detail' r.pk %}">{{ r.report_number }}</a>
-          {% if r.version > 1 %}<span class="text-slate-500">v{{ r.version }}</span>{% endif %}</td>
-        <td class="p-2">{{ r.subject.code }}</td>
-        <td class="p-2">{{ r.session.date|date:"d.m.Y"|default:"—" }}</td>
-        <td class="p-2">{{ r.get_status_display }}</td>
-        <td class="p-2">{{ r.released_at|date:"d.m.Y H:i"|default:"—" }}</td>
-      </tr>
-    {% empty %}
-      <tr><td colspan="5" class="p-4 text-slate-500">
-        Zatím žádné zprávy. Zprávu založíte z testovacího dne.
-      </td></tr>
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <div class="eyebrow">Výstupy</div>
+    <h1 class="text-2xl font-semibold">Zprávy</h1>
+  </div>
+  <div class="flex flex-wrap gap-1">
+    <a href="?" class="btn btn-sm {% if not stav %}btn-primary{% endif %}">Všechny</a>
+    {% for value, name in stavy %}
+      <a href="?stav={{ value }}" class="btn btn-sm {% if stav == value %}btn-primary{% endif %}">{{ name }}</a>
     {% endfor %}
-  </tbody>
-</table></div>
+  </div>
+</div>
+
+<div class="card overflow-x-auto">
+  <table class="table">
+    <thead>
+      <tr><th>Sportovec</th><th>Číslo</th><th>Měření</th><th>Stav</th><th class="max-md:hidden">Vydáno</th></tr>
+    </thead>
+    <tbody>
+      {% for r in reports %}
+        <tr class="cursor-pointer" onclick="location.href='{% url 'report_detail' r.pk %}'">
+          <td class="whitespace-nowrap">
+            <a href="{% url 'report_detail' r.pk %}" class="flex items-center gap-2">
+              <span class="avatar w-7 h-7 text-xs">{{ r.jmeno|initials }}</span>
+              <span class="font-medium">{{ r.jmeno }}</span>
+            </a>
+          </td>
+          <td class="tabular-nums whitespace-nowrap">{{ r.report_number }}{% if r.version > 1 %} <span class="text-muted">v{{ r.version }}</span>{% endif %}</td>
+          <td class="tabular-nums">{{ r.session.date|date:"d.m.Y"|default:"—" }}</td>
+          <td>{% include "reports/_status.html" %}</td>
+          <td class="tabular-nums text-2 max-md:hidden">{{ r.released_at|date:"d.m.Y H:i"|default:"—" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="text-muted py-6 text-center">
+          Zatím žádné zprávy. Zprávu založíte z <a class="link" href="{% url 'session_list' %}">testovacího dne</a>.
+        </td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

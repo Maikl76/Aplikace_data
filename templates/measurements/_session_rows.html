@@ -1,0 +1,33 @@
+{% load ui %}
+{% for s in sessions %}
+  <tr class="cursor-pointer" onclick="location.href='{% url 'session_detail' s.pk %}'">
+    <td class="tabular-nums whitespace-nowrap">
+      <a class="font-medium" href="{% url 'session_detail' s.pk %}">{{ s.date|date:"d.m.Y" }}</a>
+    </td>
+    <td class="whitespace-nowrap">
+      <span class="flex items-center gap-2">
+        <span class="avatar w-7 h-7 text-xs">{{ s.jmeno|initials }}</span>
+        <span class="leading-tight">
+          <span class="block font-medium">{{ s.jmeno }}</span>
+          <span class="block text-xs text-muted">{{ s.subject.sport|default:"" }}</span>
+        </span>
+      </span>
+    </td>
+    <td class="text-2">
+      <span class="flex flex-wrap gap-1">
+        {% for name in s.protokoly %}<span class="badge">{{ name }}</span>{% empty %}<span class="text-muted">—</span>{% endfor %}
+      </span>
+    </td>
+    <td class="text-right whitespace-nowrap">
+      {% if not s.testu %}<span class="text-muted">—</span>
+      {% elif s.zmereno == s.testu %}<span class="badge badge-good">{% icon "check" "w-3.5 h-3.5" %}{{ s.zmereno }}/{{ s.testu }}</span>
+      {% elif s.zmereno %}<span class="badge badge-warn">{{ s.zmereno }}/{{ s.testu }}</span>
+      {% else %}<span class="badge badge-accent">naplánováno</span>{% endif %}
+    </td>
+    <td class="text-2 max-md:hidden">{{ s.operator|default:"—" }}</td>
+  </tr>
+{% empty %}
+  <tr><td colspan="5" class="text-muted py-6 text-center">
+    {% if q %}Nikdo neodpovídá hledání.{% else %}Zatím žádné testovací dny.{% endif %}
+  </td></tr>
+{% endfor %}
