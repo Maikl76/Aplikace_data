@@ -29,11 +29,22 @@ from apps.catalog.seed_data import (
 class Command(BaseCommand):
     help = "Založí sdílené metriky a protokoly (organization = NULL)."
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--jen-chybejici", action="store_true", dest="only_missing",
+            help="Jen doplní, co v katalogu chybí (nové metriky, protokoly, pravidla). "
+                 "Nic existujícího nepřepíše – úpravy z administrace zůstanou. "
+                 "Takhle ho volá spustit.bat při každém startu.")
+
     @transaction.atomic
     def handle(self, *args, **options):
+        only_missing = options.get("only_missing")
+        # Při doplňování se existující záznamy nemění (get_or_create),
+        # při zakládání databáze se srovnají s výchozí sadou (update_or_create).
+        save = "get_or_create" if only_missing else "update_or_create"
         metrics = {}
         for code, name, family, unit, direction, lo, hi, decimals in METRICS:
-            metrics[code], _ = MetricDef.objects.update_or_create(
+            metrics[code], _ = getattr(MetricDef.objects, save)(
                 organization=None, code=code,
                 defaults={"name": name, "family": family, "unit": unit,
                           "direction": direction, "plausible_min": lo,
@@ -53,14 +64,14 @@ class Command(BaseCommand):
                 metric.save(update_fields=changed)
 
         for code, spec in PROTOCOLS.items():
-            protocol, _ = Protocol.objects.update_or_create(
+            protocol, _ = getattr(Protocol.objects, save)(
                 organization=None, code=code, version=1,
                 defaults={"name": spec["name"], "family": spec["family"],
                           "device": spec["device"],
                           "default_trials": spec.get("trials", 3)},
             )
             for order, entry in enumerate(spec["metrics"]):
-                ProtocolMetric.objects.update_or_create(
+                getattr(ProtocolMetric.objects, save)(
                     protocol=protocol, metric=metrics[entry["code"]],
                     defaults={
                         "order": order,
@@ -113,7 +124,7 @@ class Command(BaseCommand):
                 RuleArticle.objects.get_or_create(rule=rule, article=articles[doi])
 
         for spec in EXAMPLE_RULES:
-            Rule.objects.update_or_create(
+            getattr(Rule.objects, save)(
                 organization=None, code=spec["code"], version=1,
                 defaults={
                     "name": spec["name"],
@@ -128,6 +139,9 @@ class Command(BaseCommand):
                     "is_active": False,
                 },
             )
+
+        if only_missing:
+            return
 
         self.stdout.write(self.style.SUCCESS(
             f"Katalog: {len(metrics)} metrik, {len(PROTOCOLS)} protokolů, "

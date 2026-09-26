@@ -120,3 +120,22 @@ def test_import_ukaze_nestabilni_pokusy(lab):
     ingest.commit_batch(batch, user=user)
     batch.refresh_from_db()
     assert "nestabilni_pokusy" not in batch.summary     # jména pryč i odsud
+
+
+def test_doplneni_katalogu_neprepise_upravy(lab):
+    """spustit.bat volá seed_catalog --jen-chybejici při každém startu."""
+    Rule.objects.filter(code="asymetrie").update(is_active=True)
+    MetricDef.objects.filter(code="cmj_height").update(name="Můj název", plausible_max=99)
+    from apps.catalog.models import ProtocolMetric
+
+    ProtocolMetric.objects.filter(metric__code="dsi").delete()
+    Protocol.objects.filter(code="dsi").delete()
+    MetricDef.objects.filter(code="dsi").delete()
+
+    call_command("seed_catalog", only_missing=True, verbosity=0)
+
+    assert Rule.objects.get(code="asymetrie").is_active is True
+    height = MetricDef.objects.get(code="cmj_height")
+    assert (height.name, height.plausible_max) == ("Můj název", 99)
+    assert MetricDef.objects.filter(code="dsi").exists()            # chybějící doplněno
+    assert ProtocolMetric.objects.filter(protocol__code="dsi", metric__code="dsi").exists()
