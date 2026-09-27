@@ -147,14 +147,39 @@ Otevřete `https://JMENO.eu.pythonanywhere.com`, přihlašte se jako
 
 ## Aktualizace po změnách
 
-V Bash konzoli:
+Nahoře **Consoles** → **Bash** a po jednom řádku:
 
 ```
-bash ~/Aplikace_data/deploy/pa-update.sh
+cd ~/Aplikace_data
 ```
 
-Stáhne novou verzi, doinstaluje, co je potřeba, a restartuje aplikaci.
-Data zůstanou.
+```
+git pull
+```
+
+```
+bash deploy/pa-update.sh
+```
+
+Stáhne novou verzi, doinstaluje, co je potřeba, doplní do katalogu nové
+testy a restartuje aplikaci. Data zůstanou. Pak v prohlížeči **Ctrl+F5**.
+
+`git pull` zvlášť předem je důležitý: skript se při stahování sám mění
+a bash by jinak dojel starou verzi.
+
+### Když nová verze přinese věci, které stará data nemají
+
+Například baterie testů, Wingate nebo RPE – stará vygenerovaná data je
+nemají, takže Týmový přehled a Dnešní testování zůstanou prázdné. Pak
+místo posledního příkazu:
+
+```
+bash deploy/pa-update.sh --nova-data
+```
+
+Smaže ukázková data a vygeneruje nová (sportovce, měření, baterie).
+Přihlášení `admin` zůstane s heslem z `.env`. Jde to jen v ukázkovém
+režimu – ostrá data tímhle smazat nejde.
 
 ## Pravidelné prodloužení
 
