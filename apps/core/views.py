@@ -52,6 +52,21 @@ def dashboard(request):
     return render(request, "core/dashboard.html", context)
 
 
+@login_required
+def about(request):
+    """O aplikaci: co umí, role a návody k ovládání."""
+    from django.conf import settings
+
+    from apps.core.models import Role
+    from apps.reports import llm
+
+    return render(request, "core/about.html", {
+        "roles": Role,
+        "llm_enabled": llm.is_enabled(),
+        "llm_model": getattr(settings, "LLM_MODEL", ""),
+    })
+
+
 def health(request):
     """
     Kontrola běhu pro hosting. Nekontroluje jen to, že aplikace odpovídá,

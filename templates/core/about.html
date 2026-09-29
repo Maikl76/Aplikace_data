@@ -1,0 +1,418 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}O aplikaci – Funkční testování{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <div class="eyebrow">Nápověda</div>
+    <h1 class="text-2xl font-semibold">O aplikaci</h1>
+    <p class="text-2 mt-1 max-w-3xl">
+      Aplikace laboratoře funkční diagnostiky FTVS UK: evidence sportovců, testování podle
+      baterií, import z přístrojů, vyhodnocení změn proti chybě měření a zprávy s doporučeními.
+    </p>
+  </div>
+  <span class="badge badge-accent">Vaše role: {{ user.get_role_display }}</span>
+</div>
+
+<div class="grid lg:grid-cols-[14rem_1fr] gap-6 items-start" x-data="{ q: '' }">
+
+  {# --- obsah (na počítači vlevo a stále na očích) --- #}
+  <nav class="card p-3 text-sm lg:sticky lg:top-20 no-print" aria-label="Obsah nápovědy">
+    <label class="relative block mb-2">
+      <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted">{% icon "search" "w-4 h-4" %}</span>
+      <input type="search" x-model="q" placeholder="Hledat v nápovědě" class="search-input">
+    </label>
+    <ol class="napoveda-obsah">
+      <li><a href="#umi">Co aplikace umí</a></li>
+      <li><a href="#role">Role a oprávnění</a></li>
+      <li><a href="#start">Rychlý start</a></li>
+      <li><a href="#sportovci">Sportovci</a></li>
+      <li><a href="#baterie">Sporty a baterie testů</a></li>
+      <li><a href="#den">Testovací den</a></li>
+      <li><a href="#dnes">Dnešní testování</a></li>
+      <li><a href="#zadavani">Zadávání hodnot</a></li>
+      <li><a href="#rpe">RPE a QR kódy</a></li>
+      <li><a href="#import">Import z přístrojů</a></li>
+      <li><a href="#tym">Týmový přehled</a></li>
+      <li><a href="#zpravy">Zprávy a AI</a></li>
+      <li><a href="#katalog">Katalog a nastavení</a></li>
+      <li><a href="#vyhodnoceni">Jak aplikace vyhodnocuje</a></li>
+      <li><a href="#data">Ochrana dat</a></li>
+      <li><a href="#technika">Spuštění a technika</a></li>
+      <li><a href="#tipy">Tipy a zkratky</a></li>
+      <li><a href="#faq">Časté otázky</a></li>
+    </ol>
+  </nav>
+
+  <div class="space-y-4 min-w-0 napoveda"
+       x-effect="$el.querySelectorAll('[data-kapitola]').forEach(s => s.hidden = q.trim() !== '' && !s.textContent.toLowerCase().includes(q.trim().toLowerCase()))">
+
+    <p class="card p-4 text-sm text-muted" x-show="q.trim() !== '' && ![...$root.querySelectorAll('[data-kapitola]')].some(s => !s.hidden)" x-cloak>
+      Nic nenalezeno. Zkuste jiné slovo.
+    </p>
+
+    {# ================================================================== #}
+    <section id="umi" class="card p-5" data-kapitola>
+      <h2>Co aplikace umí</h2>
+      <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-3 mt-3">
+        <a href="{% url 'subject_list' %}" class="napoveda-dlazdice">
+          <span class="avatar w-9 h-9">{% icon "users" "w-5 h-5" %}</span>
+          <span><strong>Evidence sportovců</strong><br>Karta s hlavními ukazateli, grafy vývoje a všemi měřeními. Jména jsou uložená šifrovaně.</span>
+        </a>
+        <a href="{% url 'sport_list' %}" class="napoveda-dlazdice">
+          <span class="avatar w-9 h-9">{% icon "list" "w-5 h-5" %}</span>
+          <span><strong>Baterie testů</strong><br>Každý sport (i kategorie) má svou sadu testů, kterou si upravíte sami.</span>
+        </a>
+        <a href="{% url 'today' %}" class="napoveda-dlazdice">
+          <span class="avatar w-9 h-9">{% icon "calendar" "w-5 h-5" %}</span>
+          <span><strong>Testovací dny</strong><br>Hromadné založení pro celou skupinu, přehled co je změřené a co chybí.</span>
+        </a>
+        <a href="{% url 'session_list' %}" class="napoveda-dlazdice">
+          <span class="avatar w-9 h-9">{% icon "timer" "w-5 h-5" %}</span>
+          <span><strong>Zadávání u přístroje</strong><br>Mřížka pokusů, stopky, odpočet pauzy, RPE a QR karty – i na tabletu.</span>
+        </a>
+        <a href="{% url 'import_list' %}" class="napoveda-dlazdice">
+          <span class="avatar w-9 h-9">{% icon "upload" "w-5 h-5" %}</span>
+          <span><strong>Import z přístrojů</strong><br>Exporty z VALD ForceDecks a HumanTrak se nahrají a vše se vyplní samo.</span>
+        </a>
+        <a href="{% url 'team' %}" class="napoveda-dlazdice">
+          <span class="avatar w-9 h-9">{% icon "grid" "w-5 h-5" %}</span>
+          <span><strong>Týmový přehled</strong><br>Celá skupina na jedné obrazovce, kdo se zlepšil, kdo vybočuje. Export do Excelu.</span>
+        </a>
+        <a href="{% url 'report_list' %}" class="napoveda-dlazdice">
+          <span class="avatar w-9 h-9">{% icon "file" "w-5 h-5" %}</span>
+          <span><strong>Zprávy</strong><br>Výsledky, grafy, stranové rozdíly, nálezy a doporučení. Souhrn napíše lokální AI, vy ho zkontrolujete.</span>
+        </a>
+        <a href="#vyhodnoceni" class="napoveda-dlazdice">
+          <span class="avatar w-9 h-9">{% icon "activity" "w-5 h-5" %}</span>
+          <span><strong>Vyhodnocení</strong><br>Změna proti chybě měření (MDC), DSI, EUR, ODS, rozptyl pokusů, stranové rozdíly.</span>
+        </a>
+        <a href="/admin/" class="napoveda-dlazdice">
+          <span class="avatar w-9 h-9">{% icon "settings" "w-5 h-5" %}</span>
+          <span><strong>Katalog</strong><br>Testy, metriky, normy, pravidla a literatura jsou data – mění se bez programování.</span>
+        </a>
+      </div>
+    </section>
+
+    {# ================================================================== #}
+    <section id="role" class="card p-5" data-kapitola>
+      <h2>Role a oprávnění</h2>
+      <p>Každý uživatel má jednu roli. Ta určuje, jestli vidí jména sportovců a kam smí.
+        Všichni vidí jen data svého pracoviště (organizace).</p>
+      <div class="overflow-x-auto mt-3">
+        <table class="table napoveda-tabulka">
+          <thead><tr><th>Role</th><th>Jména sportovců</th><th>Co dělá</th><th>Katalog a nastavení</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="font-medium whitespace-nowrap">Správce</td>
+              <td><span class="badge badge-good">vidí</span></td>
+              <td>Vše jako diagnostik, navíc zakládá uživatele, mění katalog (metriky, MDC, pravidla, normy), schvaluje literaturu a smí mazat.</td>
+              <td>plný přístup</td>
+            </tr>
+            <tr>
+              <td class="font-medium whitespace-nowrap">Laborant / diagnostik</td>
+              <td><span class="badge badge-good">vidí</span></td>
+              <td>Zakládá sportovce a testovací dny, zadává a importuje měření, píše a vydává zprávy, zaznamenává předání.</td>
+              <td>katalog jen čte; měření a sportovce smí upravit, ne smazat</td>
+            </tr>
+            <tr>
+              <td class="font-medium whitespace-nowrap">Výzkumník</td>
+              <td><span class="badge">jen kódy</span></td>
+              <td>Prohlíží data pod pseudonymními kódy (FTVS-0001…) – pro vědecké zpracování.</td>
+              <td>jen čtení</td>
+            </tr>
+            <tr>
+              <td class="font-medium whitespace-nowrap">Trenér</td>
+              <td><span class="badge">jen kódy</span></td>
+              <td>
+                <span class="badge badge-warn">připravuje se</span>
+                Vlastní omezený pohled (jen můj tým) zatím hotový není – takový uživatel by teď viděl
+                pod kódy všechny sportovce pracoviště. <strong>Účty trenérům zatím nezakládejte.</strong>
+              </td>
+              <td>bez přístupu</td>
+            </tr>
+            <tr>
+              <td class="font-medium whitespace-nowrap">Sportovec</td>
+              <td><span class="badge">jen kódy</span></td>
+              <td>
+                <span class="badge badge-warn">připravuje se</span>
+                Stejně jako u trenéra: pohled „jen moje výsledky“ zatím není.
+                <strong>Účty sportovcům zatím nezakládejte</strong> – RPE vyplní přes QR bez účtu.
+              </td>
+              <td>bez přístupu</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Jak založit uživatele (správce)</h3>
+      <ol>
+        <li><a class="link" href="/admin/">Katalog a nastavení</a> → <em>Uživatelé</em> → <em>Přidat</em>.</li>
+        <li>Zadejte přihlašovací jméno a heslo, pak vyplňte <em>organizaci</em> a <em>roli</em>.</li>
+        <li>Do katalogu a nastavení se dostane jen ten, kdo má zaškrtnuté <em>Stav týmu</em>. Diagnostikovi ho zaškrtněte, pokud má opravovat měření v administraci.</li>
+        <li>Skupina oprávnění podle role se přiřadí sama.</li>
+      </ol>
+      <p class="text-sm text-muted">Sportovec vyplňující RPE přes QR kód žádný účet nepotřebuje – viz <a class="link" href="#rpe">RPE a QR kódy</a>.</p>
+    </section>
+
+    {# ================================================================== #}
+    <section id="start" class="card p-5" data-kapitola>
+      <h2>Rychlý start – typický den v laboratoři</h2>
+      <ol class="napoveda-kroky">
+        <li><strong>Jednou na začátku:</strong> v <a class="link" href="{% url 'sport_list' %}">Sporty a testy</a> nastavte, které testy se u sportu měří (baterie).</li>
+        <li><strong>Sportovci:</strong> noví se založí sami při importu z VALD, nebo je přidáte v <a class="link" href="/admin/subjects/subject/add/">administraci</a>. U sportovce vyplňte sport a případně kategorii (např. dorost).</li>
+        <li><strong>Ráno:</strong> <a class="link" href="{% url 'today' %}">Dnešní testování</a> → vyberte skupinu → zaškrtněte, kdo přijde → <em>Založit testování pro vybrané</em>.</li>
+        <li><strong>Během měření:</strong> u přístroje otevřete test a zadejte pokusy, nebo po měření nahrajte export v <a class="link" href="{% url 'import_list' %}">Importu</a>. Po zátěžových testech zaznamenejte RPE.</li>
+        <li><strong>Kontrola:</strong> v testovacím dni upozornění na nestabilní pokusy – pokud je sportovec ještě v laboratoři, test zopakujte.</li>
+        <li><strong>Zpráva:</strong> v testovacím dni <em>Vytvořit zprávu</em> → projděte souhrn (případně nechte AI navrhnout doporučení) → opravte → <em>Uložit</em> → <em>Vydat</em>.</li>
+        <li><strong>Předání:</strong> u vydané zprávy zaznamenejte, komu a jak byla předána (např. AKESO).</li>
+      </ol>
+    </section>
+
+    {# ================================================================== #}
+    <section id="sportovci" class="card p-5" data-kapitola>
+      <h2>Sportovci</h2>
+      <ul>
+        <li><strong>Hledání:</strong> pole nahoře (nebo klávesa <kbd>/</kbd>) hledá podle jména i kódu, bez ohledu na diakritiku. V <a class="link" href="{% url 'subject_list' %}">Sportovcích</a> jde filtrovat i podle sportu.</li>
+        <li><strong>Karta sportovce:</strong> dlaždice s posledními hodnotami klíčových ukazatelů, šipka změny proti minulému měření, minigraf, grafy vývoje, stranové rozdíly a seznam testovacích dnů.</li>
+        <li><strong>Tlačítka na kartě:</strong> <em>Nové měření</em> (testy předvyplní baterie), <em>Zpráva z posledního měření</em>, ikona QR (karta pro tablet) a tužka (úprava údajů).</li>
+        <li><strong>Úprava údajů</strong> (sport, kategorie, úroveň, dominantní strana, souhlasy) je v administraci – tužka na kartě ji otevře rovnou. Jméno a datum narození mění jen superuživatel (<em>Identity sportovců</em>).</li>
+        <li><strong>Kód a jméno:</strong> každý sportovec má pseudonymní kód (FTVS-0001). Jméno je uložené zvlášť a šifrovaně; vidí ho jen správce a diagnostik.</li>
+      </ul>
+    </section>
+
+    {# ================================================================== #}
+    <section id="baterie" class="card p-5" data-kapitola>
+      <h2>Sporty a baterie testů</h2>
+      <p>Baterie = seznam testů, které se u sportu měří, v pořadí, v jakém se měří.</p>
+      <ul>
+        <li>V <a class="link" href="{% url 'sport_list' %}">Sporty a testy</a> přidáte sport, u něj testy přidáte, odeberete nebo posunete šipkami.</li>
+        <li><strong>Kategorie:</strong> sport může mít vedle obecné baterie i baterii pro kategorii (např. <em>Lední hokej – dorost</em>). Sportovec s vyplněnou kategorií dostane baterii své kategorie, ostatní obecnou.</li>
+        <li>Baterie předvyplní nový testovací den, řídí <em>Dnešní testování</em>, pořadí testů při zadávání a sloupce <em>Týmového přehledu</em>.</li>
+        <li>Odvozené ukazatele (DSI, EUR) se do baterie nepřidávají – dopočítají se samy z CMJ, IMTP a SJ.</li>
+      </ul>
+    </section>
+
+    {# ================================================================== #}
+    <section id="den" class="card p-5" data-kapitola>
+      <h2>Testovací den</h2>
+      <p>Jedna návštěva sportovce v laboratoři. Vzniká třemi způsoby: tlačítkem <em>Nové měření</em>,
+        hromadně v <em>Dnešním testování</em>, nebo sám při importu exportu z přístroje.</p>
+      <ul>
+        <li><strong>Nový testovací den:</strong> vyberte sportovce – testy se zaškrtnou podle baterie jeho sportu; další jde přidat. Vyplnit lze místo, fázi sezóny, subjektivní únavu, teplotu a vlhkost.</li>
+        <li><strong>Detail dne</strong> (<a class="link" href="{% url 'session_list' %}">Měření</a> → datum): testy s počtem hodnot (<span class="badge badge-good">hotovo</span> / <span class="badge badge-accent">zadat hodnoty</span>), přidání dalšího testu, zprávy z tohoto dne, RPE a prostředí.</li>
+        <li><strong>Opakované měření v jednom dni</strong> (např. před a po zátěži): každé provedení má svůj čas; hodnotou dne je první (hlavní) měření, opakování se ve zprávě ukážou vedle sebe.</li>
+        <li><strong>Prostředí:</strong> teplota a vlhkost se dají doplnit i dodatečně v kartě <em>Prostředí</em> – objeví se ve zprávě.</li>
+      </ul>
+    </section>
+
+    {# ================================================================== #}
+    <section id="dnes" class="card p-5" data-kapitola>
+      <h2>Dnešní testování</h2>
+      <ol>
+        <li>Nahoře vyberte skupinu (baterii) a datum.</li>
+        <li>Tabulka ukazuje sportovce skupiny × testy baterie: <span class="badge badge-good">hotovo</span> změřeno, <span class="badge badge-accent">zadat</span> založeno a čeká, — nic.</li>
+        <li>Zaškrtněte sportovce a klikněte <em>Založit testování pro vybrané</em> – každý dostane testovací den se všemi testy baterie. Kdo už den má, tomu se jen doplní chybějící testy.</li>
+        <li>Klepnutím na <em>zadat</em> otevřete zadávání, nebo po měření nahrajte export – import vyplní právě tyto založené testy.</li>
+      </ol>
+    </section>
+
+    {# ================================================================== #}
+    <section id="zadavani" class="card p-5" data-kapitola>
+      <h2>Zadávání hodnot</h2>
+      <p>Otevřete test v testovacím dni. Řádky jsou ukazatele (u stranových testů zvlášť levá a pravá), sloupce pokusy.</p>
+      <ul>
+        <li><strong>Čísla</strong> s desetinnou čárkou i tečkou. Prázdná pole se neukládají.</li>
+        <li><strong>Časy</strong> v sekundách, delší i jako <code>min:s</code> (<code>6:45,3</code> = 405,3 s).</li>
+        <li><strong>Stopky</strong> {% icon "timer" "w-4 h-4 inline" %} u časových ukazatelů: Start/Stop (i mezerníkem) a <em>Zapsat</em> vloží čas do políčka.</li>
+        <li><strong>Pauza mezi pokusy:</strong> má-li test nastavenou pauzu, tlačítko <em>Pauza 3:00</em> spustí odpočet; na konci pípne a na tabletu zavibruje.</li>
+        <li><strong>Mimo věrohodný rozsah:</strong> hodnota se uloží, ale zbarví oranžově – zkontrolujte překlep.</li>
+        <li><strong>Uložit hodnoty</strong> uloží a zůstane na místě; <strong>Uložit a další</strong> přejde na další test dne v pořadí baterie.</li>
+        <li><strong>Importované testy</strong> jdou otevřít stejně – hodnoty lze opravit ručně.</li>
+      </ul>
+      <p class="text-sm text-muted">Tablet v laboratoři: viz <a class="link" href="#technika">Spuštění a technika</a>.</p>
+    </section>
+
+    {# ================================================================== #}
+    <section id="rpe" class="card p-5" data-kapitola>
+      <h2>RPE a QR kódy</h2>
+      <p><strong>RPE</strong> (subjektivně vnímané úsilí) na škále CR-10: 0 = klid … 10 = maximální.</p>
+      <ul>
+        <li><strong>Po zátěžovém testu</strong> (Wingate, spiroergometrie): škála je přímo pod zadáváním hodnot – klepněte na číslo a uložte.</li>
+        <li><strong>Kdykoli v testovacím dni:</strong> karta <em>RPE</em> → <em>Po čem</em> (konkrétní test, nebo celý den) → číslo → <em>Zapsat</em>.</li>
+        <li><strong>Vyplní sportovec sám:</strong> tlačítko <em>Vyplní sportovec (QR)</em> ukáže kód. Sportovec ho naskenuje svým telefonem, vybere číslo a odešle. Nepřihlašuje se, nevidí jméno ani výsledky; odkaz platí 12 hodin. Opakované vyplnění přepíše předchozí.</li>
+        <li>RPE je ve zprávě u testu, RPE za celý den v hlavičce zprávy; dostává ho i AI jako kontext.</li>
+      </ul>
+      <h3>QR karty sportovců</h3>
+      <ul>
+        <li>Na kartě sportovce ikona QR, v <a class="link" href="{% url 'team' %}">Týmovém přehledu</a> tlačítko <em>QR karty</em> pro celou skupinu (tisk po dvou vedle sebe).</li>
+        <li>Naskenováním karty tabletem se otevře dnešní testovací den sportovce. Když ještě není, aplikace nabídne založit ho podle baterie.</li>
+      </ul>
+      <p class="text-sm text-muted">Telefon i tablet musí aplikaci „vidět“ – na laboratorním počítači ji spusťte přes <code>spustit-sit.bat</code> (viz <a class="link" href="#technika">technika</a>). Aplikace sama upozorní, když běží jen pro tento počítač.</p>
+    </section>
+
+    {# ================================================================== #}
+    <section id="import" class="card p-5" data-kapitola>
+      <h2>Import z přístrojů</h2>
+      <p>Umí exporty z <strong>VALD ForceDecks</strong> (CMJ, IMTP, SJ, stoj na jedné noze), <strong>VALD HumanTrak</strong> (box lift) a původní Excel laboratoře (.xlsx, .csv).</p>
+      <ol>
+        <li><a class="link" href="{% url 'import_list' %}">Import</a> → přetáhněte soubory (i víc najednou). Formát nechte <em>Rozpoznat automaticky</em>.</li>
+        <li><strong>Kontrola před uložením</strong> – nic se ještě nezapsalo. Uvidíte počty testů a hodnot, rozsah dat, sportovce v souboru a jak je aplikace poznala, nestabilní pokusy a hodnoty mimo rozsah.</li>
+        <li><em>Uložit do databáze</em>. Velký soubor může trvat desítky sekund.</li>
+      </ol>
+      <ul>
+        <li><strong>Párování sportovců:</strong> podle ID ve VALD, jinak podle jména a data narození, jinak podle jména (jen když je jednoznačné). Aplikace si ID zapamatuje, příště pozná sportovce sama. Noví sportovci dostanou kód a jméno se uloží šifrovaně.</li>
+        <li><strong>Opakovaný import</strong> téhož souboru nic nezdvojí – chybějící hodnoty doplní, přepočítané aktualizuje.</li>
+        <li><strong>Založené testy</strong> z Dnešního testování import vyplní, nevzniknou druhé.</li>
+        <li><strong>Co se importuje</strong> určují <a class="link" href="/admin/catalog/importprofile/">profily importu</a> (sloupec exportu → metrika). Po doplnění profilu tlačítko <em>načíst znovu</em> u starého importu doplní nové metriky.</li>
+      </ul>
+    </section>
+
+    {# ================================================================== #}
+    <section id="tym" class="card p-5" data-kapitola>
+      <h2>Týmový přehled</h2>
+      <p>Sportovci skupiny × klíčové ukazatele testů její baterie; poslední hlavní měření každého.</p>
+      <ul>
+        <li><strong>Šipka</strong> = změna proti minulému měření téhož sportovce: <span class="badge badge-good">{% icon "arrow-up" "w-3 h-3" %}</span> zlepšení / <span class="badge badge-warn">{% icon "arrow-down" "w-3 h-3" %}</span> zhoršení přesahující chybu měření, <span class="badge">{% icon "minus" "w-3 h-3" %}</span> v pásmu chyby.</li>
+        <li><strong>Barva pozadí</strong> = postavení v týmu: <span class="tym-vzorek tym-top"></span> o 1 SD a víc lepší než průměr, <span class="tym-vzorek tym-low"></span> o 1 SD a víc horší (s ohledem na to, zda je lepší vyšší, nebo nižší hodnota). Počítá se od 4 změřených.</li>
+        <li>Zašedlá hodnota je starší než 120 dní. Po najetí myší: datum, změna, odchylka od průměru.</li>
+        <li>Klepnutím na záhlaví se řadí. <em>CSV pro Excel</em> stáhne tabulku, <em>QR karty</em> vytiskne kartičky skupiny.</li>
+      </ul>
+    </section>
+
+    {# ================================================================== #}
+    <section id="zpravy" class="card p-5" data-kapitola>
+      <h2>Zprávy a AI</h2>
+      <p>Zpráva vzniká z testovacího dne a obsahuje: souhrn, výsledky všech testů (hodnota, pokusy, minulá hodnota, změna, posouzení, norma), vývoj v čase, stranové rozdíly, nálezy a doporučení.</p>
+      <ol>
+        <li>V testovacím dni <em>Vytvořit zprávu</em> → vznikne <span class="badge badge-accent">koncept</span>.</li>
+        <li><strong>Souhrn</strong> napíše {% if llm_enabled %}lokální model{% if llm_model %} ({{ llm_model }}){% endif %}{% else %}šablona (AI je vypnutá){% endif %}. Model dostává jen kódy a čísla, nikdy jméno. Text můžete libovolně opravit; číslo, které není ve výsledcích, aplikace po uložení ohlásí.</li>
+        <li><strong>Doporučení z pravidel</strong> vznikají z aktivních pravidel laboratoře. Vlastní doporučení napište do <em>Komentáře diagnostika</em>{% if llm_enabled %}, nebo si nechte navrhnout koncept tlačítkem <em>Navrhnout doporučení (AI)</em>{% endif %}.</li>
+        <li>Návrh od AI musíte projít a uložit – do té doby zprávu nejde vydat.</li>
+        <li><em>Otevřít celou zprávu</em> ukáže podobu pro tisk a předání.</li>
+        <li><strong>Vydat</strong> – vydání je <strong>nevratné</strong>. Vydaná zpráva se už nemění (je uložená přesně, jak byla vydána). Oprava = <em>Vytvořit novou verzi</em>, která ji nahradí.</li>
+        <li><strong>Předání</strong> (např. AKESO) jde zaznamenat jen u sportovce s platným souhlasem s předáním zprávy poskytovateli zdravotních služeb.</li>
+      </ol>
+      <p class="text-sm text-muted">Má-li sportovec platné omezení zátěže (z externího vyšetření), doporučení vyžadující zátěž se negenerují a karta sportovce na to upozorní.</p>
+    </section>
+
+    {# ================================================================== #}
+    <section id="katalog" class="card p-5" data-kapitola>
+      <h2>Katalog a nastavení</h2>
+      <p><a class="link" href="/admin/">Katalog a nastavení</a> je administrace. Vše, co se tu nastaví, jsou data – nic se neprogramuje.</p>
+      <div class="overflow-x-auto">
+        <table class="table napoveda-tabulka">
+          <thead><tr><th>Položka</th><th>K čemu</th></tr></thead>
+          <tbody>
+            <tr><td class="font-medium">Metriky</td><td>Název, jednotka, žádoucí směr (vyšší/nižší je lepší), <strong>MDC a SWC</strong> (bez MDC aplikace neřekne „zlepšení“), věrohodný rozsah, <strong>hodnota dne z pokusů</strong> (průměr / nejlepší / poslední), mez rozptylu pokusů, role v ODS.</td></tr>
+            <tr><td class="font-medium">Protokoly</td><td>Testy a jejich ukazatele (strany, režimy, rychlosti), počet pokusů, <strong>pauza mezi pokusy</strong>, zda se po testu zaznamenává <strong>RPE</strong>, klíčové metriky (dlaždice, týmový přehled).</td></tr>
+            <tr><td class="font-medium">Normy</td><td>Referenční hodnoty (průměr ± SD, percentily) podle sportu, pohlaví a věku – vždy s citací zdroje.</td></tr>
+            <tr><td class="font-medium">Pravidla</td><td>Podmínka nad výsledky → nález a doporučení. Zakládají se <strong>neaktivní</strong>; zapíná je ten, kdo za práh ručí. Kontraindikace pravidlo potlačí.</td></tr>
+            <tr><td class="font-medium">Články</td><td>Literatura k pravidlům. Navržené čekají na schválení, do zprávy jdou jen zařazené.</td></tr>
+            <tr><td class="font-medium">Dotazníky</td><td>Škály pro sportovce (zatím RPE). Další se dají připravit, v aplikaci se zatím nabízí jen RPE.</td></tr>
+            <tr><td class="font-medium">Profily importu</td><td>Který sloupec exportu z přístroje je která metrika.</td></tr>
+            <tr><td class="font-medium">Uživatelé</td><td>Účty, role, organizace (jen správce).</td></tr>
+            <tr><td class="font-medium">Souhlasy</td><td>U sportovce (úprava údajů): testování, sledování v čase, předání zprávy poskytovateli zdravotních služeb, výzkum. Bez souhlasu s předáním nejde zprávu předat.</td></tr>
+            <tr><td class="font-medium">Externí vyšetření</td><td>Omezení zátěže z lékařského vyšetření (bez diagnóz). Dokud platí, doporučení vyžadující zátěž se negenerují.</td></tr>
+            <tr><td class="font-medium">Identity sportovců</td><td>Šifrovaná jména a data narození – upravuje jen superuživatel.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-sm text-muted mt-2">Katalog se přenáší mezi počítači souborem přes git: <code>ulozit-katalog.bat</code> a <code>nacist-katalog.bat</code>.</p>
+    </section>
+
+    {# ================================================================== #}
+    <section id="vyhodnoceni" class="card p-5" data-kapitola>
+      <h2>Jak aplikace vyhodnocuje</h2>
+      <dl class="napoveda-pojmy">
+        <dt>Hodnota dne</dt>
+        <dd>Z platných pokusů hlavního měření dne – průměr, nebo nejlepší či poslední pokus podle nastavení metriky (u sprintu nejkratší čas, u stisku nejvyšší síla).</dd>
+        <dt>Změna a MDC</dt>
+        <dd>Změna proti poslednímu dřívějšímu měření téže metriky. Je-li menší než MDC (nejmenší detekovatelná změna), je „v pásmu chyby měření“. Větší = <em>zlepšení</em> / <em>zhoršení</em> podle žádoucího směru; u metrik bez směru (hmotnost) „posun“. Bez MDC „nelze posoudit“.</dd>
+        <dt>Stranové rozdíly</dt>
+        <dd>Rozdíl levé a pravé strany v % vyšší z obou hodnot; nad 10 % se zvýrazní. Ve zprávě „vyšší hodnota vlevo/vpravo“ – u času nebo výchylky nemusí vyšší znamenat lepší.</dd>
+        <dt>Rozptyl pokusů (CV)</dt>
+        <dd>Variační koeficient pokusů téhož dne. Nad mezí metriky aplikace upozorní, že je vhodné test zopakovat.</dd>
+        <dt>DSI</dt>
+        <dd>Dynamic Strength Index = vrcholová síla CMJ ÷ vrcholová síla IMTP. Dopočítá se sám, když má den oba testy.</dd>
+        <dt>EUR</dt>
+        <dd>Eccentric Utilization Ratio = výška CMJ ÷ výška SJ – jak sportovec využívá protipohyb.</dd>
+        <dt>CMJ podle ODS</dt>
+        <dd>Výsledek (výška, RSI) – příčina (síla, výkon) – strategie (hloubka, doba kontrakce). Zpráva díky tomu umí říct, proč se výskok změnil.</dd>
+        <dt>Wingate relativně</dt>
+        <dd>Výkon a práce na kg tělesné hmotnosti (TH) i beztukové hmoty (ATH), dopočítané ze složení těla téhož dne.</dd>
+        <dt>Norma a z-skóre</dt>
+        <dd>Je-li v katalogu norma pro sport, pohlaví a věk, zpráva ukáže průměr ± SD a o kolik SD se sportovec liší.</dd>
+      </dl>
+    </section>
+
+    {# ================================================================== #}
+    <section id="data" class="card p-5" data-kapitola>
+      <h2>Ochrana dat</h2>
+      <ul>
+        <li>Jméno a datum narození jsou oddělené od výsledků a <strong>šifrované</strong>. Výsledky jsou vedené pod kódem.</li>
+        <li>Jména vidí jen správce a diagnostik; ostatní role jen kódy.</li>
+        <li><strong>AI běží lokálně</strong> (LM Studio na tomto počítači / serveru fakulty) a dostává jen kódy a čísla. Nic se neposílá do cizích služeb.</li>
+        <li>Kdo si koho prohlížel a co měnil, se zapisuje do auditního záznamu.</li>
+        <li>Vydaná zpráva je neměnná; předání jen se souhlasem.</li>
+        <li>Po uložení importu se osobní údaje z mezikroku smažou.</li>
+        <li><strong>Ukázka na internetu (PythonAnywhere) je jen pro vygenerovaná data</strong> – reálná data sportovců tam nepatří.</li>
+      </ul>
+    </section>
+
+    {# ================================================================== #}
+    <section id="technika" class="card p-5" data-kapitola>
+      <h2>Spuštění a technika <span class="badge ml-1">pro správce</span></h2>
+      <div class="overflow-x-auto">
+        <table class="table napoveda-tabulka">
+          <thead><tr><th>Soubor</th><th>Kdy</th></tr></thead>
+          <tbody>
+            <tr><td><code>zalozit.bat</code></td><td>Jednou na novém počítači – založí prostředí a databázi.</td></tr>
+            <tr><td><code>spustit.bat</code></td><td>Běžné spuštění: stáhne novou verzi, upraví databázi, doplní katalog, otevře aplikaci. Okno nechte otevřené.</td></tr>
+            <tr><td><code>spustit-sit.bat</code></td><td>Totéž, ale aplikace je dostupná i z tabletu a telefonů ve Wi-Fi laboratoře (adresa <code>http://192.168.x.x:8000</code>, najdete ji v okně na řádku IPv4). Jen v síti laboratoře.</td></tr>
+            <tr><td><code>ulozit-katalog.bat</code> / <code>nacist-katalog.bat</code></td><td>Přenos katalogu (metriky, MDC, pravidla, baterie) mezi počítači přes git.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="mt-3">
+        <li><strong>AI:</strong> {% if llm_enabled %}zapnutá{% if llm_model %}, model {{ llm_model }}{% endif %}{% else %}vypnutá – souhrn skládá šablona{% endif %}. Nastavení v souboru <code>.env</code> (LLM_ENABLED, LLM_MODEL); v LM Studiu musí být model načtený a server spuštěný.</li>
+        <li><strong>Po aktualizaci vypadá stránka rozházeně?</strong> Stiskněte <kbd>Ctrl</kbd>+<kbd>F5</kbd>.</li>
+        <li>Podrobné návody jsou ve složce <code>docs/</code> v repozitáři (import z VALD, diagnostika, baterie, terénní testování, lokální AI, práce na více počítačích) a ukázka na PythonAnywhere v <code>deploy/pythonanywhere.md</code>.</li>
+      </ul>
+    </section>
+
+    {# ================================================================== #}
+    <section id="tipy" class="card p-5" data-kapitola>
+      <h2>Tipy a zkratky</h2>
+      <ul>
+        <li><kbd>/</kbd> – skok do hledání sportovce (kdekoli v aplikaci).</li>
+        <li><kbd>Mezerník</kbd> – start / stop otevřených stopek.</li>
+        <li><em>Tmavý režim</em> – přepínač vlevo dole; aplikace si ho pamatuje.</li>
+        <li>Tlačítko <em>Nové měření</em> je vpravo nahoře na každé stránce.</li>
+        <li>V tabulkách měření, zpráv a sportovců stačí klepnout kamkoli na řádek.</li>
+        <li>Na mobilu se menu otevírá tlačítkem vlevo nahoře.</li>
+      </ul>
+    </section>
+
+    {# ================================================================== #}
+    <section id="faq" class="card p-5" data-kapitola>
+      <h2>Časté otázky</h2>
+      <details><summary>Proč aplikace píše „v pásmu chyby měření“, i když se hodnota změnila?</summary>
+        <p>Změna je menší než MDC dané metriky – mohla vzniknout jen nepřesností měření. Bez vyplněné MDC aplikace napíše „nelze posoudit“. MDC doplňte v katalogu z literatury nebo z vlastní reliability studie.</p></details>
+      <details><summary>Týmový přehled nebo Dnešní testování jsou prázdné.</summary>
+        <p>Sport nemá baterii testů (nastavte v Sporty a testy), nebo sportovci nemají vyplněný sport či kategorii odpovídající baterii.</p></details>
+      <details><summary>Import nepoznal sportovce a chce založit nového.</summary>
+        <p>Jméno v exportu je zapsané jinak (překlep, jiné pořadí) a sportovec ještě nemá uložené ID z VALD. V náhledu importu je vidět, koho aplikace založí jako nového – takový import zrušte, jméno opraví superuživatel v <em>Katalog a nastavení → Identity sportovců</em> a soubor nahrajte znovu. Jakmile aplikace ID z VALD jednou uloží, příště sportovce pozná podle něj.</p></details>
+      <details><summary>Zprávu nejde vydat.</summary>
+        <p>V komentáři je neprojitý návrh od AI. Projděte ho, opravte nebo smažte a klikněte <em>Uložit úpravy</em>.</p></details>
+      <details><summary>Ve vydané zprávě je chyba.</summary>
+        <p>Vydaná zpráva se nemění. U zprávy klikněte <em>Vytvořit novou verzi</em>, opravte a vydejte – nová verze tu původní nahradí.</p></details>
+      <details><summary>Telefon sportovce neotevře QR kód pro RPE.</summary>
+        <p>Aplikace běží jen pro tento počítač. Spusťte ji přes <code>spustit-sit.bat</code> a telefon připojte do stejné Wi-Fi. Mezitím zapište RPE sami tlačítkem <em>Zapsat</em>.</p></details>
+      <details><summary>AI nenapsala souhrn.</summary>
+        <p>LM Studio neběží nebo nemá načtený model. Souhrn pak sestaví šablona – zprávu lze normálně dokončit. Zkontrolujte, že je v LM Studiu spuštěný server a model načtený.</p></details>
+      <details><summary>Kde změním pořadí testů?</summary>
+        <p>V Sporty a testy šipkami u testů baterie. Podle toho se řadí testy v testovacím dni i „Uložit a další“.</p></details>
+    </section>
+  </div>
+</div>
+{% endblock %}
