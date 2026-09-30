@@ -288,3 +288,14 @@ def test_export_z_valdu_se_sparuje_s_klientem_z_objednavky(lab):
     assert planned.external_ref and Measurement.objects.filter(
         trial__protocol_run=planned, metric__code="cmj_height").count() == 2
     assert SubjectExternalId.objects.filter(subject=jana, system="vald", value="vald-77").exists()
+
+
+def test_prikaz_doplni_ukazku_objednavek_do_existujici_databaze(db, settings):
+    settings.IDENTITY_ENCRYPTION_KEY = Fernet.generate_key().decode()
+    call_command("seed_catalog", verbosity=0)
+    Organization.objects.create(name="FTVS", short_name="ftvs")
+    call_command("ukazka_objednavek", verbosity=0)
+    assert Offer.objects.count() == 9 and Slot.objects.exists()
+    assert BookingRequest.objects.filter(status="nova").count() == 2
+    call_command("ukazka_objednavek", verbosity=0)          # podruhé nic nezdvojí
+    assert BookingRequest.objects.count() == 2 and Offer.objects.count() == 9
