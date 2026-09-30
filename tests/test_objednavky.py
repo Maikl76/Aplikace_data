@@ -222,3 +222,24 @@ def test_sprava_nabidky_a_hromadne_vypsani_terminu(lab):
     staff.post("/objednavky/terminy/", {"akce": "smazat", "slot": slot.pk})
     slot.refresh_from_db()
     assert not slot.is_active
+
+
+def test_administrace_presmeruje_do_aplikace_a_prehled_ukaze_objednavky(lab):
+    org, offers, slot, _, staff = lab
+    Client().post("/objednavka/", jednotlivec(slot, [offers["wingate"]]))
+    booking = BookingRequest.objects.get()
+    spravce = Client()
+    spravce.force_login(User.objects.create_superuser("root", "r@example.cz", "x"))  # bez organizace
+    assert spravce.get("/admin/booking/bookingrequest/").url == "/objednavky/"
+    assert spravce.get(f"/admin/booking/bookingrequest/{booking.pk}/change/").url == \
+        f"/objednavky/{booking.pk}/"
+    assert spravce.get("/admin/booking/offer/add/").url == "/objednavky/nabidka/nova/"
+    assert "Schválit a založit testování" in spravce.get(f"/objednavky/{booking.pk}/").content.decode()
+    # superuživatel bez organizace může založit položku nabídky
+    spravce.post("/objednavky/nabidka/nova/", {"kind": "test", "name": "Test X", "price": 100,
+                                               "duration_min": 30, "order": 0, "is_active": "on"})
+    assert Offer.objects.get(name="Test X").organization == org
+
+    prehled = staff.get("/").content.decode()
+    assert "Objednávky ke schválení" in prehled and booking.number in prehled
+    assert 'href="/objednavka/"' in prehled

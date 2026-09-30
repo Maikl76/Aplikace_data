@@ -68,5 +68,36 @@
   </section>
 </div>
 
+{% if user.sees_identity %}
+<section class="card min-w-0 mt-4">
+  <div class="px-4 pt-4 pb-2 flex flex-wrap items-baseline justify-between gap-2">
+    <h2 class="card-title">Objednávky ke schválení</h2>
+    <span class="flex gap-3 text-sm">
+      <a href="{% url 'booking_form' %}" target="_blank" class="link">formulář pro klienty ↗</a>
+      <a href="{% url 'booking_list' %}" class="link">všechny objednávky</a>
+    </span>
+  </div>
+  <ul>
+    {% for b in objednavky %}
+      <li class="border-t" style="border-color: var(--border)">
+        <a href="{% url 'booking_detail' b.pk %}" class="flex items-center gap-3 px-4 py-3">
+          <span class="avatar w-9 h-9">{% icon "inbox" "w-4 h-4" %}</span>
+          <span class="flex-1 min-w-0 leading-tight">
+            <span class="block text-sm font-medium truncate">{% if b.team_name %}{{ b.team_name }}{% else %}{{ b.contact_name }}{% endif %}</span>
+            <span class="block text-xs text-muted">{{ b.number }} · termín {{ b.slot.start|date:"j. n. H:i" }}</span>
+          </span>
+          <span class="badge badge-warn">vyřídit</span>
+        </a>
+      </li>
+    {% empty %}
+      <li class="px-4 py-4 text-sm text-muted border-t" style="border-color: var(--border)">
+        Žádná objednávka nečeká. Klienti se objednávají přes <a class="link" href="{% url 'booking_form' %}" target="_blank">formulář</a>;
+        nabídku a volné termíny nastavíte v <a class="link" href="{% url 'booking_list' %}">Objednávkách</a>.
+      </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
 <p class="mt-6 text-xs text-muted">V databázi je {{ pocet_mereni }} naměřených hodnot.</p>
 {% endblock %}

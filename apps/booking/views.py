@@ -32,7 +32,8 @@ def lab_only(view):
 
 
 def _org(request):
-    return request.user.organization
+    # Superuživatel nemusí mít organizaci vyplněnou – pak ta, pro kterou je formulář.
+    return request.user.organization or services.organization()
 
 
 # --- žádosti -----------------------------------------------------------------

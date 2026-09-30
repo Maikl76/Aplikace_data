@@ -33,7 +33,16 @@ def dashboard(request):
     for r in draft_list:
         r.jmeno = draft_names.get(r.subject_id) or r.subject.code
 
+    objednavky = []
+    if request.user.sees_identity:
+        from apps.booking.models import BookingRequest
+
+        objednavky = list(BookingRequest.objects.for_user(request.user)
+                          .filter(status=BookingRequest.Status.NEW)
+                          .select_related("slot").order_by("slot__start")[:5])
+
     context = {
+        "objednavky": objednavky,
         "tiles": [
             ("Aktivní sportovci", Subject.objects.for_user(request.user)
              .filter(is_active=True).count(), "users"),
