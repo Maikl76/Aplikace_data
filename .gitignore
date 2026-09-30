@@ -26,3 +26,6 @@ db.sqlite3
 *.xlsx
 !legacy/**/*.xlsx
 .predchozi-verze
+
+# balíčky pro server bez internetu (deploy/offline/)
+/dist/

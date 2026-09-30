@@ -1,4 +1,6 @@
-FROM python:3.12-slim
+# Základní obraz jde změnit (např. na zrcadlo registru, když Docker Hub omezuje stahování).
+ARG BASE_IMAGE=python:3.12-slim
+FROM ${BASE_IMAGE}
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \

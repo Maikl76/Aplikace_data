@@ -35,6 +35,11 @@ se po spuštění provozu upravuje **přímo na serveru** v aplikaci.
 
 ## Nasazení na server
 
+> **Server bez internetu?** Pak se místo `git pull` přenáší balíček na
+> flash disku – postup je v [offline-server.md](offline-server.md). Cesta
+> úpravy (kroky 1–3) je stejná, jen se v kroku 4 stáhne balíček z vydání
+> na GitHubu.
+
 Přihlásit se na server (SSH, dá IT) a ve složce aplikace:
 
 ```

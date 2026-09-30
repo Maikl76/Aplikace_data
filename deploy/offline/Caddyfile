@@ -1,0 +1,9 @@
+# Adresa serveru a certifikát se berou z .env (FTVS_HOST, FTVS_TLS).
+#   FTVS_TLS nevyplněno        → vlastní certifikát Caddy (prohlížeč varuje,
+#                                dokud se kořenový certifikát nenainstaluje)
+#   FTVS_TLS=/certs/cert.pem /certs/key.pem → certifikát od IT fakulty
+{$FTVS_HOST} {
+	tls {$FTVS_TLS:internal}
+	encode gzip
+	reverse_proxy web:8000
+}

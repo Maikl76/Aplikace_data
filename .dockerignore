@@ -36,3 +36,6 @@ __pycache__/
 .devcontainer/
 *.md
 !README.md
+
+# sestavené balíčky pro server bez internetu
+/dist/

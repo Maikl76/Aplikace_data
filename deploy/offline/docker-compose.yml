@@ -1,0 +1,72 @@
+# Provoz na serveru BEZ internetu. Obrazy se nestahují, načtou se z balíčku
+# (nainstalovat-vydani.sh). Verzi obrazu aplikace doplní sestavit-balicek.sh.
+#
+# Spouští se přes nainstalovat-vydani.sh, ne ručně – ten nastaví FTVS_DIR
+# (kde leží .env, zálohy a certifikáty) a projekt „ftvs“, aby data přežila
+# přechod na novou verzi.
+
+services:
+  db:
+    image: __POSTGRES_IMAGE__
+    pull_policy: never
+    environment:
+      POSTGRES_USER: ftvs
+      POSTGRES_DB: ftvs
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?chybí DB_PASSWORD v .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ftvs"]
+      interval: 5s
+      retries: 20
+    restart: unless-stopped
+
+  web:
+    image: ftvs-web:__VERZE__
+    pull_policy: never
+    env_file: ${FTVS_DIR:?}/.env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.prod
+    # AI zpráva se píše během požadavku; na serveru bez grafické karty to trvá
+    # minuty, proto delší limit než v obrazu (musí být nad LLM_TIMEOUT = 300 s).
+    # Vlákna: jedna dlouhá zpráva nezablokuje ostatní laboratoře.
+    command: >-
+      gunicorn config.wsgi:application --bind 0.0.0.0:8000
+      --workers 3 --threads 4 --timeout 330 --access-logfile -
+    volumes:
+      - media:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # HTTPS. Bez internetu nejde certifikát Let's Encrypt – použije se
+  # certifikát od IT (FTVS_TLS v .env), jinak vlastní certifikát Caddy.
+  caddy:
+    image: __CADDY_IMAGE__
+    pull_policy: never
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file: ${FTVS_DIR:?}/.env
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${FTVS_DIR:?}/certs:/certs:ro
+      - caddydata:/data
+    depends_on:
+      - web
+    restart: unless-stopped
+
+  # Jazykový model – jen když je nainstalovaný AI balíček (profil „ai“).
+  llm:
+    image: __OLLAMA_IMAGE__
+    pull_policy: never
+    profiles: ["ai"]
+    volumes:
+      - ${FTVS_DIR:?}/ai:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  media:
+  caddydata:

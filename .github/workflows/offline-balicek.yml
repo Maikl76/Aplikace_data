@@ -1,0 +1,83 @@
+# Balíčky pro server BEZ internetu (přenos na flash disku).
+# Návod: docs/offline-server.md
+#
+# - Označení verze (tag v1.0, v1.1…) → balíček aplikace se přiloží
+#   k vydání na GitHubu (Releases).
+# - Ručně (Actions → Balíček pro server bez internetu → Run workflow):
+#   balíček aplikace z vybrané větve jako artefakt ke stažení, případně
+#   jednorázový balíček s jazykovým modelem (přiloží se k vydání „ai-…“).
+
+name: Balíček pro server bez internetu
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      verze:
+        description: "Označení balíčku (např. v1.1-zkouska)"
+        required: true
+        default: "zkouska"
+      ai_model:
+        description: "Místo aplikace zabalit jazykový model (např. gemma3:4b); prázdné = aplikace"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  aplikace:
+    if: github.event_name == 'push' || inputs.ai_model == ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sestavit balíček
+        run: bash deploy/offline/sestavit-balicek.sh "${{ github.ref_type == 'tag' && github.ref_name || inputs.verze }}"
+
+      - name: Přiložit k vydání
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release view "$TAG" >/dev/null 2>&1 \
+            || gh release create "$TAG" --title "$TAG" --notes "Instalace na server bez internetu: docs/offline-server.md"
+          gh release upload "$TAG" dist/ftvs-*.tar.gz --clobber
+
+      - name: Artefakt ke stažení
+        if: github.ref_type != 'tag'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftvs-${{ inputs.verze }}
+          path: dist/ftvs-*.tar.gz
+          compression-level: 0
+          retention-days: 7
+
+  ai:
+    if: github.event_name == 'workflow_dispatch' && inputs.ai_model != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stáhnout a zabalit model
+        run: bash deploy/offline/pripravit-ai-balicek.sh "${{ inputs.ai_model }}"
+
+      # Soubor k vydání smí mít nejvýš 2 GB – model se rozdělí na části,
+      # instalační skript si je na serveru sám spojí.
+      - name: Přiložit k vydání
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MODEL: ${{ inputs.ai_model }}
+        run: |
+          file="$(ls dist/ftvs-ai-*.tar.gz)"
+          split -b 1900M -d "$file" "$file.part-"
+          rm "$file"
+          tag="ai-${MODEL//[:\/]/-}"
+          gh release view "$tag" >/dev/null 2>&1 \
+            || gh release create "$tag" --prerelease --title "Jazykový model $MODEL" \
+                 --notes "Stáhnout všechny části (.part-00, .part-01…) do jedné složky. Návod: docs/offline-server.md"
+          gh release upload "$tag" dist/ftvs-ai-*.part-* --clobber

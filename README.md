@@ -68,7 +68,8 @@ DSI, ODS a kontrola pokusů v [docs/diagnostika.md](docs/diagnostika.md),
 baterie testů, Dnešní testování a týmový přehled v [docs/baterie.md](docs/baterie.md),
 stopky, RPE, QR karty a tablet v síti v [docs/terenni-testovani.md](docs/terenni-testovani.md),
 objednávky od klientů v [docs/objednavky.md](docs/objednavky.md),
-aktualizace aplikace na serveru v [docs/aktualizace-serveru.md](docs/aktualizace-serveru.md).
+aktualizace aplikace na serveru v [docs/aktualizace-serveru.md](docs/aktualizace-serveru.md),
+server bez internetu (instalace a aktualizace z flash disku) v [docs/offline-server.md](docs/offline-server.md).
 
 Generování PDF (`requirements/pdf.txt`) je záměrně bokem — WeasyPrint
 potřebuje systémové knihovny, které se instalují nepříjemně. Bez něj
