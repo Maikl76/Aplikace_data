@@ -25,3 +25,4 @@ db.sqlite3
 /data/
 *.xlsx
 !legacy/**/*.xlsx
+.predchozi-verze

@@ -37,4 +37,5 @@ class Command(BaseCommand):
         call_command("seed_roles", verbosity=0)
         call_command("seed_demo", subjects=options["subjects"],
                      sessions=options["sessions"], verbosity=1)
+        call_command("nacist_ukazky_zprav", verbosity=0)
         self.stdout.write(self.style.SUCCESS("Ukázková instance je připravená."))

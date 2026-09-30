@@ -181,6 +181,14 @@ Smaže ukázková data a vygeneruje nová (sportovce, měření, baterie).
 Přihlášení `admin` zůstane s heslem z `.env`. Jde to jen v ukázkovém
 režimu – ostrá data tímhle smazat nejde.
 
+## Ukázková zpráva od AI
+
+Na PythonAnywhere jazykový model neběží. Skutečný výstup modelu se sem dostane
+takto: na laboratorním PC (se zapnutým LM Studiem) vytvořte u **ukázkového**
+sportovce (FTVS-00xx, bez jména) zprávu, vydejte ji a spusťte
+`ulozit-ukazku-zpravy.bat`. Po aktualizaci ukázky (`git pull`, `pa-update.sh`)
+se objeví mezi zprávami jako `AI-…`. Zprávu sportovce se jménem příkaz odmítne.
+
 ## Pravidelné prodloužení
 
 Bezplatná webová aplikace se musí **jednou měsíčně** prodloužit — na

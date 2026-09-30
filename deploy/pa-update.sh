@@ -53,6 +53,8 @@ main() {
         "$PY" manage.py prepocitat_odvozene
     fi
 
+    # Ukázkové zprávy od AI uložené z laboratorního počítače (demo/ukazkove_zpravy/).
+    "$PY" manage.py nacist_ukazky_zprav
     "$PY" manage.py collectstatic --noinput --verbosity 0
 
     # Změna času u WSGI souboru = restart webové aplikace na PythonAnywhere.

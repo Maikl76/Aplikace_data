@@ -402,12 +402,14 @@
             <tr><td><code>zalozit.bat</code></td><td>Jednou na novém počítači – založí prostředí a databázi.</td></tr>
             <tr><td><code>spustit.bat</code></td><td>Běžné spuštění: stáhne novou verzi, upraví databázi, doplní katalog, otevře aplikaci. Okno nechte otevřené.</td></tr>
             <tr><td><code>spustit-sit.bat</code></td><td>Totéž, ale aplikace je dostupná i z tabletu a telefonů ve Wi-Fi laboratoře (adresa <code>http://192.168.x.x:8000</code>, najdete ji v okně na řádku IPv4). Jen v síti laboratoře.</td></tr>
+            <tr><td><code>ulozit-ukazku-zpravy.bat</code></td><td>Uloží poslední vydanou zprávu od AI z ukázkových dat, aby se ukázala i na PythonAnywhere (tam model neběží).</td></tr>
             <tr><td><code>ulozit-katalog.bat</code> / <code>nacist-katalog.bat</code></td><td>Přenos katalogu (metriky, MDC, pravidla, baterie) mezi počítači přes git.</td></tr>
           </tbody>
         </table>
       </div>
       <ul class="mt-3">
         <li><strong>AI:</strong> {% if llm_enabled %}zapnutá{% if llm_model %}, model {{ llm_model }}{% endif %}{% else %}vypnutá – souhrn skládá šablona{% endif %}. Nastavení v souboru <code>.env</code> (LLM_ENABLED, LLM_MODEL); v LM Studiu musí být model načtený a server spuštěný.</li>
+        <li><strong>Na serveru:</strong> nová verze se nasazuje příkazem <code>bash deploy/server-update.sh</code> (záloha, úprava databáze, restart, kontrola; <code>--zpet</code> vrátí předchozí verzi). Postup od úpravy po nasazení je v <code>docs/aktualizace-serveru.md</code>.</li>
         <li><strong>Po aktualizaci vypadá stránka rozházeně?</strong> Stiskněte <kbd>Ctrl</kbd>+<kbd>F5</kbd>.</li>
         <li>Podrobné návody jsou ve složce <code>docs/</code> v repozitáři (import z VALD, diagnostika, baterie, terénní testování, lokální AI, práce na více počítačích) a ukázka na PythonAnywhere v <code>deploy/pythonanywhere.md</code>.</li>
       </ul>
