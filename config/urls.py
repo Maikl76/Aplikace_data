@@ -20,4 +20,7 @@ urlpatterns = [
     path("mereni/", include("apps.measurements.urls")),
     path("zpravy/", include("apps.reports.urls")),
     path("import/", include("apps.ingest.urls")),
+    path("objednavky/", include("apps.booking.urls")),
+    # Veřejný objednávkový formulář pro klienty – bez přihlášení.
+    path("objednavka/", include("apps.booking.public_urls")),
 ]

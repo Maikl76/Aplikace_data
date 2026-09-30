@@ -49,6 +49,7 @@ _PATHS = {
     "printer": '<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/>'
                '<path d="M7 14h10v7H7z"/>',
     "info": '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.5"/>',
+    "inbox": '<path d="M3 13h5l1.5 3h5L16 13h5"/><path d="M5 5h14l2 8v6H3v-6z"/>',
     "grid": '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 4v16"/>',
     "download": '<path d="M12 4v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/>',
 }
@@ -86,16 +87,18 @@ def initials(name: str) -> str:
 
 
 @register.simple_tag(takes_context=True)
-def nav_link(context, url_name: str, label: str, icon_name: str, prefix: str = ""):
-    """Položka menu; aktivní podle začátku cesty."""
+def nav_link(context, url_name: str, label: str, icon_name: str, prefix: str = "",
+             badge: int = 0):
+    """Položka menu; aktivní podle začátku cesty. ``badge`` = počet k vyřízení."""
     from django.urls import reverse
 
     request = context.get("request")
     url = reverse(url_name) if not url_name.startswith("/") else url_name
     path = request.path if request else ""
     active = path == url if url == "/" else path.startswith(prefix or url)
-    return format_html('<a href="{}" class="nav-link{}">{}<span>{}</span></a>',
-                       url, " active" if active else "", mark_safe(icon(icon_name)), label)
+    count = format_html('<span class="nav-pocet" title="k vyřízení">{}</span>', badge) if badge else ""
+    return format_html('<a href="{}" class="nav-link{}">{}<span>{}</span>{}</a>',
+                       url, " active" if active else "", mark_safe(icon(icon_name)), label, count)
 
 
 @register.simple_tag

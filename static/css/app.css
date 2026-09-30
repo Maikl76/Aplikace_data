@@ -324,3 +324,34 @@ th[aria-sort] .tym-razeni { color: var(--accent-strong); }
   .napoveda-tabulka td:first-child { font-weight: 600; color: var(--text); }
   .napoveda-tabulka tbody tr:hover { background: transparent; }
 }
+
+/* veřejná objednávka */
+.objednavka h2 { display: flex; align-items: center; gap: .6rem; font-size: 1.1rem; font-weight: 650; margin-bottom: .8rem; }
+.objednavka .krok {
+  display: inline-flex; align-items: center; justify-content: center; width: 1.7rem; height: 1.7rem;
+  border-radius: 999px; background: var(--accent); color: #fff; font-size: .85rem; flex: none;
+}
+.objednavka .popis { display: block; font-size: .8rem; color: var(--text-2); }
+.volba {
+  display: flex; gap: .7rem; align-items: flex-start; padding: .8rem .9rem; border-radius: 10px;
+  border: 1px solid var(--border-strong); cursor: pointer; background: var(--surface);
+}
+.volba input { margin-top: .2rem; accent-color: var(--accent); }
+.volba:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.volba-mala { padding: .55rem .8rem; }
+.cena { font-weight: 650; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ucastnik { padding: .9rem; border: 1px solid var(--border); border-radius: 10px; }
+.ucastnik + .ucastnik { margin-top: .6rem; }
+.termin {
+  position: relative; display: inline-flex; flex-direction: column; align-items: center; min-width: 5.5rem;
+  padding: .45rem .7rem; border-radius: 9px; border: 1px solid var(--border-strong); cursor: pointer;
+  background: var(--surface); color: var(--text-2);
+}
+.termin input { position: absolute; opacity: 0; pointer-events: none; }
+.termin:has(input:checked) { background: var(--accent); border-color: var(--accent); color: #fff; }
+.termin:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
+.souhrn { box-shadow: 0 8px 24px rgba(16, 24, 40, .14); }
+.nav-pocet {
+  margin-left: auto; min-width: 1.35rem; padding: 0 .4rem; border-radius: 999px; text-align: center;
+  font-size: .72rem; font-weight: 650; line-height: 1.35rem; background: var(--accent); color: #fff;
+}

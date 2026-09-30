@@ -1,0 +1,21 @@
+{% extends "public_base.html" %}
+{% load ui %}
+{% block title %}Objednávka odeslána – FTVS UK{% endblock %}
+{% block content %}
+<div class="card p-6 text-center">
+  <span class="avatar w-12 h-12 mb-3" style="background: var(--good-soft); color: var(--good)">{% icon "check" "w-6 h-6" %}</span>
+  {% if booking and booking.status == "overeni" %}
+    <h1 class="text-xl font-semibold mb-1">Zbývá potvrdit e-mail</h1>
+    <p class="text-2">Poslali jsme vám e-mail s odkazem. Objednávku potvrdíte kliknutím na něj – teprve pak ji uvidí laboratoř.</p>
+  {% else %}
+    <h1 class="text-xl font-semibold mb-1">Děkujeme, objednávka je odeslaná</h1>
+    <p class="text-2">Laboratoř ji zkontroluje a potvrdí{% if sent %} e-mailem{% endif %}.</p>
+  {% endif %}
+  {% if booking %}
+    <p class="text-sm text-muted mt-3">Číslo objednávky <strong>{{ booking.number }}</strong> ·
+      termín {{ booking.slot.start|date:"j. n. Y H:i" }}</p>
+    <a class="btn mt-4" href="{% url 'booking_status' booking.token %}">Stav objednávky</a>
+    <p class="text-xs text-muted mt-2">Odkaz si uložte – ukáže, zda je objednávka potvrzená.</p>
+  {% endif %}
+</div>
+{% endblock %}

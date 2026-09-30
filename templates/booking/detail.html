@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+<div class="mb-5">
+  <a href="{% url 'booking_list' %}?stav={{ booking.status }}" class="text-sm link">← Objednávky</a>
+  <h1 class="text-2xl font-semibold mt-1 flex flex-wrap items-center gap-2">
+    {{ booking.number }}
+    {% if booking.status == "nova" %}<span class="badge badge-warn">ke schválení</span>
+    {% elif booking.status == "schvalena" %}<span class="badge badge-good">schválená</span>
+    {% elif booking.status == "zamitnuta" %}<span class="badge badge-bad">zamítnutá</span>
+    {% else %}<span class="badge">čeká na potvrzení e-mailu</span>{% endif %}
+  </h1>
+  <p class="text-sm text-muted">přijato {{ booking.created_at|date:"j. n. Y H:i" }}{% if booking.decided_at %} · vyřídil {{ booking.decided_by|default:"—" }} {{ booking.decided_at|date:"j. n. Y H:i" }}{% endif %}</p>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-4">
+  <div class="lg:col-span-2 space-y-4 min-w-0">
+    <section class="card p-4">
+      <h2 class="card-title mb-3">Objednávka</h2>
+      <dl class="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+        <div><dt class="text-muted">Kdo</dt><dd>{{ booking.get_kind_display }}{% if booking.team_name %} – <strong>{{ booking.team_name }}</strong>{% endif %}</dd></div>
+        <div><dt class="text-muted">Termín</dt><dd class="font-medium">{{ booking.slot.start|date:"l j. n. Y, H:i"|capfirst }}{% if booking.slot.location %}, {{ booking.slot.location }}{% endif %}</dd></div>
+        <div><dt class="text-muted">Sport / kategorie</dt><dd>{{ booking.sport_name|default:"—" }}{% if booking.category %} · {{ booking.category }}{% endif %}</dd></div>
+        <div><dt class="text-muted">Cena (podle ceníku při objednání)</dt><dd>{{ booking.price_total }} Kč</dd></div>
+        <div class="sm:col-span-2"><dt class="text-muted">Objednané testy</dt><dd>
+          {% for o in booking.offers.all %}<span class="badge mr-1">{{ o.name }} · {{ o.price }} Kč</span>{% endfor %}
+          <div class="text-xs text-muted mt-1">Založí se: {% for p in protocols %}{{ p.name }}{% if not forloop.last %}, {% endif %}{% empty %}žádný test – doplňte testy k položkám nabídky{% endfor %}</div>
+        </dd></div>
+        <div><dt class="text-muted">Cíl</dt><dd>{{ booking.get_goal_display }}</dd></div>
+        <div><dt class="text-muted">Úroveň / období</dt><dd>{{ booking.get_level_display }}{% if booking.season_phase %} · {{ booking.get_season_phase_display }}{% endif %}</dd></div>
+        {% if booking.goal_note %}<div class="sm:col-span-2"><dt class="text-muted">Očekávání klienta</dt><dd class="whitespace-pre-line">{{ booking.goal_note }}</dd></div>{% endif %}
+      </dl>
+    </section>
+
+    <section class="card min-w-0">
+      <div class="px-4 pt-4 pb-2"><h2 class="card-title">Účastníci ({{ participants|length }})</h2></div>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead><tr><th>Jméno</th><th>Narozen/a</th><th>Zranění / omezení</th><th>V aplikaci</th></tr></thead>
+          <tbody>
+            {% for p in participants %}
+              <tr>
+                <td class="font-medium whitespace-nowrap">{{ p.full_name }}<div class="text-xs text-muted">{{ p.get_sex_display }}</div></td>
+                <td class="tabular-nums whitespace-nowrap">{{ p.birth_date|date:"j. n. Y" }}<div class="text-xs {% if p.vek < 18 %}font-semibold{% else %}text-muted{% endif %}" {% if p.vek < 18 %}style="color: var(--warn)"{% endif %}>{{ p.vek }} let{% if p.vek < 18 %} – nezletilý{% endif %}</div></td>
+                <td class="text-sm">{% if p.injury %}<span style="color: var(--warn)">{{ p.injury }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                <td class="text-sm whitespace-nowrap">
+                  {% if p.subject %}
+                    <a class="link" href="{% url 'subject_detail' p.subject.pk %}">{{ p.subject.code }}</a>
+                    {% if p.session %} · <a class="link" href="{% url 'session_detail' p.session.pk %}">testovací den</a>{% endif %}
+                  {% elif p.shoda %}
+                    <span class="badge badge-good">už u nás byl</span> <a class="link" href="{% url 'subject_detail' p.shoda.pk %}">{{ p.shoda.code }}</a>
+                    <div class="text-xs text-muted">podle: {{ p.shoda_jak }}</div>
+                  {% elif booking.status == "nova" %}
+                    <span class="badge badge-accent">nový – založí se</span>
+                  {% else %}—{% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <div class="space-y-4 min-w-0">
+    <section class="card p-4 text-sm">
+      <h2 class="card-title mb-2">Kontakt</h2>
+      <div class="font-medium">{{ booking.contact_name }}</div>
+      <div><a class="link" href="mailto:{{ booking.email }}">{{ booking.email }}</a></div>
+      {% if booking.phone %}<div><a class="link" href="tel:{{ booking.phone }}">{{ booking.phone }}</a></div>{% endif %}
+      <h3 class="font-semibold mt-3 mb-1">Souhlasy</h3>
+      <ul class="space-y-0.5">
+        <li>{% if booking.consent_testing %}✓{% else %}✗{% endif %} testování a zpracování údajů</li>
+        <li>{% if booking.consent_handover %}✓{% else %}✗{% endif %} předání zprávy lékaři</li>
+        {% if booking.consent_guardian %}<li>✓ zákonní zástupci nezletilých</li>{% endif %}
+      </ul>
+    </section>
+
+    {% if booking.status == "nova" %}
+      <form method="post" action="{% url 'booking_decide' booking.pk %}" class="card p-4 space-y-3">
+        {% csrf_token %}
+        <h2 class="card-title">Vyřídit</h2>
+        {% if slots %}
+          <label class="block text-sm"><span class="text-2">Termín</span>
+            <select name="termin" class="input mt-1">
+              <option value="{{ booking.slot_id }}">{{ booking.slot.start|date:"j. n. Y H:i" }} (vybral klient)</option>
+              {% for s in slots %}<option value="{{ s.pk }}">{{ s.start|date:"j. n. Y H:i" }}{% if s.location %} – {{ s.location }}{% endif %} (volno {{ s.volno }})</option>{% endfor %}
+            </select></label>
+        {% endif %}
+        <label class="block text-sm"><span class="text-2">Zpráva klientovi (přijde e-mailem)</span>
+          <textarea name="zprava" rows="3" class="input mt-1" placeholder="např. vezměte si sportovní oblečení a obuv, 2 h před testem nejezte"></textarea></label>
+        <button type="submit" name="akce" value="schvalit" class="btn btn-primary w-full">{% icon "check" %}Schválit a založit testování</button>
+        <button type="submit" name="akce" value="zamitnout" class="btn w-full"
+                onclick="return confirm('Opravdu zamítnout? Termín se uvolní.')">Zamítnout</button>
+        <p class="text-xs text-muted">Schválením se najdou nebo založí sportovci (jméno šifrovaně), uloží souhlasy a na termín se založí testovací dny s objednanými testy.</p>
+      </form>
+    {% elif booking.decision_note %}
+      <section class="card p-4 text-sm"><h2 class="card-title mb-1">Zpráva klientovi</h2><p class="whitespace-pre-line text-2">{{ booking.decision_note }}</p></section>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

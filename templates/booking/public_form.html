@@ -1,0 +1,242 @@
+{% extends "public_base.html" %}
+{% load ui static %}
+{% block title %}Objednávka testování – FTVS UK{% endblock %}
+{% block width %}max-w-3xl{% endblock %}
+{% block head %}
+  <script>
+    function objednavka(init, ceny) {
+      return Object.assign({
+        ceny: ceny,
+        prazdny() { return {jmeno: "", prijmeni: "", narozeni: "", pohlavi: "", zraneni: ""}; },
+        pridat() { this.ucastnici.push(this.prazdny()); },
+        odebrat(i) { if (this.ucastnici.length > 1) this.ucastnici.splice(i, 1); },
+        get radky() { return this.kdo === "tym" ? this.ucastnici : this.ucastnici.slice(0, 1); },
+        get pocet() {
+          if (this.kdo !== "tym") return 1;
+          return Math.max(1, this.ucastnici.filter(u => u.jmeno || u.prijmeni || u.narozeni).length);
+        },
+        get zaOsobu() { return this.vybrane.reduce((s, id) => s + (this.ceny[id] || 0), 0); },
+        get celkem() { return this.zaOsobu * this.pocet; },
+        kc(n) { return n.toLocaleString("cs-CZ") + " Kč"; },
+        get nezletili() {
+          const dnes = new Date();
+          return this.radky.some(u => {
+            if (!u.narozeni) return false;
+            const d = new Date(u.narozeni);
+            let vek = dnes.getFullYear() - d.getFullYear();
+            if (dnes < new Date(dnes.getFullYear(), d.getMonth(), d.getDate())) vek--;
+            return vek < 18;
+          });
+        },
+        prepnout(id) {
+          const i = this.vybrane.indexOf(id);
+          i >= 0 ? this.vybrane.splice(i, 1) : this.vybrane.push(id);
+        },
+      }, init);
+    }
+  </script>
+  <script src="{% static 'vendor/alpine.min.js' %}" defer></script>
+{% endblock %}
+{% block content %}
+{{ initial|json_script:"pocatecni" }}
+{{ ceny|json_script:"ceny" }}
+<div class="mb-6">
+  <div class="eyebrow">Objednávka</div>
+  <h1 class="text-2xl font-semibold mt-1">Objednat funkční testování</h1>
+  <p class="text-2 mt-1">Vyberte testy, termín a vyplňte údaje. Objednávku potvrdíme e-mailem.</p>
+</div>
+
+{% if errors %}
+  <div class="card px-4 py-3 mb-4 text-sm border-l-4" style="border-left-color: var(--bad)" role="alert">
+    <strong>Objednávku zatím nejde odeslat:</strong>
+    <ul class="list-disc pl-5 mt-1">{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+  </div>
+{% endif %}
+
+{% if not days or not packages and not tests %}
+  <div class="card p-5">
+    <h2 class="font-semibold mb-1">Momentálně nejsou volné termíny</h2>
+    <p class="text-2">Zkuste to prosím později, nebo nás kontaktujte přímo.</p>
+  </div>
+{% else %}
+<form method="post" class="space-y-5 objednavka"
+      x-data="objednavka(JSON.parse(document.getElementById('pocatecni').textContent), JSON.parse(document.getElementById('ceny').textContent))">
+  {% csrf_token %}
+  {# past na roboty – člověk pole nevidí #}
+  <div class="hidden" aria-hidden="true"><label>Web <input type="text" name="web" tabindex="-1" autocomplete="off"></label></div>
+
+  {# 1 ---------------------------------------------------------------- #}
+  <section class="card p-5">
+    <h2><span class="krok">1</span>Kdo se objednává</h2>
+    <div class="grid sm:grid-cols-2 gap-3">
+      <label class="volba">
+        <input type="radio" name="kdo" value="jednotlivec" x-model="kdo">
+        <span><strong>Jednotlivec</strong><br><span class="text-muted text-sm">objednávám sebe (nebo své dítě)</span></span>
+      </label>
+      <label class="volba">
+        <input type="radio" name="kdo" value="tym" x-model="kdo">
+        <span><strong>Tým / skupina</strong><br><span class="text-muted text-sm">trenér nebo klub přihlašuje víc sportovců</span></span>
+      </label>
+    </div>
+  </section>
+
+  {# 2 ---------------------------------------------------------------- #}
+  <section class="card p-5">
+    <h2><span class="krok">2</span>Co chcete testovat</h2>
+    {% if packages %}
+      <h3 class="text-sm font-semibold text-muted mb-2">Balíčky</h3>
+      <div class="grid sm:grid-cols-2 gap-3 mb-4">
+        {% for o in packages %}
+          <label class="volba volba-nabidka">
+            <input type="checkbox" name="nabidka" value="{{ o.pk }}" :checked="vybrane.includes({{ o.pk }})" @change="prepnout({{ o.pk }})">
+            <span class="flex-1">
+              <span class="flex items-baseline justify-between gap-2">
+                <strong>{{ o.name }}</strong><span class="cena">{{ o.price }} Kč</span>
+              </span>
+              {% if o.description %}<span class="block text-sm text-2 mt-0.5">{{ o.description }}</span>{% endif %}
+              <span class="block text-xs text-muted mt-1">{% for p in o.protocols.all %}{{ p.name }}{% if not forloop.last %} · {% endif %}{% endfor %}{% if o.duration_min %} · asi {{ o.duration_min }} min{% endif %}</span>
+            </span>
+          </label>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% if tests %}
+      <h3 class="text-sm font-semibold text-muted mb-2">Jednotlivé testy</h3>
+      <div class="grid sm:grid-cols-2 gap-2">
+        {% for o in tests %}
+          <label class="volba volba-mala">
+            <input type="checkbox" name="nabidka" value="{{ o.pk }}" :checked="vybrane.includes({{ o.pk }})" @change="prepnout({{ o.pk }})">
+            <span class="flex-1 flex items-baseline justify-between gap-2">
+              <span>{{ o.name }}{% if o.description %}<span class="block text-xs text-muted">{{ o.description }}</span>{% endif %}</span>
+              <span class="cena">{{ o.price }} Kč</span>
+            </span>
+          </label>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <p class="text-xs text-muted mt-3">Ceny jsou za osobu. Když si nejste jistí, vyberte balíček – na místě ho s vámi případně upravíme.</p>
+  </section>
+
+  {# 3 ---------------------------------------------------------------- #}
+  <section class="card p-5">
+    <h2><span class="krok">3</span><span x-text="kdo === 'tym' ? 'Tým a účastníci' : 'Údaje o sportovci'"></span></h2>
+    <div class="grid sm:grid-cols-3 gap-3 mb-4">
+      <label class="block" x-show="kdo === 'tym'" x-cloak>
+        <span class="popis">Tým / klub *</span>
+        <input type="text" name="tym" value="{{ post.tym }}" class="input mt-1" maxlength="120">
+      </label>
+      <label class="block">
+        <span class="popis">Sport</span>
+        <input type="text" name="sport" value="{{ post.sport }}" class="input mt-1" maxlength="100" placeholder="např. lední hokej">
+      </label>
+      <label class="block">
+        <span class="popis">Kategorie</span>
+        <input type="text" name="kategorie" value="{{ post.kategorie }}" class="input mt-1" maxlength="60" placeholder="např. dorost, U19">
+      </label>
+    </div>
+
+    <template x-for="(u, i) in radky" :key="i">
+      <div class="ucastnik">
+        <div class="flex items-center justify-between mb-2" x-show="kdo === 'tym'">
+          <span class="text-sm font-semibold" x-text="(i + 1) + '. sportovec'"></span>
+          <button type="button" class="text-sm link" @click="odebrat(i)" x-show="ucastnici.length > 1">odebrat</button>
+        </div>
+        <div class="grid sm:grid-cols-4 gap-3">
+          <label class="block"><span class="popis">Jméno *</span>
+            <input type="text" name="jmeno" x-model="u.jmeno" class="input mt-1" maxlength="80" autocomplete="given-name"></label>
+          <label class="block"><span class="popis">Příjmení *</span>
+            <input type="text" name="prijmeni" x-model="u.prijmeni" class="input mt-1" maxlength="80" autocomplete="family-name"></label>
+          <label class="block"><span class="popis">Datum narození *</span>
+            <input type="date" name="narozeni" x-model="u.narozeni" class="input mt-1"></label>
+          <label class="block"><span class="popis">Pohlaví</span>
+            <select name="pohlavi" x-model="u.pohlavi" class="input mt-1">
+              <option value="">—</option>
+              {% for value, label in sexes %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+            </select></label>
+        </div>
+        <label class="block mt-3"><span class="popis">Zranění nebo zdravotní omezení (jaké a kdy) – nechte prázdné, pokud žádné</span>
+          <input type="text" name="zraneni" x-model="u.zraneni" class="input mt-1" maxlength="500" placeholder="např. rekonstrukce předního zkříženého vazu, březen 2026"></label>
+      </div>
+    </template>
+    <button type="button" class="btn mt-3" x-show="kdo === 'tym'" x-cloak @click="pridat()">{% icon "plus" %}Přidat sportovce</button>
+  </section>
+
+  {# 4 ---------------------------------------------------------------- #}
+  <section class="card p-5">
+    <h2><span class="krok">4</span>Termín</h2>
+    <p class="text-sm text-muted mb-3" x-show="kdo === 'tym'" x-cloak>Ukazujeme jen termíny, kam se vejde <strong x-text="pocet"></strong> osob. Když žádný nevyhovuje, napište nám – termín pro tým domluvíme.</p>
+    <div class="space-y-4">
+      {% for d in days %}
+        {# Termíny, kam se skupina nevejde, se vůbec neukazují. #}
+        <div x-show="{{ d.max_volno }} >= pocet">
+          <div class="text-sm font-semibold mb-1.5">{{ d.day|date:"l j. n. Y"|capfirst }}</div>
+          <div class="flex flex-wrap gap-2">
+            {% for s in d.slots %}
+              <label class="termin" x-show="{{ s.volno }} >= pocet">
+                <input type="radio" name="termin" value="{{ s.pk }}" x-model="termin" :disabled="{{ s.volno }} < pocet">
+                <span class="tabular-nums font-semibold">{{ s.start|time:"H:i" }}</span>
+                <span class="text-xs">{{ s.location|default:"" }}{% if s.capacity > 1 %}{% if s.location %} · {% endif %}volno {{ s.volno }}{% endif %}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# 5 ---------------------------------------------------------------- #}
+  <section class="card p-5">
+    <h2><span class="krok">5</span>O testování</h2>
+    <div class="grid sm:grid-cols-3 gap-3">
+      <label class="block"><span class="popis">Cíl testování</span>
+        <select name="cil" class="input mt-1">
+          {% for value, label in goals %}<option value="{{ value }}" {% if post.cil == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select></label>
+      <label class="block"><span class="popis">Výkonnostní úroveň</span>
+        <select name="uroven" class="input mt-1">
+          {% for value, label in levels %}<option value="{{ value }}" {% if post.uroven == value or not post and value == "trained" %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select></label>
+      <label class="block"><span class="popis">Tréninkové období</span>
+        <select name="obdobi" class="input mt-1">
+          <option value="">neuvedeno</option>
+          {% for value, label in phases %}{% if value %}<option value="{{ value }}" {% if post.obdobi == value %}selected{% endif %}>{{ label }}</option>{% endif %}{% endfor %}
+        </select></label>
+    </div>
+    <label class="block mt-3"><span class="popis">Co od testování očekáváte? (nepovinné)</span>
+      <textarea name="cil_popis" rows="3" class="input mt-1" maxlength="1000">{{ post.cil_popis }}</textarea></label>
+  </section>
+
+  {# 6 ---------------------------------------------------------------- #}
+  <section class="card p-5">
+    <h2><span class="krok">6</span>Kontakt a souhlasy</h2>
+    <div class="grid sm:grid-cols-3 gap-3">
+      <label class="block"><span class="popis" x-text="kdo === 'tym' ? 'Kontaktní osoba (trenér) *' : 'Kontaktní osoba'"></span>
+        <input type="text" name="kontakt" value="{{ post.kontakt }}" class="input mt-1" maxlength="120" autocomplete="name"
+               :placeholder="kdo === 'tym' ? '' : 'když nevyplníte, použije se sportovec'"></label>
+      <label class="block"><span class="popis">E-mail *</span>
+        <input type="email" name="email" value="{{ post.email }}" class="input mt-1" maxlength="200" autocomplete="email" required></label>
+      <label class="block"><span class="popis">Telefon</span>
+        <input type="tel" name="telefon" value="{{ post.telefon }}" class="input mt-1" maxlength="40" autocomplete="tel"></label>
+    </div>
+    <div class="space-y-2 mt-4 text-sm">
+      <label class="flex gap-2 items-start"><input type="checkbox" name="souhlas" class="mt-1" required {% if post.souhlas %}checked{% endif %}>
+        <span>Souhlasím s funkčním testováním a se zpracováním uvedených osobních a zdravotních údajů laboratoří FTVS UK za účelem testování a vyhodnocení výsledků. *</span></label>
+      <label class="flex gap-2 items-start"><input type="checkbox" name="souhlas_lekar" class="mt-1" {% if post.souhlas_lekar %}checked{% endif %}>
+        <span>Souhlasím s předáním zprávy z testování poskytovateli zdravotních služeb (sportovnímu lékaři). Nepovinné.</span></label>
+      <label class="flex gap-2 items-start" x-show="nezletili" x-cloak><input type="checkbox" name="souhlas_zastupce" class="mt-1" :required="nezletili" {% if post.souhlas_zastupce %}checked{% endif %}>
+        <span><strong>Nezletilí účastníci:</strong> jsem zákonný zástupce, nebo mám souhlas zákonných zástupců všech nezletilých účastníků. *</span></label>
+    </div>
+  </section>
+
+  {# souhrn a odeslání ---------------------------------------------------- #}
+  <div class="card p-4 sticky bottom-3 flex flex-wrap items-center gap-3 souhrn">
+    <div class="flex-1 min-w-[12rem]">
+      <div class="text-sm text-muted"><span x-text="kc(zaOsobu)"></span> za osobu × <span x-text="pocet"></span></div>
+      <div class="text-xl font-semibold tabular-nums" x-text="kc(celkem)"></div>
+    </div>
+    <button type="submit" class="btn btn-primary px-6 py-3 text-base">Odeslat objednávku</button>
+  </div>
+  <p class="text-xs text-muted">Odesláním nic neplatíte – cena je orientační, platbu domluvíme při potvrzení termínu.</p>
+</form>
+{% endif %}
+{% endblock %}

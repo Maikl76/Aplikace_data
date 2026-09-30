@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+{% include "booking/_nav.html" with nadpis="Volné termíny" sekce="terminy" %}
+<div class="grid lg:grid-cols-3 gap-4 items-start">
+  <form method="post" class="card p-4 space-y-3 lg:order-2">
+    {% csrf_token %}
+    <h2 class="card-title">Vypsat termíny</h2>
+    <p class="text-xs text-muted">Např. od 1. 10. do 31. 10., po–pá, 8:00–14:00 po 60 min = každý pracovní den 7 termínů.</p>
+    <div class="grid grid-cols-2 gap-2">
+      <label class="block text-sm"><span class="text-2">{{ form.date_from.label }}</span>{{ form.date_from }}</label>
+      <label class="block text-sm"><span class="text-2">{{ form.date_to.label }}</span>{{ form.date_to }}</label>
+    </div>
+    <div class="text-sm"><span class="text-2">{{ form.weekdays.label }}</span>
+      <div class="flex flex-wrap gap-3 mt-1">{% for c in form.weekdays %}<label class="flex items-center gap-1">{{ c.tag }}{{ c.choice_label }}</label>{% endfor %}</div></div>
+    <div class="grid grid-cols-2 gap-2">
+      <label class="block text-sm"><span class="text-2">{{ form.time_from.label }}</span>{{ form.time_from }}</label>
+      <label class="block text-sm"><span class="text-2">{{ form.time_to.label }}</span>{{ form.time_to }}</label>
+      <label class="block text-sm"><span class="text-2">{{ form.step_min.label }}</span>{{ form.step_min }}</label>
+      <label class="block text-sm"><span class="text-2">{{ form.duration_min.label }}</span>{{ form.duration_min }}</label>
+      <label class="block text-sm"><span class="text-2">{{ form.capacity.label }}</span>{{ form.capacity }}</label>
+      <label class="block text-sm"><span class="text-2">{{ form.location.label }}</span>{{ form.location }}</label>
+    </div>
+    {% if form.errors %}<div class="text-xs" style="color: var(--bad)">{% for f in form %}{% for e in f.errors %}{{ f.label }}: {{ e }}<br>{% endfor %}{% endfor %}{{ form.non_field_errors }}</div>{% endif %}
+    <p class="text-xs text-muted">Kapacita = kolik osob se na termín vejde. Pro týmy vypište delší termín s větší kapacitou.</p>
+    <button type="submit" class="btn btn-primary w-full">{% icon "plus" %}Vypsat</button>
+  </form>
+
+  <div class="lg:col-span-2 space-y-4 lg:order-1 min-w-0">
+    {% for day, slots in by_day.items %}
+      <section class="card">
+        <div class="px-4 pt-3 pb-2 font-semibold">{{ day|date:"l j. n. Y"|capfirst }}</div>
+        <ul>
+          {% for s in slots %}
+            <li class="flex items-center gap-3 px-4 py-2 border-t text-sm {% if not s.is_active %}opacity-50{% endif %}" style="border-color: var(--border)">
+              <span class="tabular-nums font-medium w-12">{{ s.start|time:"H:i" }}</span>
+              <span class="flex-1 text-2">{{ s.location|default:"" }}{% if s.duration_min %} · {{ s.duration_min }} min{% endif %}{% if not s.is_active %} · nenabízí se{% endif %}</span>
+              {% if s.obsazeno >= s.capacity %}<span class="badge badge-good">obsazeno {{ s.obsazeno }}/{{ s.capacity }}</span>
+              {% elif s.obsazeno %}<span class="badge badge-warn">{{ s.obsazeno }}/{{ s.capacity }}</span>
+              {% else %}<span class="badge">volno{% if s.capacity > 1 %} {{ s.capacity }}{% endif %}</span>{% endif %}
+              <form method="post" onsubmit="return confirm('Smazat termín?')">
+                {% csrf_token %}<input type="hidden" name="akce" value="smazat"><input type="hidden" name="slot" value="{{ s.pk }}">
+                <button type="submit" class="text-muted hover:opacity-80" title="{% if s.pocet_objednavek %}Přestat nabízet{% else %}Smazat{% endif %}">✕</button>
+              </form>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
+    {% empty %}
+      <div class="card p-6 text-sm text-2">Žádné vypsané termíny. Vpravo je vypíšete na celý měsíc najednou.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

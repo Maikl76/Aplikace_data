@@ -42,6 +42,7 @@ LOCAL_APPS = [
     "apps.rules",         # pravidla jako data + nálezy
     "apps.reports",       # generování a předávání zpráv
     "apps.external",      # šev pro AKESO
+    "apps.booking",       # objednávky testování od klientů
 ]
 
 INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS
@@ -72,6 +73,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "apps.core.context_processors.demo_mode",
+                "apps.core.context_processors.booking_counts",
             ],
         },
     },
@@ -159,6 +161,24 @@ LLM_BASE_URL = env("LLM_BASE_URL", default="http://localhost:11434/v1")
 LLM_MODEL = env("LLM_MODEL", default="gemma3:4b")
 LLM_TIMEOUT = env.int("LLM_TIMEOUT", default=300)
 LLM_TEMPERATURE = env.float("LLM_TEMPERATURE", default=0.2)
+
+# E-maily (potvrzení objednávky, schválení). Bez EMAIL_HOST se nic
+# neodesílá, zprávy se jen vypíšou do logu – objednávky fungují i tak.
+EMAIL_HOST = env("EMAIL_HOST", default="")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_BACKEND = env("EMAIL_BACKEND", default=(
+    "django.core.mail.backends.smtp.EmailBackend" if EMAIL_HOST
+    else "django.core.mail.backends.console.EmailBackend"))
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="Laboratoř FTVS <noreply@localhost>")
+
+# Objednávky: pro kterou organizaci je veřejný formulář (zkratka) a zda
+# se musí potvrdit e-mail, než žádost uvidí laboratoř (chrání před
+# podvrženými objednávkami; zapněte, až budou e-maily nastavené).
+BOOKING_ORGANIZATION = env("BOOKING_ORGANIZATION", default="")
+BOOKING_VERIFY_EMAIL = env.bool("BOOKING_VERIFY_EMAIL", default=False)
 
 # Klíč pro šifrování jména a kontaktu v subjects.SubjectIdentity.
 # Prázdná hodnota = identita se neuloží (vývoj na syntetických datech).

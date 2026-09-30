@@ -79,6 +79,24 @@ DEMO_BATTERIES = [
 
 
 
+# Ukázková nabídka pro objednávky: (druh, název, cena, minut, testy, popis)
+DEMO_OFFERS = [
+    ("balicek", "Silová diagnostika", 1500, 60, ["cmj", "sj", "imtp"],
+     "Výskoky a izometrická síla – jak sportovec využívá sílu (DSI, EUR)."),
+    ("balicek", "Anaerobní kapacita", 1800, 60, ["bodycomp", "wingate"],
+     "Wingate test s přepočtem na hmotnost a beztukovou hmotu."),
+    ("balicek", "Komplexní diagnostika", 4500, 180,
+     ["bodycomp", "cmj", "sj", "imtp", "wingate", "spiro_ramp"],
+     "Složení těla, síla, anaerobní i aerobní kapacita."),
+    ("test", "Countermovement jump", 500, 20, ["cmj"], ""),
+    ("test", "Izometrický tah (IMTP)", 500, 20, ["imtp"], ""),
+    ("test", "Wingate test", 1200, 40, ["wingate"], "včetně laktátu"),
+    ("test", "Spiroergometrie (VO2max)", 2000, 60, ["spiro_ramp"], ""),
+    ("test", "Složení těla", 400, 15, ["bodycomp"], ""),
+    ("test", "Sprint 30 m", 400, 30, ["sprint30"], "fotobuňky"),
+]
+
+
 class Command(BaseCommand):
     help = "Vygeneruje fiktivní sportovce a měření pro vývoj."
 
@@ -199,9 +217,71 @@ class Command(BaseCommand):
         for session in TestSession.objects.filter(organization=org):
             recompute(session)
 
+        self._demo_booking(org, protocols)
+
         self.stdout.write(self.style.SUCCESS(
             f"Hotovo: {options['subjects']} fiktivních sportovců, {created} hodnot."
         ))
+
+    def _demo_booking(self, org, protocols):
+        """Ukázková nabídka s cenami, volné termíny a dvě vzorové objednávky."""
+        from datetime import date, datetime
+
+        from django.conf import settings
+
+        from apps.booking import services as booking
+        from apps.booking.models import BookingRequest, Offer, Slot
+
+        if not Offer.objects.filter(organization=org).exists():
+            for order, (kind, name, price, minutes, codes, text) in enumerate(DEMO_OFFERS):
+                offer = Offer.objects.create(organization=org, kind=kind, name=name, price=price,
+                                             duration_min=minutes, order=order, description=text)
+                offer.protocols.set([protocols[c] for c in codes if c in protocols])
+
+        if not Slot.objects.filter(organization=org, start__gt=timezone.now()).exists():
+            tz = timezone.get_current_timezone()
+            day = timezone.localdate() + timedelta(days=2)
+            for _ in range(21):
+                if day.weekday() < 5:
+                    for hour in (8, 10, 13):
+                        Slot.objects.create(organization=org, location="Laboratoř 1",
+                                            start=datetime.combine(day, datetime.min.time(),
+                                                                   tzinfo=tz).replace(hour=hour))
+                if day.weekday() == 2:
+                    Slot.objects.create(organization=org, location="Laboratoř 1 – týmy",
+                                        capacity=12, duration_min=180,
+                                        start=datetime.combine(day, datetime.min.time(),
+                                                               tzinfo=tz).replace(hour=14))
+                day += timedelta(days=1)
+
+        # Vzorové žádosti potřebují šifrovací klíč (jména se ukládají šifrovaně).
+        if not settings.IDENTITY_ENCRYPTION_KEY or BookingRequest.objects.exists():
+            return
+        offers = {o.name: o.pk for o in Offer.objects.filter(organization=org)}
+        slots = Slot.available(org)
+        single = next(s for s in slots if s.capacity == 1)
+        team = next((s for s in slots if s.capacity > 1), None)
+        booking.submit(booking.RequestData(
+            kind="jednotlivec", slot_id=single.pk,
+            offer_ids=[offers["Silová diagnostika"], offers["Wingate test"]],
+            participants=[booking.ParticipantData("Tereza", "Ukázková", date(1999, 5, 14), "F",
+                                                  "natažený hamstring, červen – už bez potíží")],
+            contact_name="Tereza Ukázková", email="tereza@example.cz", sport_name="Atletika",
+            goal=BookingRequest.Goal.PROGRESS, goal_note="Zajímá mě, jestli se zlepšila síla.",
+            level="national", season_phase="prep", consent_testing=True, consent_handover=True,
+        ), org)
+        if team:
+            born = date(timezone.localdate().year - 16, 3, 1)
+            booking.submit(booking.RequestData(
+                kind="tym", slot_id=team.pk, offer_ids=[offers["Anaerobní kapacita"]],
+                participants=[booking.ParticipantData(first, last, born, "M")
+                              for first, last in [("Jan", "Vzorový"), ("Petr", "Příkladný"),
+                                                  ("Adam", "Testovací")]],
+                contact_name="Karel Trenér", email="trener@example.cz", team_name="HC Ukázka U17",
+                sport_name="Lední hokej", category="dorost", goal=BookingRequest.Goal.SEASON,
+                level="trained", season_phase="prep", consent_testing=True,
+                consent_guardian=True,
+            ), org)
 
     def _ensure_admin(self, org, password):
         """

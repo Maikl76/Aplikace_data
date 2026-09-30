@@ -62,6 +62,7 @@
       {% nav_link "today" "Dnešní testování" "calendar" %}
       {% nav_link "session_list" "Měření" "activity" %}
       {% nav_link "report_list" "Zprávy" "file" %}
+      {% if user.sees_identity %}{% nav_link "booking_list" "Objednávky" "inbox" "/objednavky/" nove_objednavky %}{% endif %}
       {% nav_link "import_list" "Import" "upload" %}
       {% nav_link "sport_list" "Sporty a testy" "list" %}
       <div class="pt-3 mt-3 border-t" style="border-color: var(--border)">

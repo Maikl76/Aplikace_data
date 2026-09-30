@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+{% include "booking/_nav.html" with nadpis="Žádosti" sekce="zadosti" %}
+
+<div class="flex flex-wrap gap-1 mb-4">
+  {% for value, label, count in tabs %}
+    <a href="?stav={{ value }}" class="btn btn-sm {% if status == value %}btn-primary{% endif %}">{{ label }}{% if count %} <span class="opacity-75">({{ count }})</span>{% endif %}</a>
+  {% endfor %}
+</div>
+
+<div class="card overflow-x-auto">
+  <table class="table">
+    <thead><tr><th>Číslo</th><th>Kdo</th><th class="text-right">Osob</th><th>Termín</th><th>Testy</th><th class="text-right">Cena</th><th class="max-md:hidden">Přijato</th></tr></thead>
+    <tbody>
+      {% for b in bookings %}
+        <tr class="cursor-pointer" onclick="location.href='{% url 'booking_detail' b.pk %}'">
+          <td class="whitespace-nowrap"><a class="font-medium" href="{% url 'booking_detail' b.pk %}">{{ b.number }}</a></td>
+          <td>
+            {% if b.kind == "tym" %}<span class="badge badge-accent">tým</span> <strong>{{ b.team_name }}</strong><br>{% endif %}
+            <span class="{% if b.kind == 'tym' %}text-sm text-muted{% else %}font-medium{% endif %}">{{ b.contact_name }}</span>
+            {% if b.sport_name %}<span class="text-sm text-muted"> · {{ b.sport_name }}</span>{% endif %}
+          </td>
+          <td class="text-right tabular-nums">{{ b.osob }}</td>
+          <td class="whitespace-nowrap tabular-nums">{{ b.slot.start|date:"j. n. Y H:i" }}<div class="text-xs text-muted">{{ b.slot.location }}</div></td>
+          <td class="text-sm text-2">{% for o in b.offers.all %}{{ o.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+          <td class="text-right tabular-nums whitespace-nowrap">{{ b.price_total }} Kč</td>
+          <td class="tabular-nums text-2 max-md:hidden whitespace-nowrap">{{ b.created_at|date:"j. n. H:i" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7" class="text-muted py-6 text-center">Žádné objednávky v tomto stavu.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card p-4 mt-4 text-sm flex flex-wrap items-center gap-3">
+  <span class="text-2">Odkaz pro klienty (na web, do e-mailu, na plakát):</span>
+  <code class="px-2 py-1 rounded" style="background: var(--surface-2)">{{ public_url }}</code>
+</div>
+{% endblock %}

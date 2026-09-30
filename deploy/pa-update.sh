@@ -28,6 +28,8 @@ main() {
 
     echo "Doinstalovávám knihovny..."
     "$VENV/bin/pip" install --no-cache-dir --quiet -r requirements/demo.txt
+    # Šifrovací klíč (jména, objednávky) – doplní se jen jednou, pak se nemění.
+    "$PY" manage.py zajisti_klic
 
     if [ "${1:-}" = "--nova-data" ]; then
         if ! grep -qiE '^DEMO_MODE=(true|1|yes)' .env; then

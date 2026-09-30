@@ -35,6 +35,7 @@
       <li><a href="#import">Import z přístrojů</a></li>
       <li><a href="#tym">Týmový přehled</a></li>
       <li><a href="#zpravy">Zprávy a AI</a></li>
+      <li><a href="#objednavky">Objednávky od klientů</a></li>
       <li><a href="#katalog">Katalog a nastavení</a></li>
       <li><a href="#vyhodnoceni">Jak aplikace vyhodnocuje</a></li>
       <li><a href="#data">Ochrana dat</a></li>
@@ -82,6 +83,10 @@
         <a href="{% url 'report_list' %}" class="napoveda-dlazdice">
           <span class="avatar w-9 h-9">{% icon "file" "w-5 h-5" %}</span>
           <span><strong>Zprávy</strong><br>Výsledky, grafy, stranové rozdíly, nálezy a doporučení. Souhrn napíše lokální AI, vy ho zkontrolujete.</span>
+        </a>
+        <a href="#objednavky" class="napoveda-dlazdice">
+          <span class="avatar w-9 h-9">{% icon "inbox" "w-5 h-5" %}</span>
+          <span><strong>Objednávky</strong><br>Klient si sám vybere testy s cenou a volný termín; po schválení se vše založí samo.</span>
         </a>
         <a href="#vyhodnoceni" class="napoveda-dlazdice">
           <span class="avatar w-9 h-9">{% icon "activity" "w-5 h-5" %}</span>
@@ -293,6 +298,32 @@
         <li><strong>Předání</strong> (např. AKESO) jde zaznamenat jen u sportovce s platným souhlasem s předáním zprávy poskytovateli zdravotních služeb.</li>
       </ol>
       <p class="text-sm text-muted">Má-li sportovec platné omezení zátěže (z externího vyšetření), doporučení vyžadující zátěž se negenerují a karta sportovce na to upozorní.</p>
+    </section>
+
+    {# ================================================================== #}
+    <section id="objednavky" class="card p-5" data-kapitola>
+      <h2>Objednávky od klientů</h2>
+      <p>Klient (sportovec, rodič, nebo trenér za celý tým) si testování objedná sám na veřejné stránce
+        <code>/objednavka/</code> – bez přihlášení. Odkaz dejte na web, do e-mailu nebo na plakát (je v
+        <a class="link" href="{% url 'booking_list' %}">Objednávkách</a> dole).</p>
+      <h3>Co klient vyplní</h3>
+      <ol>
+        <li><strong>Kdo</strong> – jednotlivec, nebo tým (název klubu a libovolný počet sportovců).</li>
+        <li><strong>Co</strong> – balíčky a jednotlivé testy z vaší nabídky; cena za osobu a celkem se počítá hned.</li>
+        <li><strong>Účastníci</strong> – jméno, datum narození, pohlaví, zranění nebo omezení (jaké a kdy).</li>
+        <li><strong>Termín</strong> – z vypsaných volných termínů; týmu se ukážou jen ty, kam se vejde.</li>
+        <li><strong>O testování</strong> – cíl, výkonnostní úroveň, tréninkové období, očekávání.</li>
+        <li><strong>Kontakt a souhlasy</strong> – s testováním (povinný), s předáním zprávy lékaři, u nezletilých souhlas zákonného zástupce.</li>
+      </ol>
+      <h3>Co dělá laboratoř</h3>
+      <ul>
+        <li><strong>Nabídka a ceny:</strong> <em>Objednávky → Nabídka a ceny</em> – položky (balíček / test), cena za osobu a které testy se po schválení založí.</li>
+        <li><strong>Volné termíny:</strong> <em>Objednávky → Volné termíny</em> – vypíšete je hromadně (např. celý měsíc, po–pá, 8–14 h po hodině). Kapacita = kolik osob se na termín vejde; pro týmy vypište delší termín s větší kapacitou.</li>
+        <li><strong>Žádosti:</strong> nové mají v menu modrý počet. V detailu jsou účastníci s věkem a zraněními a u každého, zda <span class="badge badge-good">už u nás byl</span> (pozná se podle jména a data narození), nebo se <span class="badge badge-accent">založí</span>.</li>
+        <li><strong>Schválit</strong> (případně s jiným termínem a zprávou pro klienta) – aplikace najde nebo založí sportovce (jméno šifrovaně), uloží souhlasy a na termín založí testovací dny s objednanými testy. Cíl a zranění se zapíší do poznámky testovacího dne. V den testování je najdete v <em>Dnešním testování</em>.</li>
+        <li><strong>Zamítnout</strong> – termín se uvolní; klient dostane zprávu.</li>
+      </ul>
+      <p class="text-sm text-muted">Termín drží i žádost, která čeká na schválení, takže se na jedno místo nemohou objednat dva. Klientovi chodí e-maily (přijato, potvrzeno, zamítnuto) a má odkaz, kde vidí stav objednávky. E-maily fungují, až bude nastavený poštovní server – do té doby se jen zapíší do záznamu serveru a laborant klienta kontaktuje sám.</p>
     </section>
 
     {# ================================================================== #}

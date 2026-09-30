@@ -1,0 +1,13 @@
+{% load ui %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <div class="eyebrow">Objednávky testování</div>
+    <h1 class="text-2xl font-semibold">{{ nadpis }}</h1>
+  </div>
+  <div class="flex flex-wrap gap-1">
+    <a href="{% url 'booking_list' %}" class="btn btn-sm {% if sekce == 'zadosti' %}btn-primary{% endif %}">{% icon "inbox" %}Žádosti</a>
+    <a href="{% url 'booking_offers' %}" class="btn btn-sm {% if sekce == 'nabidka' %}btn-primary{% endif %}">{% icon "list" %}Nabídka a ceny</a>
+    <a href="{% url 'booking_slots' %}" class="btn btn-sm {% if sekce == 'terminy' %}btn-primary{% endif %}">{% icon "calendar" %}Volné termíny</a>
+    <a href="{% url 'booking_form' %}" target="_blank" class="btn btn-sm" title="Jak formulář vidí klient">Formulář pro klienty ↗</a>
+  </div>
+</div>

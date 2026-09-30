@@ -1,0 +1,28 @@
+{% extends "public_base.html" %}
+{% load ui %}
+{% block title %}Objednávka {{ booking.number }} – FTVS UK{% endblock %}
+{% block content %}
+<div class="card p-6">
+  <div class="eyebrow">Objednávka {{ booking.number }}</div>
+  {% if error %}
+    <h1 class="text-xl font-semibold mt-1 mb-1">Objednávku nešlo potvrdit</h1>
+    <p class="text-2">{{ error }}</p>
+  {% else %}
+    <h1 class="text-xl font-semibold mt-1 mb-3">
+      {% if booking.status == "overeni" %}Čeká na potvrzení e-mailu
+      {% elif booking.status == "nova" %}{% if just_verified %}E-mail potvrzen – {% endif %}Čeká na potvrzení laboratoří
+      {% elif booking.status == "schvalena" %}Termín je potvrzený
+      {% else %}Objednávku nebylo možné potvrdit{% endif %}
+    </h1>
+    <dl class="text-sm space-y-1">
+      <div><dt class="inline text-muted">Termín:</dt> <dd class="inline font-medium">{{ booking.slot.start|date:"l j. n. Y, H:i"|capfirst }}{% if booking.slot.location %}, {{ booking.slot.location }}{% endif %}</dd></div>
+      <div><dt class="inline text-muted">Počet osob:</dt> <dd class="inline">{{ booking.participants.count }}</dd></div>
+      <div><dt class="inline text-muted">Testy:</dt> <dd class="inline">{% for o in booking.offers.all %}{{ o.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</dd></div>
+      <div><dt class="inline text-muted">Cena (orientačně):</dt> <dd class="inline">{{ booking.price_total }} Kč</dd></div>
+    </dl>
+    {% if booking.decision_note and booking.status != "nova" %}
+      <p class="mt-3 p-3 rounded-lg text-sm" style="background: var(--surface-2)">{{ booking.decision_note|linebreaksbr }}</p>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

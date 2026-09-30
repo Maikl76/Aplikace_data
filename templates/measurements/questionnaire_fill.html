@@ -1,27 +1,8 @@
-{% load ui %}<!DOCTYPE html>
-<html lang="cs">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex">
-  <title>{% if questionnaire %}{{ questionnaire.name }}{% else %}Dotazník{% endif %}</title>
-  <script>
-    (function () {
-      if (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches)
-        document.documentElement.classList.add("dark");
-    })();
-  </script>
-  <link rel="stylesheet" href="{% static_v 'vendor/tailwind.css' %}">
-  <link rel="stylesheet" href="{% static_v 'css/app.css' %}">
-</head>
-<body>
-<main class="min-h-screen max-w-md mx-auto px-4 py-6">
-  <div class="flex items-center gap-2 mb-5">
-    <span class="avatar w-8 h-8 text-xs" style="background: var(--accent); color: #fff">FT</span>
-    <span class="text-sm text-muted">Funkční testování FTVS UK</span>
-  </div>
-
-  {% if invalid %}
+{% extends "public_base.html" %}
+{% load ui %}
+{% block title %}{% if questionnaire %}{{ questionnaire.name }}{% else %}Dotazník{% endif %}{% endblock %}
+{% block content %}
+{% if invalid %}
     <div class="card p-5">
       <h1 class="text-xl font-semibold mb-2">Odkaz už neplatí</h1>
       <p class="text-2">Požádejte diagnostika o nový QR kód.</p>
@@ -60,6 +41,4 @@
       <button type="submit" class="btn btn-primary w-full py-3 text-base">Odeslat</button>
     </form>
   {% endif %}
-</main>
-</body>
-</html>
+{% endblock %}

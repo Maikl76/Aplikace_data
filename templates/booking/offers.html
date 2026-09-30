@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+{% include "booking/_nav.html" with nadpis="Nabídka a ceny" sekce="nabidka" %}
+<div class="flex justify-end mb-3"><a href="{% url 'booking_offer_new' %}" class="btn btn-primary">{% icon "plus" %}Přidat položku</a></div>
+<div class="card overflow-x-auto">
+  <table class="table">
+    <thead><tr><th>Název</th><th>Druh</th><th>Testy</th><th class="text-right">Cena / osoba</th><th class="text-right">Objednávek</th><th></th></tr></thead>
+    <tbody>
+      {% for o in offers %}
+        <tr class="cursor-pointer {% if not o.is_active %}opacity-50{% endif %}" onclick="location.href='{% url 'booking_offer_edit' o.pk %}'">
+          <td class="font-medium">{{ o.name }}{% if not o.is_active %} <span class="badge">nenabízí se</span>{% endif %}{% if o.description %}<div class="text-xs text-muted">{{ o.description|truncatechars:90 }}</div>{% endif %}</td>
+          <td>{% if o.kind == "balicek" %}<span class="badge badge-accent">balíček</span>{% else %}<span class="badge">test</span>{% endif %}</td>
+          <td class="text-sm text-2">{% for p in o.protocols.all %}{{ p.name }}{% if not forloop.last %}, {% endif %}{% empty %}<span style="color: var(--warn)">bez testů</span>{% endfor %}</td>
+          <td class="text-right tabular-nums whitespace-nowrap">{{ o.price }} Kč</td>
+          <td class="text-right tabular-nums">{{ o.objednavek }}</td>
+          <td class="text-right"><a class="link text-sm" href="{% url 'booking_offer_edit' o.pk %}">upravit</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="text-muted py-6 text-center">Zatím prázdná nabídka. Přidejte balíčky a jednotlivé testy s cenou – klient je uvidí ve formuláři.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="text-xs text-muted mt-3">Položku, kterou už někdo objednal, nemažte – vypněte „nabízet“. Změna ceny se starých objednávek netýká.</p>
+{% endblock %}
