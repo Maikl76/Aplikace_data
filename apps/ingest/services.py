@@ -349,6 +349,91 @@ def summarize(batch) -> dict:
     }
 
 
+def assignment_choices(batch, user) -> list[dict]:
+    """
+    Sportovci ze souboru a koho jim lze v náhledu přiřadit.
+
+    Nabízí se hlavně ten, kdo má ve dnech ze souboru naplánované testování
+    (Dnešní testování, schválená objednávka) – tak se export spáruje i se
+    sportovcem, kterého VALD zná pod jinak napsaným jménem. Import spuštěný
+    z testovacího dne předvybere jeho sportovce, pokud je to jednoznačné.
+    """
+    from apps.subjects.search import names_for
+
+    summary = batch.summary or {}
+    subjects_info = summary.get("subjects") or {}
+    target = summary.get("cil") or {}
+    staged = batch.staged.all()
+    dates = {}
+    for key, day in staged.values_list("subject_key", "session_date").distinct():
+        if day:
+            dates.setdefault(key, set()).add(day)
+    current = dict(staged.filter(subject__isnull=False)
+                   .values_list("subject_key", "subject").distinct())
+
+    all_days = set().union(*dates.values()) if dates else set()
+    planned = list(TestSession.objects.filter(organization=batch.organization, date__in=all_days)
+                   .select_related("subject"))
+    target_subject = Subject.objects.filter(organization=batch.organization,
+                                            pk=target.get("subject")).first()
+    pool = {s.subject for s in planned} | ({target_subject} if target_subject else set())
+    pool |= set(Subject.objects.filter(pk__in=current.values()))
+    names = names_for(pool, user)
+
+    def label(subject, day=None):
+        name = names.get(subject.pk)
+        text = f"{name} ({subject.code})" if name else subject.code
+        return f"{text} – testování {day:%d.%m.}" if day else text
+
+    unmatched = [k for k in subjects_info if k not in current]
+    rows = []
+    for key, info in subjects_info.items():
+        options, seen = [], set()
+        if key in current:
+            subject = next(s for s in pool if s.pk == current[key])
+            options.append((subject.pk, label(subject) + " – poznán automaticky"))
+            seen.add(subject.pk)
+        for session in planned:
+            if session.date in dates.get(key, ()) and session.subject_id not in seen:
+                options.append((session.subject_id, label(session.subject, session.date)))
+                seen.add(session.subject_id)
+        if target_subject and target_subject.pk not in seen:
+            options.append((target_subject.pk, label(target_subject) + " – z testovacího dne"))
+
+        selected, how = current.get(key), ""
+        if selected is None:
+            # Stejná jména v jiném pořadí („Prvni Ondřej“ × „Ondřej Prvni“) u někoho,
+            # kdo má ten den naplánované testování – to je skoro jistě on.
+            same = {pk for pk, _ in options if _tokens(names.get(pk, "")) == _tokens(info.get("hint"))}
+            if len(same) == 1:
+                selected, how = same.pop(), "jméno v jiném pořadí"
+        if selected is None and target_subject and (len(subjects_info) == 1 or unmatched == [key]):
+            selected, how = target_subject.pk, "nahráno z testovacího dne"
+        rows.append({**info, "key": key, "options": options, "selected": selected,
+                     "navrh": how})
+    rows.sort(key=lambda r: (r["selected"] is not None, r.get("hint", "")))
+    return rows
+
+
+def _tokens(name) -> frozenset:
+    from .adapters.vald import normalize_name
+
+    return frozenset(normalize_name(name or "").split())
+
+
+def apply_assignments(batch, assignments: dict, user) -> int:
+    """Ruční přiřazení z náhledu: {klíč ze souboru: pk sportovce | None = nový}."""
+    changed = 0
+    allowed = Subject.objects.for_user(user) if user else Subject.objects.all()
+    for key, value in assignments.items():
+        subject = allowed.filter(pk=value).first() if value else None
+        if value and subject is None:
+            continue
+        changed += batch.staged.filter(subject_key=key).exclude(subject=subject).update(
+            subject=subject)
+    return changed
+
+
 def clear_personal_data(batch):
     """Po uložení nebo zrušení: pryč se jmény a identifikátory ze souhrnu."""
     summary = dict(batch.summary or {})

@@ -23,6 +23,24 @@ Co se stane při uložení:
   (bez ohledu na diakritiku); dva lidé se stejným jménem se naslepo
   nespárují, aplikace na to upozorní.
 
+## Když aplikace sportovce nepozná
+
+Typicky nový klient z objednávky, kterého VALD zná pod jinak napsaným jménem
+(„Nováková Jana“ × „Jana Nováková“, překlep). V náhledu importu je u každého
+sportovce ze souboru výběr **Patří k**:
+
+- nabízejí se ti, kdo mají ve dnech ze souboru naplánované testování
+  (Dnešní testování, schválená objednávka);
+- stejná jména v jiném pořadí aplikace navrhne sama (s poznámkou „zkontrolujte“);
+- „nový sportovec“ ho založí.
+
+Po uložení si aplikace ID z VALD zapamatuje a příště sportovce pozná sama.
+
+Export jde nahrát i přímo z testovacího dne (tlačítko **Nahrát export
+z přístroje**) – v náhledu se pak předvybere sportovec toho dne. Datum se bere
+z exportu, takže hodnoty se zapíšou do naplánovaných testů jen tehdy, když
+datum v exportu sedí s datem testovacího dne.
+
 ## Opakované nahrání
 
 - **Stejný soubor** podruhé aplikace odmítne.

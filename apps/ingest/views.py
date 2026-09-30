@@ -67,6 +67,17 @@ def import_upload(request):
             continue
         ready.append(batch)
 
+    # Nahráno z testovacího dne: v náhledu předvybrat jeho sportovce.
+    if ready and (session_id := request.POST.get("testovaci_den")):
+        from apps.measurements.models import TestSession
+
+        session = TestSession.objects.for_user(request.user).filter(pk=session_id).first()
+        if session:
+            for batch in ready:
+                batch.summary = {**(batch.summary or {}),
+                                 "cil": {"subject": session.subject_id, "session": session.pk}}
+                batch.save(update_fields=["summary"])
+
     if len(ready) == 1:
         return redirect("import_detail", pk=ready[0].pk)
     if ready:
@@ -91,14 +102,13 @@ def import_detail(request, pk):
         StagedMeasurement.Flag.OUT_OF_RANGE,
         StagedMeasurement.Flag.UNKNOWN_METRIC,
     ]
-    sportovci = sorted((summary.get("subjects") or {}).values(),
-                       key=lambda s: (s.get("kod") is not None, s.get("hint", "")))
+    sportovci = services.assignment_choices(batch, request.user)
     return render(request, "ingest/import_detail.html", {
         "batch": batch,
         "summary": summary,
         "dlazdice": [
             ("sportovců", summary.get("sportovcu")),
-            ("z toho nových", summary.get("novych_sportovcu")),
+            ("nepoznaných automaticky", summary.get("novych_sportovcu")),
             ("testů", summary.get("testu")),
             ("hodnot", summary.get("hodnot")),
             ("metrik", summary.get("metrik")),
@@ -122,6 +132,11 @@ def import_commit(request, pk):
         return redirect("import_detail", pk=pk)
 
     default_date = request.POST.get("default_date") or None
+    # Ruční přiřazení sportovců z náhledu (pole „prirazeni_<klíč>“).
+    assignments = {name.removeprefix("prirazeni_"): value or None
+                   for name, value in request.POST.items() if name.startswith("prirazeni_")}
+    if assignments and batch.status == ImportBatch.Status.PARSED:
+        services.apply_assignments(batch, assignments, request.user)
     try:
         result = services.commit_batch(
             batch, user=request.user, default_date=default_date,

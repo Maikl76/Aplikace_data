@@ -266,6 +266,8 @@
       </ol>
       <ul>
         <li><strong>Párování sportovců:</strong> podle ID ve VALD, jinak podle jména a data narození, jinak podle jména (jen když je jednoznačné). Aplikace si ID zapamatuje, příště pozná sportovce sama. Noví sportovci dostanou kód a jméno se uloží šifrovaně.</li>
+        <li><strong>Když ho nepozná</strong> (ve VALD je jméno napsané jinak, typicky u nového klienta z objednávky): v náhledu je u každého sportovce ze souboru výběr <em>Patří k</em>. Nabízejí se ti, kdo mají ten den naplánované testování; stejná jména v jiném pořadí aplikace navrhne sama. Po uložení si ID z VALD zapamatuje.</li>
+        <li><strong>Z testovacího dne:</strong> tlačítko <em>Nahrát export z přístroje</em> v testovacím dni (i v zadávání testu) nahraje soubor a v náhledu rovnou předvybere tohoto sportovce. Hodnoty se zapíšou do naplánovaných testů toho dne – datum se bere z exportu, musí tedy sedět s datem testovacího dne.</li>
         <li><strong>Opakovaný import</strong> téhož souboru nic nezdvojí – chybějící hodnoty doplní, přepočítané aktualizuje.</li>
         <li><strong>Založené testy</strong> z Dnešního testování import vyplní, nevzniknou druhé.</li>
         <li><strong>Co se importuje</strong> určují <a class="link" href="/admin/catalog/importprofile/">profily importu</a> (sloupec exportu → metrika). Po doplnění profilu tlačítko <em>načíst znovu</em> u starého importu doplní nové metriky.</li>

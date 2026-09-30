@@ -36,8 +36,11 @@
 {% endif %}
 
 <div class="grid lg:grid-cols-3 gap-4">
-  <section class="lg:col-span-2 card min-w-0">
-    <div class="px-4 pt-4 pb-2"><h2 class="card-title">Testy</h2></div>
+  <section class="lg:col-span-2 card min-w-0" id="nahrat">
+    <div class="px-4 pt-4 pb-2 flex flex-wrap items-center justify-between gap-2">
+      <h2 class="card-title">Testy</h2>
+      {% include "measurements/_upload_export.html" with session_pk=session.pk css="btn-sm" %}
+    </div>
     <ul>
       {% for run in runs %}
         <li class="border-t" style="border-color: var(--border)">

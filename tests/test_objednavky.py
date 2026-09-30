@@ -243,3 +243,48 @@ def test_administrace_presmeruje_do_aplikace_a_prehled_ukaze_objednavky(lab):
     prehled = staff.get("/").content.decode()
     assert "Objednávky ke schválení" in prehled and booking.number in prehled
     assert 'href="/objednavka/"' in prehled
+
+
+def test_export_z_valdu_se_sparuje_s_klientem_z_objednavky(lab):
+    """Ve VALD je klientka zapsaná jinak – přiřadí se ručně a příště ji import pozná sám."""
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    from apps.ingest.models import ImportBatch
+    from apps.measurements.models import Measurement
+    from tests.test_vald import cmj, forcedecks
+
+    org, offers, slot, _, staff = lab
+    Client().post("/objednavka/", jednotlivec(slot, [offers["silova"]]))
+    booking = BookingRequest.objects.get()
+    staff.post(f"/objednavky/{booking.pk}/vyridit/", {"akce": "schvalit"})
+    jana = Subject.objects.get()
+    session = TestSession.objects.get(subject=jana)
+    planned = session.protocol_runs.get(protocol__code="cmj")
+    assert "Nahrát export z přístroje" in staff.get(f"/mereni/{session.pk}/").content.decode()
+
+    when = timezone.localtime(slot.start).replace(tzinfo=None)
+    soubor = forcedecks([("Nováková Jana", "vald-77", "1998-03-12", when, 1, cmj(31.0)),
+                         ("Nováková Jana", "vald-77", "1998-03-12", when, 2, cmj(33.0)),
+                         ("Cizí Člověk", "vald-78", "1990-01-01", when, 1, cmj(40.0))])
+    response = staff.post("/import/nahrat/", {
+        "file": SimpleUploadedFile("cmj.xlsx", soubor), "adapter": "auto",
+        "testovaci_den": session.pk})
+    nahled = staff.get(response.url).content.decode()
+    # jméno v jiném pořadí → automaticky nepozná, ale navrhne klientku s testováním ten den
+    assert re.search(rf'<option value="{jana.pk}"[^>]*selected>Jana Nováková \(FTVS-0001\)',
+                     nahled)
+    assert "jméno v jiném pořadí" in nahled
+
+    batch_pk = response.url.rstrip("/").rsplit("/", 1)[-1]
+    klice = re.findall(r'name="prirazeni_([^"]+)"', nahled)
+    info = ImportBatch.objects.get(pk=batch_pk).summary["subjects"]
+    jana_klic = next(k for k in klice if info[k]["hint"] == "Nováková Jana")
+    cizi_klic = next(k for k in klice if k != jana_klic)
+    staff.post(f"/import/{batch_pk}/ulozit/", {f"prirazeni_{jana_klic}": jana.pk,
+                                              f"prirazeni_{cizi_klic}": ""})
+
+    assert Subject.objects.count() == 2                      # jen cizí člověk je nový
+    planned.refresh_from_db()
+    assert planned.external_ref and Measurement.objects.filter(
+        trial__protocol_run=planned, metric__code="cmj_height").count() == 2
+    assert SubjectExternalId.objects.filter(subject=jana, system="vald", value="vald-77").exists()

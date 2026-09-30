@@ -77,30 +77,34 @@
   <h2 class="card-title mb-2">Sportovci v souboru ({{ sportovci|length }})</h2>
   <div class="card overflow-x-auto mb-2"><table class="table">
     <thead>
-      <tr><th>Ve zdroji</th><th>V aplikaci</th>
-          <th>Poznán podle</th><th class="text-right">Testů</th></tr>
+      <tr><th>Ve zdroji</th><th>Patří k</th><th class="text-right">Testů</th></tr>
     </thead>
     <tbody>
       {% for s in sportovci %}
         <tr>
-          <td>{{ s.hint }}</td>
-          <td>{% if s.kod %}{{ s.kod }}{% else %}<span class="badge badge-accent">nový – založí se</span>{% endif %}</td>
-          <td class="text-muted">{{ s.shoda|default:"—" }}
-            {% if s.upozorneni %}<div style="color: var(--warn)">{{ s.upozorneni }}</div>{% endif %}</td>
+          <td class="font-medium">{{ s.hint }}</td>
+          <td>
+            <select name="prirazeni_{{ s.key }}" form="ulozit" class="input w-auto max-w-full"
+                    aria-label="Ke komu patří {{ s.hint }}">
+              {% for pk, label in s.options %}<option value="{{ pk }}" {% if s.selected == pk %}selected{% endif %}>{{ label }}</option>{% endfor %}
+              <option value="" {% if not s.selected %}selected{% endif %}>nový sportovec – založí se</option>
+            </select>
+            {% if s.navrh %}<div class="text-xs mt-1" style="color: var(--accent-strong)">navrženo: {{ s.navrh }} – zkontrolujte</div>{% endif %}
+            {% if s.upozorneni %}<div class="text-xs mt-1" style="color: var(--warn)">{{ s.upozorneni }}</div>{% endif %}
+          </td>
           <td class="text-right">{{ s.testu }}</td>
         </tr>
       {% endfor %}
     </tbody>
   </table></div>
   <p class="text-xs text-muted mb-6">
-    {% if ma_klic %}
-      Noví sportovci dostanou kód a jméno se uloží do šifrované identity.
-    {% else %}
-      Noví sportovci dostanou kód. <strong>Jména se neuloží</strong> – v nastavení
-      chybí šifrovací klíč (IDENTITY_ENCRYPTION_KEY); spusťte <code>spustit.bat</code>,
-      který ho doplní.
-    {% endif %}
-    Příště je aplikace pozná sama (podle ID ve VALD, jinak podle jména a data narození).
+    Aplikace páruje podle ID ve VALD, jinak podle jména a data narození. Když je sportovec
+    ve VALD zapsaný jinak (překlep, jiné pořadí jmen), vyberte ho ručně – nabízejí se ti,
+    kdo mají ve dnech ze souboru naplánované testování. Po uložení si aplikace ID z VALD
+    zapamatuje a příště ho pozná sama.
+    {% if ma_klic %}Noví sportovci dostanou kód a jméno se uloží do šifrované identity.
+    {% else %}Noví sportovci dostanou kód. <strong>Jména se neuloží</strong> – chybí šifrovací
+      klíč; spusťte <code>spustit.bat</code>, který ho doplní.{% endif %}
   </p>
 {% elif summary.novych_sportovcu %}
   <div class="card px-4 py-3 mb-6 text-sm border-l-4" style="border-left-color: var(--accent)">
@@ -163,7 +167,7 @@
   </tbody>
 </table></div>
 
-<form method="post" action="{% url 'import_commit' batch.pk %}"
+<form method="post" action="{% url 'import_commit' batch.pk %}" id="ulozit"
       class="card p-4 sticky bottom-4" style="box-shadow: 0 8px 24px rgba(16, 24, 40, .12)">
   {% csrf_token %}
   <div class="flex flex-wrap gap-4 items-end">

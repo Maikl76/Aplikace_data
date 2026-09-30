@@ -11,11 +11,14 @@
       {% if run.protocol.device %}{{ run.protocol.device }}{% endif %}{% if run.started_at %} · {{ run.started_at|time:"H:i" }}{% endif %}{% if run.external_ref|slice:":9" == "odvozeno:" %} · vypočteno automaticky z ostatních testů{% elif run.external_ref %} · importováno z přístroje{% endif %}
     </p>
   </div>
+  <div class="flex flex-wrap gap-2">
+  {% if not run.external_ref %}{% include "measurements/_upload_export.html" with session_pk=run.session_id %}{% endif %}
   {% if run.protocol.rest_seconds %}
     <button type="button" class="btn" x-data
             @click="$dispatch('pauza', {sekundy: {{ run.protocol.rest_seconds }} })">
       {% icon "timer" %}Pauza {{ run.protocol.rest_seconds|mmss }}</button>
   {% endif %}
+  </div>
 </div>
 
 {# Odpočet pauzy mezi pokusy – na konci pípne a zavibruje. #}
