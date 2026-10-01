@@ -218,6 +218,10 @@ class Command(BaseCommand):
             recompute(session)
 
         self._demo_booking(org, protocols)
+        # Průvodce „Nový přístroj“ s ukázkovým přístrojem (soubory se v ukázce nenahrávají).
+        from apps.ingest.device_setup import create_demo_device
+
+        create_demo_device(org)
 
         self.stdout.write(self.style.SUCCESS(
             f"Hotovo: {options['subjects']} fiktivních sportovců, {created} hodnot."

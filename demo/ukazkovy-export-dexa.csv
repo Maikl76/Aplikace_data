@@ -1,0 +1,9 @@
+DEXA body composition export (UKÁZKA – vymyšlené osoby);;;;;;;;;;;;;;;;
+Exported 15.09.2026;;;;;;;;;;;;;;;;
+Patient ID;Last Name;First Name;Birth Date;Sex;Scan Date;Height (cm);Weight (kg);Total Fat (%);Total Lean (g);Total Fat (g);Left Arm Lean (g);Right Arm Lean (g);Left Leg Lean (g);Right Leg Lean (g);Trunk Lean (g);Total BMD (g/cm2)
+U001;Testovací;Adam;12.03.2001;M;15.09.2026;182;78,4;14,2;63120;11130;3610;3820;10950;11240;29870;1,284
+U002;Ukázková;Bára;05.11.1999;F;15.09.2026;168;61,2;22,8;44510;13950;2050;2140;7820;7910;21460;1,152
+U003;Zkušební;Cyril;28.07.2004;M;15.09.2026;189;84,9;12,6;69850;10700;4020;4210;12080;12230;32740;1,331
+U004;Vzorová;Dana;17.01.2006;F;16.09.2026;171;58,7;20,1;44030;11800;2010;2090;7690;7760;21180;1,104
+U005;Pokusný;Emil;02.09.2002;M;16.09.2026;177;72,3;15,9;57340;11500;3240;3390;9880;10010;27420;1,247
+U006;Náhodná;Františka;30.04.2005;F;16.09.2026;164;55,9;23,5;40280;13140;1820;1900;7010;7120;19370;1,089

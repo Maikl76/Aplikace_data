@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+<div class="mb-5">
+  <a href="{% url 'import_list' %}" class="text-sm link">← Import</a>
+  <h1 class="text-2xl font-semibold mt-1">Nový přístroj</h1>
+  <p class="text-sm text-muted mt-1 max-w-2xl">Přidejte přístroj, který umí uložit výsledky
+    jako tabulku (CSV nebo Excel). Nic se neprogramuje – stačí ukázkový soubor a pár kliknutí.</p>
+</div>
+
+<ol class="kroky mb-5">
+  <li class="aktivni">Ukázkový soubor</li>
+  <li>Kdo a kdy</li>
+  <li>Naměřené hodnoty</li>
+  <li>Uložit</li>
+</ol>
+
+<form method="post" enctype="multipart/form-data" class="card p-5 max-w-2xl space-y-5"
+      x-data="{ soubor: '', tahne: false }">
+  {% csrf_token %}
+  <label class="block">
+    <span class="text-sm font-medium">Název přístroje</span>
+    <input name="name" value="{{ form.name }}" required maxlength="120" class="input mt-1"
+           placeholder="např. DEXA, InBody 770, Biodex">
+    <span class="text-xs text-muted">Jak mu v laboratoři říkáte – pod tímto názvem ho uvidíte v Importu.</span>
+  </label>
+
+  <label class="block">
+    <span class="text-sm font-medium">Který test přístroj měří</span>
+    <select name="protocol" required class="input mt-1">
+      <option value="">— vyberte —</option>
+      {% for p in protocols %}
+        <option value="{{ p.pk }}" {% if form.protocol == p.pk|stringformat:"s" %}selected{% endif %}>{{ p.name }}{% if p.device %} ({{ p.device }}){% endif %}</option>
+      {% endfor %}
+    </select>
+    <span class="text-xs text-muted">Naměřené hodnoty se uloží k tomuto testu. Test chybí?
+      Založte ho nejdřív v <a class="link" href="/admin/catalog/protocol/add/">Katalogu → Protokoly</a>.</span>
+  </label>
+
+  <div>
+    <span class="text-sm font-medium">Ukázkový soubor z přístroje</span>
+    <label class="mt-1 flex flex-col items-center justify-center gap-2 text-center rounded-xl px-4 py-7 cursor-pointer"
+           style="border: 2px dashed var(--border-strong)"
+           :style="tahne && 'border-color: var(--accent); background: var(--accent-soft)'"
+           @dragover.prevent="tahne = true" @dragleave="tahne = false"
+           @drop.prevent="tahne = false; $refs.soubor.files = $event.dataTransfer.files; soubor = $refs.soubor.files[0]?.name || ''">
+      <span class="avatar w-10 h-10">{% icon "upload" "w-5 h-5" %}</span>
+      <span class="font-medium" x-text="soubor || 'Přetáhněte sem export, nebo klikněte a vyberte'">Přetáhněte sem export, nebo klikněte a vyberte</span>
+      <span class="text-sm text-muted">.xlsx nebo .csv – stačí jeden běžný export, třeba s pár lidmi</span>
+      <input type="file" name="file" required accept=".xlsx,.csv" x-ref="soubor" class="sr-only"
+             @change="soubor = $event.target.files[0]?.name || ''">
+    </label>
+    <p class="text-xs text-muted mt-2">Ze souboru se uloží jen <strong>názvy sloupců</strong>. Pár řádků
+      se ukáže v dalším kroku jako ukázka hodnot a po uložení přístroje se zahodí.
+      Do databáze se z ukázky nic nezapíše.</p>
+  </div>
+
+  {% if demo_mode %}
+    <p class="text-sm px-3 py-2 rounded-lg" style="background: var(--warn-soft); color: var(--warn)">
+      V ukázce je nahrávání souborů vypnuté. Jak průvodce vypadá, uvidíte u ukázkového
+      přístroje <strong>DEXA</strong> v Importu → Přístroje.</p>
+  {% endif %}
+  <button type="submit" class="btn btn-primary" {% if demo_mode %}disabled{% endif %}>Pokračovat {% icon "chevron-right" %}</button>
+</form>
+{% endblock %}

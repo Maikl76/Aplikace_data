@@ -8,7 +8,7 @@ from apps.catalog.models import Protocol
 from apps.core.audit import record
 from apps.core.models import AuditLog
 
-from . import services
+from . import device_views, services
 from .adapters import registry
 from .models import ImportBatch, StagedMeasurement
 
@@ -17,9 +17,13 @@ from .models import ImportBatch, StagedMeasurement
 def import_list(request):
     batches = (ImportBatch.objects.for_user(request.user)
                .select_related("raw_file", "uploaded_by")[:50])
+    devices = device_views.device_cards(request.user)
     return render(request, "ingest/import_list.html", {
         "batches": batches,
         "adapters": sorted(registry.values(), key=lambda a: a.label),
+        "devices": devices,
+        "ready_devices": [d for d in devices if d.is_active],
+        "can_edit_devices": device_views.can_edit(request.user),
         "protocols": Protocol.objects.filter(is_active=True),
     })
 

@@ -55,6 +55,8 @@ main() {
 
     # Ukázkové zprávy od AI uložené z laboratorního počítače (demo/ukazkove_zpravy/).
     "$PY" manage.py nacist_ukazky_zprav
+    # Ukázkový přístroj DEXA pro průvodce „Nový přístroj“.
+    "$PY" manage.py ukazkovy_pristroj
     "$PY" manage.py collectstatic --noinput --verbosity 0
 
     # Změna času u WSGI souboru = restart webové aplikace na PythonAnywhere.

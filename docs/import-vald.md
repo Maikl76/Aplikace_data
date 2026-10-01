@@ -79,6 +79,9 @@ hodnotu (hloubka protipohybu je v exportu záporná → −1). U časů vypněte
 
 Profily se přenášejí s katalogem (`ulozit-katalog.bat`).
 
+Jiný přístroj než VALD (DEXA, InBody…) se přidává průvodcem, viz
+[novy-pristroj.md](novy-pristroj.md).
+
 ## Jména a ochrana údajů
 
 Jména se ukládají šifrovaně a jen když je v `.env` šifrovací klíč

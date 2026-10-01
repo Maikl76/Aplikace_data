@@ -120,6 +120,7 @@ class SubjectExternalId(TimeStampedModel):
     class System(models.TextChoices):
         VALD = "vald", "VALD – ID sportovce"
         EXTID = "extid", "VALD – ExtId"
+        DEVICE = "pristroj", "ID v jiném přístroji"
         NAME_BIRTH = "hash_jmeno_narozeni", "Jméno a datum narození (hash)"
         NAME = "hash_jmeno", "Jméno (hash)"
 

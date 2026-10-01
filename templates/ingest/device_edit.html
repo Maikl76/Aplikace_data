@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+<div class="mb-5">
+  <a href="{% url 'import_list' %}" class="text-sm link">← Import</a>
+  <h1 class="text-2xl font-semibold mt-1">{{ device.name }}</h1>
+  <p class="text-sm text-muted mt-1">Test: <strong class="text-2">{{ device.protocol.name }}</strong>
+    · {{ header|length }} sloupců v souboru
+    {% if not device.is_active %}<span class="badge badge-warn ml-1">nedokončený</span>{% endif %}</p>
+</div>
+
+<ol class="kroky mb-5">
+  <li class="hotovo">Ukázkový soubor</li>
+  <li class="aktivni">Kdo a kdy</li>
+  <li class="aktivni">Naměřené hodnoty</li>
+  <li>Uložit</li>
+</ol>
+
+{{ first_row|json_script:"ukazka-radek" }}
+{{ columns|json_script:"sloupce-data" }}
+{{ protocol_metrics|json_script:"metriky-testu" }}
+{{ other_metrics|json_script:"metriky-ostatni" }}
+
+<form method="post" x-data="pristrojPrirazeni()" class="space-y-5 pb-24">
+  {% csrf_token %}
+
+  {% if not has_sample %}
+    <p class="text-sm px-3 py-2 rounded-lg" style="background: var(--surface-2)">
+      Ukázkové hodnoty se po uložení zahazují, proto tu nejsou vidět. Chcete-li je vidět
+      (nebo výrobce změnil sloupce), nahrajte dole nový ukázkový soubor.</p>
+  {% endif %}
+
+  {# --- 2. kdo a kdy -------------------------------------------------------- #}
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">2</span>
+      <div>
+        <h2 class="card-title">Kdo a kdy</h2>
+        <p class="text-sm text-muted">Ve kterém sloupci je jméno a datum měření. Podle toho se měření
+          spáruje se sportovcem a testovacím dnem – stejně jako u VALD.</p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-4 text-sm mb-3">
+      <label class="flex items-center gap-2"><input type="radio" value="0" x-model="dvaSloupce" @change="prepnoutJmeno()"> Jméno a příjmení jsou v jednom sloupci</label>
+      <label class="flex items-center gap-2"><input type="radio" value="1" x-model="dvaSloupce" @change="prepnoutJmeno()"> Ve dvou sloupcích (křestní jméno, příjmení)</label>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-4">
+      {% for field, label, hint, value in identity_fields %}
+        <label class="block min-w-0"
+               {% if field == "name_column" %}x-show="dvaSloupce === '0'"{% elif field == "first_name_column" or field == "last_name_column" %}x-show="dvaSloupce === '1'" x-cloak{% endif %}>
+          <span class="text-sm font-medium">{{ label }}</span>
+          <span class="text-xs text-muted">– {{ hint }}</span>
+          <select name="{{ field }}" class="input mt-1" x-model="id.{{ field }}">
+            <option value="">— není v souboru —</option>
+            {% for h in header %}<option value="{{ h }}" {% if h == value %}selected{% endif %}>{{ h }}</option>{% endfor %}
+          </select>
+          <span class="ukazka block mt-1" x-show="ukazka[id.{{ field }}]" x-text="'např. ' + ukazka[id.{{ field }}]"></span>
+        </label>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# --- 3. naměřené hodnoty --------------------------------------------------- #}
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">3</span>
+      <div>
+        <h2 class="card-title">Naměřené hodnoty</h2>
+        <p class="text-sm text-muted">U každého sloupce vyberte, kterou metriku obsahuje. Co nepotřebujete,
+          nechte na „nepoužít“. Metrika v katalogu chybí? Vyberte <strong>＋ Nová metrika</strong>.
+          {% if not device.is_active %}Řádky označené <span class="badge badge-accent">návrh</span> aplikace předvyplnila podle názvu sloupce – zkontrolujte je.{% endif %}</p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3 mb-2">
+      <input type="search" x-model="hledat" placeholder="Hledat sloupec…" class="input w-64">
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" x-model="jenCisla"> jen sloupce s čísly</label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" x-model="jenPrirazene"> jen přiřazené</label>
+    </div>
+
+    {% for c in columns %}
+      <div class="sloupec-radek" x-show="viditelny({{ c.i }})" :class="m[{{ c.i }}] && 'prirazeno'">
+        <div class="min-w-0 pl-1">
+          <div class="font-medium break-words">{{ c.name }}
+            {% if c.navrh %}<span class="badge badge-accent" x-show="m[{{ c.i }}] === '{{ c.metric }}'">návrh</span>{% endif %}</div>
+          {% if c.samples %}<div class="ukazka">např. {{ c.samples|join:" · " }}</div>{% endif %}
+        </div>
+        <div class="min-w-0 space-y-2">
+          <select name="c{{ c.i }}_metric" class="input" x-model="m[{{ c.i }}]">
+            <option value="">— nepoužít —</option>
+            <optgroup label="Metriky testu {{ device.protocol.name }}">
+              <template x-for="o in metrikyTestu" :key="o[0]"><option :value="String(o[0])" x-text="o[1]" :selected="String(o[0]) === m[{{ c.i }}]"></option></template>
+            </optgroup>
+            <optgroup label="Další metriky z katalogu">
+              <template x-for="o in metrikyOstatni" :key="o[0]"><option :value="String(o[0])" x-text="o[1]" :selected="String(o[0]) === m[{{ c.i }}]"></option></template>
+            </optgroup>
+            <option value="nova" :selected="m[{{ c.i }}] === 'nova'">＋ Nová metrika…</option>
+          </select>
+
+          <template x-if="m[{{ c.i }}] === 'nova'">
+            <div class="grid sm:grid-cols-3 gap-2 p-3 rounded-lg" style="background: var(--surface-2)">
+              <label class="block sm:col-span-3"><span class="text-xs text-2">Název nové metriky</span>
+                <input name="c{{ c.i }}_new_name" class="input mt-1" value="{{ c.new_name|default:c.bare }}" required></label>
+              <label class="block"><span class="text-xs text-2">Jednotka</span>
+                <input name="c{{ c.i }}_new_unit" class="input mt-1" value="{{ c.new_unit|default:c.unit }}" placeholder="kg, %, g/cm²"></label>
+              <label class="block sm:col-span-2"><span class="text-xs text-2">Co je lepší</span>
+                <select name="c{{ c.i }}_new_dir" class="input mt-1">
+                  {% for value, label in directions %}<option value="{{ value }}" {% if value == c.new_dir or not c.new_dir and value == "neutral" %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                </select></label>
+              <p class="text-xs text-muted sm:col-span-3">Metrika se založí v katalogu a přidá k testu {{ device.protocol.name }}.
+                Věrohodný rozsah a MDC jde doplnit později v Katalogu → Metriky.</p>
+            </div>
+          </template>
+
+          <details x-show="m[{{ c.i }}]">
+            <summary class="text-xs link cursor-pointer">upřesnit – strana, část těla, převod
+              {% if c.side == "L" %}<span class="badge">levá</span>{% elif c.side == "R" %}<span class="badge">pravá</span>{% endif %}
+              {% if c.segment %}<span class="badge">{{ c.segment }}</span>{% endif %}
+              {% if c.factor and c.factor != "1" %}<span class="badge">×{{ c.factor }}</span>{% endif %}
+            </summary>
+            <div class="grid sm:grid-cols-3 gap-2 mt-2">
+              <label class="block"><span class="text-xs text-2">Strana</span>
+                <select name="c{{ c.i }}_side" class="input mt-1">
+                  <option value="" {% if not c.side %}selected{% endif %}>celkem / obě</option>
+                  <option value="L" {% if c.side == "L" %}selected{% endif %}>levá</option>
+                  <option value="R" {% if c.side == "R" %}selected{% endif %}>pravá</option>
+                </select></label>
+              <label class="block"><span class="text-xs text-2">Část těla</span>
+                <input name="c{{ c.i }}_segment" class="input mt-1" value="{{ c.segment }}" list="segmenty" placeholder="—"></label>
+              <label class="block"><span class="text-xs text-2">Převod (násobek)</span>
+                <input name="c{{ c.i }}_factor" class="input mt-1" value="{{ c.factor|default:'1' }}" inputmode="decimal"></label>
+              <p class="text-xs text-muted sm:col-span-3">Převod: např. 0,001, když přístroj píše gramy a metrika je v kg.
+                Aplikace ho u známých jednotek nastaví sama.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+    {% endfor %}
+    <p class="text-sm text-muted pt-3" x-show="!pocetViditelnych()" x-cloak>Žádný sloupec neodpovídá filtru.</p>
+    <datalist id="segmenty">{% for s in segments %}<option value="{{ s }}">{% endfor %}</datalist>
+  </section>
+
+  {# --- 4. uložit ------------------------------------------------------------------- #}
+  <div class="card p-4 flex flex-wrap items-center justify-between gap-3 sticky bottom-3 z-10"
+       style="box-shadow: 0 6px 24px rgb(0 0 0 / .12)">
+    <div class="flex items-center gap-3">
+      <span class="krok-cislo">4</span>
+      <div class="text-sm">
+        <div><strong x-text="pocetPrirazenych()"></strong> sloupců se bude importovat
+          <span x-show="pocetNovych()" x-text="'(' + pocetNovych() + ' nových metrik)'"></span></div>
+        <div class="text-muted" x-show="!id.date_column">Chybí datum měření (krok 2).</div>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary" {% if demo_mode %}disabled title="V ukázce se nastavení neukládá"{% endif %}>{% icon "check" %}Uložit přístroj</button>
+  </div>
+</form>
+
+<div class="grid md:grid-cols-2 gap-4 mt-2">
+  <form method="post" action="{% url 'device_sample' device.pk %}" enctype="multipart/form-data" class="card p-4">
+    {% csrf_token %}
+    <h2 class="card-title">Nový ukázkový soubor</h2>
+    <p class="text-sm text-muted mb-3">Když výrobce v nové verzi softwaru přidá nebo přejmenuje sloupce.
+      Přiřazení, které platí dál, zůstane.</p>
+    <div class="flex flex-wrap gap-2">
+      <input type="file" name="file" accept=".xlsx,.csv" required class="text-sm">
+      <button type="submit" class="btn btn-sm" {% if demo_mode %}disabled{% endif %}>{% icon "upload" %}Načíst</button>
+    </div>
+  </form>
+  <form method="post" action="{% url 'device_delete' device.pk %}" class="card p-4"
+        onsubmit="return confirm('Smazat přístroj {{ device.name|escapejs }}? Data, která se z něj už importovala, zůstanou.')">
+    {% csrf_token %}
+    <h2 class="card-title">Smazat přístroj</h2>
+    <p class="text-sm text-muted mb-3">Soubory z něj se přestanou rozpoznávat. Data, která se z něj
+      už importovala, zůstanou.</p>
+    <button type="submit" class="btn btn-sm" style="color: var(--bad)" {% if demo_mode %}disabled{% endif %}>Smazat</button>
+  </form>
+</div>
+
+<script>
+function pristrojPrirazeni() {
+  const sloupce = JSON.parse(document.getElementById("sloupce-data").textContent);
+  const m = {}, cisla = {}, nazvy = {};
+  for (const c of sloupce) { m[c.i] = c.metric || ""; cisla[c.i] = c.numeric; nazvy[c.i] = c.name.toLowerCase(); }
+  const id = {};
+  document.querySelectorAll("select[name$='_column']").forEach(s => { id[s.name] = s.value; });
+  return {
+    m, id,
+    ukazka: JSON.parse(document.getElementById("ukazka-radek").textContent),
+    metrikyTestu: JSON.parse(document.getElementById("metriky-testu").textContent),
+    metrikyOstatni: JSON.parse(document.getElementById("metriky-ostatni").textContent),
+    dvaSloupce: id.first_name_column || id.last_name_column ? "1" : "0",
+    hledat: "", jenCisla: true, jenPrirazene: false,
+    prepnoutJmeno() {
+      if (this.dvaSloupce === "1") { this.id.name_column = ""; }
+      else { this.id.first_name_column = ""; this.id.last_name_column = ""; }
+    },
+    pouzity(i) { return Object.values(this.id).includes(sloupce.find(c => c.i === i).name); },
+    viditelny(i) {
+      if (this.pouzity(i)) return false;
+      if (this.hledat && !nazvy[i].includes(this.hledat.toLowerCase())) return false;
+      if (this.jenPrirazene && !this.m[i]) return false;
+      return !this.jenCisla || cisla[i] || this.m[i];
+    },
+    pocetViditelnych() { return sloupce.filter(c => this.viditelny(c.i)).length; },
+    pocetPrirazenych() { return sloupce.filter(c => this.m[c.i] && !this.pouzity(c.i)).length; },
+    pocetNovych() { return sloupce.filter(c => this.m[c.i] === "nova" && !this.pouzity(c.i)).length; },
+  };
+}
+</script>
+{% endblock %}

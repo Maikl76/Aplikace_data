@@ -4,9 +4,11 @@ nový protokol nebo metrika se zakládá tady, ne v kódu.
 """
 
 from django.contrib import admin
+from django.shortcuts import redirect
 
 from .models import (
     BatteryItem,
+    DeviceFormat,
     ImportColumn,
     ImportProfile,
     MetricDef,
@@ -74,14 +76,32 @@ class ImportProfileAdmin(admin.ModelAdmin):
     nový řádek tady (a metrika v katalogu), nic se neprogramuje.
     """
 
-    list_display = ("test_type", "device", "protocol", "pocet_sloupcu", "is_active")
+    list_display = ("test_type", "pristroj", "protocol", "pocet_sloupcu", "is_active")
     list_filter = ("device", "is_active")
     search_fields = ("test_type",)
     inlines = [ImportColumnInline]
 
+    @admin.display(description="přístroj", ordering="device")
+    def pristroj(self, obj):
+        return obj.device_label
+
     @admin.display(description="sloupců")
     def pocet_sloupcu(self, obj):
         return obj.columns.count()
+
+
+@admin.register(DeviceFormat)
+class DeviceFormatAdmin(admin.ModelAdmin):
+    """Přístroje z průvodce se nastavují v aplikaci (Import → Přístroje), tady jen odkaz."""
+
+    def changelist_view(self, request, extra_context=None):
+        return redirect("import_list")
+
+    def add_view(self, request, form_url="", extra_context=None):
+        return redirect("device_new")
+
+    def change_view(self, request, object_id, form_url="", extra_context=None):
+        return redirect("device_edit", pk=object_id)
 
 
 class BatteryItemInline(admin.TabularInline):

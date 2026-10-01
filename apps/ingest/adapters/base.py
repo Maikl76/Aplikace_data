@@ -77,12 +77,21 @@ def register(adapter_cls: type[BaseAdapter]) -> type[BaseAdapter]:
 
 
 def get_adapter(code: str) -> BaseAdapter:
+    from apps.catalog.models import DeviceFormat
+
+    if code.startswith(DeviceFormat.PREFIX):
+        from .table import DeviceTableAdapter
+
+        device = DeviceFormat.objects.filter(code=code.removeprefix(DeviceFormat.PREFIX)).first()
+        if device is None:
+            raise KeyError(f"Přístroj „{code}“ v katalogu není.")
+        return DeviceTableAdapter(device)
     if code not in registry:
         raise KeyError(f"Neznámý adaptér: {code}. Dostupné: {', '.join(sorted(registry))}")
     return registry[code]()
 
 
-def detect_adapter(fileobj: IO[bytes]) -> str | None:
+def detect_adapter(fileobj: IO[bytes], organization=None) -> str | None:
     """Pozná formát podle obsahu souboru, ne podle názvu."""
     for code, adapter_cls in registry.items():
         try:
@@ -93,4 +102,34 @@ def detect_adapter(fileobj: IO[bytes]) -> str | None:
             continue
         finally:
             fileobj.seek(0)
-    return None
+    return detect_device_format(fileobj, organization)
+
+
+def detect_device_format(fileobj: IO[bytes], organization=None) -> str | None:
+    """Přístroj z průvodce, jehož sloupce soubor má nejvíc (víc shod = jistější)."""
+    from django.db.models import Q
+
+    from apps.catalog.models import DeviceFormat, ImportProfile
+
+    from .table import match_score
+    from .vald import read_rows
+
+    devices = DeviceFormat.objects.filter(is_active=True)
+    if organization is not None:
+        devices = devices.filter(Q(organization=organization) | Q(organization__isnull=True))
+    if not devices:
+        return None
+    try:
+        fileobj.seek(0)
+        rows = read_rows(fileobj)
+    except Exception:
+        return None
+    finally:
+        fileobj.seek(0)
+    columns: dict[str, list[str]] = {}
+    for profile in ImportProfile.objects.filter(
+            device__in=[d.adapter_code for d in devices]).prefetch_related("columns"):
+        columns[profile.device] = [c.column for c in profile.columns.all()]
+    scored = [(match_score(rows, d, columns.get(d.adapter_code, [])), d) for d in devices]
+    score, best = max(scored, key=lambda pair: pair[0])
+    return best.adapter_code if score > 0 else None

@@ -27,6 +27,7 @@
       <select name="adapter" class="input mt-1 w-auto">
         <option value="auto">Rozpoznat automaticky</option>
         {% for a in adapters %}<option value="{{ a.code }}">{{ a.label }}</option>{% endfor %}
+        {% for d in ready_devices %}<option value="{{ d.adapter_code }}">{{ d.name }}</option>{% endfor %}
       </select>
     </label>
     <button type="submit" class="btn btn-primary" {% if demo_mode %}disabled{% endif %}>Načíst a zkontrolovat</button>
@@ -38,13 +39,45 @@
     </p>
   {% else %}
     <p class="text-xs text-muted mt-3">
-      Umí exporty z VALD ForceDecks (CMJ, IMTP, SJ, stoj na jedné noze), VALD HumanTrak
-      (box lift) a původní Excel. Co se z exportu importuje, určují
-      <a class="link" href="/admin/catalog/importprofile/">profily importu</a>.
       Soubor se nejdřív jen ukáže ke kontrole – do databáze se nic nezapíše, dokud náhled nepotvrdíte.
     </p>
   {% endif %}
 </form>
+
+<section class="card p-4 mb-6">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h2 class="card-title">Přístroje</h2>
+      <p class="text-sm text-muted">Exporty z těchto přístrojů aplikace pozná sama.</p>
+    </div>
+    {% if can_edit_devices %}
+      <a class="btn btn-primary" href="{% url 'device_new' %}">{% icon "plus" %}Přidat přístroj</a>
+    {% endif %}
+  </div>
+  <ul class="flex flex-wrap gap-2 mt-3 text-sm">
+    <li class="pristroj"><span class="font-medium">VALD ForceDecks</span>
+      <span class="text-muted">CMJ, IMTP, SJ, stoj na jedné noze</span>
+      {% if can_edit_devices %}<a class="link" href="/admin/catalog/importprofile/?device=vald_forcedecks" title="Které sloupce se importují">sloupce</a>{% endif %}</li>
+    <li class="pristroj"><span class="font-medium">VALD HumanTrak</span>
+      <span class="text-muted">box lift</span>
+      {% if can_edit_devices %}<a class="link" href="/admin/catalog/importprofile/?device=vald_humantrak" title="Které sloupce se importují">sloupce</a>{% endif %}</li>
+    <li class="pristroj"><span class="font-medium">Původní Excel</span>
+      <span class="text-muted">data ze staré aplikace</span></li>
+    {% for d in devices %}
+      <li class="pristroj">
+        <span class="font-medium">{{ d.name }}</span>
+        <span class="text-muted">{{ d.protocol.name }}</span>
+        {% if not d.is_active %}<span class="badge badge-warn">nedokončený</span>{% endif %}
+        {% if can_edit_devices %}<a class="link" href="{% url 'device_edit' d.pk %}">{% if d.is_active %}upravit{% else %}dokončit{% endif %}</a>{% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+  {% if can_edit_devices and not devices %}
+    <p class="text-xs text-muted mt-3">Jiný přístroj (DEXA, InBody, Biodex…)? Pokud umí uložit
+      tabulku (CSV nebo Excel), přidejte ho tlačítkem <strong>Přidat přístroj</strong> – stačí
+      ukázkový soubor a pár kliknutí, nic se neprogramuje.</p>
+  {% endif %}
+</section>
 
 <div class="card overflow-x-auto">
   <div class="px-4 pt-4 pb-2"><h2 class="card-title">Historie importů</h2></div>

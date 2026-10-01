@@ -323,10 +323,13 @@ class ImportProfile(CatalogModel):
         VALD_FORCEDECKS = "vald_forcedecks", "VALD ForceDecks"
         VALD_HUMANTRAK = "vald_humantrak", "VALD HumanTrak"
 
-    device = models.CharField("přístroj", max_length=32, choices=Device.choices)
-    test_type = models.CharField("typ testu v exportu", max_length=120,
+    # Vestavěné přístroje (VALD) mají kód z Device; přístroje přidané
+    # průvodcem „vlastni:<kód>“ (viz DeviceFormat).
+    device = models.CharField("přístroj", max_length=64)
+    test_type = models.CharField("typ testu v exportu", max_length=120, blank=True,
                                  help_text="Přesně jak ho píše export, např. "
-                                           "„Countermovement Jump“.")
+                                           "„Countermovement Jump“. U přístroje přidaného "
+                                           "průvodcem prázdné.")
     protocol = models.ForeignKey(Protocol, verbose_name="protokol", on_delete=models.PROTECT,
                                  related_name="import_profiles")
     is_active = models.BooleanField("aktivní", default=True)
@@ -341,7 +344,15 @@ class ImportProfile(CatalogModel):
         ]
 
     def __str__(self):
-        return f"{self.get_device_display()}: {self.test_type} → {self.protocol.name}"
+        label = f"{self.device_label}: {self.test_type}" if self.test_type else self.device_label
+        return f"{label} → {self.protocol.name}"
+
+    @property
+    def device_label(self) -> str:
+        if self.device.startswith(DeviceFormat.PREFIX):
+            device = DeviceFormat.objects.filter(code=self.device.removeprefix(DeviceFormat.PREFIX)).first()
+            return device.name if device else self.device
+        return dict(self.Device.choices).get(self.device, self.device)
 
 
 class ImportColumn(models.Model):
@@ -363,6 +374,12 @@ class ImportColumn(models.Model):
     factor = models.FloatField("násobek", default=1.0,
                                help_text="Převod hodnoty, např. −1 pro obrácení znaménka "
                                          "nebo 0,001 pro ms → s.")
+    # Jen u přístrojů z průvodce: sloupec patří k jedné straně či části těla
+    # („Left Arm Lean (g)“). VALD stranu pozná sám z názvu sloupce.
+    side = models.CharField("strana", max_length=1, blank=True,
+                            choices=[("B", "celkem / obě"), ("L", "levá"), ("R", "pravá")])
+    segment = models.CharField("část těla", max_length=32, blank=True,
+                               help_text="Např. paze, noha, trup.")
 
     class Meta:
         verbose_name = "importovaný sloupec"
@@ -374,6 +391,64 @@ class ImportColumn(models.Model):
 
     def __str__(self):
         return f"{self.column} → {self.metric.code}"
+
+
+class DeviceFormat(CatalogModel):
+    """
+    Přístroj přidaný průvodcem „Nový přístroj“ – export ve tvaru tabulky
+    (CSV nebo Excel), jeden řádek = jedno měření jednoho člověka.
+
+    Tady je, kde v souboru najít, kdo a kdy se měřil. Které sloupce se
+    importují jako které metriky, je v profilu importu (ImportProfile
+    s ``device = "vlastni:<kód>"``), stejně jako u VALD.
+    """
+
+    PREFIX = "vlastni:"
+
+    name = models.CharField("název přístroje", max_length=120)
+    code = models.SlugField("kód", max_length=40,
+                            help_text="Vznikne z názvu a už se nemění – podle něj se "
+                                      "přístroj pozná i po přenosu katalogu.")
+    protocol = models.ForeignKey(Protocol, verbose_name="test", on_delete=models.PROTECT,
+                                 related_name="device_formats")
+    header_row = models.PositiveSmallIntegerField("řádek s názvy sloupců", default=1)
+    columns_seen = models.JSONField("sloupce v souboru", default=list, blank=True,
+                                    help_text="Názvy sloupců z ukázkového souboru (bez dat).")
+    name_column = models.CharField("jméno a příjmení", max_length=200, blank=True)
+    first_name_column = models.CharField("křestní jméno", max_length=200, blank=True)
+    last_name_column = models.CharField("příjmení", max_length=200, blank=True)
+    id_column = models.CharField("ID v přístroji", max_length=200, blank=True)
+    birth_column = models.CharField("datum narození", max_length=200, blank=True)
+    sex_column = models.CharField("pohlaví", max_length=200, blank=True)
+    date_column = models.CharField("datum měření", max_length=200, blank=True)
+    time_column = models.CharField("čas měření", max_length=200, blank=True)
+    is_active = models.BooleanField("připravený k importu", default=False)
+
+    IDENTITY_FIELDS = ("name_column", "first_name_column", "last_name_column", "id_column",
+                       "birth_column", "sex_column", "date_column", "time_column")
+
+    class Meta:
+        verbose_name = "přístroj (vlastní formát)"
+        verbose_name_plural = "přístroje (vlastní formát)"
+        ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(fields=["organization", "code"], name="uniq_device_format"),
+        ]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def adapter_code(self) -> str:
+        return f"{self.PREFIX}{self.code}"
+
+    @property
+    def identity_columns(self) -> set[str]:
+        return {getattr(self, f) for f in self.IDENTITY_FIELDS if getattr(self, f)}
+
+    def profile(self):
+        return (ImportProfile.objects.filter(device=self.adapter_code)
+                .prefetch_related("columns__metric").first())
 
 
 class TestBattery(OrgScopedModel):

@@ -20,6 +20,7 @@ from apps.subjects.models import Sport
 
 from .models import (
     BatteryItem,
+    DeviceFormat,
     ImportColumn,
     ImportProfile,
     MetricDef,
@@ -80,6 +81,12 @@ def export_catalog() -> dict:
                 ],
             }
             for p in Protocol.objects.order_by("code", "version")
+        ],
+        # Přístroje z průvodce „Nový přístroj“ – jen nastavení, žádná data.
+        "pristroje": [
+            {"organizace": _org(d), "protokol": d.protocol.code,
+             "verze_protokolu": d.protocol.version, **_plain(d)}
+            for d in DeviceFormat.objects.select_related("protocol").order_by("code")
         ],
         "profily_importu": [
             {
@@ -171,6 +178,16 @@ class _Importer:
         return metric
 
 
+def _protocol(item: dict, org) -> Protocol:
+    protocol = (Protocol.objects.filter(code=item["protokol"], version=item["verze_protokolu"],
+                                        organization=org).first()
+                or Protocol.objects.filter(code=item["protokol"],
+                                           version=item["verze_protokolu"]).first())
+    if protocol is None:
+        raise ImportError_(f"Protokol „{item['protokol']}“ v souboru chybí.")
+    return protocol
+
+
 def _data_fields(item: dict, *remove) -> dict:
     return {k: v for k, v in item.items() if k not in {"organizace", *remove}}
 
@@ -198,15 +215,16 @@ def import_catalog(data: dict, *, default_org: Organization | None = None) -> di
                        {"protocol": protocol, "metric": imp.metric(pm["metrika"], org)},
                        _data_fields(pm, "metrika"))
 
+    for item in data.get("pristroje", []):
+        org = imp.org(item["organizace"])
+        protocol = _protocol(item, org)
+        imp.upsert("přístroje", DeviceFormat, {"organization": org, "code": item["code"]},
+                   {**_data_fields(item, "code", "protokol", "verze_protokolu"),
+                    "protocol": protocol})
+
     for item in data.get("profily_importu", []):
         org = imp.org(item["organizace"])
-        protocol = (Protocol.objects.filter(code=item["protokol"],
-                                            version=item["verze_protokolu"],
-                                            organization=org).first()
-                    or Protocol.objects.filter(code=item["protokol"],
-                                               version=item["verze_protokolu"]).first())
-        if protocol is None:
-            raise ImportError_(f"Protokol „{item['protokol']}“ v souboru chybí.")
+        protocol = _protocol(item, org)
         profile = imp.upsert(
             "profily importu", ImportProfile,
             {"organization": org, "device": item["device"], "test_type": item["test_type"]},
@@ -216,7 +234,8 @@ def import_catalog(data: dict, *, default_org: Organization | None = None) -> di
             imp.upsert("importované sloupce", ImportColumn,
                        {"profile": profile, "column": col["column"]},
                        {"metric": imp.metric(col["metrika"], org), "factor": col["factor"],
-                        "with_sides": col.get("with_sides", True)})
+                        "with_sides": col.get("with_sides", True),
+                        "side": col.get("side", ""), "segment": col.get("segment", "")})
 
     # Baterie: chybějící testy se doplní a pořadí srovná podle souboru;
     # testy, které v souboru nejsou, zůstanou (import nic nemaže).

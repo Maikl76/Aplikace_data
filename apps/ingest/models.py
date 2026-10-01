@@ -47,8 +47,14 @@ class ImportBatch(OrgScopedModel):
 
     @property
     def adapter_label(self) -> str:
+        from apps.catalog.models import DeviceFormat
+
         from .adapters import registry
 
+        if self.adapter.startswith(DeviceFormat.PREFIX):
+            device = DeviceFormat.objects.filter(
+                code=self.adapter.removeprefix(DeviceFormat.PREFIX)).first()
+            return device.name if device else self.adapter
         adapter = registry.get(self.adapter)
         return adapter.label if adapter else self.adapter
 

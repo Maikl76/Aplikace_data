@@ -61,11 +61,12 @@ def stage_file(*, uploaded_file, user, organization, adapter_code="auto",
     content_hash = _hash_content(data)
 
     if adapter_code in ("", "auto"):
-        adapter_code = detect_adapter(io.BytesIO(data))
+        adapter_code = detect_adapter(io.BytesIO(data), organization)
         if adapter_code is None:
             raise ImportError_(
                 f"Formát souboru „{uploaded_file.name}“ se nepodařilo rozpoznat. "
-                f"Umím: {', '.join(a.label for a in registry.values())}."
+                f"Umím: {', '.join(known_formats(organization))}. Je-li to export z jiného "
+                f"přístroje, přidejte ho v Importu → Přístroje → Přidat přístroj."
             )
 
     if existing := RawFile.objects.filter(content_hash=content_hash).first():
@@ -98,6 +99,16 @@ def stage_file(*, uploaded_file, user, organization, adapter_code="auto",
         protocol=protocol, uploaded_by=user,
     )
     return _parse_into(batch, adapter, data, protocol=protocol)
+
+
+def known_formats(organization) -> list[str]:
+    from django.db.models import Q
+
+    from apps.catalog.models import DeviceFormat
+
+    devices = DeviceFormat.objects.filter(is_active=True).filter(
+        Q(organization=organization) | Q(organization__isnull=True))
+    return [a.label for a in registry.values()] + [d.name for d in devices]
 
 
 def restage(raw_file, *, user, organization) -> ImportBatch:
@@ -141,6 +152,7 @@ def _parse_into(batch, adapter, data: bytes, *, protocol=None) -> ImportBatch:
 # Pořadí, ve kterém se sportovec páruje: od nejspolehlivějšího.
 MATCH_ORDER = [
     (SubjectExternalId.System.VALD, "ID ve VALD"),
+    (SubjectExternalId.System.DEVICE, "ID v přístroji"),
     (SubjectExternalId.System.NAME_BIRTH, "jméno a datum narození"),
     (SubjectExternalId.System.NAME, "jméno"),
 ]

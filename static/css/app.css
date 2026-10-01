@@ -355,3 +355,25 @@ th[aria-sort] .tym-razeni { color: var(--accent-strong); }
   margin-left: auto; min-width: 1.35rem; padding: 0 .4rem; border-radius: 999px; text-align: center;
   font-size: .72rem; font-weight: 650; line-height: 1.35rem; background: var(--accent); color: #fff;
 }
+
+/* Import – přístroje a průvodce „Nový přístroj“ */
+.pristroj { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem .5rem;
+  padding: .45rem .7rem; border: 1px solid var(--border); border-radius: .6rem; }
+.kroky { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; counter-reset: krok; font-size: .875rem; }
+.kroky li { display: flex; align-items: center; gap: .45rem; color: var(--muted); }
+.kroky li::before { counter-increment: krok; content: counter(krok); display: inline-grid;
+  place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 999px; font-weight: 600;
+  font-size: .75rem; border: 1px solid var(--border-strong); }
+.kroky li.hotovo { color: var(--good); }
+.kroky li.hotovo::before { content: "✓"; background: var(--good-soft); border-color: transparent; }
+.kroky li.aktivni { color: var(--text); font-weight: 600; }
+.kroky li.aktivni::before { background: var(--accent); color: #fff; border-color: transparent; }
+.krok-cislo { display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem;
+  border-radius: 999px; background: var(--accent-soft); color: var(--accent-strong);
+  font-weight: 600; font-size: .8rem; flex: none; }
+.sloupec-radek { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: .5rem 1rem;
+  align-items: start; padding: .7rem 0; border-top: 1px solid var(--border); }
+.sloupec-radek.prirazeno { background: linear-gradient(90deg, var(--accent-soft), transparent 60%); }
+.ukazka { font-size: .75rem; color: var(--muted); font-variant-numeric: tabular-nums;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 640px) { .sloupec-radek { grid-template-columns: minmax(0, 1fr); } }

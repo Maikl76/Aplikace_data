@@ -74,7 +74,7 @@
         </a>
         <a href="{% url 'import_list' %}" class="napoveda-dlazdice">
           <span class="avatar w-9 h-9">{% icon "upload" "w-5 h-5" %}</span>
-          <span><strong>Import z přístrojů</strong><br>Exporty z VALD ForceDecks a HumanTrak se nahrají a vše se vyplní samo.</span>
+          <span><strong>Import z přístrojů</strong><br>Exporty z VALD i dalších přístrojů (DEXA…) se nahrají a vše se vyplní samo.</span>
         </a>
         <a href="{% url 'team' %}" class="napoveda-dlazdice">
           <span class="avatar w-9 h-9">{% icon "grid" "w-5 h-5" %}</span>
@@ -258,7 +258,7 @@
     {# ================================================================== #}
     <section id="import" class="card p-5" data-kapitola>
       <h2>Import z přístrojů</h2>
-      <p>Umí exporty z <strong>VALD ForceDecks</strong> (CMJ, IMTP, SJ, stoj na jedné noze), <strong>VALD HumanTrak</strong> (box lift) a původní Excel laboratoře (.xlsx, .csv).</p>
+      <p>Umí exporty z <strong>VALD ForceDecks</strong> (CMJ, IMTP, SJ, stoj na jedné noze), <strong>VALD HumanTrak</strong> (box lift), původní Excel laboratoře a z přístrojů, které správce přidal průvodcem <em>Nový přístroj</em> (.xlsx, .csv).</p>
       <ol>
         <li><a class="link" href="{% url 'import_list' %}">Import</a> → přetáhněte soubory (i víc najednou). Formát nechte <em>Rozpoznat automaticky</em>.</li>
         <li><strong>Kontrola před uložením</strong> – nic se ještě nezapsalo. Uvidíte počty testů a hodnot, rozsah dat, sportovce v souboru a jak je aplikace poznala, nestabilní pokusy a hodnoty mimo rozsah.</li>
@@ -272,6 +272,16 @@
         <li><strong>Založené testy</strong> z Dnešního testování import vyplní, nevzniknou druhé.</li>
         <li><strong>Co se importuje</strong> určují <a class="link" href="/admin/catalog/importprofile/">profily importu</a> (sloupec exportu → metrika). Po doplnění profilu tlačítko <em>načíst znovu</em> u starého importu doplní nové metriky.</li>
       </ul>
+      <h3 id="novy-pristroj">Nový přístroj (DEXA, InBody, Biodex…)</h3>
+      <p>Přístroj, který umí uložit výsledky jako tabulku (CSV, Excel), přidá správce bez programování:
+        <a class="link" href="{% url 'import_list' %}">Import</a> → <em>Přístroje</em> → <strong>Přidat přístroj</strong>.</p>
+      <ol>
+        <li><strong>Ukázkový soubor</strong> – název přístroje, který test měří a jeden export. Uloží se jen názvy sloupců.</li>
+        <li><strong>Kdo a kdy</strong> – sloupec se jménem (nebo ID v přístroji) a s datem měření. Aplikace je předvyplní.</li>
+        <li><strong>Naměřené hodnoty</strong> – u sloupců vyberte metriku; návrhy podle názvu zkontrolujte. Chybějící metriku založíte volbou <em>＋ Nová metrika</em>. V <em>upřesnit</em> je strana, část těla a převod (g → kg se nastaví sám).</li>
+        <li><strong>Uložit</strong> – od té chvíle Import soubory z přístroje pozná sám.</li>
+      </ol>
+      <p>Když výrobce změní export: u přístroje <em>upravit</em> → <em>Nový ukázkový soubor</em>. Přístroje se přenášejí s katalogem.</p>
     </section>
 
     {# ================================================================== #}
@@ -342,7 +352,7 @@
             <tr><td class="font-medium">Pravidla</td><td>Podmínka nad výsledky → nález a doporučení. Zakládají se <strong>neaktivní</strong>; zapíná je ten, kdo za práh ručí. Kontraindikace pravidlo potlačí.</td></tr>
             <tr><td class="font-medium">Články</td><td>Literatura k pravidlům. Navržené čekají na schválení, do zprávy jdou jen zařazené.</td></tr>
             <tr><td class="font-medium">Dotazníky</td><td>Škály pro sportovce (zatím RPE). Další se dají připravit, v aplikaci se zatím nabízí jen RPE.</td></tr>
-            <tr><td class="font-medium">Profily importu</td><td>Který sloupec exportu z přístroje je která metrika.</td></tr>
+            <tr><td class="font-medium">Profily importu</td><td>Který sloupec exportu z přístroje je která metrika. Přístroje přidané průvodcem se upravují v Importu → Přístroje.</td></tr>
             <tr><td class="font-medium">Uživatelé</td><td>Účty, role, organizace (jen správce).</td></tr>
             <tr><td class="font-medium">Souhlasy</td><td>U sportovce (úprava údajů): testování, sledování v čase, předání zprávy poskytovateli zdravotních služeb, výzkum. Bez souhlasu s předáním nejde zprávu předat.</td></tr>
             <tr><td class="font-medium">Externí vyšetření</td><td>Omezení zátěže z lékařského vyšetření (bez diagnóz). Dokud platí, doporučení vyžadující zátěž se negenerují.</td></tr>
@@ -436,6 +446,8 @@
         <p>Změna je menší než MDC dané metriky – mohla vzniknout jen nepřesností měření. Bez vyplněné MDC aplikace napíše „nelze posoudit“. MDC doplňte v katalogu z literatury nebo z vlastní reliability studie.</p></details>
       <details><summary>Týmový přehled nebo Dnešní testování jsou prázdné.</summary>
         <p>Sport nemá baterii testů (nastavte v Sporty a testy), nebo sportovci nemají vyplněný sport či kategorii odpovídající baterii.</p></details>
+      <details><summary>Import nepozná soubor z přístroje („Formát se nepodařilo rozpoznat“).</summary>
+        <p>Přístroj ještě není přidaný – přidejte ho v Importu → Přístroje → <em>Přidat přístroj</em>. Pokud přidaný je, výrobce mohl změnit export: u přístroje <em>upravit</em> → <em>Nový ukázkový soubor</em>.</p></details>
       <details><summary>Import nepoznal sportovce a chce založit nového.</summary>
         <p>Jméno v exportu je zapsané jinak (překlep, jiné pořadí) a sportovec ještě nemá uložené ID z VALD. V náhledu importu je vidět, koho aplikace založí jako nového – takový import zrušte, jméno opraví superuživatel v <em>Katalog a nastavení → Identity sportovců</em> a soubor nahrajte znovu. Jakmile aplikace ID z VALD jednou uloží, příště sportovce pozná podle něj.</p></details>
       <details><summary>Zprávu nejde vydat.</summary>
