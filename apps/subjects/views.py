@@ -143,3 +143,111 @@ def subject_today(request, pk):
     search.label([subject], request.user, subject=lambda s: s)
     return render(request, "subjects/today_confirm.html", {
         "subject": subject, "today": today, "protocols": planning.battery_protocols(subject)})
+
+
+# --- ruční založení a úprava -------------------------------------------------------
+
+def _may_edit(user) -> bool:
+    return user.is_superuser or user.sees_identity
+
+
+def _form_page(request, form, subject=None, duplicates=None):
+    from django.conf import settings
+
+    categories = sorted(set(Subject.objects.for_user(request.user).exclude(category="")
+                            .values_list("category", flat=True)))
+    return render(request, "subjects/subject_form.html", {
+        "form": form, "subject": subject, "duplicates": duplicates or {},
+        "categories": categories, "has_key": bool(settings.IDENTITY_ENCRYPTION_KEY),
+        "display_name": subject.display_for(request.user) if subject else "",
+    })
+
+
+def _check(request, form, organization, subject=None):
+    """Formulář je v pořádku a duplicity jsou buď žádné, nebo potvrzené."""
+    from . import services
+
+    if not form.is_valid():
+        return None
+    data = form.cleaned_data
+    exact, same_name = services.find_duplicates(
+        organization, data["first_name"], data["last_name"], data["birth_date"],
+        exclude=subject)
+    search.label(exact + same_name, request.user, subject=lambda s: s)
+    if exact and not data.get("confirm_duplicate"):
+        return {"exact": exact, "same_name": same_name}
+    return {"same_name": same_name} if same_name else {}
+
+
+def _same_name_note(request, duplicates):
+    from django.contrib import messages
+
+    if others := duplicates.get("same_name"):
+        messages.warning(request, "Pozor, stejné jméno (s jiným datem narození) má i "
+                         + ", ".join(f"{s.jmeno} {s.code}" for s in others)
+                         + ". Při importu je rozliší datum narození nebo ID z přístroje.")
+
+
+@login_required
+def subject_new(request):
+    from django.conf import settings
+    from django.contrib import messages
+
+    from apps.booking import services as booking
+
+    from . import services
+    from .forms import SubjectForm
+
+    if not _may_edit(request.user):
+        messages.error(request, "Sportovce zakládá laborant nebo správce.")
+        return redirect("subject_list")
+    organization = request.user.organization or booking.organization()
+    sports = Sport.objects.for_user(request.user).order_by("name")
+    form = SubjectForm(request.POST or None, sports=sports)
+    if request.method == "POST":
+        if not settings.IDENTITY_ENCRYPTION_KEY:
+            messages.error(request, "Chybí šifrovací klíč – jméno nejde uložit. Spusťte "
+                                    "aplikaci přes spustit.bat, klíč se doplní sám.")
+            return _form_page(request, form)
+        duplicates = _check(request, form, organization)
+        if duplicates is not None and "exact" not in duplicates:
+            subject = services.create_subject(organization, form.cleaned_data)
+            record(request, AuditLog.Action.CREATE, subject, subject_code=subject.code)
+            messages.success(request, f"Sportovec založen pod kódem {subject.code}.")
+            _same_name_note(request, duplicates)
+            return redirect("subject_detail", pk=subject.pk)
+        return _form_page(request, form, duplicates=duplicates)
+    if sport := request.GET.get("sport"):
+        form.initial["sport"] = sport
+    return _form_page(request, form)
+
+
+@login_required
+def subject_edit(request, pk):
+    from django.conf import settings
+    from django.contrib import messages
+
+    from . import services
+    from .forms import SubjectForm
+
+    subject = get_object_or_404(Subject.objects.for_user(request.user), pk=pk)
+    if not _may_edit(request.user):
+        messages.error(request, "Údaje sportovce upravuje laborant nebo správce.")
+        return redirect("subject_detail", pk=pk)
+    if not settings.IDENTITY_ENCRYPTION_KEY:
+        messages.error(request, "Chybí šifrovací klíč – jméno nejde přečíst ani uložit.")
+        return redirect("subject_detail", pk=pk)
+    sports = Sport.objects.for_user(request.user).order_by("name")
+    if request.method == "POST":
+        form = SubjectForm(request.POST, sports=sports)
+        duplicates = _check(request, form, subject.organization, subject)
+        if duplicates is not None and "exact" not in duplicates:
+            services.update_subject(subject, form.cleaned_data)
+            record(request, AuditLog.Action.UPDATE, subject, subject_code=subject.code)
+            messages.success(request, "Údaje uloženy.")
+            _same_name_note(request, duplicates)
+            return redirect("subject_detail", pk=subject.pk)
+        return _form_page(request, form, subject, duplicates)
+    record(request, AuditLog.Action.VIEW, subject, subject_code=subject.code, identita=True)
+    form = SubjectForm(initial=services.initial(subject), sports=sports)
+    return _form_page(request, form, subject)

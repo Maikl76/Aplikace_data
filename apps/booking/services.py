@@ -188,6 +188,7 @@ def _new_subject(request, participant, sport) -> Subject:
     )
     identity = SubjectIdentity(subject=subject)
     identity.set_names(participant.first_name, participant.last_name)
+    identity.set_birth_date(participant.birth_date)
     if request.kind == BookingRequest.Kind.INDIVIDUAL:
         from apps.subjects import crypto
 

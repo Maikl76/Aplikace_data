@@ -11,7 +11,7 @@
       {% if display_name != subject.code %}<span class="badge">{{ subject.code }}</span>{% endif %}
       <span class="badge">{{ subject.sport|default:"bez sportu" }}{% if subject.category %} · {{ subject.category }}{% endif %}</span>
       <span class="badge">{{ subject.get_level_display }}</span>
-      {% if subject.age %}<span class="badge">{{ subject.age }} let</span>{% endif %}
+      {% if subject.age is not None %}<span class="badge" {% if not subject.birth_date %}title="Jen podle roku narození"{% endif %}>{{ subject.age }} let</span>{% endif %}
       <span class="badge">{{ subject.get_sex_display }}</span>
       {% if subject.dominant_side %}<span class="badge">dominantní {{ subject.get_dominant_side_display|lower }}</span>{% endif %}
       {% if subject.team %}<span class="badge">{{ subject.team }}</span>{% endif %}
@@ -27,7 +27,9 @@
       </form>
     {% endif %}
     <a href="{% url 'subject_qr' subject.pk %}" class="btn" title="QR karta – naskenováním otevřete dnešní testování">{% icon "qr" %}</a>
-    <a href="/admin/subjects/subject/{{ subject.pk }}/change/" class="btn" title="Upravit údaje sportovce">{% icon "edit" %}</a>
+    {% if user.sees_identity or user.is_superuser %}
+      <a href="{% url 'subject_edit' subject.pk %}" class="btn" title="Upravit údaje sportovce (jméno, datum narození, sport, souhlasy)">{% icon "edit" %}</a>
+    {% endif %}
   </div>
 </div>
 

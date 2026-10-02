@@ -278,7 +278,8 @@ def _eval_z(condition, context) -> list[dict]:
         if metric.code != condition["z"]:
             continue
         norm = find_norm(metric, context["subject"], side=entry["side"],
-                         mode=entry["mode"], speed=entry["speed"])
+                         mode=entry["mode"], speed=entry["speed"],
+                         day=context["session"].date)
         if norm is None:
             continue
         z = norm.z_score(entry["value"])

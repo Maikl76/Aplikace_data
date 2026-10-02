@@ -54,16 +54,16 @@ def compare_to_previous(metric, current: float, previous: float) -> ChangeResult
     return ChangeResult(delta, is_real, is_worthwhile, improvement, text)
 
 
-def find_norm(metric, subject, *, side="", mode="", speed=None):
-    """Nejspecifičtější norma, která na sportovce sedí."""
+def find_norm(metric, subject, *, side="", mode="", speed=None, day=None):
+    """Nejspecifičtější norma, která na sportovce sedí (věk v den ``day``, jinak dnes)."""
     qs = Norm.objects.filter(metric=metric)
     candidates = []
+    age = subject.age_on(day)
     for norm in qs:
         if norm.sport_id and norm.sport_id != subject.sport_id:
             continue
         if norm.sex and norm.sex != subject.sex:
             continue
-        age = subject.age
         if age is not None:
             if norm.age_min and age < norm.age_min:
                 continue

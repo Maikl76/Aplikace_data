@@ -494,6 +494,7 @@ def commit_batch(batch, *, user, default_date=None, skip_out_of_range=False) -> 
             subject = _create_subject(batch, row, info, legacy_attrs, result)
             result["sportovci"] += 1
         _learn_ids(subject, info.get("ids", {}))
+        _fill_birth_date(subject, info.get("attrs", {}))
         subjects[row.subject_key] = subject
 
     # 2) testovací dny, provedení, pokusy
@@ -650,6 +651,20 @@ def _learn_ids(subject, ids: dict):
                                                     value=str(value)[:128])
 
 
+def _fill_birth_date(subject, attrs: dict):
+    """Dřív založený sportovec bez data narození ho dostane z exportu, který ho má."""
+    from datetime import date
+
+    from django.conf import settings
+
+    if not attrs.get("birth_date") or not settings.IDENTITY_ENCRYPTION_KEY:
+        return
+    identity = SubjectIdentity.objects.filter(subject=subject).first()
+    if identity is not None and not identity.birth_date_enc:
+        identity.set_birth_date(date.fromisoformat(attrs["birth_date"]))
+        identity.save(update_fields=["birth_date_enc", "updated_at"])
+
+
 def _create_subject(batch, row, info: dict, legacy_attrs: dict, result: dict) -> Subject:
     """
     Nový sportovec dostane pseudonymní kód. Jméno se uloží jen do šifrované
@@ -669,8 +684,12 @@ def _create_subject(batch, row, info: dict, legacy_attrs: dict, result: dict) ->
     )
     if attrs.get("last_name"):
         if settings.IDENTITY_ENCRYPTION_KEY:
+            from datetime import date
+
             identity = SubjectIdentity(subject=subject)
             identity.set_names(attrs.get("first_name", ""), attrs["last_name"])
+            if attrs.get("birth_date"):
+                identity.set_birth_date(date.fromisoformat(attrs["birth_date"]))
             identity.save()
         else:
             result["jmena_neulozena"] += 1

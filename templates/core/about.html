@@ -164,7 +164,7 @@
       <h2>Rychlý start – typický den v laboratoři</h2>
       <ol class="napoveda-kroky">
         <li><strong>Jednou na začátku:</strong> v <a class="link" href="{% url 'sport_list' %}">Sporty a testy</a> nastavte, které testy se u sportu měří (baterie).</li>
-        <li><strong>Sportovci:</strong> noví se založí sami při importu z VALD, nebo je přidáte v <a class="link" href="/admin/subjects/subject/add/">administraci</a>. U sportovce vyplňte sport a případně kategorii (např. dorost).</li>
+        <li><strong>Sportovci:</strong> noví se založí sami při importu z přístroje nebo schválení objednávky, nebo je přidáte v <a class="link" href="{% url 'subject_list' %}">Sportovcích</a> tlačítkem <strong>Nový sportovec</strong> (jméno, datum narození, sport, kategorie, souhlasy). Údaje opravíte tužkou na kartě sportovce.</li>
         <li><strong>Ráno:</strong> <a class="link" href="{% url 'today' %}">Dnešní testování</a> → vyberte skupinu → zaškrtněte, kdo přijde → <em>Založit testování pro vybrané</em>.</li>
         <li><strong>Během měření:</strong> u přístroje otevřete test a zadejte pokusy, nebo po měření nahrajte export v <a class="link" href="{% url 'import_list' %}">Importu</a>. Po zátěžových testech zaznamenejte RPE.</li>
         <li><strong>Kontrola:</strong> v testovacím dni upozornění na nestabilní pokusy – pokud je sportovec ještě v laboratoři, test zopakujte.</li>
@@ -446,6 +446,8 @@
         <p>Změna je menší než MDC dané metriky – mohla vzniknout jen nepřesností měření. Bez vyplněné MDC aplikace napíše „nelze posoudit“. MDC doplňte v katalogu z literatury nebo z vlastní reliability studie.</p></details>
       <details><summary>Týmový přehled nebo Dnešní testování jsou prázdné.</summary>
         <p>Sport nemá baterii testů (nastavte v Sporty a testy), nebo sportovci nemají vyplněný sport či kategorii odpovídající baterii.</p></details>
+      <details><summary>Kde vyplním jméno a datum narození nového sportovce?</summary>
+        <p>V <em>Sportovci → Nový sportovec</em>, ne v administraci – tam je jen pseudonymní záznam bez jména. Jméno, datum narození a kontakt se ukládají šifrovaně a vidí je jen laborant a správce. Když už v aplikaci je někdo se stejným jménem a datem narození, formulář upozorní a nabídne ho otevřít. Z data narození se počítá přesný věk v den testování (pro normy podle věku).</p></details>
       <details><summary>Import nepozná soubor z přístroje („Formát se nepodařilo rozpoznat“).</summary>
         <p>Přístroj ještě není přidaný – přidejte ho v Importu → Přístroje → <em>Přidat přístroj</em>. Pokud přidaný je, výrobce mohl změnit export: u přístroje <em>upravit</em> → <em>Nový ukázkový soubor</em>.</p></details>
       <details><summary>Import nepoznal sportovce a chce založit nového.</summary>

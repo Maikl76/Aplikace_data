@@ -33,7 +33,7 @@ def articles_for(findings) -> list[dict]:
                 "article": article,
                 "relevance": link.relevance_note,
                 "findings": [finding],
-                "population_matches": article.matches_population(subject),
+                "population_matches": article.matches_population(subject, finding.session.date),
             }
     return list(seen.values())
 

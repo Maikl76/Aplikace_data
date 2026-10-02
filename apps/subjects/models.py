@@ -68,7 +68,8 @@ class Subject(OrgScopedModel):
                              related_name="subjects", null=True, blank=True)
     sex = models.CharField("pohlaví", max_length=1, choices=Sex.choices, default=Sex.OTHER)
     birth_year = models.PositiveSmallIntegerField("rok narození", null=True, blank=True,
-                                                  help_text="Jen rok – přesné datum není potřeba.")
+                                                  help_text="Jen rok. Přesné datum je šifrovaně "
+                                                            "v identitě sportovce.")
     category = models.CharField("kategorie", max_length=60, blank=True,
                                 help_text="Věková nebo výkonnostní kategorie, např. „dorost“. "
                                           "Podle ní se vybírá baterie testů.")
@@ -97,9 +98,31 @@ class Subject(OrgScopedModel):
 
     @property
     def age(self):
+        return self.age_on(timezone.localdate())
+
+    def age_on(self, day=None):
+        """
+        Věk v daný den (např. v den testování). S datem narození z identity
+        přesně, jinak jen podle roku narození – pak může být o rok vedle.
+        """
+        day = day or timezone.localdate()
+        birth = self.birth_date
+        if birth:
+            return day.year - birth.year - ((day.month, day.day) < (birth.month, birth.day))
         if not self.birth_year:
             return None
-        return timezone.localdate().year - self.birth_year
+        return day.year - self.birth_year
+
+    @property
+    def birth_date(self):
+        """Datum narození ze šifrované identity (bez klíče nebo identity None)."""
+        if not hasattr(self, "_birth_date"):
+            self._birth_date = None
+            try:
+                self._birth_date = self.identity.birth_date
+            except Exception:  # bez identity, bez klíče, jiný klíč
+                pass
+        return self._birth_date
 
     def display_for(self, user):
         """Jméno jen těm, kdo na ně mají mít nárok; ostatním pseudonym."""
@@ -153,6 +176,7 @@ class SubjectIdentity(TimeStampedModel):
     last_name_enc = models.TextField("příjmení (šifrovaně)", blank=True)
     email_enc = models.TextField("e-mail (šifrovaně)", blank=True)
     phone_enc = models.TextField("telefon (šifrovaně)", blank=True)
+    birth_date_enc = models.TextField("datum narození (šifrovaně)", blank=True)
     last_name_hash = models.CharField("hash příjmení", max_length=64, blank=True, db_index=True,
                                       help_text="Umožňuje přesné vyhledání bez dešifrování.")
 
@@ -167,6 +191,32 @@ class SubjectIdentity(TimeStampedModel):
         self.first_name_enc = crypto.encrypt(first_name)
         self.last_name_enc = crypto.encrypt(last_name)
         self.last_name_hash = crypto.search_hash(last_name)
+
+    @property
+    def first_name(self) -> str:
+        return crypto.decrypt(self.first_name_enc)
+
+    @property
+    def last_name(self) -> str:
+        return crypto.decrypt(self.last_name_enc)
+
+    @property
+    def birth_date(self):
+        from datetime import date
+
+        text = crypto.decrypt(self.birth_date_enc)
+        return date.fromisoformat(text) if text else None
+
+    def set_birth_date(self, value):
+        self.birth_date_enc = crypto.encrypt(value.isoformat()) if value else ""
+
+    @property
+    def email(self) -> str:
+        return crypto.decrypt(self.email_enc)
+
+    @property
+    def phone(self) -> str:
+        return crypto.decrypt(self.phone_enc)
 
     @property
     def full_name(self) -> str:

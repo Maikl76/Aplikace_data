@@ -68,12 +68,12 @@ class Article(TimeStampedModel):
         first_author = self.authors.split(",")[0] if self.authors else "?"
         return f"{first_author} ({self.year}): {self.title[:70]}"
 
-    def matches_population(self, subject) -> bool:
-        """Sedí studie na tohoto sportovce? Pokud ne, zpráva to uvede."""
+    def matches_population(self, subject, day=None) -> bool:
+        """Sedí studie na tohoto sportovce (věk v den ``day``)? Pokud ne, zpráva to uvede."""
         if self.population_sex and self.population_sex != "B":
             if subject.sex != self.population_sex:
                 return False
-        age = subject.age
+        age = subject.age_on(day)
         if age is not None:
             if self.population_age_min and age < self.population_age_min:
                 return False

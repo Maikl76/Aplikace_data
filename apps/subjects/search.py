@@ -41,8 +41,9 @@ def annotate(subjects, user, *, limit: int | None = None, recent: bool = False) 
     ``subjects`` je queryset (ještě neoříznutý), ``recent`` řadí od
     naposledy měřených.
     """
-    qs = subjects.annotate(pocet_mereni=Count("sessions", distinct=True),
-                           posledni_mereni=Max("sessions__date"))
+    # Identita kvůli věku z přesného data narození – jedním dotazem, ne po řádcích.
+    qs = subjects.select_related("identity").annotate(
+        pocet_mereni=Count("sessions", distinct=True), posledni_mereni=Max("sessions__date"))
     if recent:
         qs = qs.order_by(F("posledni_mereni").desc(nulls_last=True), "code")
     rows = list(qs[:limit] if limit else qs)

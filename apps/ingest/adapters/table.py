@@ -133,6 +133,7 @@ class DeviceTableAdapter(BaseAdapter):
                 "subject_attrs": {
                     "first_name": first, "last_name": last,
                     "birth_year": birth.year if birth else None,
+                    "birth_date": birth.isoformat() if birth else None,
                     "sex": _sex(get(row, device.sex_column)) if device.sex_column else "",
                 },
                 "protocol_code": profile.protocol.code,

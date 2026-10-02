@@ -213,7 +213,8 @@ def protocol_results(session) -> list[dict]:
                 row["delta_txt"] = signed(round(value, d) - round(before["value"], d), d)
                 row["verdict"], row["verdict_kind"] = change_verdict(metric, delta)
 
-            norm = find_norm(metric, subject, side=side, mode=mode, speed=speed)
+            norm = find_norm(metric, subject, side=side, mode=mode, speed=speed,
+                             day=session.date)
             if norm is not None and norm.mean is not None:
                 row["norm_txt"] = cz(norm.mean, d) + (f" ± {cz(norm.sd, d)}" if norm.sd else "")
                 if (z := norm.z_score(value)) is not None:

@@ -27,7 +27,7 @@ def build(session, findings, citations) -> dict:
             "kod": subject.code,
             "sport": str(subject.sport) if subject.sport_id else "neuvedeno",
             "pohlavi": subject.get_sex_display().lower(),
-            "vek": subject.age,
+            "vek": subject.age_on(session.date),
             "uroven": subject.get_level_display().lower(),
         },
         "datum_mereni": session.date.strftime("%d. %m. %Y"),
@@ -123,7 +123,7 @@ def _key_metrics(session) -> list[dict]:
                 item["mdc"] = round(metric.mdc, d)
 
         norm = find_norm(metric, session.subject, side=entry["side"],
-                         mode=entry["mode"], speed=entry["speed"])
+                         mode=entry["mode"], speed=entry["speed"], day=session.date)
         if norm is not None and (z := norm.z_score(entry["value"])) is not None:
             item["z_skore_vuci_norme"] = round(z, 1)
             item["norma_prumer"] = round(norm.mean, d)

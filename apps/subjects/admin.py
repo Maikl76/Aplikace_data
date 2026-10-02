@@ -1,5 +1,6 @@
 from django.contrib import admin, messages
 from django.db.models import ProtectedError
+from django.shortcuts import redirect
 
 from .models import Consent, Sport, Subject, SubjectExternalId, SubjectIdentity, Team
 
@@ -36,6 +37,10 @@ class SubjectAdmin(admin.ModelAdmin):
     search_fields = ("code",)
     inlines = [ConsentInline, ExternalIdInline]
     actions = ["deaktivovat", "aktivovat"]
+
+    def add_view(self, request, form_url="", extra_context=None):
+        """Nový sportovec se jménem a datem narození se zakládá v aplikaci."""
+        return redirect("subject_new")
 
     @admin.display(description="testovacích dnů")
     def pocet_mereni(self, obj):

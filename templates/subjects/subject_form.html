@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+<div class="mb-5">
+  {% if subject %}
+    <a href="{% url 'subject_detail' subject.pk %}" class="text-sm link">← {{ display_name }}</a>
+    <h1 class="text-2xl font-semibold mt-1">Údaje sportovce</h1>
+    <p class="text-sm text-muted mt-1">Kód <strong class="text-2">{{ subject.code }}</strong> se nemění – pod ním jsou všechna měření.</p>
+  {% else %}
+    <a href="{% url 'subject_list' %}" class="text-sm link">← Sportovci</a>
+    <h1 class="text-2xl font-semibold mt-1">Nový sportovec</h1>
+    <p class="text-sm text-muted mt-1 max-w-2xl">Kód (např. FTVS-0012) dostane sportovec sám. Jméno, datum
+      narození a kontakt se ukládají šifrovaně a vidí je jen laborant a správce.</p>
+  {% endif %}
+</div>
+
+{% if not has_key %}
+  <p class="card p-4 mb-4 text-sm" style="background: var(--warn-soft); color: var(--warn)">
+    Chybí šifrovací klíč, jméno teď nejde uložit. Spusťte aplikaci přes <code>spustit.bat</code> – klíč se doplní sám.</p>
+{% endif %}
+
+{% if duplicates.exact %}
+  <div class="card p-4 mb-4 text-sm border-l-4" style="border-left-color: var(--warn)">
+    <div class="flex gap-2 items-start">
+      <span style="color: var(--warn)">{% icon "alert" "w-5 h-5" %}</span>
+      <div>
+        <strong>Sportovec se stejným jménem a datem narození už v aplikaci je:</strong>
+        <ul class="mt-1">
+          {% for s in duplicates.exact %}
+            <li><a class="link" href="{% url 'subject_detail' s.pk %}">{{ s.jmeno }} ({{ s.code }})</a>{% if s.sport %} · {{ s.sport }}{% endif %}</li>
+          {% endfor %}
+        </ul>
+        <p class="mt-2 text-muted">Nejspíš je to tentýž člověk – otevřete ho a založte u něj nové měření.
+          Jde-li opravdu o jiného člověka, zaškrtněte dole „Přesto uložit“.</p>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<form method="post" class="space-y-4 max-w-3xl" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}<p class="text-sm" style="color: var(--bad)">{{ form.non_field_errors|join:" " }}</p>{% endif %}
+
+  <section class="card p-5">
+    <h2 class="card-title mb-3">Osobní údaje <span class="text-xs text-muted font-normal">– šifrovaně</span></h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      {% for field in form %}{% if field.name in "first_name last_name birth_date" %}
+        <label class="block">
+          <span class="text-sm font-medium">{{ field.label }}</span>
+          {{ field }}
+          {% for e in field.errors %}<span class="text-xs block" style="color: var(--bad)">{{ e }}</span>{% endfor %}
+        </label>
+      {% endif %}{% endfor %}
+      <fieldset>
+        <legend class="text-sm font-medium">{{ form.sex.label }}</legend>
+        <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm">
+          {% for choice in form.sex %}<label class="flex items-center gap-2">{{ choice.tag }}{{ choice.choice_label }}</label>{% endfor %}
+        </div>
+        {% for e in form.sex.errors %}<span class="text-xs block" style="color: var(--bad)">{{ e }}</span>{% endfor %}
+      </fieldset>
+      {% for field in form %}{% if field.name in "email phone" %}
+        <label class="block">
+          <span class="text-sm font-medium">{{ field.label }}</span> <span class="text-xs text-muted">– nepovinné</span>
+          {{ field }}
+          {% for e in field.errors %}<span class="text-xs block" style="color: var(--bad)">{{ e }}</span>{% endfor %}
+        </label>
+      {% endif %}{% endfor %}
+    </div>
+  </section>
+
+  <section class="card p-5">
+    <h2 class="card-title mb-3">Sport a testování</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <label class="block">
+        <span class="text-sm font-medium">{{ form.sport.label }}</span>
+        {{ form.sport }}
+      </label>
+      <label class="block">
+        <span class="text-sm font-medium">{{ form.new_sport.label }}</span>
+        {{ form.new_sport }}
+        <span class="text-xs text-muted">Když v seznamu není – založí se.</span>
+      </label>
+      <label class="block">
+        <span class="text-sm font-medium">{{ form.category.label }}</span>
+        <input type="text" name="category" value="{{ form.category.value|default:'' }}" list="kategorie" class="input mt-1" maxlength="60">
+        <datalist id="kategorie">{% for c in categories %}<option value="{{ c }}">{% endfor %}</datalist>
+        <span class="text-xs text-muted">{{ form.category.help_text }}</span>
+      </label>
+      <label class="block">
+        <span class="text-sm font-medium">{{ form.level.label }}</span>
+        {{ form.level }}
+      </label>
+      <label class="block">
+        <span class="text-sm font-medium">{{ form.dominant_side.label }}</span>
+        {{ form.dominant_side }}
+      </label>
+      <label class="block sm:col-span-2">
+        <span class="text-sm font-medium">{{ form.note.label }}</span> <span class="text-xs text-muted">– {{ form.note.help_text }}</span>
+        {{ form.note }}
+      </label>
+    </div>
+  </section>
+
+  <section class="card p-5">
+    <h2 class="card-title">Souhlasy</h2>
+    <p class="text-sm text-muted mb-3">Zaškrtněte, k čemu sportovec (u nezletilého zákonný zástupce) dal souhlas.
+      {% if subject %}Odškrtnutí souhlas ode dneška odvolá.{% endif %}
+      Podepsaný dokument jde přiložit v administraci.</p>
+    <div class="grid sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+      {% for choice in form.consents %}<label class="flex items-center gap-2">{{ choice.tag }}{{ choice.choice_label }}</label>{% endfor %}
+    </div>
+  </section>
+
+  <div class="flex flex-wrap items-center gap-4">
+    <button type="submit" class="btn btn-primary" {% if not has_key %}disabled{% endif %}>{% icon "check" %}{% if subject %}Uložit údaje{% else %}Založit sportovce{% endif %}</button>
+    {% if duplicates.exact %}
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="confirm_duplicate" value="on"> Přesto uložit – je to jiný člověk</label>
+    {% endif %}
+  </div>
+</form>
+{% endblock %}
