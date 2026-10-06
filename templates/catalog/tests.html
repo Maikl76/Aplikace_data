@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+{% include "catalog/_tabs.html" with tab="testy" %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <div class="eyebrow">Nastavení testování</div>
+    <h1 class="text-2xl font-semibold">Testy</h1>
+    <p class="text-sm text-muted mt-1 max-w-2xl">Co se v laboratoři měří: počet pokusů, pauza,
+      RPE a metriky. Zadávací formulář vznikne z nastavení sám. Úpravy nemění nic z toho, co už je naměřené.</p>
+  </div>
+  {% if can_edit %}<a href="{% url 'test_new' %}" class="btn btn-primary">{% icon "plus" %}Nový test</a>{% endif %}
+</div>
+
+<div class="card overflow-x-auto">
+  <table class="table">
+    <thead><tr><th>Test</th><th class="max-md:hidden">Přístroj</th><th class="text-right">Metrik</th>
+      <th class="text-right max-md:hidden">Pokusů</th><th class="max-md:hidden">V bateriích</th><th></th></tr></thead>
+    <tbody>
+      {% for p in protocols %}
+        <tr {% if not p.is_active %}class="text-muted"{% endif %}>
+          <td class="font-medium">{{ p.name }}
+            {% if not p.is_active %}<span class="badge">vypnutý</span>{% endif %}
+            {% if p.rpe_after %}<span class="badge" title="Po testu se zaznamenává RPE">RPE</span>{% endif %}</td>
+          <td class="text-2 max-md:hidden">{{ p.device|default:"—" }}</td>
+          <td class="text-right tabular-nums">{{ p.pocet_metrik }}</td>
+          <td class="text-right tabular-nums max-md:hidden">{{ p.default_trials }}</td>
+          <td class="text-2 text-sm max-md:hidden">{{ p.baterie|join:", "|default:"—" }}</td>
+          <td class="text-right">{% if can_edit %}<a class="btn btn-sm" href="{% url 'test_edit' p.pk %}">{% icon "edit" %}upravit</a>{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="text-muted py-6 text-center">Zatím žádné testy.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

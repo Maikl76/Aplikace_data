@@ -191,6 +191,7 @@
       <p>Baterie = seznam testů, které se u sportu měří, v pořadí, v jakém se měří.</p>
       <ul>
         <li>V <a class="link" href="{% url 'sport_list' %}">Sporty a testy</a> přidáte sport, u něj testy přidáte, odeberete nebo posunete šipkami.</li>
+        <li><strong>Nový test</strong> (správce): <a class="link" href="{% url 'test_list' %}">Sporty a testy → Testy</a> → <em>Nový test</em>. Na jedné stránce název, počet pokusů, pauza a RPE; metriky z katalogu nebo nové (<em>＋ Nová metrika</em>); strany a části těla zaškrtnutím; rovnou i zařazení do baterií. Zadávací formulář vznikne sám. Existující test upravíte tlačítkem <em>upravit</em> – naměřená data zůstávají.</li>
         <li><strong>Kategorie:</strong> sport může mít vedle obecné baterie i baterii pro kategorii (např. <em>Lední hokej – dorost</em>). Sportovec s vyplněnou kategorií dostane baterii své kategorie, ostatní obecnou.</li>
         <li>Baterie předvyplní nový testovací den, řídí <em>Dnešní testování</em>, pořadí testů při zadávání a sloupce <em>Týmového přehledu</em>.</li>
         <li>Odvozené ukazatele (DSI, EUR) se do baterie nepřidávají – dopočítají se samy z CMJ, IMTP a SJ.</li>
@@ -347,7 +348,7 @@
           <thead><tr><th>Položka</th><th>K čemu</th></tr></thead>
           <tbody>
             <tr><td class="font-medium">Metriky</td><td>Název, jednotka, žádoucí směr (vyšší/nižší je lepší), <strong>MDC a SWC</strong> (bez MDC aplikace neřekne „zlepšení“), věrohodný rozsah, <strong>hodnota dne z pokusů</strong> (průměr / nejlepší / poslední), mez rozptylu pokusů, role v ODS.</td></tr>
-            <tr><td class="font-medium">Protokoly</td><td>Testy a jejich ukazatele (strany, režimy, rychlosti), počet pokusů, <strong>pauza mezi pokusy</strong>, zda se po testu zaznamenává <strong>RPE</strong>, klíčové metriky (dlaždice, týmový přehled).</td></tr>
+            <tr><td class="font-medium">Protokoly</td><td>Pohodlněji v Sporty a testy → Testy. Testy a jejich ukazatele (strany, režimy, rychlosti), počet pokusů, <strong>pauza mezi pokusy</strong>, zda se po testu zaznamenává <strong>RPE</strong>, klíčové metriky (dlaždice, týmový přehled).</td></tr>
             <tr><td class="font-medium">Normy</td><td>Referenční hodnoty (průměr ± SD, percentily) podle sportu, pohlaví a věku – vždy s citací zdroje.</td></tr>
             <tr><td class="font-medium">Pravidla</td><td>Podmínka nad výsledky → nález a doporučení. Zakládají se <strong>neaktivní</strong>; zapíná je ten, kdo za práh ručí. Kontraindikace pravidlo potlačí.</td></tr>
             <tr><td class="font-medium">Články</td><td>Literatura k pravidlům. Navržené čekají na schválení, do zprávy jdou jen zařazené.</td></tr>
@@ -446,6 +447,8 @@
         <p>Změna je menší než MDC dané metriky – mohla vzniknout jen nepřesností měření. Bez vyplněné MDC aplikace napíše „nelze posoudit“. MDC doplňte v katalogu z literatury nebo z vlastní reliability studie.</p></details>
       <details><summary>Týmový přehled nebo Dnešní testování jsou prázdné.</summary>
         <p>Sport nemá baterii testů (nastavte v Sporty a testy), nebo sportovci nemají vyplněný sport či kategorii odpovídající baterii.</p></details>
+      <details><summary>Jak přidám nový test?</summary>
+        <p><em>Sporty a testy → Testy → Nový test</em> (role Správce). Vyplníte název a průběh, přidáte metriky – existující z katalogu, nebo novou s jednotkou a směrem „co je lepší“ – a zaškrtnete strany (levá/pravá) či části těla. Každá kombinace je pak při zadávání vlastní řádek. Test se přenáší s katalogem.</p></details>
       <details><summary>Kde vyplním jméno a datum narození nového sportovce?</summary>
         <p>V <em>Sportovci → Nový sportovec</em>, ne v administraci – tam je jen pseudonymní záznam bez jména. Jméno, datum narození a kontakt se ukládají šifrovaně a vidí je jen laborant a správce. Když už v aplikaci je někdo se stejným jménem a datem narození, formulář upozorní a nabídne ho otevřít. Z data narození se počítá přesný věk v den testování (pro normy podle věku).</p></details>
       <details><summary>Import nepozná soubor z přístroje („Formát se nepodařilo rozpoznat“).</summary>

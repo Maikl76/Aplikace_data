@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+<div class="mb-5">
+  <a href="{% url 'test_list' %}" class="text-sm link">← Testy</a>
+  <h1 class="text-2xl font-semibold mt-1">{% if protocol %}{{ protocol.name }}{% else %}Nový test{% endif %}</h1>
+  <p class="text-sm text-muted mt-1 max-w-2xl">Zadávací formulář testu vznikne podle tohoto nastavení
+    sám.{% if protocol %} Změny platí pro další měření – naměřená data zůstávají.{% endif %}</p>
+</div>
+
+{{ rows|json_script:"radky-data" }}
+{{ metrics|json_script:"metriky-data" }}
+
+<form method="post" x-data="novyTest()" class="space-y-5 max-w-4xl pb-6">
+  {% csrf_token %}
+
+  {# --- 1. test ------------------------------------------------------------- #}
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">1</span>
+      <div><h2 class="card-title">Test</h2>
+        <p class="text-sm text-muted">Jak se jmenuje a jak probíhá.</p></div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <label class="block sm:col-span-2">
+        <span class="text-sm font-medium">Název testu</span>
+        <input name="name" value="{{ data.name }}" required maxlength="200" class="input mt-1" placeholder="např. Sprint 20 m, Leg press 1RM">
+      </label>
+      <label class="block">
+        <span class="text-sm font-medium">Druh testu</span>
+        <select name="family" class="input mt-1">
+          {% for value, label in families %}<option value="{{ value }}" {% if value == data.family %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="block">
+        <span class="text-sm font-medium">Přístroj</span> <span class="text-xs text-muted">– nepovinné</span>
+        <input name="device" value="{{ data.device }}" maxlength="120" class="input mt-1" placeholder="např. fotobuňky Witty">
+      </label>
+      <label class="block">
+        <span class="text-sm font-medium">Počet pokusů</span>
+        <input name="trials" type="number" min="1" max="20" value="{{ data.trials }}" class="input mt-1">
+      </label>
+      <label class="block">
+        <span class="text-sm font-medium">Pauza mezi pokusy (s)</span> <span class="text-xs text-muted">– nepovinné</span>
+        <input name="rest" type="number" min="0" max="3600" value="{{ data.rest|default_if_none:'' }}" class="input mt-1" placeholder="např. 180">
+        <span class="text-xs text-muted">Při zadávání se nabídne odpočet.</span>
+      </label>
+      <label class="block sm:col-span-2">
+        <span class="text-sm font-medium">Popis postupu</span> <span class="text-xs text-muted">– nepovinné</span>
+        <textarea name="description" rows="2" class="input mt-1" placeholder="Rozcvičení, start, kolik pokusů se počítá…">{{ data.description }}</textarea>
+      </label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="rpe" value="on" {% if data.rpe %}checked{% endif %}>
+        Po testu zaznamenat <strong>RPE</strong> (vnímané úsilí)</label>
+      {% if protocol %}
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="active" value="on" {% if data.active %}checked{% endif %}>
+          Test se používá <span class="text-muted">(vypnutý se nenabízí, data zůstanou)</span></label>
+      {% else %}<input type="hidden" name="active" value="on">{% endif %}
+    </div>
+  </section>
+
+  {# --- 2. metriky ------------------------------------------------------------ #}
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-2">
+      <span class="krok-cislo">2</span>
+      <div><h2 class="card-title">Co se měří</h2>
+        <p class="text-sm text-muted">Metriky testu v pořadí, v jakém se zadávají. Vyberte z katalogu,
+          nebo založte novou volbou <strong>＋ Nová metrika</strong>. <strong>Klíčová</strong> se ukazuje na kartě sportovce a v týmovém přehledu.</p></div>
+    </div>
+
+    <template x-for="(r, i) in radky" :key="r.key">
+      <div class="sloupec-radek" style="grid-template-columns: minmax(0,1fr)">
+        <input type="hidden" name="radek" :value="r.key">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="w-6 text-muted tabular-nums" x-text="(i + 1) + '.'"></span>
+          <select :name="'m' + r.key + '_metric'" x-model="r.metric" class="input flex-1 min-w-[14rem]">
+            <option value="">— vyberte metriku —</option>
+            <template x-for="g in skupiny" :key="g.name">
+              <optgroup :label="g.name">
+                <template x-for="m in g.items" :key="m.id"><option :value="m.id" x-text="m.label" :selected="m.id === r.metric"></option></template>
+              </optgroup>
+            </template>
+            <option value="nova" :selected="r.metric === 'nova'">＋ Nová metrika…</option>
+          </select>
+          <label class="flex items-center gap-1.5 text-sm"><input type="checkbox" :name="'m' + r.key + '_primary'" value="on" x-model="r.primary"> klíčová</label>
+          <button type="button" class="btn btn-sm" title="Posunout výš" @click="posun(i, -1)" :disabled="i === 0">↑</button>
+          <button type="button" class="btn btn-sm" title="Posunout níž" @click="posun(i, 1)" :disabled="i === radky.length - 1">↓</button>
+          <button type="button" class="btn btn-sm" style="color: var(--bad)" title="Odebrat z testu" @click="radky.splice(i, 1)">✕</button>
+        </div>
+
+        <template x-if="r.metric === 'nova'">
+          <div class="grid sm:grid-cols-6 gap-2 p-3 rounded-lg ml-8" style="background: var(--surface-2)">
+            <label class="block sm:col-span-3"><span class="text-xs text-2">Název metriky</span>
+              <input :name="'m' + r.key + '_new_name'" x-model="r.new_name" class="input mt-1" placeholder="např. Čas na 20 m"></label>
+            <label class="block"><span class="text-xs text-2">Jednotka</span>
+              <input :name="'m' + r.key + '_new_unit'" x-model="r.new_unit" class="input mt-1" placeholder="s, kg, cm"></label>
+            <label class="block sm:col-span-2"><span class="text-xs text-2">Co je lepší</span>
+              <select :name="'m' + r.key + '_new_dir'" x-model="r.new_dir" class="input mt-1">
+                {% for value, label in directions %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+              </select></label>
+            <label class="block sm:col-span-2"><span class="text-xs text-2">Hodnota dne z pokusů</span>
+              <select :name="'m' + r.key + '_new_rule'" x-model="r.new_rule" class="input mt-1">
+                {% for value, label in rules %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+              </select></label>
+            <label class="block"><span class="text-xs text-2">Desetinná místa</span>
+              <input type="number" min="0" max="4" :name="'m' + r.key + '_new_decimals'" x-model="r.new_decimals" class="input mt-1"></label>
+            <label class="block"><span class="text-xs text-2">Věrohodné od</span>
+              <input inputmode="decimal" :name="'m' + r.key + '_new_min'" x-model="r.new_min" class="input mt-1"></label>
+            <label class="block"><span class="text-xs text-2">do</span>
+              <input inputmode="decimal" :name="'m' + r.key + '_new_max'" x-model="r.new_max" class="input mt-1"></label>
+            <p class="text-xs text-muted sm:col-span-6">Věrohodný rozsah hlídá překlepy při zadávání a importu.
+              MDC (kdy je změna skutečná) doplníte později v Katalogu → Metriky.</p>
+          </div>
+        </template>
+
+        <div class="ml-8 flex flex-wrap gap-x-5 gap-y-1 text-sm" x-show="r.metric">
+          <span class="text-muted">Strany:</span>
+          {% for value, label in sides %}<label class="flex items-center gap-1.5"><input type="checkbox" :name="'m' + r.key + '_sides'" value="{{ value }}" x-model="r.sides"> {{ label }}</label>{% endfor %}
+        </div>
+        <details class="ml-8" x-show="r.metric" :open="!!(r.segments.length || r.segment_other || r.modes.length || r.speeds)">
+          <summary class="text-xs link cursor-pointer">další rozlišení – části těla, režim, rychlost</summary>
+          <div class="grid sm:grid-cols-2 gap-3 mt-2 text-sm">
+            <div><span class="text-xs text-2 block mb-1">Části těla</span>
+              <div class="flex flex-wrap gap-x-4 gap-y-1">
+                {% for s in segments %}<label class="flex items-center gap-1.5"><input type="checkbox" :name="'m' + r.key + '_segments'" value="{{ s }}" x-model="r.segments"> {{ s }}</label>{% endfor %}
+              </div>
+              <input :name="'m' + r.key + '_segment_other'" x-model="r.segment_other" class="input mt-1" placeholder="jiné, oddělte čárkou"></div>
+            <div><span class="text-xs text-2 block mb-1">Režim (izokinetika)</span>
+              <div class="flex flex-wrap gap-x-4 gap-y-1">
+                {% for value, label in modes %}<label class="flex items-center gap-1.5"><input type="checkbox" :name="'m' + r.key + '_modes'" value="{{ value }}" x-model="r.modes"> {{ label }}</label>{% endfor %}
+              </div>
+              <span class="text-xs text-2 block mt-2">Rychlosti (°/s)</span>
+              <input :name="'m' + r.key + '_speeds'" x-model="r.speeds" class="input mt-1" placeholder="např. 60, 180"></div>
+          </div>
+          <p class="text-xs text-muted mt-1">Každá kombinace (např. levá × paže) je při zadávání vlastní řádek.</p>
+        </details>
+      </div>
+    </template>
+    <button type="button" class="btn mt-3" @click="pridat()">{% icon "plus" %}Přidat metriku</button>
+  </section>
+
+  {# --- 3. baterie ----------------------------------------------------------------- #}
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-3">
+      <span class="krok-cislo">3</span>
+      <div><h2 class="card-title">Do kterých baterií</h2>
+        <p class="text-sm text-muted">Test se pak předvyplní každému novému testovacímu dni sportovců daného sportu (kategorie).
+          Nepovinné – zařadit jde i později v Sporty a baterie.</p></div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-x-4 gap-y-1 text-sm">
+      {% for b in batteries %}
+        <label class="flex items-center gap-2"><input type="checkbox" name="baterie" value="{{ b.pk }}" {% if b.pk|stringformat:"s" in battery_ids %}checked{% endif %}>
+          {{ b.sport.name }} – {% if b.category %}{{ b.category }}{% else %}celý sport{% endif %}</label>
+      {% empty %}
+        <p class="text-muted">Zatím žádné baterie. Založíte je v <a class="link" href="{% url 'sport_list' %}">Sporty a baterie</a>.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <div class="flex items-center gap-3">
+    <button type="submit" class="btn btn-primary">{% icon "check" %}{% if protocol %}Uložit test{% else %}Založit test{% endif %}</button>
+    <a href="{% url 'test_list' %}" class="btn">Zrušit</a>
+  </div>
+</form>
+
+<script>
+function novyTest() {
+  const metriky = JSON.parse(document.getElementById("metriky-data").textContent);
+  const skupiny = [];
+  for (const m of metriky) {
+    let g = skupiny.find(x => x.name === m.family);
+    if (!g) { g = { name: m.family, items: [] }; skupiny.push(g); }
+    g.items.push(m);
+  }
+  const radky = JSON.parse(document.getElementById("radky-data").textContent).map(r => ({
+    ...r, sides: r.sides && r.sides.length ? r.sides : ["B"], segments: r.segments || [], modes: r.modes || [] }));
+  let dalsi = radky.length + 100;
+  return {
+    radky, skupiny,
+    pridat() {
+      this.radky.push({ key: String(dalsi++), metric: "", primary: false, sides: ["B"], modes: [],
+        speeds: "", segments: [], segment_other: "", new_name: "", new_unit: "", new_dir: "neutral",
+        new_decimals: 2, new_rule: "prumer", new_min: "", new_max: "" });
+    },
+    posun(i, smer) {
+      const j = i + smer;
+      [this.radky[i], this.radky[j]] = [this.radky[j], this.radky[i]];
+    },
+  };
+}
+</script>
+{% endblock %}

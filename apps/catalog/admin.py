@@ -34,6 +34,10 @@ class ProtocolAdmin(admin.ModelAdmin):
     search_fields = ("code", "name", "device")
     inlines = [ProtocolMetricInline]
 
+    def add_view(self, request, form_url="", extra_context=None):
+        """Nový test se pohodlněji zakládá v aplikaci (Sporty a testy → Testy)."""
+        return redirect("test_new")
+
 
 @admin.register(MetricDef)
 class MetricDefAdmin(admin.ModelAdmin):

@@ -1,0 +1,6 @@
+<nav class="flex gap-1 mb-5 text-sm border-b" style="border-color: var(--border)">
+  <a href="{% url 'sport_list' %}" class="px-3 py-2 -mb-px border-b-2 {% if tab == 'sporty' %}font-semibold{% else %}text-muted{% endif %}"
+     style="border-color: {% if tab == 'sporty' %}var(--accent){% else %}transparent{% endif %}">Sporty a baterie</a>
+  <a href="{% url 'test_list' %}" class="px-3 py-2 -mb-px border-b-2 {% if tab == 'testy' %}font-semibold{% else %}text-muted{% endif %}"
+     style="border-color: {% if tab == 'testy' %}var(--accent){% else %}transparent{% endif %}">Testy</a>
+</nav>
