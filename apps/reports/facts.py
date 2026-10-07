@@ -20,9 +20,13 @@ MAX_METRICS = 20
 MAX_ASYMMETRIES = 5
 
 
-def build(session, findings, citations) -> dict:
+def build(session, findings, citations, *, audience=None) -> dict:
+    from .models import Audience
+
     subject = session.subject
     return {
+        "ctenar": Audience(audience or Audience.COACH).label.lower(),
+        "kontext": _context(session),
         "sportovec": {
             "kod": subject.code,
             "sport": str(subject.sport) if subject.sport_id else "neuvedeno",
@@ -42,6 +46,7 @@ def build(session, findings, citations) -> dict:
         ],
         "doporuceni_z_pravidel": narrative.recommendations(findings),
         "klicove_metriky": _key_metrics(session),
+        "vyvoj": _trends(session),
         "asymetrie": _asymmetries(session),
         "cmj_ods": _ods(session),
         "podminky": _conditions(session),
@@ -52,6 +57,76 @@ def build(session, findings, citations) -> dict:
             for i, c in enumerate(citations, start=1)
         ],
     }
+
+
+def _context(session) -> dict:
+    """
+    Proč se testovalo: cíl a období z objednávky (nebo z testovacího dne)
+    a zranění, které uvedl klient. Jen to, co je vyplněné.
+    """
+    from django.conf import settings
+
+    out = {}
+    if session.season_phase:
+        out["treninkove_obdobi"] = session.get_season_phase_display().lower()
+    try:
+        from apps.booking.models import Participant
+    except ImportError:  # objednávky nejsou nainstalované
+        return out
+    participant = (Participant.objects.filter(session=session).select_related("request")
+                   .first())
+    if participant is None:
+        return out
+    request = participant.request
+    out["cil_testovani"] = request.get_goal_display().lower()
+    if request.goal_note.strip():
+        out["cil_upresneni"] = request.goal_note.strip()
+    if request.season_phase and "treninkove_obdobi" not in out:
+        out["treninkove_obdobi"] = request.get_season_phase_display().lower()
+    if settings.IDENTITY_ENCRYPTION_KEY:
+        try:
+            if injury := participant.injury.strip():
+                out["zraneni_uvedene_klientem"] = injury
+        except Exception:  # jiný klíč – raději bez zranění než pád zprávy
+            pass
+    return out
+
+
+def _norm_words(z: float, metric) -> str:
+    """Slovně, ať model nemusí z-skóre vykládat sám (a vykládá ho stejně)."""
+    from apps.catalog.models import Direction
+
+    if -1 <= z <= 1:
+        return "v pásmu běžném pro srovnatelnou populaci"
+    above = z > 1
+    if metric.direction == Direction.HIGHER:
+        return "nad normou (příznivě)" if above else "pod normou (nepříznivě)"
+    if metric.direction == Direction.LOWER:
+        return "nad normou (nepříznivě)" if above else "pod normou (příznivě)"
+    return "nad normou" if above else "pod normou"
+
+
+MAX_TREND_POINTS = 5
+
+
+def _trends(session) -> list[dict]:
+    """Vývoj klíčových metrik za víc měření (jen řady se třemi a víc body)."""
+    from .results import trend_series
+
+    out = []
+    for series in trend_series(session, limit=8):
+        points = series["points"][-MAX_TREND_POINTS:]
+        if len(points) < 3:
+            continue
+        metric = series["metric"]
+        out.append({
+            "metrika": metric.name,
+            "upresneni": _qualifiers(series["qualifiers"]),
+            "jednotka": metric.unit,
+            "mereni": [{"datum": day.strftime("%d. %m. %Y"),
+                        "hodnota": round(value, metric.decimals)} for day, value in points],
+        })
+    return out
 
 
 def _conditions(session) -> dict:
@@ -127,6 +202,7 @@ def _key_metrics(session) -> list[dict]:
         if norm is not None and (z := norm.z_score(entry["value"])) is not None:
             item["z_skore_vuci_norme"] = round(z, 1)
             item["norma_prumer"] = round(norm.mean, d)
+            item["vuci_norme"] = _norm_words(z, metric)
 
         out.append(item)
         if len(out) >= MAX_METRICS:

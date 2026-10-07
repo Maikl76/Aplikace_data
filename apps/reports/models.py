@@ -24,11 +24,29 @@ DISCLAIMER = (
 )
 
 
+class Audience(models.TextChoices):
+    """Pro koho je zpráva – podle toho model volí jazyk, hloubku a strukturu."""
+
+    ATHLETE = "sportovec", "Sportovec"
+    COACH = "trener", "Trenér"
+    CLINICIAN = "lekar", "Lékař / fyzioterapeut"
+
+
+# „pro koho“ ve 4. pádě – do nadpisů a odkazů
+AUDIENCE_FOR = {Audience.ATHLETE: "pro sportovce", Audience.COACH: "pro trenéra",
+                Audience.CLINICIAN: "pro lékaře / fyzioterapeuta"}
+
+
 class Report(OrgScopedModel):
     class Status(models.TextChoices):
         DRAFT = "draft", "Koncept"
         RELEASED = "released", "Vydáno"
         SUPERSEDED = "superseded", "Nahrazeno novější verzí"
+
+    class Rating(models.TextChoices):
+        GOOD = "dobry", "Dobrý – stačily drobnosti"
+        USABLE = "pouzitelny", "Použitelný – musel jsem upravit"
+        REWRITTEN = "prepsano", "Nepoužitelný – přepsal jsem ho"
 
     subject = models.ForeignKey("subjects.Subject", verbose_name="sportovec",
                                 on_delete=models.PROTECT, related_name="reports")
@@ -42,6 +60,8 @@ class Report(OrgScopedModel):
 
     status = models.CharField("stav", max_length=12, choices=Status.choices,
                               default=Status.DRAFT)
+    audience = models.CharField("pro koho", max_length=10, choices=Audience.choices,
+                                default=Audience.COACH)
     title = models.CharField("název", max_length=200, default="Zpráva z funkčního testování")
     summary = models.TextField("souhrn", blank=True)
     custom_note = models.TextField("vlastní komentář", blank=True)
@@ -67,6 +87,16 @@ class Report(OrgScopedModel):
     note_pending_review = models.BooleanField(
         "návrh od modelu čeká na kontrolu", default=False,
         help_text="Dokud diagnostik návrh neprojde a neuloží, zprávu nelze vydat.")
+    # Zpětná vazba k textu od modelu – podle ní se ladí pokyny a vybírá model.
+    ai_rating = models.CharField("hodnocení textu od AI", max_length=10, blank=True,
+                                 choices=Rating.choices)
+    ai_rating_note = models.CharField("co bylo špatně", max_length=300, blank=True)
+    is_example = models.BooleanField(
+        "vzorová zpráva", default=False,
+        help_text="Model dostane souhrn této zprávy jako ukázku stylu u podobných zpráv.")
+    in_test_set = models.BooleanField(
+        "ve zkušební sadě", default=False,
+        help_text="Na zprávách ve zkušební sadě se porovnávají modely a pokyny.")
     rendered_html = models.TextField(
         "podoba při vydání", blank=True,
         help_text="Snímek zprávy pořízený při vydání; vydaná zpráva se už nepřepočítává.")
@@ -91,6 +121,23 @@ class Report(OrgScopedModel):
     @property
     def is_editable(self) -> bool:
         return self.status == self.Status.DRAFT
+
+    @property
+    def audience_for(self) -> str:
+        return AUDIENCE_FOR.get(self.audience, "")
+
+    @property
+    def written_by_model(self) -> bool:
+        return bool(self.llm_model) and self.llm_model != "šablona"
+
+    @property
+    def rewrite_share(self) -> float | None:
+        """Kolik textu od modelu diagnostik změnil (0 = nic, 1 = všechno)."""
+        if not self.written_by_model or not self.summary_generated:
+            return None
+        from difflib import SequenceMatcher
+
+        return 1 - SequenceMatcher(None, self.summary_generated, self.summary).ratio()
 
     def compute_fingerprint(self, inputs: dict) -> str:
         """Otisk vstupů, ze kterých zpráva vznikla."""
@@ -128,3 +175,54 @@ class ReportDelivery(TimeStampedModel):
 
     def __str__(self):
         return f"{self.report.report_number} -> {self.recipient}"
+
+
+class ReportStyle(OrgScopedModel):
+    """
+    Pokyny pro model k jedné variantě zprávy (tón, struktura, délka),
+    upravitelné v aplikaci. Pevná pravidla (žádná vymyšlená čísla ani
+    diagnózy) jsou v kódu a měnit nejdou.
+    """
+
+    audience = models.CharField("pro koho", max_length=10, choices=Audience.choices)
+    instructions = models.TextField("pokyny pro model")
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="upravil",
+                                   on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name="+")
+
+    class Meta:
+        verbose_name = "styl zprávy"
+        verbose_name_plural = "styly zpráv"
+        constraints = [
+            models.UniqueConstraint(fields=["organization", "audience"],
+                                    name="uniq_report_style"),
+        ]
+
+    def __str__(self):
+        return self.get_audience_display()
+
+
+class ModelTrial(TimeStampedModel):
+    """
+    Zkušební text: jak by souhrn zprávy ze zkušební sady napsal jiný model
+    nebo tentýž model s jinými pokyny. Do zprávy se nikdy nedostane.
+    """
+
+    report = models.ForeignKey(Report, verbose_name="zpráva", on_delete=models.CASCADE,
+                               related_name="model_trials")
+    model = models.CharField("model", max_length=120)
+    audience = models.CharField("pro koho", max_length=10, choices=Audience.choices)
+    text = models.TextField("text", blank=True)
+    seconds = models.FloatField("trvání (s)", default=0)
+    problems = models.JSONField("čísla bez opory v datech", default=list, blank=True)
+    error = models.CharField("chyba", max_length=300, blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="spustil",
+                                   on_delete=models.SET_NULL, null=True, related_name="+")
+
+    class Meta:
+        verbose_name = "zkušební text modelu"
+        verbose_name_plural = "zkušební texty modelů"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.report.report_number} – {self.model}"

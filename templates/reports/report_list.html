@@ -7,6 +7,7 @@
     <h1 class="text-2xl font-semibold">Zprávy</h1>
   </div>
   <div class="flex flex-wrap gap-1">
+    {% if can_manage_ai %}<a href="{% url 'ai_settings' %}" class="btn btn-sm" title="Pokyny pro model, kvalita textů, zkušební sada">{% icon "settings" %}AI zprávy</a>{% endif %}
     <a href="?" class="btn btn-sm {% if not stav %}btn-primary{% endif %}">Všechny</a>
     {% for value, name in stavy %}
       <a href="?stav={{ value }}" class="btn btn-sm {% if stav == value %}btn-primary{% endif %}">{{ name }}</a>
@@ -17,7 +18,7 @@
 <div class="card overflow-x-auto">
   <table class="table">
     <thead>
-      <tr><th>Sportovec</th><th>Číslo</th><th>Měření</th><th>Stav</th><th class="max-md:hidden">Vydáno</th></tr>
+      <tr><th>Sportovec</th><th>Číslo</th><th class="max-md:hidden">Pro koho</th><th>Měření</th><th>Stav</th><th class="max-md:hidden">Vydáno</th></tr>
     </thead>
     <tbody>
       {% for r in reports %}
@@ -29,12 +30,13 @@
             </a>
           </td>
           <td class="tabular-nums whitespace-nowrap">{{ r.report_number }}{% if r.version > 1 %} <span class="text-muted">v{{ r.version }}</span>{% endif %}</td>
+          <td class="text-2 text-sm max-md:hidden">{{ r.get_audience_display }}</td>
           <td class="tabular-nums">{{ r.session.date|date:"d.m.Y"|default:"—" }}</td>
           <td>{% include "reports/_status.html" %}</td>
           <td class="tabular-nums text-2 max-md:hidden">{{ r.released_at|date:"d.m.Y H:i"|default:"—" }}</td>
         </tr>
       {% empty %}
-        <tr><td colspan="5" class="text-muted py-6 text-center">
+        <tr><td colspan="6" class="text-muted py-6 text-center">
           Zatím žádné zprávy. Zprávu založíte z <a class="link" href="{% url 'session_list' %}">testovacího dne</a>.
         </td></tr>
       {% endfor %}

@@ -24,7 +24,7 @@ from apps.rules import engine, evidence
 from apps.subjects.models import Consent
 
 from . import narrative, results, svg
-from .models import Report, ReportDelivery
+from .models import Audience, ModelTrial, Report, ReportDelivery
 
 logger = logging.getLogger(__name__)
 
@@ -44,11 +44,14 @@ def next_report_number(organization) -> str:
 
 
 @transaction.atomic
-def build_draft(session, *, user, supersedes: Report | None = None) -> Report:
-    """Vyhodnotí pravidla a složí koncept zprávy."""
+def build_draft(session, *, user, supersedes: Report | None = None,
+                audience: str | None = None) -> Report:
+    """Vyhodnotí pravidla a složí koncept zprávy pro zvoleného čtenáře."""
+    if audience not in Audience.values:
+        audience = supersedes.audience if supersedes else Audience.COACH
     findings = engine.evaluate_session(session)
     citations = evidence.articles_for(findings)
-    composition = narrative.compose_report(session, findings, citations)
+    composition = narrative.compose_report(session, findings, citations, audience=audience)
     text = composition.text
 
     # Poslední pojistka: kontrola čísel nad finálním textem, proti týmž
@@ -69,6 +72,8 @@ def build_draft(session, *, user, supersedes: Report | None = None) -> Report:
         report_number=next_report_number(session.organization),
         version=(supersedes.version + 1) if supersedes else 1,
         supersedes=supersedes,
+        audience=audience,
+        title=TITLES[audience],
         summary=text,
         summary_generated=text,
         rules_version=_rules_fingerprint(findings),
@@ -78,6 +83,13 @@ def build_draft(session, *, user, supersedes: Report | None = None) -> Report:
     report.input_fingerprint = report.compute_fingerprint(_inputs(session, findings))
     report.save()
     return report
+
+
+TITLES = {
+    Audience.ATHLETE: "Zpráva z funkčního testování",
+    Audience.COACH: "Zpráva z funkčního testování pro trenéra",
+    Audience.CLINICIAN: "Zpráva z funkčního testování pro lékaře / fyzioterapeuta",
+}
 
 
 def _rules_fingerprint(findings) -> str:
@@ -172,6 +184,12 @@ def release(report, *, user) -> Report:
     """Vydání. Od téhle chvíle se zpráva needituje."""
     if report.status != Report.Status.DRAFT:
         raise ReportError("Vydat lze jen koncept.")
+    if (report.audience == Audience.CLINICIAN
+            and not Consent.has(report.subject, Consent.Scope.REPORT_HANDOVER)):
+        raise ReportError(
+            "Zprávu pro lékaře lze vydat jen se souhlasem sportovce s předáním zprávy "
+            "poskytovateli zdravotních služeb. Doplňte souhlas u sportovce (tužka na kartě), "
+            "nebo vytvořte zprávu pro sportovce či trenéra.")
     if report.note_pending_review:
         raise ReportError(
             "Návrh doporučení od jazykového modelu ještě nikdo nezkontroloval. "
@@ -305,3 +323,91 @@ def supersede(report, *, user) -> Report:
     if report.session is None:
         raise ReportError("Zprávu bez testovacího dne nelze přegenerovat.")
     return build_draft(report.session, user=user, supersedes=report)
+
+
+# ---------------------------------------------------------------------------
+# Zpětná vazba a porovnání modelů
+# ---------------------------------------------------------------------------
+
+def rate(report, *, rating: str, note: str = "") -> None:
+    if rating not in Report.Rating.values and rating != "":
+        raise ReportError("Neznámé hodnocení.")
+    report.ai_rating = rating
+    report.ai_rating_note = note.strip()[:300]
+    report.save(update_fields=["ai_rating", "ai_rating_note"])
+
+
+def set_flags(report, *, example: bool | None = None, test_set: bool | None = None) -> None:
+    """Vzorová zpráva a zkušební sada – jen u vydaných zpráv (text už zkontroloval člověk)."""
+    if report.status == Report.Status.DRAFT and (example or test_set):
+        raise ReportError("Jako vzor nebo do zkušební sady lze dát jen vydanou zprávu.")
+    fields = []
+    if example is not None:
+        report.is_example = example
+        fields.append("is_example")
+    if test_set is not None:
+        report.in_test_set = test_set
+        fields.append("in_test_set")
+    report.save(update_fields=fields)
+
+
+def try_model(report, *, model: str | None, user) -> ModelTrial:
+    """
+    Zkušební text pro zprávu ze zkušební sady – jiným modelem nebo s novými
+    pokyny. Nic ve zprávě nemění; vzorem pro sebe sama zpráva není.
+    """
+    from . import facts as facts_module
+    from . import llm
+
+    if report.session is None:
+        raise ReportError("Zpráva nemá testovací den.")
+    session = report.session
+    findings = list(session.findings.select_related("rule"))
+    citations = evidence.articles_for(findings)
+    facts = facts_module.build(session, findings, citations, audience=report.audience)
+    trial = ModelTrial(report=report, model=model or "", audience=report.audience,
+                       created_by=user)
+    try:
+        draft = narrative.generate(session, findings, facts, audience=report.audience,
+                                   model=model or None, exclude_report=report)
+    except llm.LLMError as exc:
+        trial.error = str(exc)[:300]
+        trial.model = trial.model or "(výchozí)"
+    else:
+        trial.model, trial.text = draft.model, draft.text
+        trial.seconds, trial.problems = draft.seconds, draft.problems
+    trial.save()
+    return trial
+
+
+def quality_stats(organization) -> dict:
+    """Jak si model vede: hodnocení, kolik textu se přepisuje, odmítnuté texty."""
+    from collections import Counter, defaultdict
+
+    reports = list(Report.objects.filter(organization=organization)
+                   .exclude(llm_model="").order_by("-created_at")[:500])
+    by_model = defaultdict(lambda: {"zprav": 0, "prepis": [], "hodnoceni": Counter()})
+    rejected = unavailable = 0
+    for r in reports:
+        if not r.written_by_model:
+            rejected += "odmítnut" in r.generation_note
+            unavailable += "nepoužil" in r.generation_note
+            continue
+        row = by_model[(r.llm_model, r.get_audience_display())]
+        row["zprav"] += 1
+        if r.status != Report.Status.DRAFT and (share := r.rewrite_share) is not None:
+            row["prepis"].append(share)
+        if r.ai_rating:
+            row["hodnoceni"][r.ai_rating] += 1
+    rows = []
+    for (model, audience), row in sorted(by_model.items()):
+        rows.append({
+            "model": model, "audience": audience, "zprav": row["zprav"],
+            "prepis_pct": (round(100 * sum(row["prepis"]) / len(row["prepis"]))
+                           if row["prepis"] else None),
+            "hodnoceni": [(row["hodnoceni"].get(v, 0), label)
+                          for v, label in Report.Rating.choices],
+        })
+    notes = [r for r in reports if r.ai_rating_note][:15]
+    return {"rows": rows, "odmitnuto": rejected, "nedostupny": unavailable,
+            "celkem": len(reports), "poznamky": notes}

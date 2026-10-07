@@ -10,8 +10,12 @@
         <a href="{% url 'subject_detail' subject.pk %}" class="hover:underline">{{ report.jmeno }}</a>
         {% with r=report %}{% include "reports/_status.html" %}{% endwith %}
       </h1>
-      {% if session %}<p class="text-sm text-muted">
-        <a class="link" href="{% url 'session_detail' session.pk %}">testovací den {{ session.date|date:"j. n. Y" }}</a></p>{% endif %}
+      <p class="text-sm text-muted flex flex-wrap items-center gap-x-2">
+        <span class="badge badge-accent">{{ report.audience_for }}</span>
+        {% if session %}<a class="link" href="{% url 'session_detail' session.pk %}">testovací den {{ session.date|date:"j. n. Y" }}</a>{% endif %}
+        {% if report.is_example %}<span class="badge badge-good">vzorová zpráva</span>{% endif %}
+        {% if report.in_test_set %}<span class="badge">ve zkušební sadě</span>{% endif %}
+      </p>
     </div>
   </div>
   <a href="{% url 'report_preview' report.pk %}" target="_blank" class="btn btn-primary"
@@ -183,6 +187,10 @@
             Vydat
           </button>
         {% endif %}
+        {% if report.audience == "lekar" and not ma_souhlas %}
+          <p class="text-xs mt-2" style="color: var(--warn)">Zprávu pro lékaře lze vydat jen se souhlasem
+            s předáním zprávy poskytovateli zdravotních služeb – doplňte ho u sportovce.</p>
+        {% endif %}
       </form>
     {% else %}
       <section class="card p-4">
@@ -230,6 +238,58 @@
           Vytvořit novou verzi
         </button>
       </form>
+    {% endif %}
+
+    {% if session %}
+      <section class="card p-4">
+        <h2 class="card-title mb-1">Další varianty</h2>
+        <p class="text-xs text-muted mb-2">Ze stejného testovacího dne pro jiného čtenáře – vznikne nový koncept.</p>
+        {% for v in variants %}
+          <a class="block text-sm link" href="{% url 'report_detail' v.pk %}">{{ v.report_number }} – {{ v.audience_for }}
+            <span class="text-xs text-muted">({{ v.get_status_display|lower }})</span></a>
+        {% endfor %}
+        <form method="post" action="{% url 'report_create' session.pk %}" class="flex gap-2 mt-2">
+          {% csrf_token %}
+          <select name="pro" class="input text-sm py-1.5">
+            {% for value, label in audiences %}{% if value != report.audience %}<option value="{{ value }}">{{ label }}</option>{% endif %}{% endfor %}
+          </select>
+          <button type="submit" class="btn btn-sm" onclick="this.textContent='Píšu…'">Vytvořit</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if report.written_by_model %}
+      <form method="post" action="{% url 'report_rate' report.pk %}" class="card p-4">
+        {% csrf_token %}
+        <h2 class="card-title mb-1">Jak se modelu text povedl?</h2>
+        <p class="text-xs text-muted mb-2">Podle hodnocení se ladí pokyny pro model a vybírá model pro server.</p>
+        <div class="space-y-1 text-sm">
+          {% for value, label in ratings %}
+            <label class="flex items-center gap-2"><input type="radio" name="hodnoceni" value="{{ value }}" {% if report.ai_rating == value %}checked{% endif %}> {{ label }}</label>
+          {% endfor %}
+        </div>
+        <input name="poznamka" value="{{ report.ai_rating_note }}" maxlength="300" class="input text-sm mt-2"
+               placeholder="Co bylo špatně? (nepovinné)">
+        <button type="submit" class="btn btn-sm mt-2">Uložit hodnocení</button>
+      </form>
+    {% endif %}
+
+    {% if can_manage_ai and not report.is_editable %}
+      <section class="card p-4">
+        <h2 class="card-title mb-1">Učení modelu</h2>
+        <form method="post" action="{% url 'report_rate' report.pk %}" class="text-sm">
+          {% csrf_token %}
+          <input type="hidden" name="vzor" value="{% if report.is_example %}0{% else %}1{% endif %}">
+          <button type="submit" class="btn btn-sm w-full">{% if report.is_example %}Přestat používat jako vzor{% else %}Použít jako vzorovou zprávu{% endif %}</button>
+        </form>
+        <p class="text-xs text-muted mt-1 mb-3">Model dostane souhrn jako ukázku stylu u podobných zpráv {{ report.audience_for }}.</p>
+        <form method="post" action="{% url 'report_rate' report.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="sada" value="{% if report.in_test_set %}0{% else %}1{% endif %}">
+          <button type="submit" class="btn btn-sm w-full">{% if report.in_test_set %}Odebrat ze zkušební sady{% else %}Přidat do zkušební sady{% endif %}</button>
+        </form>
+        <p class="text-xs text-muted mt-1">Na zprávách ve zkušební sadě se porovnávají modely a pokyny – <a class="link" href="{% url 'ai_settings' %}?tab=sada">AI zprávy</a>.</p>
+      </section>
     {% endif %}
 
     <section class="card p-4 text-xs text-muted">

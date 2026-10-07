@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+<div class="mb-4">
+  <a href="{% url 'report_list' %}" class="text-sm link">← Zprávy</a>
+  <h1 class="text-2xl font-semibold mt-1">AI zprávy</h1>
+  <p class="text-sm text-muted mt-1 max-w-3xl">Jak jazykový model píše souhrny zpráv a jak se mu daří.
+    {% if llm_enabled %}Teď píše model <strong class="text-2">{{ current_model }}</strong>.{% else %}Model teď není zapnutý – zprávy skládá šablona.{% endif %}</p>
+</div>
+
+<nav class="flex gap-1 mb-5 text-sm border-b" style="border-color: var(--border)">
+  {% for key, label in tabs %}
+    <a href="?tab={{ key }}" class="px-3 py-2 -mb-px border-b-2 {% if tab == key %}font-semibold{% else %}text-muted{% endif %}"
+       style="border-color: {% if tab == key %}var(--accent){% else %}transparent{% endif %}">{{ label }}</a>
+  {% endfor %}
+</nav>
+
+{% if tab == "pokyny" %}
+  <p class="text-sm text-2 mb-4 max-w-3xl">Každá varianta zprávy má vlastní pokyny: pro koho je, jakým jazykem,
+    jakou strukturou a délkou. Úprava platí pro další zprávy. <strong>Pevná pravidla</strong> (žádná vymyšlená čísla,
+    diagnózy ani zdroje) jsou vždy navrch a měnit nejdou – čísla navíc hlídá kontrola.</p>
+  <div class="space-y-4 max-w-4xl">
+    {% for s in styles %}
+      <form method="post" id="{{ s.value }}" class="card p-5">
+        {% csrf_token %}
+        <input type="hidden" name="akce" value="pokyny">
+        <input type="hidden" name="audience" value="{{ s.value }}">
+        <div class="flex flex-wrap items-baseline justify-between gap-2 mb-2">
+          <h2 class="card-title">{{ s.label }}</h2>
+          <span class="text-xs text-muted">{% if s.custom %}upraveno {{ s.custom.updated_at|date:"d.m.Y" }}{% if s.custom.updated_by %} ({{ s.custom.updated_by }}){% endif %}{% else %}výchozí pokyny{% endif %}</span>
+        </div>
+        <textarea name="instructions" rows="8" class="input text-sm leading-relaxed">{{ s.text }}</textarea>
+        <div class="flex flex-wrap gap-2 mt-2">
+          <button type="submit" class="btn btn-primary btn-sm">{% icon "check" %}Uložit</button>
+          {% if s.custom %}<button type="submit" name="vychozi" value="1" class="btn btn-sm" onclick="return confirm('Vrátit výchozí pokyny?')">Vrátit výchozí</button>{% endif %}
+        </div>
+      </form>
+    {% endfor %}
+    <details class="card p-5">
+      <summary class="cursor-pointer card-title">Pevná pravidla (nelze měnit)</summary>
+      <div class="mt-3 text-sm text-2 whitespace-pre-line">{{ fixed_rules }}</div>
+    </details>
+    <section class="card p-5">
+      <h2 class="card-title mb-1">Vzorové zprávy ({{ examples|length }})</h2>
+      <p class="text-sm text-muted mb-2">Souhrny, které model dostává jako ukázku stylu (1–2 nejpodobnější: stejná varianta,
+        sport, testy). Vzor označíte u vydané zprávy tlačítkem <em>Použít jako vzorovou zprávu</em>.</p>
+      <ul class="text-sm space-y-1">
+        {% for r in examples %}<li><a class="link" href="{% url 'report_detail' r.pk %}">{{ r.report_number }}</a>
+          <span class="text-muted">· {{ r.audience_for }} · {{ r.subject.sport|default:"bez sportu" }}</span></li>
+        {% empty %}<li class="text-muted">Zatím žádné. Přibývají s každou dobrou vydanou zprávou.</li>{% endfor %}
+      </ul>
+    </section>
+  </div>
+
+{% elif tab == "kvalita" %}
+  <p class="text-sm text-2 mb-4 max-w-3xl">Z posledních zpráv: kolik textu diagnostici u vydaných zpráv přepsali
+    (méně = lepší) a jak text od modelu hodnotili.</p>
+  <div class="grid sm:grid-cols-3 gap-4 mb-5 max-w-4xl">
+    <div class="card p-4"><div class="kpi-value">{{ stats.celkem }}</div><div class="text-sm text-muted">zpráv celkem</div></div>
+    <div class="card p-4"><div class="kpi-value">{{ stats.odmitnuto }}</div><div class="text-sm text-muted">textů odmítnuto kvůli číslům (použita šablona)</div></div>
+    <div class="card p-4"><div class="kpi-value">{{ stats.nedostupny }}</div><div class="text-sm text-muted">model nebyl dostupný</div></div>
+  </div>
+  <div class="card overflow-x-auto max-w-4xl mb-5">
+    <table class="table">
+      <thead><tr><th>Model</th><th>Pro koho</th><th class="text-right">Zpráv</th><th class="text-right" title="Kolik textu od modelu diagnostik u vydaných zpráv změnil">Změněno textu</th>
+        {% for value, label in ratings_short %}<th class="text-right">{{ label }}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for row in stats.rows %}
+          <tr><td class="font-medium">{{ row.model }}</td><td class="text-2">{{ row.audience }}</td>
+            <td class="text-right tabular-nums">{{ row.zprav }}</td>
+            <td class="text-right tabular-nums">{% if row.prepis_pct is not None %}{{ row.prepis_pct }} %{% else %}—{% endif %}</td>
+            {% for count, label in row.hodnoceni %}<td class="text-right tabular-nums">{{ count }}</td>{% endfor %}</tr>
+        {% empty %}<tr><td colspan="7" class="text-muted py-6 text-center">Zatím žádné texty od modelu.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if stats.poznamky %}
+    <section class="card p-5 max-w-4xl">
+      <h2 class="card-title mb-2">Co diagnostikům na textech vadilo</h2>
+      <ul class="text-sm space-y-1">
+        {% for r in stats.poznamky %}<li><a class="link" href="{% url 'report_detail' r.pk %}">{{ r.report_number }}</a>
+          <span class="text-muted">({{ r.get_ai_rating_display|lower }})</span> – {{ r.ai_rating_note }}</li>{% endfor %}
+      </ul>
+      <p class="text-xs text-muted mt-2">Podle toho upravte pokyny v záložce Pokyny pro model.</p>
+    </section>
+  {% endif %}
+
+{% else %}
+  <p class="text-sm text-2 mb-3 max-w-3xl">Vydané zprávy, na kterých se zkouší jiný model nebo nové pokyny. U každé
+    je text, který diagnostik vydal, a vedle něj zkušební texty. Do zprávy se nic nezapíše.
+    Zprávu přidáte tlačítkem <em>Přidat do zkušební sady</em> u vydané zprávy.</p>
+  {% if llm_enabled %}
+    <div class="card p-4 mb-4 flex flex-wrap items-end gap-3 max-w-4xl">
+      <label class="block"><span class="text-sm font-medium">Model pro zkoušku</span>
+        <input id="model-zkouska" list="modely" value="{{ current_model }}" class="input mt-1 w-72"></label>
+      <datalist id="modely">{% for m in models_available %}<option value="{{ m }}">{% endfor %}</datalist>
+      <p class="text-xs text-muted max-w-md">Modely načtené v LM Studiu / Ollamě. Jeden text trvá podle modelu
+        desítky sekund až minuty. Celou sadu najednou: <code>python manage.py porovnat_modely --model …</code></p>
+    </div>
+  {% else %}
+    <p class="text-sm mb-4" style="color: var(--warn)">Jazykový model není zapnutý – zkoušet teď nejde.</p>
+  {% endif %}
+  <div class="space-y-4">
+    {% for r in test_set %}
+      <section class="card p-4">
+        <div class="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+          <h2 class="card-title"><a class="link" href="{% url 'report_detail' r.pk %}">{{ r.report_number }}</a>
+            <span class="text-sm font-normal text-muted">· {{ r.jmeno }} · {{ r.audience_for }} · {{ r.session.date|date:"d.m.Y" }}</span></h2>
+          {% if llm_enabled %}
+            <form hx-post="{% url 'ai_try' r.pk %}" hx-target="#zkousky-{{ r.pk }}" hx-swap="afterbegin"
+                  hx-vals='js:{"model": document.getElementById("model-zkouska").value}'
+                  hx-indicator="#pise-{{ r.pk }}" hx-disabled-elt="find button"
+                  hx-on::after-request="document.querySelector('#zkousky-{{ r.pk }} .prazdne')?.remove()">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm">Vygenerovat zkušební text</button>
+              <span id="pise-{{ r.pk }}" class="htmx-indicator text-xs text-muted ml-2">model píše…</span>
+            </form>
+          {% endif %}
+        </div>
+        <div class="grid lg:grid-cols-2 gap-3">
+          <div class="p-3 rounded-lg text-sm whitespace-pre-line" style="background: var(--surface-2)">
+            <div class="text-xs font-semibold text-muted mb-1">VYDANÝ TEXT (po úpravě diagnostikem{% if r.llm_model %}, původně {{ r.llm_model }}{% endif %})</div>{{ r.summary }}</div>
+          <div id="zkousky-{{ r.pk }}" class="space-y-3">
+            {% for t in r.trials %}{% include "reports/_trial.html" %}{% empty %}
+              <p class="prazdne text-sm text-muted p-3">Zatím žádný zkušební text.</p>{% endfor %}
+          </div>
+        </div>
+      </section>
+    {% empty %}
+      <div class="card p-6 text-sm text-muted">Zkušební sada je prázdná. Vyberte 5–20 vydaných zpráv různých sportů
+        a variant a přidejte je tlačítkem <em>Přidat do zkušební sady</em> v detailu zprávy.</div>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

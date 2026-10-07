@@ -107,6 +107,8 @@ def export_catalog() -> dict:
             for b in TestBattery.objects.select_related("sport", "sport__organization")
             .order_by("sport__code", "category")
         ],
+        # Pokyny pro jazykový model k variantám zprávy (AI zprávy → Pokyny).
+        "styly_zprav": _report_styles(),
         "dotazniky": [
             {"organizace": _org(q), **_plain(q),
              "otazky": [_plain(o, skip={"questionnaire"}) for o in q.questions.all()]}
@@ -132,6 +134,14 @@ def export_catalog() -> dict:
             for r in Rule.objects.order_by("code", "version")
         ],
     }
+
+
+def _report_styles() -> list[dict]:
+    from apps.reports.models import ReportStyle
+
+    return [{"organizace": _org(st), "audience": st.audience, "instructions": st.instructions}
+            for st in ReportStyle.objects.select_related("organization")
+            .order_by("organization__short_name", "audience")]
 
 
 class ImportError_(Exception):
@@ -251,6 +261,15 @@ def import_catalog(data: dict, *, default_org: Organization | None = None) -> di
                 raise ImportError_(f"Protokol „{ref['kod']}“ z baterie v souboru chybí.")
             BatteryItem.objects.update_or_create(battery=battery, protocol=protocol,
                                                  defaults={"order": order})
+
+    from apps.reports.models import ReportStyle
+
+    for item in data.get("styly_zprav", []):
+        org = imp.org(item["organizace"])
+        if org is not None:
+            imp.upsert("styly zpráv", ReportStyle, {"organization": org,
+                                                    "audience": item["audience"]},
+                       {"instructions": item["instructions"]})
 
     for item in data.get("dotazniky", []):
         questionnaire = imp.upsert(

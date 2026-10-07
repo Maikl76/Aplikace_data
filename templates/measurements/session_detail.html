@@ -14,10 +14,16 @@
       </p>
     </div>
   </div>
-  <form method="post" action="{% url 'report_create' session.pk %}">
+  <form method="post" action="{% url 'report_create' session.pk %}" class="flex gap-2">
     {% csrf_token %}
-    <button type="submit" class="btn btn-primary" title="Vznikne koncept ke kontrole, nic se nevydává">
-      {% icon "file" %}Vytvořit zprávu</button>
+    <select name="pro" class="input w-auto" title="Pro koho je zpráva – podle toho se volí jazyk a hloubka textu">
+      <option value="sportovec">pro sportovce</option>
+      <option value="trener" selected>pro trenéra</option>
+      <option value="lekar">pro lékaře</option>
+    </select>
+    <button type="submit" class="btn btn-primary" title="Vznikne koncept ke kontrole, nic se nevydává"
+            onclick="this.lastChild.textContent='Připravuji zprávu…'">
+      {% icon "file" %}<span>Vytvořit zprávu</span></button>
   </form>
 </div>
 

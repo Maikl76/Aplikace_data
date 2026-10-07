@@ -4,6 +4,9 @@ from . import views
 
 urlpatterns = [
     path("", views.report_list, name="report_list"),
+    path("ai/", views.ai_settings, name="ai_settings"),
+    path("<int:pk>/zkusit-model/", views.ai_try, name="ai_try"),
+    path("<int:pk>/hodnoceni/", views.report_rate, name="report_rate"),
     path("z-mereni/<int:session_pk>/", views.report_create, name="report_create"),
     path("<int:pk>/", views.report_detail, name="report_detail"),
     path("<int:pk>/navrh-doporuceni/", views.report_suggest, name="report_suggest"),

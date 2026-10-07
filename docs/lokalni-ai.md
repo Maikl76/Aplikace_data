@@ -26,6 +26,54 @@ sestaví souvislý český souhrn s celkovým zhodnocením.
 - Zprávu vydává člověk. Text od modelu si před vydáním přečtěte – kontrola
   čísel neodhalí nešikovnou formulaci.
 
+## Varianty zprávy: sportovec, trenér, lékař
+
+Při vytváření zprávy (testovací den → *Vytvořit zprávu*) se vybere čtenář:
+
+| Varianta | Jak model píše |
+|---|---|
+| **sportovec** | srozumitelně, vyká, vysvětlí odborné pojmy, nejdřív co se povedlo; do 200 slov |
+| **trenér** | prakticky k tréninku, skutečné změny, stranové rozdíly, vývoj; do 250 slov |
+| **lékař / fyzioterapeut** | odborně, asymetrie, změny proti chybě měření, subjektivní údaje, bez tréninkových rad |
+
+Ze stejného testovacího dne jde udělat víc variant (detail zprávy → *Další
+varianty*). Zprávu pro lékaře lze vydat jen se souhlasem s předáním zprávy
+poskytovateli zdravotních služeb.
+
+## Jak model učit (bez doučování)
+
+Model se neučí sám od sebe. Lépe píše díky tomu, co dostane:
+
+1. **Kontext** – model dostává cíl testování, tréninkové období a zranění
+   uvedené v objednávce, slovní postavení vůči normě a vývoj klíčových
+   metrik za víc měření (pole `kontext` a `vyvoj` ve faktech).
+2. **Pokyny pro model** – *Zprávy → AI zprávy → Pokyny pro model*. Každá
+   varianta má vlastní pokyny (tón, struktura, délka), které správce upraví
+   bez programování. **Pevná pravidla** (jen čísla z dat, žádné diagnózy,
+   žádné zdroje navíc) jsou v kódu a měnit nejdou. Pokyny se přenášejí
+   s katalogem (`ulozit-katalog.bat`).
+3. **Vzorové zprávy** – u dobré vydané zprávy správce klikne *Použít jako
+   vzorovou zprávu*. Model u podobné zprávy (stejná varianta, nejlépe stejný
+   sport a testy) dostane 1–2 vzorové souhrny jako ukázku stylu. Čísla ze
+   vzoru použít nesmí; kdyby je opsal, kontrola čísel text odmítne.
+4. **Hodnocení** – u textu od AI diagnostik označí *dobrý / použitelný /
+   přepsal jsem ho* a co vadilo. *AI zprávy → Kvalita textů* ukazuje
+   hodnocení, kolik textu se u vydaných zpráv přepisuje a odmítnuté texty.
+5. **Zkušební sada** – vybrané vydané zprávy (*Přidat do zkušební sady*),
+   na kterých se zkouší jiný model nebo nové pokyny. Text, který se vydal,
+   je vedle zkušebních textů; do zpráv se nic nezapíše. Celou sadu najednou:
+
+   ```
+   python manage.py porovnat_modely --model muse-glimmer-30b
+   ```
+
+   Tak se před přechodem na větší model (např. na serveru) ověří, že píše
+   lépe – i česky.
+
+**Doučení modelu (fine-tuning)** přijde na řadu až se stovkami vydaných
+zpráv. Data se sbírají už teď: u každé zprávy je uložen text od modelu
+(`summary_generated`) i to, co diagnostik vydal (`summary`).
+
 ## Instalace s LM Studiem (Windows)
 
 LM Studio je aplikace s grafickým rozhraním: modely se v ní hledají,

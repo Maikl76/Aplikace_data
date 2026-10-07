@@ -1,0 +1,9 @@
+<div class="p-3 rounded-lg text-sm border" style="border-color: var(--border)">
+  <div class="text-xs font-semibold text-muted mb-1 flex flex-wrap gap-x-2">
+    <span>{{ t.model }}</span><span>· {{ t.created_at|date:"d.m.Y H:i" }}</span>
+    {% if t.seconds %}<span>· {{ t.seconds|floatformat:0 }} s</span>{% endif %}
+    {% if t.problems %}<span style="color: var(--bad)">· čísla bez opory: {{ t.problems|join:", " }}</span>
+    {% elif t.text %}<span style="color: var(--good)">· čísla v pořádku</span>{% endif %}
+  </div>
+  {% if t.error %}<p style="color: var(--bad)">Model selhal: {{ t.error }}</p>{% else %}<div class="whitespace-pre-line">{{ t.text }}</div>{% endif %}
+</div>

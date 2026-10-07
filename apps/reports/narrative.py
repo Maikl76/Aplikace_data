@@ -207,41 +207,6 @@ def verify_numbers(text: str, findings, facts: dict | None = None) -> list[str]:
 # Jazykový model
 # ---------------------------------------------------------------------------
 
-SYSTEM_PROMPT = """Jsi odborný asistent laboratoře funkční diagnostiky na fakultě \
-tělesné výchovy a sportu. Píšeš souhrn zprávy z testování sportovce.
-
-Dostaneš fakta ve formátu JSON. Všechna čísla i všechna hodnocení v nich už \
-spočítala a posoudila pravidla laboratoře. Tvým úkolem je z nich napsat \
-souvislý, věcný text v češtině – ne je znovu hodnotit.
-
-Pravidla, která nesmíš porušit:
-1. Používej výhradně čísla, která jsou ve faktech, přesně jak tam jsou. \
-Nic nepočítej, nezaokrouhluj jinak, nepřidávej odhady ani rozsahy.
-2. Nepiš data, věky ani počty, které ve faktech nejsou.
-3. Nestanovuj diagnózy a nepoužívej lékařskou terminologii nad rámec faktů.
-4. Neuváděj žádné zdroje ani studie kromě těch v poli „citace“; odkazuj na \
-ně jejich číslem v hranatých závorkách, např. [1].
-5. Když je u změny uvedeno, že je „v pásmu chyby měření“, nepiš o ní jako \
-o zlepšení ani zhoršení.
-6. Nálezy bez doporučení (kvůli zdravotnímu omezení) zmiň, ale nic k nim \
-nedoporučuj.
-7. Nepoužívej číslované seznamy; na výčet používej odrážky „•“.
-8. Nepiš úvodní ani závěrečné fráze o sobě, nepiš doložku o lékaři – \
-tu zpráva obsahuje zvlášť.
-
-9. Pole cmj_ods dělí ukazatele skoku na výsledek, příčinu a strategii. \
-Změnu výsledku vysvětluj jen změnami příčin a strategie, které mají posouzení \
-„zlepšení“, „zhoršení“ nebo „skutečný posun“; hotové vysvětlení je v poli \
-„interpretace“.
-10. Vlastní doporučení nevymýšlej. Doporučení z pole doporuceni_z_pravidel \
-zpráva uvádí ve zvláštní části; v souhrnu na ně můžeš jen odkázat.
-
-Struktura: celkové zhodnocení (3–5 vět: co se měřilo, jak si sportovec \
-stojí, co se proti minulému měření skutečně změnilo), pak „Hlavní zjištění:“ \
-s odrážkami – nálezy, skutečné změny a stranové rozdíly nad prahem. \
-Rozsah nejvýš 250 slov."""
-
-
 @dataclass
 class Composition:
     text: str
@@ -250,48 +215,41 @@ class Composition:
     facts: dict | None = None  # co model dostal – stejná data platí pro kontrolu čísel
 
 
-def compose_report(session, findings, citations) -> Composition:
-    """
-    Text zprávy. Když je model zapnutý, napíše ho model; když selže nebo
-    napíše číslo, které nemá oporu v datech, použije se šablona a do
-    poznámky se zapíše proč. Zpráva tedy vznikne vždycky – a nikdy
-    s číslem, které si model vymyslel.
-    """
-    from . import facts as facts_module
-    from . import llm
+@dataclass
+class Draft:
+    """Jeden pokus modelu o text – i neúspěšný (kvůli porovnání modelů)."""
 
-    facts = facts_module.build(session, findings, citations)
-    fallback = compose(session, findings, citations, facts)
-    if not llm.is_enabled():
-        return Composition(text=fallback, source="šablona", facts=facts)
+    text: str
+    model: str
+    seconds: float
+    problems: list[str]
+    attempts: int
+
+
+def generate(session, findings, facts, *, audience, model=None, exclude_report=None) -> Draft:
+    """
+    Text od modelu pro danou variantu zprávy. Když napíše číslo, které
+    ve faktech není, dostane jednu šanci text opravit. Výjimku LLMError
+    nechává projít – co s ní, rozhodne volající.
+    """
+    from . import llm, prompts
 
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "system", "content": prompts.system_prompt(session, audience,
+                                                             exclude_report=exclude_report)},
         {"role": "user", "content":
             "Fakta z testování:\n\n" + json.dumps(facts, ensure_ascii=False, indent=2)},
     ]
-
     seconds = 0.0
     for attempt in (1, 2):
-        try:
-            reply = llm.chat(messages)
-        except llm.LLMError as exc:
-            logger.warning("Model se pro %s nepoužil: %s", session.subject.code, exc)
-            return Composition(text=fallback, source="šablona", facts=facts,
-                               note=f"Jazykový model se nepoužil: {exc}")
+        reply = llm.chat(messages, model=model)
         seconds += reply.seconds
-
         problems = verify_numbers(reply.text, findings, facts)
-        if not problems:
-            return Composition(
-                text=reply.text, source=reply.model, facts=facts,
-                note=(f"Text sestavil model {reply.model} za {seconds:.0f} s"
-                      + (" (na druhý pokus)." if attempt == 2 else ".")),
-            )
-
-        reason = f"obsahoval čísla, která v datech nejsou ({', '.join(problems[:5])})"
-        logger.warning("Model %s %s (pokus %s).", reply.model, reason, attempt)
-        # Jedna oprava: model dostane vlastní text a výčet čísel navíc.
+        if not problems or attempt == 2:
+            return Draft(text=reply.text, model=reply.model, seconds=seconds,
+                         problems=problems, attempts=attempt)
+        logger.warning("Model %s napsal čísla bez opory v datech: %s (pokus %s).",
+                       reply.model, problems, attempt)
         # Malé modely občas něco dopočítají; napodruhé to obvykle opraví.
         messages = messages + [
             {"role": "assistant", "content": reply.text},
@@ -300,10 +258,42 @@ def compose_report(session, findings, citations) -> Composition:
                 "Napiš ho znovu a použij jen čísla, která jsou ve faktech, "
                 "přesně jak tam jsou. Nic nepočítej."},
         ]
+    raise AssertionError("nedosažitelné")
 
+
+def compose_report(session, findings, citations, *, audience=None) -> Composition:
+    """
+    Text zprávy. Když je model zapnutý, napíše ho model; když selže nebo
+    napíše číslo, které nemá oporu v datech, použije se šablona a do
+    poznámky se zapíše proč. Zpráva tedy vznikne vždycky – a nikdy
+    s číslem, které si model vymyslel.
+    """
+    from . import facts as facts_module
+    from . import llm
+    from .models import Audience
+
+    audience = audience or Audience.COACH
+    facts = facts_module.build(session, findings, citations, audience=audience)
+    fallback = compose(session, findings, citations, facts)
+    if not llm.is_enabled():
+        return Composition(text=fallback, source="šablona", facts=facts)
+
+    try:
+        draft = generate(session, findings, facts, audience=audience)
+    except llm.LLMError as exc:
+        logger.warning("Model se pro %s nepoužil: %s", session.subject.code, exc)
+        return Composition(text=fallback, source="šablona", facts=facts,
+                           note=f"Jazykový model se nepoužil: {exc}")
+    if not draft.problems:
+        return Composition(
+            text=draft.text, source=draft.model, facts=facts,
+            note=(f"Text sestavil model {draft.model} za {draft.seconds:.0f} s"
+                  + (" (na druhý pokus)." if draft.attempts == 2 else ".")),
+        )
+    reason = f"obsahoval čísla, která v datech nejsou ({', '.join(draft.problems[:5])})"
     return Composition(
         text=fallback, source="šablona", facts=facts,
-        note=f"Text od modelu {reply.model} byl odmítnut: {reason}. Použita šablona.",
+        note=f"Text od modelu {draft.model} byl odmítnut: {reason}. Použita šablona.",
     )
 
 
@@ -353,14 +343,16 @@ def draft_recommendations(report) -> RecommendationDraft:
 
     from . import facts as facts_module
     from . import llm
+    from .prompts import RECOMMENDATION_READER
 
     session = report.session
     findings = list(session.findings.select_related("rule")) if session else []
     citations = evidence.articles_for(findings)
-    facts = facts_module.build(session, findings, citations)
+    facts = facts_module.build(session, findings, citations, audience=report.audience)
 
     reply = llm.chat([
-        {"role": "system", "content": RECOMMENDATION_PROMPT},
+        {"role": "system", "content":
+            RECOMMENDATION_PROMPT + "\n\n" + RECOMMENDATION_READER[report.audience]},
         {"role": "user", "content":
             "Fakta z testování:\n\n" + json.dumps(facts, ensure_ascii=False, indent=2)},
     ])
@@ -380,5 +372,6 @@ def unsupported_numbers(report, text: str) -> list[str]:
     if session is None:
         return []
     findings = list(session.findings.select_related("rule"))
-    facts = facts_module.build(session, findings, evidence.articles_for(findings))
+    facts = facts_module.build(session, findings, evidence.articles_for(findings),
+                               audience=report.audience)
     return verify_numbers(text, findings, facts)
