@@ -31,6 +31,7 @@ class FakeModel:
         self.status = 200
         self.requests = []
         self.models = ["testovaci-model", "google/gemma-3-4b"]
+        self.answered_by = ""      # co server uvede jako autora odpovědi
 
     def handler(self):
         fake = self
@@ -40,7 +41,10 @@ class FakeModel:
                 body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
                 fake.requests.append({"path": self.path, "body": body})
                 text = fake.replies.pop(0) if fake.replies else fake.reply
-                payload = json.dumps({"choices": [{"message": {"content": text}}]})
+                answer = {"choices": [{"message": {"content": text}}]}
+                if fake.answered_by:
+                    answer["model"] = fake.answered_by
+                payload = json.dumps(answer)
                 self.send_response(fake.status)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
@@ -341,3 +345,8 @@ def test_tlacitko_navrhu_neztrati_neulozene_upravy(mereni, model, client):
     assert report.summary == "Opravený souhrn, IR/ER 0,85."
     assert report.custom_note == "Můj text.\n\n• Posílit zevní rotátory ramene."
     assert report.note_pending_review
+
+
+def test_zprava_uvede_model_ktery_skutecne_odpovedel(model):
+    model.answered_by = "muse-glimmer-30b"
+    assert llm.chat([{"role": "user", "content": "x"}]).model == "muse-glimmer-30b"

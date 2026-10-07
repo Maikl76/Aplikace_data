@@ -82,8 +82,12 @@ def chat(messages: list[dict], *, model: str | None = None,
         raise LLMError("Model vrátil prázdný text.")
 
     seconds = time.monotonic() - started
-    logger.info("Model %s odpověděl za %.1f s", model, seconds)
-    return LLMReply(text=text, model=model, seconds=seconds)
+    # Kdo text skutečně napsal: server ho uvádí v odpovědi. LM Studio na
+    # žádost o model, který nemá načtený, načte ten požadovaný – ne ten,
+    # který je zrovna otevřený v okně.
+    answered_by = str(body.get("model") or model) if isinstance(body, dict) else model
+    logger.info("Model %s odpověděl za %.1f s", answered_by, seconds)
+    return LLMReply(text=text, model=answered_by, seconds=seconds)
 
 
 def list_models(*, timeout: int = 10) -> list[str]:
