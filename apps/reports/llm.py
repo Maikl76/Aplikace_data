@@ -76,13 +76,14 @@ def chat(messages: list[dict], *, model: str | None = None,
         raise LLMError("Model vrátil odpověď, které nerozumím.") from exc
 
     try:
-        text = body["choices"][0]["message"]["content"]
-    except (KeyError, IndexError, TypeError) as exc:
+        # „content“ může u přemýšlejícího modelu chybět úplně – to řeší _empty_reason.
+        text = body["choices"][0]["message"].get("content")
+    except (KeyError, IndexError, TypeError, AttributeError) as exc:
         raise LLMError("V odpovědi modelu chybí text.") from exc
 
     text = THINK_BLOCK.sub("", text or "").strip()
     if not text:
-        raise LLMError("Model vrátil prázdný text.")
+        raise LLMError(_empty_reason(body, model))
 
     seconds = time.monotonic() - started
     # Kdo text skutečně napsal: server ho uvádí v odpovědi. LM Studio na
@@ -91,6 +92,31 @@ def chat(messages: list[dict], *, model: str | None = None,
     answered_by = str(body.get("model") or model) if isinstance(body, dict) else model
     logger.info("Model %s odpověděl za %.1f s", answered_by, seconds)
     return LLMReply(text=text, model=answered_by, seconds=seconds)
+
+
+def _empty_reason(body: dict, model: str) -> str:
+    """
+    Proč model nenapsal žádný text – ať je jasné, co nastavit v LM Studiu.
+
+    Přemýšlející modely (Gemma 4, Qwen, Glimmer) dávají úvahy do zvláštního
+    pole a výsledek do „content“. Když dojde místo v kontextu, nebo model
+    celou odpověď spotřebuje na přemýšlení, „content“ zůstane prázdný.
+    """
+    choice = body["choices"][0]
+    message = choice.get("message") or {}
+    finish = choice.get("finish_reason")
+    thought = message.get("reasoning_content") or message.get("reasoning")
+    prompt_tokens = (body.get("usage") or {}).get("prompt_tokens")
+    size = f" (podklady mají {prompt_tokens} tokenů)" if prompt_tokens else ""
+    if finish == "length":
+        return (f"Model {model} nedopsal odpověď – došlo místo v kontextu{size}. "
+                f"V LM Studiu u modelu (záložka Load) zvyšte Context Length aspoň na 16384 "
+                f"a model znovu načtěte.")
+    if thought:
+        return (f"Model {model} jen přemýšlel a výslednou odpověď nenapsal. V LM Studiu "
+                f"u modelu zvyšte Context Length (záložka Load) aspoň na 16384, případně "
+                f"vypněte přemýšlení (záložka Inference).")
+    return f"Model {model} vrátil prázdný text{size}."
 
 
 def list_models(*, timeout: int = 10) -> list[str]:

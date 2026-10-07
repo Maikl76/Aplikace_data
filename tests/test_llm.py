@@ -32,6 +32,8 @@ class FakeModel:
         self.requests = []
         self.models = ["testovaci-model", "google/gemma-3-4b"]
         self.answered_by = ""      # co server uvede jako autora odpovědi
+        self.extra_choice = {}     # např. finish_reason, reasoning_content (LM Studio)
+        self.usage = {}
 
     def handler(self):
         fake = self
@@ -44,6 +46,11 @@ class FakeModel:
                 answer = {"choices": [{"message": {"content": text}}]}
                 if fake.answered_by:
                     answer["model"] = fake.answered_by
+                if fake.extra_choice:
+                    answer["choices"][0].update(fake.extra_choice)
+                    answer["choices"][0]["message"].update(fake.extra_choice.get("message", {}))
+                if fake.usage:
+                    answer["usage"] = fake.usage
                 payload = json.dumps(answer)
                 self.send_response(fake.status)
                 self.send_header("Content-Type", "application/json")
@@ -251,6 +258,24 @@ def test_model_dostane_druhou_sanci(mereni, model):
     assert "druhý pokus" in report.generation_note
     oprava = model.requests[1]["body"]["messages"][-1]["content"]
     assert "15" in oprava and "Nic nepočítej" in oprava
+
+
+def test_prazdna_odpoved_kvuli_kontextu_rekne_co_nastavit(model):
+    """LM Studio: přemýšlející model s malým kontextem vrátí prázdný „content“."""
+    model.reply = ""
+    model.extra_choice = {"finish_reason": "length",
+                          "message": {"reasoning_content": "Nejdřív si projdu fakta…"}}
+    model.usage = {"prompt_tokens": 4252}
+    with pytest.raises(llm.LLMError, match="Context Length aspoň na 16384") as exc:
+        llm.chat([{"role": "user", "content": "x"}])
+    assert "4252" in str(exc.value)
+
+
+def test_jen_premyslel_rekne_co_nastavit(model):
+    model.reply = ""
+    model.extra_choice = {"finish_reason": "stop", "message": {"reasoning": "Úvaha…"}}
+    with pytest.raises(llm.LLMError, match="jen přemýšlel"):
+        llm.chat([{"role": "user", "content": "x"}])
 
 
 def test_prazdna_odpoved_se_nepouzije(mereni, model):
