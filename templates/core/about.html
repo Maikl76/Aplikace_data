@@ -311,6 +311,13 @@
         <li><strong>Předání</strong> (např. AKESO) jde zaznamenat jen u sportovce s platným souhlasem s předáním zprávy poskytovateli zdravotních služeb.</li>
       </ol>
       <p class="text-sm text-muted">Má-li sportovec platné omezení zátěže (z externího vyšetření), doporučení vyžadující zátěž se negenerují a karta sportovce na to upozorní.</p>
+      <h3>Výběr modelu a psaní na pozadí</h3>
+      <ul>
+        <li><strong>Modely</strong> (správce): <em>Zprávy → AI zprávy → Modely</em>. Aplikace ukáže modely, které nabízí LM Studio / Ollama; jeden nastavíte jako <strong>výchozí</strong>, u každého zvolíte název v aplikaci a jak dlouho na něj čekat (velký model na počítači bez grafické karty potřebuje víc). Bez nastavení platí <code>LLM_MODEL</code> z <code>.env</code>.</li>
+        <li><strong>Při vytváření zprávy</strong> jde vedle „pro koho“ zvolit i model – např. pro důležitou zprávu ten kvalitnější.</li>
+        <li><strong>Napsat souhrn znovu</strong> – u rozpracované zprávy pod souhrnem: nový text napíše zvolený model, dosavadní (i s vašimi úpravami) zůstane v <em>dřívějších textech souhrnu</em>. Když se přepsání nepovede, souhrn zůstane, jak byl.</li>
+        <li><strong>Psaní na pozadí:</strong> zpráva se založí hned a model píše souhrn mezitím – stránku můžete zavřít a pracovat dál. Než dopíše, zprávu nejde upravit ani vydat; stránka zprávy se po dopsání obnoví sama.</li>
+      </ul>
       <h3>Jak se model zlepšuje</h3>
       <ul>
         <li><strong>Hodnocení:</strong> u textu od AI označte, jak se povedl (dobrý / použitelný / přepsal jsem ho), a stručně co vadilo.</li>

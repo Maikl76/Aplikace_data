@@ -32,9 +32,13 @@ def report_create(request, session_pk):
     session = get_object_or_404(TestSession.objects.for_user(request.user), pk=session_pk)
     if request.method != "POST":
         return redirect("session_detail", pk=session_pk)
+    from .ai_models import is_offered
+
+    model = request.POST.get("model", "").strip()
     try:
         report = services.build_draft(session, user=request.user,
-                                      audience=request.POST.get("pro"))
+                                      audience=request.POST.get("pro"),
+                                      model=model if model and is_offered(model) else None)
     except services.ReportError as exc:
         messages.error(request, str(exc))
         return redirect("session_detail", pk=session_pk)
@@ -61,10 +65,18 @@ def report_detail(request, pk):
 
     from apps.subjects.search import label
 
+    from . import ai_models
+
+    if services.clear_stalled(report):
+        messages.warning(request, "Psaní souhrnu modelem se nedokončilo – souhrn zůstal, "
+                                  "jak byl. Můžete ho nechat napsat znovu.")
     label([report], request.user)
     context = services.report_context(report)
     context.update({
         "audiences": Audience.choices,
+        "model_choices": ai_models.choices() if llm.is_enabled() else [],
+        "writing_label": ai_models.label_for(report.writing_model),
+        "history": report.model_trials.order_by("-created_at")[:6],
         "ratings": Report.Rating.choices,
         "variants": (Report.objects.filter(session=report.session)
                      .exclude(pk=report.pk).exclude(status=Report.Status.SUPERSEDED)
@@ -228,7 +240,11 @@ def ai_settings(request):
         return redirect("report_list")
     organization = request.user.organization or getattr(
         Report.objects.for_user(request.user).first(), "organization", None)
-    tab = request.GET.get("tab", "pokyny")
+    tab = request.GET.get("tab", "modely")
+
+    if request.method == "POST" and request.POST.get("akce", "").startswith("model"):
+        _models_post(request)
+        return redirect(f"{request.path}?tab=modely")
 
     if request.method == "POST" and request.POST.get("akce") == "pokyny":
         audience = request.POST.get("audience")
@@ -264,22 +280,34 @@ def ai_settings(request):
     for r in test_set:
         r.trials = trials.get(r.pk, [])[:4]
 
-    models_available = []
+    from . import ai_models
+    from .models import AiModel
+
+    models_available, server_error = [], ""
     if llm.is_enabled():
         try:
             models_available = llm.list_models(timeout=3)
-        except llm.LLMError:
-            pass
+        except llm.LLMError as exc:
+            server_error = str(exc)
+    saved = {m.name: m for m in AiModel.objects.all()}
+    default = ai_models.default_model()
+    model_rows = []
+    for name in dict.fromkeys([default, *saved, *models_available]):
+        row = saved.get(name) or AiModel(name=name, timeout=settings.LLM_TIMEOUT)
+        model_rows.append({"m": row, "saved": name in saved, "default": name == default,
+                           "on_server": name in models_available})
     return render(request, "reports/ai_settings.html", {
         "tab": tab, "styles": styles,
-        "tabs": [("pokyny", "Pokyny pro model"), ("kvalita", "Kvalita textů"),
-                 ("sada", "Zkušební sada")],
+        "tabs": [("modely", "Modely"), ("pokyny", "Pokyny pro model"),
+                 ("kvalita", "Kvalita textů"), ("sada", "Zkušební sada")],
+        "model_rows": model_rows, "server_error": server_error,
+        "model_choices": ai_models.choices(),
         "ratings_short": [("dobry", "Dobrý"), ("pouzitelny", "Použitelný"),
                           ("prepsano", "Nepoužitelný")], "fixed_rules": prompts.FIXED_RULES,
         "stats": services.quality_stats(organization), "test_set": test_set,
         "examples": (Report.objects.for_user(request.user).filter(is_example=True)
                      .select_related("subject").order_by("-released_at")[:30]),
-        "llm_enabled": llm.is_enabled(), "current_model": settings.LLM_MODEL,
+        "llm_enabled": llm.is_enabled(), "current_model": ai_models.default_model(),
         "models_available": models_available,
     })
 
@@ -298,3 +326,79 @@ def ai_try(request, pk):
     if request.headers.get("HX-Request"):
         return render(request, "reports/_trial.html", {"t": trial})
     return redirect("/zpravy/ai/?tab=sada")
+
+
+@login_required
+def report_writing(request, pk):
+    """Stav psaní na pozadí (HTMX dotaz každých pár sekund)."""
+    report = get_object_or_404(Report.objects.for_user(request.user), pk=pk)
+    if not report.is_writing:
+        response = HttpResponse("")
+        response["HX-Refresh"] = "true"
+        return response
+    from django.utils import timezone
+
+    seconds = int((timezone.now() - report.writing_started_at).total_seconds())
+    return HttpResponse(f"{seconds // 60} min {seconds % 60:02d} s")
+
+
+@login_required
+def report_rewrite(request, pk):
+    """Napsat souhrn znovu (jiným) modelem – dosavadní text zůstane v historii zprávy."""
+    from .ai_models import is_offered, label_for
+
+    report = get_object_or_404(Report.objects.for_user(request.user), pk=pk)
+    if request.method != "POST":
+        return redirect("report_detail", pk=pk)
+    model = request.POST.get("model", "").strip()
+    try:
+        if "summary" in request.POST and report.is_editable and not report.is_writing:
+            services.save_edits(report, summary=request.POST["summary"],
+                                custom_note=request.POST.get("custom_note", ""))
+        services.rewrite_summary(report, model=model if model and is_offered(model) else None)
+    except services.ReportError as exc:
+        messages.error(request, str(exc))
+        return redirect("report_detail", pk=pk)
+    record(request, AuditLog.Action.UPDATE, report, subject_code=report.subject.code,
+           prepsat_modelem=report.writing_model)
+    report.refresh_from_db()
+    if report.is_writing:
+        messages.info(request, f"Model {label_for(report.writing_model)} píše nový souhrn. "
+                               f"Dosavadní text zůstane v historii zprávy.")
+    elif "nepovedlo" in report.generation_note:
+        messages.warning(request, report.generation_note)
+    else:
+        messages.success(request, "Souhrn napsán znovu. Předchozí text je v historii zprávy.")
+    return redirect("report_detail", pk=pk)
+
+
+def _models_post(request):
+    """Modely v AI zprávách: uložit čekání a název, nastavit výchozí, přidat, odebrat."""
+    from .models import AiModel
+
+    action = request.POST.get("akce")
+    name = request.POST.get("name", "").strip().removeprefix("LLM_MODEL=").strip()
+    if not name or len(name) > 120:
+        messages.error(request, "Zadejte název modelu, jak ho uvádí LM Studio / Ollama.")
+        return
+    if action == "model_smazat":
+        AiModel.objects.filter(name=name).delete()
+        messages.info(request, f"Model {name} už se nenabízí.")
+        return
+    try:
+        timeout = max(30, min(3600, int(request.POST.get("timeout") or 300)))
+    except ValueError:
+        timeout = 300
+    row, _ = AiModel.objects.get_or_create(name=name, defaults={"timeout": timeout})
+    if action in ("model_ulozit", "model_pridat"):
+        row.label = request.POST.get("label", row.label).strip()[:80]
+        row.timeout = timeout
+        row.is_active = bool(request.POST.get("is_active", "on" if action == "model_pridat" else ""))
+    if action == "model_vychozi":
+        AiModel.objects.exclude(pk=row.pk).update(is_default=False)
+        row.is_default = True
+        row.is_active = True
+        messages.success(request, f"Nové zprávy bude psát {row.display}.")
+    else:
+        messages.success(request, f"Model {row.display} uložen.")
+    row.save()

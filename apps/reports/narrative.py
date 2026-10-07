@@ -261,7 +261,7 @@ def generate(session, findings, facts, *, audience, model=None, exclude_report=N
     raise AssertionError("nedosažitelné")
 
 
-def compose_report(session, findings, citations, *, audience=None) -> Composition:
+def compose_report(session, findings, citations, *, audience=None, model=None) -> Composition:
     """
     Text zprávy. Když je model zapnutý, napíše ho model; když selže nebo
     napíše číslo, které nemá oporu v datech, použije se šablona a do
@@ -279,7 +279,7 @@ def compose_report(session, findings, citations, *, audience=None) -> Compositio
         return Composition(text=fallback, source="šablona", facts=facts)
 
     try:
-        draft = generate(session, findings, facts, audience=audience)
+        draft = generate(session, findings, facts, audience=audience, model=model)
     except llm.LLMError as exc:
         logger.warning("Model se pro %s nepoužil: %s", session.subject.code, exc)
         return Composition(text=fallback, source="šablona", facts=facts,

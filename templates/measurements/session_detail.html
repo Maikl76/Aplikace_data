@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load ui %}
+{% load ui ai %}
 {% block content %}
 <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
   <div class="flex items-center gap-3 min-w-0">
@@ -21,6 +21,7 @@
       <option value="trener" selected>pro trenéra</option>
       <option value="lekar">pro lékaře</option>
     </select>
+    {% ai_model_select %}
     <button type="submit" class="btn btn-primary" title="Vznikne koncept ke kontrole, nic se nevydává"
             onclick="this.lastChild.textContent='Připravuji zprávu…'">
       {% icon "file" %}<span>Vytvořit zprávu</span></button>

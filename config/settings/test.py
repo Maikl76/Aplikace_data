@@ -19,3 +19,6 @@ STORAGES = {
 
 # Hashování hesel je v testech zbytečně pomalé.
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
+# Psaní souhrnu na pozadí běží v testech hned (vlákno by nevidělo testovací transakci).
+LLM_BACKGROUND = False

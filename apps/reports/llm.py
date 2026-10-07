@@ -42,7 +42,10 @@ def is_enabled() -> bool:
 
 def chat(messages: list[dict], *, model: str | None = None,
          temperature: float | None = None, timeout: int | None = None) -> LLMReply:
-    model = model or settings.LLM_MODEL
+    from .ai_models import default_model, timeout_for
+
+    model = model or default_model()
+    timeout = timeout or timeout_for(model)
     url = settings.LLM_BASE_URL.rstrip("/") + "/chat/completions"
     payload = {
         "model": model,
@@ -57,7 +60,7 @@ def chat(messages: list[dict], *, model: str | None = None,
 
     started = time.monotonic()
     try:
-        with urllib.request.urlopen(request, timeout=timeout or settings.LLM_TIMEOUT) as resp:
+        with urllib.request.urlopen(request, timeout=timeout) as resp:
             body = json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")[:300]
@@ -68,7 +71,7 @@ def chat(messages: list[dict], *, model: str | None = None,
             f"Běží Ollama, nebo LM Studio se zapnutým serverem?"
         ) from exc
     except TimeoutError as exc:
-        raise LLMError(f"Model neodpověděl do {timeout or settings.LLM_TIMEOUT} s.") from exc
+        raise LLMError(f"Model {model} neodpověděl do {timeout} s.") from exc
     except (ValueError, json.JSONDecodeError) as exc:
         raise LLMError("Model vrátil odpověď, které nerozumím.") from exc
 

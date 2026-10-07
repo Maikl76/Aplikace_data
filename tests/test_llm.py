@@ -64,7 +64,8 @@ class FakeModel:
 
 
 @pytest.fixture
-def model(settings):
+def model(settings, db):
+    # db: výchozí model a čekání se čtou i z nastavení v aplikaci (AI zprávy → Modely).
     fake = FakeModel()
     server = ThreadingHTTPServer(("127.0.0.1", 0), fake.handler())
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -120,7 +121,7 @@ def test_premysleni_nahlas_se_odstrani(model):
     assert llm.chat([{"role": "user", "content": "x"}]).text == "Výsledný text."
 
 
-def test_nedostupny_model_rekne_proc(settings):
+def test_nedostupny_model_rekne_proc(settings, db):
     settings.LLM_BASE_URL = "http://127.0.0.1:9/v1"   # port, kde nic neběží
     settings.LLM_TIMEOUT = 2
     with pytest.raises(llm.LLMError, match="není dostupný"):

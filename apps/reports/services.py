@@ -45,13 +45,32 @@ def next_report_number(organization) -> str:
 
 @transaction.atomic
 def build_draft(session, *, user, supersedes: Report | None = None,
-                audience: str | None = None) -> Report:
-    """Vyhodnotí pravidla a složí koncept zprávy pro zvoleného čtenáře."""
+                audience: str | None = None, model: str | None = None) -> Report:
+    """
+    Vyhodnotí pravidla a složí koncept zprávy pro zvoleného čtenáře.
+
+    Je-li zapnutý model a psaní na pozadí, zpráva vznikne hned se souhrnem
+    ze šablony a model ho přepíše, až dopíše (stránka na něj nečeká).
+    """
+    from django.conf import settings
+
+    from . import llm
+
     if audience not in Audience.values:
         audience = supersedes.audience if supersedes else Audience.COACH
     findings = engine.evaluate_session(session)
     citations = evidence.articles_for(findings)
-    composition = narrative.compose_report(session, findings, citations, audience=audience)
+    background = llm.is_enabled() and settings.LLM_BACKGROUND
+    if background:
+        from . import facts as facts_module
+
+        facts = facts_module.build(session, findings, citations, audience=audience)
+        composition = narrative.Composition(
+            text=narrative.compose(session, findings, citations, facts), source="šablona",
+            facts=facts)
+    else:
+        composition = narrative.compose_report(session, findings, citations,
+                                               audience=audience, model=model)
     text = composition.text
 
     # Poslední pojistka: kontrola čísel nad finálním textem, proti týmž
@@ -81,8 +100,114 @@ def build_draft(session, *, user, supersedes: Report | None = None,
         generation_note=composition.note,
     )
     report.input_fingerprint = report.compute_fingerprint(_inputs(session, findings))
+    if background:
+        _mark_writing(report, model)
     report.save()
+    if background:
+        _start_writing(report, model, rewrite=False)
     return report
+
+
+# ---------------------------------------------------------------------------
+# Psaní souhrnu modelem (na pozadí) a přepsání jiným modelem
+# ---------------------------------------------------------------------------
+
+def _mark_writing(report, model):
+    from .ai_models import default_model
+
+    report.writing = Report.Writing.RUNNING
+    report.writing_model = model or default_model()
+    report.writing_started_at = timezone.now()
+
+
+def _start_writing(report, model, *, rewrite: bool):
+    """Na pozadí ve vlákně; bez LLM_BACKGROUND (testy) hned."""
+    from django.conf import settings
+
+    if not settings.LLM_BACKGROUND:
+        write_summary(report.pk, model, rewrite=rewrite)
+        return
+    import threading
+
+    def run():
+        from django.db import connection
+
+        try:
+            write_summary(report.pk, model, rewrite=rewrite)
+        except Exception as exc:  # nic nesmí nechat zprávu viset ve stavu „píše“
+            logger.exception("Psaní souhrnu zprávy %s selhalo", report.pk)
+            Report.objects.filter(pk=report.pk).update(
+                writing=Report.Writing.NONE,
+                generation_note=f"Psaní souhrnu selhalo: {exc}"[:500])
+        finally:
+            connection.close()
+
+    transaction.on_commit(lambda: threading.Thread(target=run, daemon=True).start())
+
+
+def write_summary(report_pk, model, *, rewrite: bool) -> Report:
+    """
+    Model napíše souhrn zprávy. Při přepsání (``rewrite``) se dosavadní text
+    uloží do historie zprávy a nahradí se jen tehdy, když model uspěje –
+    jinak zůstane, jak byl, a do poznámky se zapíše proč.
+    """
+    report = Report.objects.select_related("session", "subject").get(pk=report_pk)
+    session = report.session
+    findings = list(session.findings.select_related("rule"))
+    citations = evidence.articles_for(findings)
+    composition = narrative.compose_report(session, findings, citations,
+                                           audience=report.audience, model=model)
+    report.refresh_from_db()
+    if not report.is_editable:
+        return report
+    failed = composition.source == "šablona"
+    if rewrite and failed:
+        report.generation_note = (f"Přepsání se nepovedlo, souhrn zůstal: "
+                                  f"{composition.note}")[:1000]
+    else:
+        if rewrite:
+            ModelTrial.objects.create(
+                report=report, audience=report.audience,
+                model=report.llm_model + (" – upraveno diagnostikem"
+                                          if report.summary_edited else ""),
+                text=report.summary)
+        report.summary = composition.text
+        report.summary_generated = composition.text
+        report.summary_edited = False
+        report.llm_model = composition.source
+        report.generation_note = composition.note
+    report.writing = Report.Writing.NONE
+    report.save(update_fields=["summary", "summary_generated", "summary_edited", "llm_model",
+                               "generation_note", "writing"])
+    return report
+
+
+def rewrite_summary(report, *, model: str | None) -> None:
+    """Napsat souhrn znovu (jiným) modelem; dosavadní text zůstane v historii."""
+    from . import llm
+
+    if not report.is_editable:
+        raise ReportError("Vydanou zprávu nelze upravit – vytvořte novou verzi.")
+    if not llm.is_enabled():
+        raise ReportError("Jazykový model není zapnutý (LLM_ENABLED).")
+    if report.is_writing:
+        raise ReportError("Model už souhrn píše – počkejte, až dopíše.")
+    if report.session is None:
+        raise ReportError("Zpráva nemá testovací den.")
+    _mark_writing(report, model)
+    report.save(update_fields=["writing", "writing_model", "writing_started_at"])
+    _start_writing(report, model, rewrite=True)
+
+
+def clear_stalled(report) -> bool:
+    """Psaní, které se nedokončilo (restart aplikace) – uvolnit zprávu."""
+    if not report.writing_stalled:
+        return False
+    report.writing = Report.Writing.NONE
+    report.generation_note = ("Psaní souhrnu modelem se nedokončilo (aplikace se mezitím "
+                              "restartovala nebo model neodpověděl). Souhrn zůstal, jak byl.")
+    report.save(update_fields=["writing", "generation_note"])
+    return True
 
 
 TITLES = {
@@ -184,6 +309,8 @@ def release(report, *, user) -> Report:
     """Vydání. Od téhle chvíle se zpráva needituje."""
     if report.status != Report.Status.DRAFT:
         raise ReportError("Vydat lze jen koncept.")
+    if report.is_writing:
+        raise ReportError("Model ještě píše souhrn – počkejte, až dopíše, a zkontrolujte ho.")
     if (report.audience == Audience.CLINICIAN
             and not Consent.has(report.subject, Consent.Scope.REPORT_HANDOVER)):
         raise ReportError(
@@ -283,6 +410,8 @@ def save_edits(report, *, summary: str, custom_note: str) -> list[str]:
     """
     if not report.is_editable:
         raise ReportError("Vydanou zprávu nelze upravit – vytvořte novou verzi.")
+    if report.is_writing:
+        raise ReportError("Model právě píše souhrn – úpravy uložte, až dopíše.")
 
     summary = summary.replace("\r\n", "\n").strip()
     custom_note = custom_note.replace("\r\n", "\n").strip()

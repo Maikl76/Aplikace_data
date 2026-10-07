@@ -97,6 +97,16 @@ class Report(OrgScopedModel):
     in_test_set = models.BooleanField(
         "ve zkušební sadě", default=False,
         help_text="Na zprávách ve zkušební sadě se porovnávají modely a pokyny.")
+    # Psaní souhrnu na pozadí: velký model může psát i minuty a stránka
+    # na něj nemusí čekat. Dokud model píše, zprávu nejde upravit ani vydat.
+    class Writing(models.TextChoices):
+        NONE = "", "hotovo"
+        RUNNING = "pise", "model píše souhrn"
+
+    writing = models.CharField("psaní souhrnu", max_length=8, blank=True,
+                               choices=Writing.choices, default=Writing.NONE)
+    writing_model = models.CharField("píše model", max_length=120, blank=True)
+    writing_started_at = models.DateTimeField("psaní začalo", null=True, blank=True)
     rendered_html = models.TextField(
         "podoba při vydání", blank=True,
         help_text="Snímek zprávy pořízený při vydání; vydaná zpráva se už nepřepočítává.")
@@ -121,6 +131,22 @@ class Report(OrgScopedModel):
     @property
     def is_editable(self) -> bool:
         return self.status == self.Status.DRAFT
+
+    @property
+    def is_writing(self) -> bool:
+        return self.writing == self.Writing.RUNNING and not self.writing_stalled
+
+    @property
+    def writing_stalled(self) -> bool:
+        """Psaní, které se nedokončilo (aplikace se mezitím restartovala apod.)."""
+        if self.writing != self.Writing.RUNNING or self.writing_started_at is None:
+            return False
+        from django.utils import timezone
+
+        from .ai_models import timeout_for
+
+        limit = 2 * timeout_for(self.writing_model) + 120
+        return (timezone.now() - self.writing_started_at).total_seconds() > limit
 
     @property
     def audience_for(self) -> str:
@@ -226,3 +252,32 @@ class ModelTrial(TimeStampedModel):
 
     def __str__(self):
         return f"{self.report.report_number} – {self.model}"
+
+
+class AiModel(TimeStampedModel):
+    """
+    Jazykový model, který aplikace nabízí – volí se v AI zprávách. Výchozí
+    model píše nové zprávy; ostatní jdou zvolit u konkrétní zprávy.
+    Bez záznamu platí LLM_MODEL a LLM_TIMEOUT z nastavení (.env).
+    """
+
+    name = models.CharField("název na serveru", max_length=120, unique=True,
+                            help_text="Přesně jak ho uvádí LM Studio / Ollama, např. meta/muse-glimmer.")
+    label = models.CharField("název v aplikaci", max_length=80, blank=True)
+    timeout = models.PositiveIntegerField(
+        "čekat nejvýš (s)", default=300,
+        help_text="Velký model na počítači bez grafické karty potřebuje víc času.")
+    is_default = models.BooleanField("výchozí", default=False)
+    is_active = models.BooleanField("nabízet", default=True)
+
+    class Meta:
+        verbose_name = "jazykový model"
+        verbose_name_plural = "jazykové modely"
+        ordering = ["-is_default", "label", "name"]
+
+    def __str__(self):
+        return self.display
+
+    @property
+    def display(self) -> str:
+        return self.label or self.name

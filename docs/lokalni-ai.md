@@ -40,6 +40,34 @@ Ze stejného testovacího dne jde udělat víc variant (detail zprávy → *Dal�
 varianty*). Zprávu pro lékaře lze vydat jen se souhlasem s předáním zprávy
 poskytovateli zdravotních služeb.
 
+## Výběr modelu
+
+*Zprávy → AI zprávy → Modely* (správce) ukazuje modely, které nabízí
+LM Studio nebo Ollama. U každého:
+
+- **název v aplikaci** (např. „Gemma (rychlá)“, „Muse Glimmer (kvalitní)“),
+- **čekat nejvýš** – kolik sekund na model čekat; velký model na počítači
+  bez grafické karty potřebuje víc (např. 900),
+- **nabízet** – zda jde zvolit u zprávy,
+- **Nastavit jako výchozí** – ten píše nové zprávy.
+
+Dokud v aplikaci nic nastaveno není, platí `LLM_MODEL` a `LLM_TIMEOUT`
+z `.env`. Při vytváření zprávy jde model zvolit vedle „pro koho“ a u
+rozpracované zprávy jde souhrn **napsat znovu** jiným modelem – dosavadní
+text zůstane v historii zprávy (*dřívější texty souhrnu*).
+
+LM Studio si model načte samo, když o něj aplikace požádá – první zpráva
+po přepnutí trvá déle. Dva velké modely v paměti najednou počítač zpomalí;
+v nastavení serveru LM Studia zapněte *Idle TTL / Auto-Evict*.
+
+## Psaní na pozadí
+
+Zpráva se založí hned (souhrn zatím ze šablony) a model píše souhrn na
+pozadí – stránku jde zavřít a pracovat dál. Než dopíše, zprávu nejde
+upravit ani vydat; stránka se po dopsání obnoví sama. Kdyby se aplikace
+mezitím restartovala, zpráva se po čase sama uvolní a souhrn jde nechat
+napsat znovu. Vypnout (psát hned, stránka čeká): `LLM_BACKGROUND=False`.
+
 ## Jak model učit (bez doučování)
 
 Model se neučí sám od sebe. Lépe píše díky tomu, co dostane:
@@ -309,6 +337,9 @@ generování přesune na pozadí.
 | `LLM_BASE_URL` | `http://localhost:11434/v1` | adresa serveru: Ollama `:11434`, LM Studio `http://localhost:1234/v1` |
 | `LLM_TIMEOUT` | `300` | kolik sekund čekat na odpověď |
 | `LLM_TEMPERATURE` | `0.2` | nízká = střídmější, méně vymýšlí |
+| `LLM_BACKGROUND` | `True` | souhrn zprávy píše model na pozadí |
+
+`LLM_MODEL` a `LLM_TIMEOUT` platí, dokud v *AI zprávy → Modely* není nastaveno jinak.
 
 ## Ukázka na PythonAnywhere
 

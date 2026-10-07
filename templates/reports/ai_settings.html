@@ -15,7 +15,54 @@
   {% endfor %}
 </nav>
 
-{% if tab == "pokyny" %}
+{% if tab == "modely" %}
+  <p class="text-sm text-2 mb-4 max-w-3xl">Které modely aplikace nabízí. <strong>Výchozí</strong> píše nové zprávy;
+    ostatní nabízené jde zvolit při vytváření zprávy a u rozpracované zprávy (<em>Napsat souhrn znovu</em>).
+    Model musí běžet v LM Studiu (na serveru v Ollamě) – načte se sám, když o něj aplikace požádá,
+    první zpráva po přepnutí proto trvá déle.</p>
+  {% if not llm_enabled %}
+    <p class="text-sm mb-4" style="color: var(--warn)">Jazykový model je vypnutý (LLM_ENABLED v .env) – zprávy skládá šablona.</p>
+  {% elif server_error %}
+    <p class="text-sm mb-4" style="color: var(--warn)">Seznam modelů se nepodařilo načíst: {{ server_error }}</p>
+  {% endif %}
+  <div class="space-y-3 max-w-4xl">
+    {% for r in model_rows %}
+      <div class="card p-4 {% if r.default %}border-2{% endif %}" {% if r.default %}style="border-color: var(--accent)"{% endif %}>
+        <form method="post" class="flex flex-wrap items-end gap-3">
+          {% csrf_token %}
+          <input type="hidden" name="name" value="{{ r.m.name }}">
+          <div class="min-w-[14rem] flex-1">
+            <div class="font-medium break-all">{{ r.m.name }}
+              {% if r.default %}<span class="badge badge-accent">výchozí</span>{% endif %}
+              {% if r.on_server %}<span class="badge badge-good">na serveru</span>{% elif llm_enabled and not server_error %}<span class="badge badge-warn">server ho nenabízí</span>{% endif %}</div>
+            <label class="block mt-2"><span class="text-xs text-2">Název v aplikaci</span>
+              <input name="label" value="{{ r.m.label }}" maxlength="80" class="input mt-1" placeholder="např. Gemma (rychlá)"></label>
+          </div>
+          <label class="block"><span class="text-xs text-2">Čekat nejvýš (s)</span>
+            <input type="number" name="timeout" min="30" max="3600" value="{{ r.m.timeout }}" class="input mt-1 w-28"></label>
+          <label class="flex items-center gap-2 text-sm pb-2"><input type="checkbox" name="is_active" value="on" {% if r.m.is_active %}checked{% endif %}> nabízet</label>
+          <div class="flex flex-wrap gap-2">
+            <button type="submit" name="akce" value="model_ulozit" class="btn btn-sm">{% icon "check" %}Uložit</button>
+            {% if not r.default %}<button type="submit" name="akce" value="model_vychozi" class="btn btn-sm btn-primary">Nastavit jako výchozí</button>{% endif %}
+            {% if r.saved and not r.default %}<button type="submit" name="akce" value="model_smazat" class="btn btn-sm" style="color: var(--bad)">Odebrat</button>{% endif %}
+          </div>
+        </form>
+      </div>
+    {% endfor %}
+    <form method="post" class="card p-4 flex flex-wrap items-end gap-3">
+      {% csrf_token %}
+      <input type="hidden" name="akce" value="model_pridat">
+      <label class="block flex-1 min-w-[14rem]"><span class="text-sm font-medium">Přidat model ručně</span>
+        <input name="name" class="input mt-1" placeholder="přesný název, např. meta/muse-glimmer"></label>
+      <label class="block"><span class="text-xs text-2">Čekat nejvýš (s)</span>
+        <input type="number" name="timeout" min="30" max="3600" value="300" class="input mt-1 w-28"></label>
+      <button type="submit" class="btn btn-sm">{% icon "plus" %}Přidat</button>
+    </form>
+    <p class="text-xs text-muted">Tip: v LM Studiu zapněte v nastavení serveru <em>Idle TTL / Auto-Evict</em>, ať se nepoužívaný
+      velký model po čase uvolní z paměti. Psaní souhrnu běží na pozadí – na pomalý model se nemusí čekat na stránce.</p>
+  </div>
+
+{% elif tab == "pokyny" %}
   <p class="text-sm text-2 mb-4 max-w-3xl">Každá varianta zprávy má vlastní pokyny: pro koho je, jakým jazykem,
     jakou strukturou a délkou. Úprava platí pro další zprávy. <strong>Pevná pravidla</strong> (žádná vymyšlená čísla,
     diagnózy ani zdroje) jsou vždy navrch a měnit nejdou – čísla navíc hlídá kontrola.</p>

@@ -163,6 +163,9 @@ LLM_BASE_URL = env("LLM_BASE_URL", default="http://localhost:11434/v1")
 LLM_MODEL = (env("LLM_MODEL", default="gemma3:4b").strip().strip("\"'")
              .removeprefix("LLM_MODEL=").strip())
 LLM_TIMEOUT = env.int("LLM_TIMEOUT", default=300)
+# Souhrn zprávy píše model na pozadí – stránka nečeká a velký model smí
+# psát déle, než by vydržel webový požadavek.
+LLM_BACKGROUND = env.bool("LLM_BACKGROUND", default=True)
 LLM_TEMPERATURE = env.float("LLM_TEMPERATURE", default=0.2)
 
 # E-maily (potvrzení objednávky, schválení). Bez EMAIL_HOST se nic
