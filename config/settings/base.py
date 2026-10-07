@@ -158,7 +158,10 @@ DEMO_MODE = env.bool("DEMO_MODE", default=False)
 # neopouštějí počítač ani server, na kterém aplikace běží.
 LLM_ENABLED = env.bool("LLM_ENABLED", default=False)
 LLM_BASE_URL = env("LLM_BASE_URL", default="http://localhost:11434/v1")
-LLM_MODEL = env("LLM_MODEL", default="gemma3:4b")
+# Častá záměna při ruční úpravě .env: celý řádek vložený za rovnítko
+# („LLM_MODEL=LLM_MODEL=…“) nebo název v uvozovkách. Model se pak nenajde.
+LLM_MODEL = (env("LLM_MODEL", default="gemma3:4b").strip().strip("\"'")
+             .removeprefix("LLM_MODEL=").strip())
 LLM_TIMEOUT = env.int("LLM_TIMEOUT", default=300)
 LLM_TEMPERATURE = env.float("LLM_TEMPERATURE", default=0.2)
 
