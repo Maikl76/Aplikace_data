@@ -18,7 +18,7 @@ call .venv\Scripts\activate.bat || goto chyba
 
 echo Instaluji knihovny (poprve to trva nekolik minut)...
 python -m pip install --quiet --upgrade pip
-pip install --quiet -r requirements\dev.txt || goto chyba
+python -m pip install --quiet -r requirements\dev.txt || goto chyba
 
 if not exist .env (
   copy .env.lokalne.example .env >nul

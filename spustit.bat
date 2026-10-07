@@ -14,7 +14,8 @@ echo Stahuji nejnovejsi verzi...
 git pull || goto chyba
 
 rem Kdyby pribyla nova knihovna. Kdyz nic nepribylo, trva to par sekund.
-pip install --quiet -r requirements\dev.txt || goto chyba
+rem Pres python -m pip: pip.exe nema podpis a Device Guard ho blokuje.
+python -m pip install --quiet -r requirements\dev.txt || goto chyba
 python manage.py zajisti_klic || goto chyba
 python manage.py migrate || goto chyba
 rem Doplni do katalogu nove metriky a protokoly; vase upravy neprepise.
