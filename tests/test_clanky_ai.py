@@ -241,3 +241,18 @@ def test_export_katalogu_bez_pdf_a_navrhu(mereni, media):  # noqa: F811
     item = export_catalog()["clanky"][0]
     json.dumps(item)
     assert "pdf" not in item and "ai_draft" not in item
+
+
+def test_dlouhe_jmeno_pdf(mereni, model, media):  # noqa: F811
+    """Názvy souborů od vydavatelů bývají delší než 100 znaků (chyba na Windows)."""
+    _, session = mereni
+    name = ("Brito_et_al_tVCivYq._-_2024_-_The_Influence_of_Kinematics_on_Tennis_Serve_Speed_"
+            "An_In-Depth_Analysis_Using_Xsens_MVN_Biomech_Link_Technology.pdf")
+    model.reply = json.dumps(ODPOVED)
+    response = _admin(session).post("/sporty/clanky/novy/", {
+        "title": "Kinematics and serve speed", "status": "suggested", "akce": "ai",
+        "pdf_soubor": _pdf(name=name), "ulozit_pdf": "1"})
+    article = Article.objects.get()
+    assert response.url == f"/sporty/clanky/{article.pk}/"
+    assert article.pdf.name.startswith("clanky/brito_et_al_tvcivyq_-_2024_-_the_influence")
+    assert len(article.pdf.name) < 100 and article.ai_draft["zdroj"] == ai_draft.SOURCE_PDF

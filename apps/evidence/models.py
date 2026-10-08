@@ -25,6 +25,18 @@ class EvidenceLevel(models.TextChoices):
     EXPERT = "expert", "Expertní stanovisko"
 
 
+def pdf_path(instance, filename) -> str:
+    """
+    Krátké jméno bez diakritiky a mezer. Názvy souborů z vydavatelů bývají
+    dlouhé („Brito_et_al._-_2024_-_The_Influence_of…“) a Windows i databáze
+    mají na délku cesty limit.
+    """
+    from django.utils.text import slugify
+
+    stem = slugify(filename.rsplit(".", 1)[0])[:60].strip("-") or "clanek"
+    return f"clanky/{stem}.pdf"
+
+
 class Article(TimeStampedModel):
     class Status(models.TextChoices):
         SUGGESTED = "suggested", "Navrženo (čeká na schválení)"
@@ -84,7 +96,7 @@ class Article(TimeStampedModel):
 
     # PDF článku jen pro interní potřebu laboratoře (a pro AI návrh). Ukládá
     # se jen na přání – licence článků jeho sdílení často nedovolují.
-    pdf = models.FileField("PDF článku", upload_to="clanky/", blank=True)
+    pdf = models.FileField("PDF článku", upload_to=pdf_path, max_length=255, blank=True)
 
     # Návrh hlavního zjištění, omezení a populace od jazykového modelu.
     # Do polí článku se dostane až tím, že ho kurátor zkontroluje a uloží –
