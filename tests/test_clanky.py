@@ -31,8 +31,8 @@ def _admin(session):
     return client
 
 
-def _article(title, *, status=Article.Status.APPROVED, metrics=(), **fields):
-    article = Article.objects.create(title=title, authors="Novák J, Svoboda K", year=2023,
+def _article(title, *, status=Article.Status.APPROVED, metrics=(), year=2023, **fields):
+    article = Article.objects.create(title=title, authors="Novák J, Svoboda K", year=year,
                                      status=status, **fields)
     article.metrics.set(MetricDef.objects.filter(code__in=metrics))
     return article
@@ -347,3 +347,97 @@ def test_stara_zprava_bez_seznamu_literatury(mereni, model):  # noqa: F811
     tema = _article("Téma", metrics=["ir_er_ratio"])
     _, data = narrative.report_facts(report)
     assert data["citace"][0]["zdroj"] == str(tema)
+
+
+# --- filtry v knihovně -------------------------------------------------------
+
+def test_filtry_clanku(mereni):  # noqa: F811
+    from apps.subjects.models import Sport
+
+    _, session = mereni
+    org = session.organization
+    tenis = Sport.objects.create(organization=org, code="tenis", name="Tenis")
+    fotbal = Sport.objects.create(organization=org, code="fotbal", name="Fotbal")
+    podani = _article("Podání a síla ramene", metrics=["ir_er_ratio"], evidence_level="cross",
+                      population_sex="M", population_age_min=16, population_age_max=18,
+                      key_finding="Vnitřní rotace souvisí s rychlostí podání.")
+    podani.sports.set([tenis])
+    podani.protocols.set(Protocol.objects.filter(code="iso"))
+    zeny = _article("Fotbalistky", evidence_level="meta", population_sex="F",
+                    population_age_min=20)
+    zeny.sports.set([fotbal])
+    baseball = _article("Nadhazovači", population_sport="baseball, tenis",
+                        status=Article.Status.SUGGESTED)
+
+    admin = _admin(session)
+
+    def titles(**params):
+        page = admin.get("/sporty/clanky/", params)
+        return {a.title for a in page.context["articles"]}
+
+    assert titles() == {"Podání a síla ramene", "Fotbalistky", "Nadhazovači"}
+    assert titles(sport=tenis.pk) == {"Podání a síla ramene", "Nadhazovači"}
+    assert titles(sport=tenis.pk, stav="approved") == {"Podání a síla ramene"}
+    assert titles(pohlavi="F") == {"Fotbalistky", "Nadhazovači"}
+    assert titles(vek=17) == {"Podání a síla ramene", "Nadhazovači"}
+    assert titles(vek=25) == {"Fotbalistky", "Nadhazovači"}
+    assert titles(test=Protocol.objects.get(code="iso").pk) == {"Podání a síla ramene"}
+    assert titles(ukazatel=MetricDef.objects.get(code="ir_er_ratio").pk) == {
+        "Podání a síla ramene"}
+    assert titles(dukaz="meta") == {"Fotbalistky"}
+    assert titles(chybi="zjisteni") == {"Fotbalistky", "Nadhazovači"}
+    assert titles(chybi="vazba") == {"Fotbalistky", "Nadhazovači"}
+    assert titles(q="rychlostí podání") == {"Podání a síla ramene"}
+    page = admin.get("/sporty/clanky/", {"razeni": "dukaz"})
+    assert [a.title for a in page.context["articles"]][0] == "Fotbalistky"
+    html = admin.get("/sporty/clanky/", {"sport": tenis.pk}).content.decode()
+    assert "Zrušit filtry (1)" in html and "2 články" in html
+    assert baseball.population_text() == "baseball, tenis"
+
+
+def test_sport_clanku_ma_prednost(mereni):  # noqa: F811
+    from apps.subjects.models import Sport
+
+    _, session = mereni
+    tenis = Sport.objects.create(organization=session.organization, code="tenis",
+                                 name="Tenis")
+    subject = session.subject
+    subject.sport = tenis
+    subject.save()
+    _article("Obecný", metrics=["ir_er_ratio"], evidence_level="meta", year=2024)
+    tenisovy = _article("Tenisový", metrics=["ir_er_ratio"], evidence_level="cross")
+    tenisovy.sports.set([tenis])
+    topic = evidence.topic_articles(session)
+    assert topic[0]["article"] == tenisovy
+    assert "tenis" in tenisovy.population_text()
+
+
+def test_sport_z_textu_do_katalogu(mereni):  # noqa: F811
+    import importlib
+
+    from django.apps import apps as django_apps
+
+    from apps.subjects.models import Sport
+
+    _, session = mereni
+    tenis = Sport.objects.create(organization=session.organization, code="tenis",
+                                 name="Tenis")
+    article = _article("Starý záznam", population_sport="tenis, baseball")
+    migration = importlib.import_module("apps.evidence.migrations.0003_sporty_clanku")
+    migration.text_to_sports(django_apps, None)
+    article.refresh_from_db()
+    assert list(article.sports.all()) == [tenis] and article.population_sport == "baseball"
+
+
+def test_prenos_sportu_clanku(mereni):  # noqa: F811
+    from apps.catalog.transfer import export_catalog, import_catalog
+    from apps.subjects.models import Sport
+
+    _, session = mereni
+    tenis = Sport.objects.create(organization=session.organization, code="tenis",
+                                 name="Tenis")
+    _article("Tenis", doi="10.1/tenis").sports.set([tenis])
+    data = export_catalog()
+    Article.objects.all().delete()
+    import_catalog(data)
+    assert [s.code for s in Article.objects.get().sports.all()] == ["tenis"]

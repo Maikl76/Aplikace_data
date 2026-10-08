@@ -124,7 +124,8 @@ def export_catalog() -> dict:
             {**_plain(a),
              # Témata: ukazatele a testy podle kódu (čísla řádků se mezi databázemi liší).
              "metriky": sorted({m.code for m in a.metrics.all()}),
-             "testy": sorted({p.code for p in a.protocols.all()})}
+             "testy": sorted({p.code for p in a.protocols.all()}),
+             "sporty": [_sport(sp) for sp in a.sports.order_by("code")]}
             for a in Article.objects.order_by("year", "title")
             .prefetch_related("metrics", "protocols")
         ],
@@ -305,11 +306,13 @@ def import_catalog(data: dict, *, default_org: Organization | None = None) -> di
         key = _article_key(Article(**{k: item.get(k) for k in ("doi", "pmid", "title",
                                                                   "year")}))
         article = imp.upsert("články", Article, key,
-                             _data_fields(item, *key, "metriky", "testy"))
+                             _data_fields(item, *key, "metriky", "testy", "sporty"))
         if "metriky" in item:
             article.metrics.set(MetricDef.objects.filter(code__in=item["metriky"]))
         if "testy" in item:
             article.protocols.set(Protocol.objects.filter(code__in=item["testy"]))
+        if "sporty" in item:
+            article.sports.set([imp.sport(sp) for sp in item["sporty"]])
 
     for item in data["pravidla"]:
         org = imp.org(item["organizace"])

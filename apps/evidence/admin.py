@@ -9,7 +9,7 @@ class ArticleAdmin(admin.ModelAdmin):
     list_filter = ("status", "evidence_level", "year", "population_sex")
     search_fields = ("title", "authors", "doi", "pmid")
     actions = ["schvalit", "zamitnout"]
-    filter_horizontal = ("metrics", "protocols")
+    filter_horizontal = ("metrics", "protocols", "sports")
     fieldsets = (
         (None, {"fields": ("status", "title", "authors", "journal", "year", "doi", "pmid",
                            "url", "abstract")}),
@@ -18,7 +18,7 @@ class ArticleAdmin(admin.ModelAdmin):
         ("Témata", {"fields": ("metrics", "protocols")}),
         ("Kurátor", {"fields": ("curator_note", "tags")}),
         ("Populace", {
-            "fields": ("population_sport", "population_sex", "population_age_min",
+            "fields": ("sports", "population_sport", "population_sex", "population_age_min",
                        "population_age_max", "population_level", "sample_size"),
             "description": "Studie na mužích fotbalistech neospravedlňuje doporučení "
                            "pro sedmnáctiletou tenistku. Zpráva na neshodu populace "

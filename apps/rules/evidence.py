@@ -94,7 +94,7 @@ def topic_articles(session, *, exclude=(), only=None) -> list[dict]:
     articles = (Article.objects.filter(status=Article.Status.APPROVED)
                 .filter(Q(metrics__code__in=codes) | Q(protocols__code__in=protocols))
                 .exclude(pk__in=exclude).distinct()
-                .prefetch_related("metrics", "protocols"))
+                .prefetch_related("metrics", "protocols", "sports"))
     if only is not None:
         articles = articles.filter(pk__in=only)
     articles = list(articles)
@@ -103,15 +103,14 @@ def topic_articles(session, *, exclude=(), only=None) -> list[dict]:
 
     notable = _notable_metrics(session, current)
     subject = session.subject
-    sport = str(subject.sport).casefold() if subject.sport_id else ""
+    sport = subject.sport if subject.sport_id else None
     out = []
     for article in articles:
         metrics = [m for m in article.metrics.all() if m.code in codes]
         tests = sorted({p.name for p in article.protocols.all() if p.code in protocols})
         hot = [m for m in metrics if m.code in notable]
         priority = 0 if hot else 1 if metrics else 2
-        same_sport = bool(sport and article.population_sport
-                          and article.population_sport.casefold() in sport)
+        same_sport = article.has_sport(sport)
         reason = []
         if metrics:
             names = sorted({m.name for m in metrics})
@@ -193,9 +192,7 @@ def _short(article) -> str:
 
 
 def _population_detail(article) -> str:
-    bits = []
-    if article.population_sport:
-        bits.append(article.population_sport)
+    bits = article.sport_names()
     if article.population_sex == "F":
         bits.append("ženy")
     elif article.population_sex == "M":

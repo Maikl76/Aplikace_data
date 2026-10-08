@@ -38,6 +38,26 @@ jako podložená citovaným článkem). Pevná pravidla modelu: necitovat nic
 jiného, co studie zjistila brát jen z hlavního zjištění, a u nesedící
 populace to uvést.
 
+## Hledání a filtry
+
+Nad seznamem článků je panel filtrů:
+
+- **Hledat** – název, autoři, časopis, DOI/PMID, text hlavního zjištění,
+- **Sport** – sporty z katalogu, ve kterých studie vznikla (u článku je
+  zaškrtnete v části *Na kom se studie dělala*; sport mimo katalog se
+  píše do pole *jiný sport*),
+- **Pro věk sportovce** a **Pohlaví** – studie, jejichž populace na takového
+  sportovce sedí (studie bez údaje se ukazují vždy),
+- **Test**, **Ukazatel** – témata článku,
+- **Úroveň evidence**,
+- **K doplnění** – chybí hlavní zjištění / článek bez vazby (do zpráv se
+  nedostane) / bez sportu,
+- **Řazení** – nejnovější studie, naposledy přidané, nejsilnější důkaz, název.
+
+Filtry jdou kombinovat se stavem (navrženo / zařazeno / zamítnuto); seznam
+se stránkuje po 30. Sport studie má i praktický účinek: sportovec ze
+stejného sportu dostane takový článek k tématu přednostně.
+
 ## Přidání článku
 
 1. **Přidat článek** → vložte DOI, PMID nebo odkaz na PubMed / doi.org →

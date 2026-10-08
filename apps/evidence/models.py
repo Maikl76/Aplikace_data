@@ -47,7 +47,11 @@ class Article(TimeStampedModel):
 
     # Shoda populace. Studie na mužích fotbalistech neospravedlňuje
     # doporučení pro sedmnáctiletou tenistku – zpráva to musí umět říct.
-    population_sport = models.CharField("populace – sport", max_length=120, blank=True)
+    sports = models.ManyToManyField("subjects.Sport", verbose_name="sporty", blank=True,
+                                    related_name="articles",
+                                    help_text="Ve kterých sportech studie vznikla.")
+    population_sport = models.CharField("jiný sport", max_length=120, blank=True,
+                                        help_text="Sport, který v katalogu není (např. baseball).")
     population_sex = models.CharField("populace – pohlaví", max_length=1, blank=True,
                                       choices=[("F", "Ženy"), ("M", "Muži"), ("B", "Obě")])
     population_age_min = models.PositiveSmallIntegerField("populace – věk od",
@@ -96,11 +100,25 @@ class Article(TimeStampedModel):
         order = list(EvidenceLevel.values)
         return order.index(self.evidence_level) if self.evidence_level in order else len(order)
 
-    def population_text(self) -> str:
-        """Populace studie slovy: „fotbal, muži, 18–30 let, n = 42“."""
-        bits = []
+    def sport_names(self) -> list[str]:
+        """Sporty studie: z katalogu i volným textem."""
+        names = [sport.name.lower() for sport in self.sports.all()] if self.pk else []
         if self.population_sport:
-            bits.append(self.population_sport)
+            names.append(self.population_sport)
+        return names
+
+    def has_sport(self, sport) -> bool:
+        if sport is None:
+            return False
+        if self.pk and any(s.pk == sport.pk for s in self.sports.all()):
+            return True
+        return bool(self.population_sport
+                    and sport.name.casefold() in self.population_sport.casefold())
+
+    def population_text(self, *, catalog_sports: bool = True) -> str:
+        """Populace studie slovy: „fotbal, muži, 18–30 let, n = 42“."""
+        bits = (self.sport_names() if catalog_sports
+                else [self.population_sport] if self.population_sport else [])
         if self.population_sex == "F":
             bits.append("ženy")
         elif self.population_sex == "M":
@@ -112,6 +130,11 @@ class Article(TimeStampedModel):
         if self.sample_size:
             bits.append(f"n = {self.sample_size}")
         return ", ".join(bits)
+
+    @property
+    def population_without_sports(self) -> str:
+        """Populace bez sportů z katalogu – ty má seznam článků jako zvláštní štítky."""
+        return self.population_text(catalog_sports=False)
 
     def matches_population(self, subject, day=None) -> bool:
         """Sedí studie na tohoto sportovce (věk v den ``day``)? Pokud ne, zpráva to uvede."""

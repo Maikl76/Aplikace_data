@@ -17,7 +17,7 @@ class ArticleForm(forms.ModelForm):
         model = Article
         fields = ["title", "authors", "journal", "year", "doi", "pmid", "url", "abstract",
                   "status", "evidence_level", "key_finding", "limitations", "curator_note",
-                  "population_sport", "population_sex", "population_age_min",
+                  "sports", "population_sport", "population_sex", "population_age_min",
                   "population_age_max", "population_level", "sample_size",
                   "metrics", "protocols"]
         widgets = {
@@ -28,6 +28,7 @@ class ArticleForm(forms.ModelForm):
             "limitations": forms.Textarea(attrs={"rows": 2}),
             "curator_note": forms.Textarea(attrs={"rows": 2}),
             "metrics": forms.CheckboxSelectMultiple,
+            "sports": forms.CheckboxSelectMultiple,
             "protocols": forms.CheckboxSelectMultiple,
         }
 
@@ -38,6 +39,9 @@ class ArticleForm(forms.ModelForm):
                                            .order_by("family", "name"))
         self.fields["protocols"].queryset = (Protocol.objects.filter(mine, is_active=True)
                                              .order_by("name"))
+        from apps.subjects.models import Sport
+
+        self.fields["sports"].queryset = Sport.objects.filter(mine).order_by("name")
         self.fields["rules"].queryset = Rule.objects.filter(mine).order_by("name", "-version")
         if self.instance.pk:
             self.fields["rules"].initial = list(

@@ -70,6 +70,7 @@
         <p class="text-sm text-muted">Když populace nesedí na sportovce (pohlaví, věk v den testování), zpráva na to upozorní
           a model to musí říct.</p></div>
     </div>
+    {% include "evidence/_checks.html" with f=form.sports cls="mb-4" hint="Podle sportu se články filtrují a sportovci ze stejného sportu je model dostane přednostně." %}
     <div class="grid sm:grid-cols-3 gap-4">
       {% include "evidence/_field.html" with f=form.population_sport %}
       {% include "evidence/_field.html" with f=form.population_sex %}
