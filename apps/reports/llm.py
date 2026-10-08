@@ -63,8 +63,9 @@ def chat(messages: list[dict], *, model: str | None = None,
         with urllib.request.urlopen(request, timeout=timeout) as resp:
             body = json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
-        detail = exc.read().decode("utf-8", errors="replace")[:300]
-        raise LLMError(f"Model odpověděl chybou {exc.code}: {detail}") from exc
+        detail = exc.read().decode("utf-8", errors="replace")
+        raise LLMError(_context_reason(detail, model)
+                       or f"Model odpověděl chybou {exc.code}: {detail[:300]}") from exc
     except urllib.error.URLError as exc:
         raise LLMError(
             f"Model není dostupný na {settings.LLM_BASE_URL} ({exc.reason}). "
@@ -92,6 +93,29 @@ def chat(messages: list[dict], *, model: str | None = None,
     answered_by = str(body.get("model") or model) if isinstance(body, dict) else model
     logger.info("Model %s odpověděl za %.1f s", answered_by, seconds)
     return LLMReply(text=text, model=answered_by, seconds=seconds)
+
+
+CONTEXT_ERROR = re.compile(r"exceed|context (size|length)|too long", re.IGNORECASE)
+
+
+def _context_reason(detail: str, model: str) -> str:
+    """
+    Podklady se nevešly do kontextu modelu (LM Studio: „request (17486 tokens)
+    exceeds the available context size (16384 tokens)“). Říct kolik a co nastavit.
+    """
+    if not CONTEXT_ERROR.search(detail):
+        return ""
+    numbers = re.findall(r"\((\d+) tokens\)", detail.replace('\\"', '"'))
+    if len(numbers) >= 2:
+        need, have = int(numbers[0]), int(numbers[1])
+        # Potřeba je místo i na odpověď (zhruba 1–2 tisíce tokenů).
+        suggest = next(size for size in (16384, 24576, 32768, 49152, 65536, 131072)
+                       if size >= need + 2048)
+        return (f"Podklady pro model {model} mají {need} tokenů, ale kontext je nastavený "
+                f"jen na {have}. V LM Studiu u modelu (záložka Load) zvyšte Context Length "
+                f"aspoň na {suggest} a model znovu načtěte.")
+    return (f"Podklady se nevešly do kontextu modelu {model}. V LM Studiu u modelu "
+            f"(záložka Load) zvyšte Context Length a model znovu načtěte.")
 
 
 def _empty_reason(body: dict, model: str) -> str:

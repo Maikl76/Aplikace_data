@@ -110,9 +110,11 @@
               </select></label>
           {% endif %}
           <button type="submit" name="akce" value="ai" class="btn" {% if article.ai_writing %}disabled{% endif %}>Uložit a navrhnout pomocí AI</button>
+          <label class="flex items-center gap-2 text-sm pb-2"><input type="checkbox" name="jen_abstrakt" value="1">
+            jen z abstraktu <span class="text-xs text-muted">(rychlé, ale bez omezení z textu)</span></label>
         </div>
         <p class="text-xs text-muted mt-2">Celý článek trvá podle modelu desítky sekund až pár minut a běží na pozadí.
-          V LM Studiu je potřeba Context Length aspoň 16384.</p>
+          Běžný článek má 7–20 tisíc tokenů – v LM Studiu nastavte Context Length aspoň 24576, u dlouhých článků 32768.</p>
       {% else %}
         <p class="text-xs mt-3" style="color: var(--warn)">Jazykový model není zapnutý (LLM_ENABLED) – návrh teď nejde. PDF jde uložit i tak.</p>
       {% endif %}

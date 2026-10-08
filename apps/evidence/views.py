@@ -159,7 +159,8 @@ def _save(request, form, *, created: bool):
 
     model = request.POST.get("model", "").strip()
     try:
-        text, source = ai_draft.source_for(article, upload)
+        text, source = ai_draft.source_for(article, upload,
+                                           abstract_only=bool(request.POST.get("jen_abstrakt")))
         ai_draft.start(article, model=model if is_offered(model) else None, text=text,
                        source=source)
     except ai_draft.DraftError as exc:

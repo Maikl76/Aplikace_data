@@ -256,3 +256,37 @@ def test_dlouhe_jmeno_pdf(mereni, model, media):  # noqa: F811
     assert response.url == f"/sporty/clanky/{article.pk}/"
     assert article.pdf.name.startswith("clanky/brito_et_al_tvcivyq_-_2024_-_the_influence")
     assert len(article.pdf.name) < 100 and article.ai_draft["zdroj"] == ai_draft.SOURCE_PDF
+
+
+def test_dlouhy_clanek_a_kontext(mereni, model):  # noqa: F811
+    """Do kontextu se nevejde → srozumitelně, kolik nastavit; jde i jen z abstraktu."""
+    from apps.reports import llm
+
+    _, session = mereni
+    article = Article.objects.create(title="Dlouhý", abstract="Short abstract, n = 12.")
+    model.status = 400
+    model.reply = ('{"error":"Engine protocol predict request returned 400: {\\"error\\":'
+                   '{\\"code\\":400,\\"message\\":\\"request (17486 tokens) exceeds the '
+                   'available context size (16384 tokens), try increasing it\\"}}"}')
+    with pytest.raises(llm.LLMError, match="17486 tokenů.*16384.*aspoň na 24576"):
+        llm.chat([{"role": "user", "content": "x"}])
+
+    model.status = 200
+    model.reply = json.dumps(ODPOVED)
+    admin = _admin(session)
+    admin.post(f"/sporty/clanky/{article.pk}/", _form(
+        article, akce="ai", pdf_soubor=_pdf(), jen_abstrakt="1"))
+    article.refresh_from_db()
+    assert article.ai_draft["zdroj"] == ai_draft.SOURCE_ABSTRACT
+    assert "internal rotation" not in model.requests[-1]["body"]["messages"][1]["content"]
+
+
+def test_bez_zaverecnych_formalit():
+    body = "Results and discussion. " * 100
+    text = ai_draft.clean_text(body + "\nAuthor Contributions: A.B. wrote.\nFunding: none.\n"
+                               "Conflicts of Interest: The authors declare none.\n"
+                               "References\n1. Smith 2001")
+    assert text.endswith("discussion.") and "Funding" not in text
+    # V úvodu článku se „Funding“ na začátku řádku neořízne.
+    early = ai_draft.clean_text("Funding: grant X.\n" + body)
+    assert early.startswith("Funding")

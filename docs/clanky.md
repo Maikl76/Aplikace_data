@@ -83,8 +83,13 @@ Lokální model navrhne hlavní zjištění, omezení, úroveň evidence a popul
 - **Uložení PDF** je volitelné (zaškrtávátko) a jen pro interní potřebu –
   licence článků sdílení často nedovolují. Uložené PDF otevře jen
   přihlášený uživatel; s katalogem se nepřenáší.
-- **Model** jde vybrat (jako u zpráv). Celý článek má kolem 7 000 tokenů –
-  v LM Studiu Context Length aspoň 16384. Návrh se píše na pozadí, stránka
+- **Model** jde vybrat (jako u zpráv). Článek má podle délky 7–20 tisíc
+  tokenů (bez literatury, poděkování, financování a střetu zájmů, které se
+  modelu neposílají) – v LM Studiu nastavte Context Length aspoň 24576,
+  u dlouhých článků (MDPI, Frontiers) 32768. Když se článek nevejde,
+  aplikace napíše, kolik tokenů má a na kolik kontext zvýšit. Zaškrtnutím
+  *jen z abstraktu* jde návrh udělat i s menším kontextem (bez omezení
+  z textu článku). Návrh se píše na pozadí, stránka
   se po dopsání obnoví sama.
 - **Návrh platí až po uložení.** Do té doby je jen předvyplněný ve
   formuláři a zprávy pracují s původním textem. *Zahodit návrh* vrátí

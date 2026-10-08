@@ -89,12 +89,24 @@ REFERENCES = re.compile(r"\n\s*(References|REFERENCES|Bibliography|Literature ci
                         r"Seznam literatury)\s*\n")
 
 
+# Závěrečné části článku, které o výsledcích nic neříkají (hlavně u MDPI,
+# Frontiers…): příspěvky autorů, financování, etika, dostupnost dat, střet zájmů.
+BACK_MATTER = re.compile(
+    r"\n\s*(Author Contributions|Funding|Institutional Review Board Statement|"
+    r"Informed Consent Statement|Data Availability Statement|Acknowledge?ments?|"
+    r"Conflicts? of Interest|Declaration of Competing Interest|Abbreviations|"
+    r"Supplementary Materials|Publisher.s Note)\s*[:.\n]", re.IGNORECASE)
+
+
 def clean_text(text: str) -> str:
-    """Bez seznamu literatury (modelu nic neřekne) a bez zbytečných mezer."""
+    """Bez seznamu literatury a závěrečných formalit (modelu nic neřeknou)."""
     text = text.replace("\r", "")
     matches = list(REFERENCES.finditer(text))
     if matches and matches[-1].start() > len(text) * 0.4:
         text = text[:matches[-1].start()]
+    tail = [m.start() for m in BACK_MATTER.finditer(text) if m.start() > len(text) * 0.6]
+    if tail:
+        text = text[:min(tail)]
     text = re.sub(r"[ \t]+", " ", text)
     return re.sub(r"\n{3,}", "\n\n", text).strip()
 
@@ -106,9 +118,12 @@ def check_pdf(upload) -> None:
         raise DraftError(f"PDF je větší než {MAX_PDF_MB} MB.")
 
 
-def source_for(article, uploaded=None) -> tuple[str, str]:
+def source_for(article, uploaded=None, *, abstract_only=False) -> tuple[str, str]:
     """Z čeho bude model vycházet: nahrané PDF → uložené PDF → abstrakt."""
-    for file in (uploaded, article.pdf or None):
+    files = () if abstract_only else (uploaded, article.pdf or None)
+    if abstract_only and not article.abstract.strip():
+        raise DraftError("Článek nemá abstrakt – vložte ho, nebo nechte model číst PDF.")
+    for file in files:
         if file is None:
             continue
         if file is article.pdf:
