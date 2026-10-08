@@ -82,6 +82,17 @@ class Article(TimeStampedModel):
     protocols = models.ManyToManyField("catalog.Protocol", verbose_name="testy",
                                        blank=True, related_name="articles")
 
+    # PDF článku jen pro interní potřebu laboratoře (a pro AI návrh). Ukládá
+    # se jen na přání – licence článků jeho sdílení často nedovolují.
+    pdf = models.FileField("PDF článku", upload_to="clanky/", blank=True)
+
+    # Návrh hlavního zjištění, omezení a populace od jazykového modelu.
+    # Do polí článku se dostane až tím, že ho kurátor zkontroluje a uloží –
+    # do té doby ho zprávy nevidí.
+    ai_draft = models.JSONField("návrh od AI", null=True, blank=True)
+    ai_writing_model = models.CharField("návrh píše model", max_length=120, blank=True)
+    ai_writing_started_at = models.DateTimeField("návrh se začal psát", null=True, blank=True)
+
     # Embedding pro sémantické vyhledávání (fáze 4, pgvector).
     # embedding = VectorField(dimensions=1536, null=True, blank=True)
 
@@ -130,6 +141,14 @@ class Article(TimeStampedModel):
         if self.sample_size:
             bits.append(f"n = {self.sample_size}")
         return ", ".join(bits)
+
+    @property
+    def ai_writing(self) -> bool:
+        return self.ai_writing_started_at is not None
+
+    @property
+    def ai_draft_ready(self) -> bool:
+        return bool(self.ai_draft) and "chyba" not in self.ai_draft
 
     @property
     def population_without_sports(self) -> str:

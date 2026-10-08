@@ -121,7 +121,8 @@ def export_catalog() -> dict:
             .order_by("metric__code", "sex", "age_min", "speed", "pk")
         ],
         "clanky": [
-            {**_plain(a),
+            {**_plain(a, skip={"pdf", "ai_draft", "ai_writing_model",
+                               "ai_writing_started_at"}),
              # Témata: ukazatele a testy podle kódu (čísla řádků se mezi databázemi liší).
              "metriky": sorted({m.code for m in a.metrics.all()}),
              "testy": sorted({p.code for p in a.protocols.all()}),

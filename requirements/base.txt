@@ -21,6 +21,7 @@ pandas>=2.2
 numpy>=1.26
 openpyxl>=3.1                   # import stávajících Excelů
 segno>=1.6                      # QR kódy (karta sportovce, RPE na telefonu) – čistý Python
+pypdf>=4.0                      # text z PDF článku pro AI návrh (Články) – čistý Python
 # Plotly se jako knihovna pro Python nepoužívá: figura se skládá jako
 # obyčejný slovník a vykreslí ji plotly.js v prohlížeči (static/vendor/).
 

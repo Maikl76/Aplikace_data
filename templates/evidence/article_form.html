@@ -23,7 +23,7 @@
   </form>
 {% endif %}
 
-<form method="post" class="space-y-5 max-w-4xl pb-6">
+<form method="post" enctype="multipart/form-data" class="space-y-5 max-w-4xl pb-6">
   {% csrf_token %}
   {% if form.non_field_errors %}<div class="card p-3 text-sm" style="color: var(--bad)">{{ form.non_field_errors }}</div>{% endif %}
 
@@ -52,14 +52,70 @@
     <div class="flex items-start gap-3 mb-4">
       <span class="krok-cislo">{% if article %}2{% else %}3{% endif %}</span>
       <div><h2 class="card-title">Co z článku dostane jazykový model</h2>
-        <p class="text-sm text-muted">Model nečte celý článek ani abstrakt – dostane jen tohle. Pište proto
+        <p class="text-sm text-muted">Model, který píše zprávy, nečte celý článek ani abstrakt – dostane jen tohle. Pište proto
           krátce a prakticky; čísla, která tu uvedete, smí model ve zprávě použít.</p></div>
     </div>
+
+    {% if article.ai_writing %}
+      <div class="mb-4 px-3 py-2 rounded-lg text-sm" style="background: var(--accent-soft)">
+        Model <strong>{{ article.ai_writing_model }}</strong> píše návrh… už
+        <span hx-get="{% url 'article_ai_state' article.pk %}" hx-trigger="load, every 5s" hx-swap="innerHTML">chvíli</span>.
+        Stránka se po dopsání obnoví sama; mezitím můžete odejít.
+      </div>
+    {% elif article.ai_draft.chyba %}
+      <div class="mb-4 px-3 py-2 rounded-lg text-sm" style="background: var(--warn-soft); color: var(--warn)">
+        Návrh od AI se nepovedl: {{ article.ai_draft.chyba }}
+        <button type="submit" name="akce" value="zahodit" formnovalidate class="link ml-2">skrýt</button>
+      </div>
+    {% elif filled %}
+      <div class="mb-4 px-3 py-2 rounded-lg text-sm" style="background: var(--warn-soft)">
+        <strong>Návrh od modelu {{ article.ai_draft.model }}</strong> z {% if article.ai_draft.zdroj == "abstrakt" %}abstraktu{% else %}celého textu článku{% endif %}
+        ({{ article.ai_draft.sekund }} s) je předvyplněný ve formuláři: {{ filled|join:", " }}.
+        Zkontrolujte ho a opravte; <strong>platit začne až po uložení</strong> – do té doby zprávy pracují s původním textem.
+        {% if article.ai_draft.cisla_k_overeni %}<div class="mt-1" style="color: var(--warn)">Čísla, která v textu článku nejsou – ověřte je:
+          <strong>{{ article.ai_draft.cisla_k_overeni|join:", " }}</strong></div>{% endif %}
+        <div class="mt-1"><button type="submit" name="akce" value="zahodit" formnovalidate class="link">Zahodit návrh a vrátit původní text</button></div>
+      </div>
+    {% endif %}
     <div class="grid sm:grid-cols-2 gap-4">
       {% include "evidence/_field.html" with f=form.key_finding cls="sm:col-span-2" hint="1–3 věty: co studie zjistila a co to znamená pro testování nebo trénink. Např.: „Stranový rozdíl v CMJ nad 15 % souvisel s vyšším výskytem zranění dolních končetin.“" %}
       {% include "evidence/_field.html" with f=form.limitations cls="sm:col-span-2" %}
       {% include "evidence/_field.html" with f=form.evidence_level %}
       {% include "evidence/_field.html" with f=form.status hint="Do zpráv a k modelu jde jen zařazený článek." %}
+    </div>
+
+    <div class="mt-5 p-4 rounded-lg" style="background: var(--surface-2)">
+      <div class="text-sm font-medium">Navrhnout pomocí AI</div>
+      <p class="text-xs text-muted mb-3">Lokální model navrhne hlavní zjištění, omezení, úroveň evidence a populaci studie.
+        Vychází z nahraného PDF (celý text včetně omezení – nejlepší výsledek), jinak z uloženého PDF, jinak z abstraktu.
+        Text z PDF se zpracuje jen v aplikaci, nikam se neposílá.</p>
+      <div class="grid sm:grid-cols-2 gap-3">
+        <label class="block"><span class="text-xs text-2">PDF článku</span> <span class="text-xs text-muted">– nepovinné, nejvýš {{ max_pdf_mb }} MB</span>
+          <input type="file" name="pdf_soubor" accept=".pdf,application/pdf" class="input mt-1"></label>
+        <div class="text-sm space-y-1 sm:pt-5">
+          <label class="flex items-start gap-2"><input type="checkbox" name="ulozit_pdf" value="1" class="mt-1">
+            <span>Uložit PDF v aplikaci <span class="text-xs text-muted">(jen pro interní potřebu laboratoře – licence článků sdílení často nedovolují)</span></span></label>
+          {% if article.pdf %}
+            <div>Uložené PDF: <a class="link" href="{% url 'article_pdf' article.pk %}" target="_blank">otevřít</a>
+              <label class="inline-flex items-center gap-1 ml-3 text-xs"><input type="checkbox" name="smazat_pdf" value="1"> smazat</label></div>
+          {% endif %}
+        </div>
+      </div>
+      {% if llm_enabled %}
+        <div class="flex flex-wrap items-end gap-2 mt-3">
+          {% if model_choices|length > 1 %}
+            <label class="block"><span class="text-xs text-2">Model</span>
+              <select name="model" class="input mt-1 w-auto">
+                {% for value, label in model_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+              </select></label>
+          {% endif %}
+          <button type="submit" name="akce" value="ai" class="btn" {% if article.ai_writing %}disabled{% endif %}>Uložit a navrhnout pomocí AI</button>
+        </div>
+        <p class="text-xs text-muted mt-2">Celý článek trvá podle modelu desítky sekund až pár minut a běží na pozadí.
+          V LM Studiu je potřeba Context Length aspoň 16384.</p>
+      {% else %}
+        <p class="text-xs mt-3" style="color: var(--warn)">Jazykový model není zapnutý (LLM_ENABLED) – návrh teď nejde. PDF jde uložit i tak.</p>
+      {% endif %}
     </div>
   </section>
 

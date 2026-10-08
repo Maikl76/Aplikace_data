@@ -70,6 +70,30 @@ stejného sportu dostane takový článek k tématu přednostně.
 4. Uložte a v seznamu **Zařaďte**. Zařazený článek bez hlavního zjištění
    aplikace ohlásí – model by znal jen jeho název.
 
+### Návrh pomocí AI
+
+V kroku *Co z článku dostane jazykový model* je **Navrhnout pomocí AI**.
+Lokální model navrhne hlavní zjištění, omezení, úroveň evidence a populaci
+(sport, pohlaví, věk, úroveň, velikost vzorku).
+
+- **Z čeho:** z nahraného PDF (celý text včetně kapitoly o omezeních –
+  nejlepší výsledek), jinak z PDF uloženého u článku, jinak z abstraktu.
+  Text z PDF vytáhne aplikace sama, bez internetu; seznam literatury
+  modelu neposílá. Sken bez textové vrstvy přečíst nejde.
+- **Uložení PDF** je volitelné (zaškrtávátko) a jen pro interní potřebu –
+  licence článků sdílení často nedovolují. Uložené PDF otevře jen
+  přihlášený uživatel; s katalogem se nepřenáší.
+- **Model** jde vybrat (jako u zpráv). Celý článek má kolem 7 000 tokenů –
+  v LM Studiu Context Length aspoň 16384. Návrh se píše na pozadí, stránka
+  se po dopsání obnoví sama.
+- **Návrh platí až po uložení.** Do té doby je jen předvyplněný ve
+  formuláři a zprávy pracují s původním textem. *Zahodit návrh* vrátí
+  původní text.
+- **Kontrola čísel:** čísla v návrhu, která v textu článku nejsou (ani
+  číslicemi, ani anglicky slovy), aplikace vypíše k ověření.
+- Věk od–do model vyplní jen tehdy, když ho článek uvádí jako rozpětí;
+  u průměru ± SD ho nechá prázdný.
+
 Dohledání potřebuje internet. Na offline serveru se údaje vyplní ručně,
 nebo články přijdou s katalogem: na počítači s internetem `ulozit-katalog.bat`,
 na druhém počítači `nacist-katalog.bat` (na serveru `python manage.py

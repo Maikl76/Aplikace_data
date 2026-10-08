@@ -12,7 +12,7 @@ from apps.catalog.protocol_setup import can_edit as can_edit_catalog
 from apps.core.audit import record
 from apps.core.models import AuditLog
 
-from . import lookup
+from . import ai_draft, lookup
 from .forms import ArticleForm
 from .models import Article
 
@@ -116,11 +116,59 @@ def article_list(request):
     })
 
 
-def _form_page(request, form, article=None, found=None):
+def _form_page(request, form, article=None, found=None, filled=None):
+    from apps.reports import ai_models, llm
+
     return render(request, "evidence/article_form.html", {
-        "form": form, "article": article, "found": found,
+        "form": form, "article": article, "found": found, "filled": filled or [],
         "evidence_levels": form.fields["evidence_level"].choices,
+        "llm_enabled": llm.is_enabled(),
+        "model_choices": ai_models.choices() if llm.is_enabled() else [],
+        "max_pdf_mb": ai_draft.MAX_PDF_MB,
     })
+
+
+def _save(request, form, *, created: bool):
+    """
+    Uložení článku i s PDF. Tlačítko „Uložit a navrhnout pomocí AI“ pak
+    spustí model. Uložením formuláře se případný návrh od AI považuje za
+    zkontrolovaný (jeho text je teď v polích) a zahodí se.
+    """
+    upload = request.FILES.get("pdf_soubor")
+    if upload is not None:
+        try:
+            ai_draft.check_pdf(upload)
+        except ai_draft.DraftError as exc:
+            form.add_error(None, str(exc))
+            return None
+    article = form.save(commit=False)
+    if request.POST.get("akce") != "ai":
+        article.ai_draft = None
+    if request.POST.get("smazat_pdf") and article.pdf:
+        article.pdf.delete(save=False)
+    if upload is not None and request.POST.get("ulozit_pdf"):
+        article.pdf.save(upload.name, upload, save=False)
+    article.save()
+    form.save_m2m()
+    record(request, AuditLog.Action.CREATE if created else AuditLog.Action.UPDATE, article)
+
+    if request.POST.get("akce") != "ai":
+        messages.success(request, f"Článek uložen ({article.get_status_display().lower()}).")
+        return redirect("article_list")
+    from apps.reports.ai_models import is_offered
+
+    model = request.POST.get("model", "").strip()
+    try:
+        text, source = ai_draft.source_for(article, upload)
+        ai_draft.start(article, model=model if is_offered(model) else None, text=text,
+                       source=source)
+    except ai_draft.DraftError as exc:
+        messages.error(request, f"Článek uložen, ale návrh nejde připravit: {exc}")
+    else:
+        messages.info(request, "Článek uložen. Model píše návrh z "
+                               + ("abstraktu." if source == ai_draft.SOURCE_ABSTRACT
+                                  else "celého textu článku."))
+    return redirect("article_edit", article.pk)
 
 
 @login_required
@@ -130,12 +178,9 @@ def article_new(request):
         return redirect("article_list")
     organization = request.user.organization
     if request.method == "POST":
-        form = ArticleForm(request.POST, organization=organization)
-        if form.is_valid():
-            article = form.save()
-            record(request, AuditLog.Action.CREATE, article)
-            messages.success(request, f"Článek uložen ({article.get_status_display().lower()}).")
-            return redirect("article_list")
+        form = ArticleForm(request.POST, request.FILES, organization=organization)
+        if form.is_valid() and (response := _save(request, form, created=True)):
+            return response
         return _form_page(request, form)
 
     initial, found = {}, None
@@ -166,14 +211,54 @@ def article_edit(request, pk):
     if not can_edit(request.user):
         messages.error(request, "Články v knihovně upravuje správce.")
         return redirect("article_list")
-    form = ArticleForm(request.POST or None, instance=article,
-                       organization=request.user.organization)
-    if request.method == "POST" and form.is_valid():
-        form.save()
-        record(request, AuditLog.Action.UPDATE, article)
-        messages.success(request, "Článek uložen.")
-        return redirect("article_list")
-    return _form_page(request, form, article)
+    organization = request.user.organization
+    if request.method == "POST" and request.POST.get("akce") == "zahodit":
+        article.ai_draft = None
+        article.save(update_fields=["ai_draft"])
+        messages.info(request, "Návrh od AI zahozen.")
+        return redirect("article_edit", article.pk)
+    if request.method == "POST":
+        form = ArticleForm(request.POST, request.FILES, instance=article,
+                           organization=organization)
+        if form.is_valid() and (response := _save(request, form, created=False)):
+            return response
+        return _form_page(request, form, article)
+
+    ai_draft.clear_stalled(article)
+    initial, filled = {}, []
+    if article.ai_draft_ready and not article.ai_writing:
+        initial, filled = ai_draft.initial_from(article.ai_draft, article, organization)
+    form = ArticleForm(instance=article, initial=initial, organization=organization)
+    return _form_page(request, form, article, filled=filled)
+
+
+@login_required
+def article_ai_state(request, pk):
+    """Stav psaní návrhu (HTMX dotaz každých pár sekund)."""
+    from django.http import HttpResponse
+    from django.utils import timezone
+
+    article = get_object_or_404(Article, pk=pk)
+    ai_draft.clear_stalled(article)
+    if not article.ai_writing:
+        response = HttpResponse("")
+        response["HX-Refresh"] = "true"
+        return response
+    seconds = int((timezone.now() - article.ai_writing_started_at).total_seconds())
+    return HttpResponse(f"{seconds // 60} min {seconds % 60:02d} s")
+
+
+@login_required
+def article_pdf(request, pk):
+    """Uložené PDF – jen pro přihlášené, ne přes veřejnou adresu médií."""
+    from django.http import FileResponse, Http404
+
+    article = get_object_or_404(Article, pk=pk)
+    if not article.pdf:
+        raise Http404
+    name = article.pdf.name.rsplit("/", 1)[-1]
+    return FileResponse(article.pdf.open("rb"), content_type="application/pdf",
+                        filename=name)
 
 
 @login_required

@@ -69,13 +69,13 @@ class ArticleForm(forms.ModelForm):
                 self.add_error(key, "Článek s tímto údajem už v knihovně je.")
         return data
 
-    def save(self, commit=True):
+    def _save_m2m(self):
+        """Témata a sporty uloží Django, vazby na pravidla (přes RuleArticle) tady."""
         from apps.rules.models import RuleArticle
 
-        article = super().save(commit=commit)
-        if commit:
-            chosen = set(self.cleaned_data.get("rules") or [])
-            article.rule_articles.exclude(rule__in=chosen).delete()
-            for rule in chosen:
-                RuleArticle.objects.get_or_create(rule=rule, article=article)
-        return article
+        super()._save_m2m()
+        article = self.instance
+        chosen = set(self.cleaned_data.get("rules") or [])
+        article.rule_articles.exclude(rule__in=chosen).delete()
+        for rule in chosen:
+            RuleArticle.objects.get_or_create(rule=rule, article=article)
