@@ -272,12 +272,12 @@ def test_pridani_clanku_v_aplikaci(mereni, monkeypatch):  # noqa: F811
     user, session = mereni
     admin = _admin(session)
     monkeypatch.setattr(lookup, "lookup", lambda text: lookup.parse_pubmed_xml(PUBMED_XML))
-    page = admin.get("/sporty/clanky/novy/?hledat=29910432").content.decode()
+    page = admin.get("/clanky/novy/?hledat=29910432").content.decode()
     assert "Countermovement Jump" in page and "McMahon JJ" in page and "z PubMedu" in page
 
     metric = MetricDef.objects.get(code="ir_er_ratio")
     rule = Rule.objects.get(code="ir_er")
-    response = admin.post("/sporty/clanky/novy/", {
+    response = admin.post("/clanky/novy/", {
         "title": "Influence of DSI", "authors": "McMahon JJ", "year": "2017",
         "doi": "https://doi.org/10.3390/sports5040072", "pmid": "29910432",
         "status": "suggested", "key_finding": "Nízké DSI → balistický trénink.",
@@ -289,29 +289,29 @@ def test_pridani_clanku_v_aplikaci(mereni, monkeypatch):  # noqa: F811
     assert RuleArticle.objects.filter(rule=rule, article=article).exists()
 
     # Stejný článek podruhé → odkaz na existující.
-    again = admin.get("/sporty/clanky/novy/?hledat=29910432")
-    assert again.url == f"/sporty/clanky/{article.pk}/"
-    dup = admin.post("/sporty/clanky/novy/", {"title": "x", "doi": "10.3390/sports5040072",
+    again = admin.get("/clanky/novy/?hledat=29910432")
+    assert again.url == f"/clanky/{article.pk}/"
+    dup = admin.post("/clanky/novy/", {"title": "x", "doi": "10.3390/sports5040072",
                                               "status": "suggested"})
     assert "už v knihovně je" in dup.content.decode()
 
-    page = admin.get("/sporty/clanky/").content.decode()
+    page = admin.get("/clanky/").content.decode()
     assert "Influence of DSI" in page and "navrženo" in page and "Poměr IR/ER" in page
-    admin.post(f"/sporty/clanky/{article.pk}/stav/", {"stav": "approved",
+    admin.post(f"/clanky/{article.pk}/stav/", {"stav": "approved",
                                                        "next": "https://zle.example/"})
     article.refresh_from_db()
     assert article.status == Article.Status.APPROVED
 
     # Úprava: odebrat pravidlo.
-    admin.post(f"/sporty/clanky/{article.pk}/", {"title": "Influence of DSI",
+    admin.post(f"/clanky/{article.pk}/", {"title": "Influence of DSI",
                                                   "status": "approved", "doi": article.doi})
     assert not RuleArticle.objects.exists() and not article.metrics.exists()
 
     lab = Client()
     lab.force_login(user)
-    assert "Influence of DSI" in lab.get("/sporty/clanky/").content.decode()
-    assert lab.get("/sporty/clanky/novy/").url == "/sporty/clanky/"
-    lab.post(f"/sporty/clanky/{article.pk}/stav/", {"stav": "rejected"})
+    assert "Influence of DSI" in lab.get("/clanky/").content.decode()
+    assert lab.get("/clanky/novy/").url == "/clanky/"
+    lab.post(f"/clanky/{article.pk}/stav/", {"stav": "rejected"})
     article.refresh_from_db()
     assert article.status == Article.Status.APPROVED
 
@@ -372,7 +372,7 @@ def test_filtry_clanku(mereni):  # noqa: F811
     admin = _admin(session)
 
     def titles(**params):
-        page = admin.get("/sporty/clanky/", params)
+        page = admin.get("/clanky/", params)
         return {a.title for a in page.context["articles"]}
 
     assert titles() == {"Podání a síla ramene", "Fotbalistky", "Nadhazovači"}
@@ -388,9 +388,9 @@ def test_filtry_clanku(mereni):  # noqa: F811
     assert titles(chybi="zjisteni") == {"Fotbalistky", "Nadhazovači"}
     assert titles(chybi="vazba") == {"Fotbalistky", "Nadhazovači"}
     assert titles(q="rychlostí podání") == {"Podání a síla ramene"}
-    page = admin.get("/sporty/clanky/", {"razeni": "dukaz"})
+    page = admin.get("/clanky/", {"razeni": "dukaz"})
     assert [a.title for a in page.context["articles"]][0] == "Fotbalistky"
-    html = admin.get("/sporty/clanky/", {"sport": tenis.pk}).content.decode()
+    html = admin.get("/clanky/", {"sport": tenis.pk}).content.decode()
     assert "Zrušit filtry (1)" in html and "2 články" in html
     assert baseball.population_text() == "baseball, tenis"
 
@@ -441,3 +441,14 @@ def test_prenos_sportu_clanku(mereni):  # noqa: F811
     Article.objects.all().delete()
     import_catalog(data)
     assert [s.code for s in Article.objects.get().sports.all()] == ["tenis"]
+
+
+def test_clanky_v_menu_a_stare_adresy(mereni):  # noqa: F811
+    _, session = mereni
+    admin = _admin(session)
+    page = admin.get("/").content.decode()
+    assert 'href="/clanky/"' in page
+    assert admin.get("/sporty/clanky/?stav=approved").url == "/clanky/?stav=approved"
+    assert admin.get("/sporty/clanky/5/").url == "/clanky/5/"
+    assert 'href="/clanky/"' not in admin.get("/sporty/testy/").content.decode().split(
+        "<main")[-1]

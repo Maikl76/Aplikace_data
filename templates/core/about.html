@@ -328,7 +328,7 @@
         <li>Model dostává i <strong>kontext</strong>: cíl testování, tréninkové období a zranění uvedené v objednávce, postavení vůči normě a vývoj za víc měření.</li>
       </ul>
       <h3 id="clanky">Vědecké články</h3>
-      <p>Knihovna je v <a class="link" href="{% url 'article_list' %}">Sporty a testy → Články</a>. Do zpráv a k modelu jde jen <strong>zařazený</strong> článek, a to dvěma cestami:</p>
+      <p>Knihovna je v menu <a class="link" href="{% url 'article_list' %}">Články</a>. Do zpráv a k modelu jde jen <strong>zařazený</strong> článek, a to dvěma cestami:</p>
       <ul>
         <li><strong>Přes pravidlo</strong> – když pravidlo, ke kterému je článek připojený, u měření najde nález. Takový článek je ve zprávě v citovaných zdrojích vždy.</li>
         <li><strong>Přes téma</strong> – článek se vztahuje k ukazateli nebo testu (např. DSI, CMJ), který se u sportovce měřil. Model ho dostane jako podklad; přednost mají ukazatele se změnou nad chybou měření nebo se stranovým rozdílem, nejvýš 8 článků. Do seznamu zdrojů ve zprávě se dostane, jen když na něj souhrn nebo doporučení odkazuje číslem [n].</li>
@@ -377,7 +377,7 @@
             <tr><td class="font-medium">Protokoly</td><td>Pohodlněji v Sporty a testy → Testy. Testy a jejich ukazatele (strany, režimy, rychlosti), počet pokusů, <strong>pauza mezi pokusy</strong>, zda se po testu zaznamenává <strong>RPE</strong>, klíčové metriky (dlaždice, týmový přehled).</td></tr>
             <tr><td class="font-medium">Normy</td><td>Referenční hodnoty (průměr ± SD, percentily) podle sportu, pohlaví a věku – vždy s citací zdroje.</td></tr>
             <tr><td class="font-medium">Pravidla</td><td>Podmínka nad výsledky → nález a doporučení. Zakládají se <strong>neaktivní</strong>; zapíná je ten, kdo za práh ručí. Kontraindikace pravidlo potlačí.</td></tr>
-            <tr><td class="font-medium">Články</td><td>Pohodlněji v <a class="link" href="{% url 'article_list' %}">Sporty a testy → Články</a> (viz Zprávy a AI). Navržené čekají na schválení, do zprávy jdou jen zařazené.</td></tr>
+            <tr><td class="font-medium">Články</td><td>Pohodlněji v menu <a class="link" href="{% url 'article_list' %}">Články</a> (viz Zprávy a AI). Navržené čekají na schválení, do zprávy jdou jen zařazené.</td></tr>
             <tr><td class="font-medium">Dotazníky</td><td>Škály pro sportovce (zatím RPE). Další se dají připravit, v aplikaci se zatím nabízí jen RPE.</td></tr>
             <tr><td class="font-medium">Profily importu</td><td>Který sloupec exportu z přístroje je která metrika. Přístroje přidané průvodcem se upravují v Importu → Přístroje.</td></tr>
             <tr><td class="font-medium">Uživatelé</td><td>Účty, role, organizace (jen správce).</td></tr>

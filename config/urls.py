@@ -19,6 +19,7 @@ urlpatterns = [
     path("d/<str:token>/", measurement_views.questionnaire_fill, name="questionnaire_fill"),
     path("mereni/", include("apps.measurements.urls")),
     path("zpravy/", include("apps.reports.urls")),
+    path("clanky/", include("apps.evidence.urls")),
     path("import/", include("apps.ingest.urls")),
     path("objednavky/", include("apps.booking.urls")),
     # Veřejný objednávkový formulář pro klienty – bez přihlášení.

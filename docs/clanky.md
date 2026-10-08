@@ -1,6 +1,6 @@
 # Vědecké články ve zprávách
 
-Knihovna článků je v aplikaci v **Sporty a testy → Články** (spravuje ji
+Knihovna článků je v aplikaci v menu **Články** (spravuje ji
 správce; ostatní ji vidí jen ke čtení). Do zprávy ani k jazykovému modelu
 se nedostane nic, co člověk nezařadil.
 

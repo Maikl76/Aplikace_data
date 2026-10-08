@@ -1,10 +1,9 @@
 {% extends "base.html" %}
 {% load ui %}
 {% block content %}
-{% include "catalog/_tabs.html" with tab="clanky" %}
 <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
   <div>
-    <div class="eyebrow">Nastavení zpráv</div>
+    <div class="eyebrow">Knihovna literatury</div>
     <h1 class="text-2xl font-semibold">Články</h1>
     <p class="text-sm text-muted mt-1 max-w-3xl">Vědecké články, o které se zprávy a jazykový model smějí opřít.
       Do zpráv jde jen <strong>zařazený</strong> článek, a to dvěma cestami: přes <strong>pravidlo</strong>,
@@ -69,7 +68,7 @@
   </div>
   <div class="flex flex-wrap items-center gap-2 mt-3">
     <button type="submit" class="btn btn-sm btn-primary">{% icon "search" %}Hledat</button>
-    <button type="button" class="btn btn-sm sm:hidden" x-show="!vic" @click="vic = true">Další filtry</button>
+    <span class="sm:hidden" x-show="!vic"><button type="button" class="btn btn-sm" @click="vic = true">Další filtry</button></span>
     {% if active_filters %}<a href="?{% if f.stav %}stav={{ f.stav }}{% endif %}" class="btn btn-sm">Zrušit filtry ({{ active_filters }})</a>{% endif %}
     <span class="text-sm text-muted ml-auto">{{ page.paginator.count }} {% if page.paginator.count == 1 %}článek{% elif page.paginator.count >= 2 and page.paginator.count <= 4 %}články{% else %}článků{% endif %}</span>
   </div>

@@ -94,9 +94,9 @@ def test_navrh_z_pdf_az_po_ulozeni(mereni, model, media):  # noqa: F811
                                      key_finding="Původní zjištění.")
     admin = _admin(session)
     model.reply = "```json\n" + json.dumps(ODPOVED, ensure_ascii=False) + "\n```"
-    response = admin.post(f"/sporty/clanky/{article.pk}/", _form(
+    response = admin.post(f"/clanky/{article.pk}/", _form(
         article, akce="ai", pdf_soubor=_pdf(), ulozit_pdf="1"))
-    assert response.url == f"/sporty/clanky/{article.pk}/"
+    assert response.url == f"/clanky/{article.pk}/"
 
     sent = model.requests[-1]["body"]["messages"]
     assert "kurátor knihovny" in sent[0]["content"]
@@ -112,7 +112,7 @@ def test_navrh_z_pdf_az_po_ulozeni(mereni, model, media):  # noqa: F811
     # Zprávy zatím vidí původní text.
     assert article.key_finding == "Původní zjištění."
 
-    page = admin.get(f"/sporty/clanky/{article.pk}/")
+    page = admin.get(f"/clanky/{article.pk}/")
     html = page.content.decode()
     assert "Návrh od modelu testovaci-model" in html and "<strong>99</strong>" in html
     initial = page.context["form"].initial
@@ -121,10 +121,10 @@ def test_navrh_z_pdf_az_po_ulozeni(mereni, model, media):  # noqa: F811
     assert initial["sports"] == [tenis.pk] and initial["population_sex"] == "M"
     assert initial["population_age_min"] is None          # průměr ± SD → věk nevyplní
 
-    pdf = admin.get(f"/sporty/clanky/{article.pk}/pdf/")
+    pdf = admin.get(f"/clanky/{article.pk}/pdf/")
     assert pdf["Content-Type"] == "application/pdf"
 
-    admin.post(f"/sporty/clanky/{article.pk}/", _form(
+    admin.post(f"/clanky/{article.pk}/", _form(
         article, key_finding=initial["key_finding"] + " Ověřeno.", sports=[tenis.pk]))
     article.refresh_from_db()
     assert article.ai_draft is None and article.key_finding.endswith("Ověřeno.")
@@ -135,7 +135,7 @@ def test_navrh_z_abstraktu_a_druhy_pokus(mereni, model):  # noqa: F811
     _, session = mereni
     article = Article.objects.create(title="T", abstract="Serve velocity r = 0.67 in 12 players.")
     model.replies = ["Tady je shrnutí bez JSON.", json.dumps(ODPOVED)]
-    _admin(session).post(f"/sporty/clanky/{article.pk}/", _form(article, akce="ai"))
+    _admin(session).post(f"/clanky/{article.pk}/", _form(article, akce="ai"))
     article.refresh_from_db()
     assert article.ai_draft["zdroj"] == ai_draft.SOURCE_ABSTRACT
     assert len(model.requests) == 2 and "POUZE platným" in str(model.requests[1]["body"])
@@ -146,19 +146,19 @@ def test_bez_zdroje_a_chyba_modelu(mereni, model):  # noqa: F811
     _, session = mereni
     admin = _admin(session)
     article = Article.objects.create(title="Bez abstraktu")
-    response = admin.post(f"/sporty/clanky/{article.pk}/", _form(article, akce="ai"),
+    response = admin.post(f"/clanky/{article.pk}/", _form(article, akce="ai"),
                           follow=True)
     assert "nemá z čeho vycházet" in response.content.decode() and not model.requests
 
     article.abstract = "Some abstract."
     article.save()
     model.status = 500
-    admin.post(f"/sporty/clanky/{article.pk}/", _form(article, akce="ai"))
+    admin.post(f"/clanky/{article.pk}/", _form(article, akce="ai"))
     article.refresh_from_db()
     assert "chyba" in article.ai_draft and not article.ai_writing
-    html = admin.get(f"/sporty/clanky/{article.pk}/").content.decode()
+    html = admin.get(f"/clanky/{article.pk}/").content.decode()
     assert "Návrh od AI se nepovedl" in html
-    admin.post(f"/sporty/clanky/{article.pk}/", {"akce": "zahodit"})
+    admin.post(f"/clanky/{article.pk}/", {"akce": "zahodit"})
     article.refresh_from_db()
     assert article.ai_draft is None
 
@@ -166,19 +166,19 @@ def test_bez_zdroje_a_chyba_modelu(mereni, model):  # noqa: F811
 def test_pdf_jen_ulozit_bez_ai(mereni, media):  # noqa: F811
     _, session = mereni
     admin = _admin(session)
-    response = admin.post("/sporty/clanky/novy/", {"title": "S PDF", "status": "suggested",
+    response = admin.post("/clanky/novy/", {"title": "S PDF", "status": "suggested",
                                                    "pdf_soubor": _pdf(), "ulozit_pdf": "1"})
-    assert response.url == "/sporty/clanky/"
+    assert response.url == "/clanky/"
     article = Article.objects.get()
     assert article.pdf.name.startswith("clanky/")
-    admin.post(f"/sporty/clanky/{article.pk}/", _form(article, smazat_pdf="1"))
+    admin.post(f"/clanky/{article.pk}/", _form(article, smazat_pdf="1"))
     article.refresh_from_db()
     assert not article.pdf
     # Bez zaškrtnutí se PDF neuloží.
-    admin.post(f"/sporty/clanky/{article.pk}/", _form(article, pdf_soubor=_pdf()))
+    admin.post(f"/clanky/{article.pk}/", _form(article, pdf_soubor=_pdf()))
     article.refresh_from_db()
     assert not article.pdf
-    bad = admin.post(f"/sporty/clanky/{article.pk}/", _form(
+    bad = admin.post(f"/clanky/{article.pk}/", _form(
         article, pdf_soubor=SimpleUploadedFile("a.docx", b"x")))
     assert "jako PDF" in bad.content.decode()
 
@@ -197,14 +197,14 @@ def test_psani_na_pozadi_a_zaseknute(mereni, model, settings):  # noqa: F811
     article.refresh_from_db()
     assert article.ai_writing and calls and not model.requests
     admin = _admin(session)
-    assert "píše návrh" in admin.get(f"/sporty/clanky/{article.pk}/").content.decode()
-    assert admin.get(f"/sporty/clanky/{article.pk}/ai/").content.decode().endswith(" s")
+    assert "píše návrh" in admin.get(f"/clanky/{article.pk}/").content.decode()
+    assert admin.get(f"/clanky/{article.pk}/ai/").content.decode().endswith(" s")
     with pytest.raises(ai_draft.DraftError):
         ai_draft.start(article, model=None, text="x", source="x")
 
     Article.objects.filter(pk=article.pk).update(
         ai_writing_started_at=timezone.now() - timedelta(hours=2))
-    assert admin.get(f"/sporty/clanky/{article.pk}/ai/")["HX-Refresh"] == "true"
+    assert admin.get(f"/clanky/{article.pk}/ai/")["HX-Refresh"] == "true"
     article.refresh_from_db()
     assert "nedokončilo" in article.ai_draft["chyba"]
 
@@ -227,7 +227,7 @@ def test_bez_modelu_jde_pdf_ulozit(mereni, settings):  # noqa: F811
     _, session = mereni
     settings.LLM_ENABLED = False
     article = Article.objects.create(title="T", abstract="A.")
-    html = _admin(session).get(f"/sporty/clanky/{article.pk}/").content.decode()
+    html = _admin(session).get(f"/clanky/{article.pk}/").content.decode()
     assert "Jazykový model není zapnutý" in html and 'name="pdf_soubor"' in html
     with pytest.raises(ai_draft.DraftError):
         ai_draft.start(article, model=None, text="x", source="x")
@@ -249,11 +249,11 @@ def test_dlouhe_jmeno_pdf(mereni, model, media):  # noqa: F811
     name = ("Brito_et_al_tVCivYq._-_2024_-_The_Influence_of_Kinematics_on_Tennis_Serve_Speed_"
             "An_In-Depth_Analysis_Using_Xsens_MVN_Biomech_Link_Technology.pdf")
     model.reply = json.dumps(ODPOVED)
-    response = _admin(session).post("/sporty/clanky/novy/", {
+    response = _admin(session).post("/clanky/novy/", {
         "title": "Kinematics and serve speed", "status": "suggested", "akce": "ai",
         "pdf_soubor": _pdf(name=name), "ulozit_pdf": "1"})
     article = Article.objects.get()
-    assert response.url == f"/sporty/clanky/{article.pk}/"
+    assert response.url == f"/clanky/{article.pk}/"
     assert article.pdf.name.startswith("clanky/brito_et_al_tvcivyq_-_2024_-_the_influence")
     assert len(article.pdf.name) < 100 and article.ai_draft["zdroj"] == ai_draft.SOURCE_PDF
 
@@ -274,7 +274,7 @@ def test_dlouhy_clanek_a_kontext(mereni, model):  # noqa: F811
     model.status = 200
     model.reply = json.dumps(ODPOVED)
     admin = _admin(session)
-    admin.post(f"/sporty/clanky/{article.pk}/", _form(
+    admin.post(f"/clanky/{article.pk}/", _form(
         article, akce="ai", pdf_soubor=_pdf(), jen_abstrakt="1"))
     article.refresh_from_db()
     assert article.ai_draft["zdroj"] == ai_draft.SOURCE_ABSTRACT

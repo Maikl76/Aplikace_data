@@ -105,7 +105,7 @@ Model se neučí sám od sebe. Lépe píše díky tomu, co dostane:
    Tak se před přechodem na větší model (např. na serveru) ověří, že píše
    lépe – i česky.
 
-6. **Vědecké články** – *Sporty a testy → Články*. Model dostane u citovaných
+6. **Vědecké články** – v menu *Články*. Model dostane u citovaných
    článků hlavní zjištění pro praxi, omezení, úroveň evidence a populaci
    studie (ne abstrakt) a smí se o ně opřít jen s odkazem [n]. Články jdou
    ke zprávě přes pravidlo (nález) nebo přes téma (měřený ukazatel či test).

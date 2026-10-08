@@ -1,21 +1,17 @@
 from django.urls import path
-
-from apps.evidence import views as article_views
+from django.views.generic import RedirectView
 
 from . import battery_views as views
 from . import protocol_views
 
 urlpatterns = [
+    # Články byly dřív pod Sporty a testy – staré odkazy a záložky dál fungují.
+    path("clanky/", RedirectView.as_view(url="/clanky/", query_string=True)),
+    path("clanky/<path:rest>", RedirectView.as_view(url="/clanky/%(rest)s", query_string=True)),
     path("", views.sport_list, name="sport_list"),
     path("testy/", protocol_views.test_list, name="test_list"),
     path("testy/novy/", protocol_views.test_new, name="test_new"),
     path("testy/<int:pk>/", protocol_views.test_edit, name="test_edit"),
-    path("clanky/", article_views.article_list, name="article_list"),
-    path("clanky/novy/", article_views.article_new, name="article_new"),
-    path("clanky/<int:pk>/", article_views.article_edit, name="article_edit"),
-    path("clanky/<int:pk>/stav/", article_views.article_status, name="article_status"),
-    path("clanky/<int:pk>/ai/", article_views.article_ai_state, name="article_ai_state"),
-    path("clanky/<int:pk>/pdf/", article_views.article_pdf, name="article_pdf"),
     path("<int:sport_pk>/baterie/", views.battery_add, name="battery_add"),
     path("baterie/<int:pk>/smazat/", views.battery_delete, name="battery_delete"),
     path("baterie/<int:pk>/pridat/", views.battery_item_add, name="battery_item_add"),
