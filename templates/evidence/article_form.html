@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+<div class="mb-5">
+  <a href="{% url 'article_list' %}" class="text-sm link">← Články</a>
+  <h1 class="text-2xl font-semibold mt-1">{% if article %}Článek{% else %}Přidat článek{% endif %}</h1>
+  {% if article %}<p class="text-sm text-muted mt-1 max-w-3xl">{{ article.title }}</p>{% endif %}
+</div>
+
+{% if not article %}
+  <form method="get" class="card p-5 mb-5 max-w-4xl">
+    <div class="flex items-start gap-3 mb-3">
+      <span class="krok-cislo">1</span>
+      <div><h2 class="card-title">Najít podle DOI nebo PMID</h2>
+        <p class="text-sm text-muted">Název, autory, časopis, rok a abstrakt doplní aplikace z PubMedu (případně z Crossrefu).
+          Potřebuje k tomu internet – bez něj vyplňte údaje níže ručně.</p></div>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <input name="hledat" value="{{ request.GET.hledat }}" class="input flex-1 min-w-[16rem]" placeholder="např. 10.3390/sports5040072, 29910432 nebo odkaz na PubMed" autofocus>
+      <button type="submit" class="btn btn-primary">{% icon "search" %}Doplnit údaje</button>
+    </div>
+    {% if found %}<p class="text-sm mt-2" style="color: var(--good)">Nalezeno v {{ found.source }}u{% if found.evidence_level %} – podle typu publikace navržena úroveň evidence{% endif %}. Zkontrolujte údaje a doplňte krok 3.</p>{% endif %}
+  </form>
+{% endif %}
+
+<form method="post" class="space-y-5 max-w-4xl pb-6">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="card p-3 text-sm" style="color: var(--bad)">{{ form.non_field_errors }}</div>{% endif %}
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">{% if article %}1{% else %}2{% endif %}</span>
+      <div><h2 class="card-title">Údaje článku</h2>
+        <p class="text-sm text-muted">Ve zprávě se vypíšou v seznamu citovaných zdrojů.</p></div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+      {% include "evidence/_field.html" with f=form.title cls="sm:col-span-2" %}
+      {% include "evidence/_field.html" with f=form.authors cls="sm:col-span-2" hint="Např. McMahon JJ, Jones PA, Comfort P" %}
+      {% include "evidence/_field.html" with f=form.journal %}
+      {% include "evidence/_field.html" with f=form.year %}
+      {% include "evidence/_field.html" with f=form.doi %}
+      {% include "evidence/_field.html" with f=form.pmid %}
+      {% include "evidence/_field.html" with f=form.url cls="sm:col-span-2" %}
+      <details class="sm:col-span-2">
+        <summary class="cursor-pointer text-sm font-medium">Abstrakt <span class="text-xs text-muted">– pro kurátora, model ho nedostává</span></summary>
+        <div class="mt-2">{{ form.abstract }}</div>
+      </details>
+    </div>
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">{% if article %}2{% else %}3{% endif %}</span>
+      <div><h2 class="card-title">Co z článku dostane jazykový model</h2>
+        <p class="text-sm text-muted">Model nečte celý článek ani abstrakt – dostane jen tohle. Pište proto
+          krátce a prakticky; čísla, která tu uvedete, smí model ve zprávě použít.</p></div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+      {% include "evidence/_field.html" with f=form.key_finding cls="sm:col-span-2" hint="1–3 věty: co studie zjistila a co to znamená pro testování nebo trénink. Např.: „Stranový rozdíl v CMJ nad 15 % souvisel s vyšším výskytem zranění dolních končetin.“" %}
+      {% include "evidence/_field.html" with f=form.limitations cls="sm:col-span-2" %}
+      {% include "evidence/_field.html" with f=form.evidence_level %}
+      {% include "evidence/_field.html" with f=form.status hint="Do zpráv a k modelu jde jen zařazený článek." %}
+    </div>
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">{% if article %}3{% else %}4{% endif %}</span>
+      <div><h2 class="card-title">Na kom se studie dělala</h2>
+        <p class="text-sm text-muted">Když populace nesedí na sportovce (pohlaví, věk v den testování), zpráva na to upozorní
+          a model to musí říct.</p></div>
+    </div>
+    <div class="grid sm:grid-cols-3 gap-4">
+      {% include "evidence/_field.html" with f=form.population_sport %}
+      {% include "evidence/_field.html" with f=form.population_sex %}
+      {% include "evidence/_field.html" with f=form.population_level %}
+      {% include "evidence/_field.html" with f=form.population_age_min %}
+      {% include "evidence/_field.html" with f=form.population_age_max %}
+      {% include "evidence/_field.html" with f=form.sample_size %}
+    </div>
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">{% if article %}4{% else %}5{% endif %}</span>
+      <div><h2 class="card-title">Kdy se článek použije</h2>
+        <p class="text-sm text-muted"><strong>Témata</strong>: model článek dostane u každého sportovce, kterému se vybraný
+          ukazatel nebo test měřil (přednost mají ukazatele, které se skutečně změnily nebo mají stranový rozdíl).
+          <strong>Pravidla</strong>: když pravidlo najde nález, článek se ve zprávě cituje vždy.</p></div>
+    </div>
+    <div class="space-y-4">
+      {% include "evidence/_checks.html" with f=form.metrics %}
+      {% include "evidence/_checks.html" with f=form.protocols %}
+      {% include "evidence/_checks.html" with f=form.rules hint="Pravidla se zapínají v administraci; vypnuté pravidlo nález nenajde." %}
+    </div>
+  </section>
+
+  <section class="card p-5">
+    {% include "evidence/_field.html" with f=form.curator_note %}
+  </section>
+
+  <div class="flex gap-2">
+    <button type="submit" class="btn btn-primary">{% icon "check" %}Uložit článek</button>
+    <a href="{% url 'article_list' %}" class="btn">Zrušit</a>
+  </div>
+</form>
+{% endblock %}

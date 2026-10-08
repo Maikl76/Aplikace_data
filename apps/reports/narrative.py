@@ -99,6 +99,8 @@ def compose(session, findings, citations, facts: dict | None = None) -> str:
     if recommendations(active):
         parts.append("Doporučení jsou uvedena v samostatné části zprávy.")
 
+    # Články k tématům jsou podklad pro model; šablona cituje jen ty k nálezům.
+    citations = [c for c in citations if c.get("kind", "pravidlo") == "pravidlo"]
     if citations:
         pocet = len(citations)
         parts.append(
@@ -301,26 +303,8 @@ def compose_report(session, findings, citations, *, audience=None, model=None) -
 # Návrh doporučení pro diagnostika
 # ---------------------------------------------------------------------------
 
-RECOMMENDATION_PROMPT = """Jsi odborný asistent laboratoře funkční diagnostiky \
-na fakultě tělesné výchovy a sportu. Připravuješ NÁVRH doporučení, který \
-diagnostik před vydáním zprávy zkontroluje a upraví.
-
-Dostaneš fakta ve formátu JSON: výsledky, změny proti minulému měření, \
-stranové rozdíly, nálezy a doporučení z pravidel laboratoře.
-
-Pravidla:
-1. Doporučení z pole doporuceni_z_pravidel převezmi a můžeš je rozvést; \
-nic v nich neměň ve smyslu ani neoslabuj.
-2. Další doporučení navrhuj jen tam, kde k tomu fakta dávají důvod \
-(nález, skutečná změna, stranový rozdíl nad prahem). U každého uveď, na který \
-výsledek reaguje.
-3. Změnu „v pásmu chyby měření“ nevykládej jako zlepšení ani zhoršení.
-4. Nestanovuj diagnózy a nedoporučuj léčbu. Kde by šlo o zdravotní otázku, \
-doporuč konzultaci s lékařem nebo fyzioterapeutem.
-5. Neuváděj studie ani zdroje kromě těch v poli „citace“.
-6. Konkrétní dávkování (počty týdnů, sérií, opakování) navrhuj jen \
-střídmě; diagnostik ho bude ověřovat.
-7. Piš česky, věcně, v odrážkách „•“, nejvýš 8 odrážek. Bez úvodu a závěru."""
+# Pokyny jsou v prompts: pevná pravidla + upravitelné „co a jak navrhovat“
+# (AI zprávy → Pokyny pro model).
 
 
 @dataclass
@@ -339,20 +323,13 @@ def draft_recommendations(report) -> RecommendationDraft:
     Čísla se tu neodmítají – dávkování (3× týdně, 6 týdnů) v datech být
     nemůže. Místo toho se vypíšou, aby je diagnostik ověřil.
     """
-    from apps.rules import evidence
-
-    from . import facts as facts_module
-    from . import llm
-    from .prompts import RECOMMENDATION_READER
+    from . import llm, prompts
 
     session = report.session
-    findings = list(session.findings.select_related("rule")) if session else []
-    citations = evidence.articles_for(findings)
-    facts = facts_module.build(session, findings, citations, audience=report.audience)
-
+    findings, facts = report_facts(report)
     reply = llm.chat([
         {"role": "system", "content":
-            RECOMMENDATION_PROMPT + "\n\n" + RECOMMENDATION_READER[report.audience]},
+            prompts.recommendation_prompt(session.organization, report.audience)},
         {"role": "user", "content":
             "Fakta z testování:\n\n" + json.dumps(facts, ensure_ascii=False, indent=2)},
     ])
@@ -364,14 +341,20 @@ def draft_recommendations(report) -> RecommendationDraft:
 
 def unsupported_numbers(report, text: str) -> list[str]:
     """Čísla v textu, která nejsou ve výsledcích – pro upozornění, ne zákaz."""
+    if report.session is None:
+        return []
+    findings, facts = report_facts(report)
+    return verify_numbers(text, findings, facts)
+
+
+def report_facts(report):
+    """Nálezy a fakta zprávy – s články v pořadí, jaké dostal model u konceptu."""
     from apps.rules import evidence
 
     from . import facts as facts_module
 
     session = report.session
-    if session is None:
-        return []
     findings = list(session.findings.select_related("rule"))
-    facts = facts_module.build(session, findings, evidence.articles_for(findings),
-                               audience=report.audience)
-    return verify_numbers(text, findings, facts)
+    citations = evidence.report_citations(session, findings, frozen=report.literature)
+    return findings, facts_module.build(session, findings, citations,
+                                        audience=report.audience)

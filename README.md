@@ -66,6 +66,7 @@ Postup pro práci na víc počítačích je v [docs/vice-pocitacu.md](docs/vice-
 import z VALD v [docs/import-vald.md](docs/import-vald.md),
 nový přístroj (DEXA, InBody…) bez programování v [docs/novy-pristroj.md](docs/novy-pristroj.md),
 DSI, ODS a kontrola pokusů v [docs/diagnostika.md](docs/diagnostika.md),
+vědecké články ve zprávách a dohledání podle DOI/PMID v [docs/clanky.md](docs/clanky.md),
 baterie testů, Dnešní testování a týmový přehled v [docs/baterie.md](docs/baterie.md),
 stopky, RPE, QR karty a tablet v síti v [docs/terenni-testovani.md](docs/terenni-testovani.md),
 objednávky od klientů v [docs/objednavky.md](docs/objednavky.md),

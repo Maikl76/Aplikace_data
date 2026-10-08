@@ -51,12 +51,29 @@ def build(session, findings, citations, *, audience=None) -> dict:
         "cmj_ods": _ods(session),
         "podminky": _conditions(session),
         "rpe": _rpe(session),
-        "citace": [
-            {"cislo": i, "zdroj": str(c["article"]),
-             "populace_odpovida": c["population_matches"]}
-            for i, c in enumerate(citations, start=1)
-        ],
+        "citace": [_citation(c, i) for i, c in enumerate(citations, start=1)],
     }
+
+
+def _citation(item: dict, index: int) -> dict:
+    """
+    Článek pro model: co zjistil a s jakými omezeními – shrnutí, které
+    ověřil člověk, ne celý abstrakt. Jen vyplněná pole.
+    """
+    article = item["article"]
+    out = {"cislo": item.get("number", index), "zdroj": str(article)}
+    if reason := item.get("reason"):
+        out["proc_je_tu"] = reason
+    if article.evidence_level:
+        out["uroven_dukazu"] = article.get_evidence_level_display().lower()
+    if finding := (article.key_finding or article.curator_note).strip():
+        out["hlavni_zjisteni"] = finding
+    if article.limitations.strip():
+        out["omezeni"] = article.limitations.strip()
+    if population := article.population_text():
+        out["populace_studie"] = population
+    out["populace_odpovida"] = item["population_matches"]
+    return out
 
 
 def _context(session) -> dict:

@@ -248,26 +248,33 @@ def ai_settings(request):
 
     if request.method == "POST" and request.POST.get("akce") == "pokyny":
         audience = request.POST.get("audience")
-        if audience in Audience.values and organization is not None:
+        kind = request.POST.get("kind") or ReportStyle.Kind.SUMMARY
+        if (audience in Audience.values and kind in ReportStyle.Kind.values
+                and organization is not None):
             text = request.POST.get("instructions", "").replace("\r\n", "\n").strip()
+            what = ("Pokyny pro návrh doporučení" if kind == ReportStyle.Kind.RECOMMENDATION
+                    else "Pokyny pro souhrn")
             if request.POST.get("vychozi") or not text:
-                ReportStyle.objects.filter(organization=organization, audience=audience).delete()
-                messages.info(request, "Pokyny vráceny na výchozí.")
+                ReportStyle.objects.filter(organization=organization, audience=audience,
+                                           kind=kind).delete()
+                messages.info(request, f"{what} vráceny na výchozí.")
             else:
                 ReportStyle.objects.update_or_create(
-                    organization=organization, audience=audience,
+                    organization=organization, audience=audience, kind=kind,
                     defaults={"instructions": text, "updated_by": request.user})
-                messages.success(request, f"Pokyny pro variantu „{Audience(audience).label}“ "
+                messages.success(request, f"{what} – varianta „{Audience(audience).label}“ "
                                           f"uloženy. Platí pro další zprávy.")
-        return redirect(f"{request.path}?tab=pokyny#{audience}")
+        return redirect(f"{request.path}?tab=pokyny#{audience}-{kind}")
 
     styles = []
-    custom = {s.audience: s for s in ReportStyle.objects.filter(organization=organization)}
+    custom = {(s.audience, s.kind): s
+              for s in ReportStyle.objects.filter(organization=organization)}
     for value, label in Audience.choices:
-        styles.append({"value": value, "label": label,
-                       "text": prompts.style_for(organization, value),
-                       "custom": custom.get(value),
-                       "default": prompts.DEFAULT_STYLES[value]})
+        styles.append({"value": value, "label": label, "parts": [
+            {"kind": kind, "label": kind_label,
+             "text": prompts.style_for(organization, value, kind),
+             "custom": custom.get((value, kind))}
+            for kind, kind_label in ReportStyle.Kind.choices]})
 
     from apps.subjects.search import label as name_label
 
@@ -304,6 +311,7 @@ def ai_settings(request):
         "model_choices": ai_models.choices(),
         "ratings_short": [("dobry", "Dobrý"), ("pouzitelny", "Použitelný"),
                           ("prepsano", "Nepoužitelný")], "fixed_rules": prompts.FIXED_RULES,
+        "recommendation_rules": prompts.RECOMMENDATION_RULES,
         "stats": services.quality_stats(organization), "test_set": test_set,
         "examples": (Report.objects.for_user(request.user).filter(is_example=True)
                      .select_related("subject").order_by("-released_at")[:30]),

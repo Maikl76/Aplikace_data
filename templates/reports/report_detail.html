@@ -137,8 +137,9 @@
         <h2 class="card-title mb-2">Citované zdroje ({{ citations|length }})</h2>
         <ol class="text-sm list-decimal pl-5 space-y-1">
           {% for c in citations %}
-            <li>
+            <li value="{{ c.number }}">
               {{ c.article }}
+              {% if c.kind == "tema" %}<span class="badge">k tématu</span>{% endif %}
               {% if not c.population_matches %}
                 <span class="badge badge-warn">odlišná populace</span>
               {% endif %}

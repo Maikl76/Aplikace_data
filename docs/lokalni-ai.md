@@ -76,10 +76,17 @@ Model se neučí sám od sebe. Lépe píše díky tomu, co dostane:
    uvedené v objednávce, slovní postavení vůči normě a vývoj klíčových
    metrik za víc měření (pole `kontext` a `vyvoj` ve faktech).
 2. **Pokyny pro model** – *Zprávy → AI zprávy → Pokyny pro model*. Každá
-   varianta má vlastní pokyny (tón, struktura, délka), které správce upraví
-   bez programování. **Pevná pravidla** (jen čísla z dat, žádné diagnózy,
-   žádné zdroje navíc) jsou v kódu a měnit nejdou. Pokyny se přenášejí
-   s katalogem (`ulozit-katalog.bat`).
+   varianta má dvoje pokyny, které správce upraví bez programování: pro
+   **souhrn** (tón, struktura, délka) a pro **návrh doporučení** (co a jak
+   odvážně navrhovat, kolik bodů, dávkování). **Pevná pravidla** (jen čísla
+   z dat, žádné diagnózy, žádné zdroje kromě zařazených článků, u každého
+   doporučení z čeho vychází) jsou v kódu a měnit nejdou. Pokyny se
+   přenášejí s katalogem (`ulozit-katalog.bat`).
+   *Návrh doporučení je jen jedna věta?* Model navrhuje tam, kde k tomu fakta
+   dávají důvod. Když nejsou zapnutá pravidla, chybí MDC (změnu nejde
+   posoudit) a normy, důvodů je málo. Doplňte MDC a normy, zapněte pravidla,
+   zařaďte články k měřeným ukazatelům – nebo v pokynech modelu řekněte, ať
+   je odvážnější (např. „Navrhni 5–8 bodů…“).
 3. **Vzorové zprávy** – u dobré vydané zprávy správce klikne *Použít jako
    vzorovou zprávu*. Model u podobné zprávy (stejná varianta, nejlépe stejný
    sport a testy) dostane 1–2 vzorové souhrny jako ukázku stylu. Čísla ze
@@ -97,6 +104,12 @@ Model se neučí sám od sebe. Lépe píše díky tomu, co dostane:
 
    Tak se před přechodem na větší model (např. na serveru) ověří, že píše
    lépe – i česky.
+
+6. **Vědecké články** – *Sporty a testy → Články*. Model dostane u citovaných
+   článků hlavní zjištění pro praxi, omezení, úroveň evidence a populaci
+   studie (ne abstrakt) a smí se o ně opřít jen s odkazem [n]. Články jdou
+   ke zprávě přes pravidlo (nález) nebo přes téma (měřený ukazatel či test).
+   Podrobně v [clanky.md](clanky.md).
 
 **Doučení modelu (fine-tuning)** přijde na řadu až se stovkami vydaných
 zpráv. Data se sbírají už teď: u každé zprávy je uložen text od modelu
@@ -315,7 +328,8 @@ výsledcích měření (neblokuje – rozhodujete vy). Původní text od modelu
 zůstává schovaný a ve zprávě je uvedeno, že ho diagnostik upravil.
 
 **Návrh doporučení (AI).** Tlačítko pod komentářem nechá model navrhnout
-doporučení z výsledků, nálezů a pravidel. Návrh se připojí na konec
+doporučení z výsledků, nálezů, pravidel, kontextu testování a zařazených
+článků (podle pokynů pro návrh doporučení). Návrh se připojí na konec
 komentáře a **zprávu nelze vydat, dokud ho neprojdete a neuložíte**.
 Čísla, která model doplnil sám (typicky dávkování), aplikace vypíše
 k ověření.

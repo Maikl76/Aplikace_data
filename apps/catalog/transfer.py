@@ -121,7 +121,12 @@ def export_catalog() -> dict:
             .order_by("metric__code", "sex", "age_min", "speed", "pk")
         ],
         "clanky": [
-            _plain(a) for a in Article.objects.order_by("year", "title")
+            {**_plain(a),
+             # Témata: ukazatele a testy podle kódu (čísla řádků se mezi databázemi liší).
+             "metriky": sorted({m.code for m in a.metrics.all()}),
+             "testy": sorted({p.code for p in a.protocols.all()})}
+            for a in Article.objects.order_by("year", "title")
+            .prefetch_related("metrics", "protocols")
         ],
         "pravidla": [
             {
@@ -139,9 +144,10 @@ def export_catalog() -> dict:
 def _report_styles() -> list[dict]:
     from apps.reports.models import ReportStyle
 
-    return [{"organizace": _org(st), "audience": st.audience, "instructions": st.instructions}
+    return [{"organizace": _org(st), "audience": st.audience, "kind": st.kind,
+             "instructions": st.instructions}
             for st in ReportStyle.objects.select_related("organization")
-            .order_by("organization__short_name", "audience")]
+            .order_by("organization__short_name", "audience", "kind")]
 
 
 class ImportError_(Exception):
@@ -267,8 +273,9 @@ def import_catalog(data: dict, *, default_org: Organization | None = None) -> di
     for item in data.get("styly_zprav", []):
         org = imp.org(item["organizace"])
         if org is not None:
-            imp.upsert("styly zpráv", ReportStyle, {"organization": org,
-                                                    "audience": item["audience"]},
+            imp.upsert("styly zpráv", ReportStyle,
+                       {"organization": org, "audience": item["audience"],
+                        "kind": item.get("kind") or ReportStyle.Kind.SUMMARY},
                        {"instructions": item["instructions"]})
 
     for item in data.get("dotazniky", []):
@@ -297,7 +304,12 @@ def import_catalog(data: dict, *, default_org: Organization | None = None) -> di
     for item in data["clanky"]:
         key = _article_key(Article(**{k: item.get(k) for k in ("doi", "pmid", "title",
                                                                   "year")}))
-        imp.upsert("články", Article, key, _data_fields(item, *key))
+        article = imp.upsert("články", Article, key,
+                             _data_fields(item, *key, "metriky", "testy"))
+        if "metriky" in item:
+            article.metrics.set(MetricDef.objects.filter(code__in=item["metriky"]))
+        if "testy" in item:
+            article.protocols.set(Protocol.objects.filter(code__in=item["testy"]))
 
     for item in data["pravidla"]:
         org = imp.org(item["organizace"])

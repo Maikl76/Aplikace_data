@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+{% include "catalog/_tabs.html" with tab="clanky" %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+  <div>
+    <div class="eyebrow">Nastavení zpráv</div>
+    <h1 class="text-2xl font-semibold">Články</h1>
+    <p class="text-sm text-muted mt-1 max-w-3xl">Vědecké články, o které se zprávy a jazykový model smějí opřít.
+      Do zpráv jde jen <strong>zařazený</strong> článek, a to dvěma cestami: přes <strong>pravidlo</strong>,
+      které u měření našlo nález (cituje se vždy), a přes <strong>téma</strong> – ukazatel nebo test, který se
+      u sportovce měřil (model ho dostane jako podklad a cituje, když se o něj opře).
+      Model z článku dostane jen <em>hlavní zjištění</em>, <em>omezení</em> a populaci studie.</p>
+  </div>
+  {% if can_edit %}<a href="{% url 'article_new' %}" class="btn btn-primary">{% icon "plus" %}Přidat článek</a>{% endif %}
+</div>
+
+<form method="get" class="flex flex-wrap items-center gap-2 mb-4">
+  <a href="?" class="btn btn-sm {% if not status %}btn-primary{% endif %}">Vše</a>
+  {% for value, label, count in statuses %}
+    <a href="?stav={{ value }}" class="btn btn-sm {% if status == value %}btn-primary{% endif %}">{{ label }} <span class="text-muted">{{ count }}</span></a>
+  {% endfor %}
+  <input type="hidden" name="stav" value="{{ status }}">
+  <input name="q" value="{{ q }}" class="input w-full sm:w-64 sm:ml-auto" placeholder="Hledat název, autora, DOI…">
+</form>
+
+<div class="space-y-3">
+  {% for a in articles %}
+    <article class="card p-4">
+      <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+        <div class="min-w-0 flex-1">
+          <div class="font-medium">{{ a.title }}</div>
+          <div class="text-sm text-2">{{ a.authors|truncatechars:120 }}{% if a.year %} ({{ a.year }}){% endif %}{% if a.journal %} · <em>{{ a.journal }}</em>{% endif %}
+            {% if a.doi %} · <a class="link" href="https://doi.org/{{ a.doi }}" target="_blank" rel="noopener">DOI</a>{% endif %}
+            {% if a.pmid %} · <a class="link" href="https://pubmed.ncbi.nlm.nih.gov/{{ a.pmid }}/" target="_blank" rel="noopener">PubMed</a>{% endif %}</div>
+          <div class="flex flex-wrap gap-1 mt-2">
+            {% if a.status == "approved" %}<span class="badge badge-good">zařazeno</span>{% elif a.status == "rejected" %}<span class="badge">zamítnuto</span>{% else %}<span class="badge badge-warn">navrženo</span>{% endif %}
+            {% if a.evidence_level %}<span class="badge">{{ a.get_evidence_level_display }}</span>{% endif %}
+            {% for m in a.metrics.all %}<span class="badge badge-accent" title="téma – ukazatel">{{ m.name }}</span>{% endfor %}
+            {% for p in a.protocols.all %}<span class="badge badge-accent" title="téma – test">{{ p.name }}</span>{% endfor %}
+            {% if a.pocet_pravidel %}<span class="badge" title="připojeno k pravidlům">pravidla: {{ a.pocet_pravidel }}</span>{% endif %}
+            {% if a.population_text %}<span class="badge" title="populace studie">{{ a.population_text }}</span>{% endif %}
+          </div>
+          {% if a.key_finding or a.curator_note %}
+            <p class="text-sm mt-2"><span class="text-muted">Hlavní zjištění:</span> {{ a.key_finding|default:a.curator_note }}</p>
+          {% elif a.status == "approved" %}
+            <p class="text-sm mt-2" style="color: var(--warn)">Chybí hlavní zjištění – model ví jen název článku.</p>
+          {% endif %}
+          {% if not a.metrics.all and not a.protocols.all and not a.pocet_pravidel and a.status == "approved" %}
+            <p class="text-xs text-muted mt-1">Není připojený k pravidlu ani k ukazateli či testu – do zpráv se nedostane.</p>
+          {% endif %}
+        </div>
+        {% if can_edit %}
+          <div class="flex flex-wrap gap-2 sm:shrink-0">
+            {% if a.status != "approved" %}
+              <form method="post" action="{% url 'article_status' a.pk %}">{% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button name="stav" value="approved" class="btn btn-sm btn-primary">{% icon "check" %}Zařadit</button></form>
+            {% endif %}
+            {% if a.status == "suggested" %}
+              <form method="post" action="{% url 'article_status' a.pk %}">{% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button name="stav" value="rejected" class="btn btn-sm">Zamítnout</button></form>
+            {% endif %}
+            <a class="btn btn-sm" href="{% url 'article_edit' a.pk %}">{% icon "edit" %}upravit</a>
+          </div>
+        {% endif %}
+      </div>
+    </article>
+  {% empty %}
+    <div class="card p-6 text-sm text-muted">Žádné články.{% if can_edit %} Přidejte první tlačítkem <em>Přidat článek</em> –
+      stačí vložit DOI nebo PMID.{% endif %}</div>
+  {% endfor %}
+</div>
+{% endblock %}

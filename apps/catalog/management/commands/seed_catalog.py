@@ -125,8 +125,13 @@ class Command(BaseCommand):
 
         articles = {}
         for spec in SEED_ARTICLES:
-            articles[spec["doi"]], _ = Article.objects.get_or_create(
-                doi=spec["doi"], defaults={k: v for k, v in spec.items() if k != "doi"})
+            article, created = Article.objects.get_or_create(
+                doi=spec["doi"], defaults={k: v for k, v in spec.items()
+                                           if k not in ("doi", "metriky")})
+            if created or not article.metrics.exists():
+                article.metrics.add(*MetricDef.objects.filter(code__in=spec.get("metriky", []),
+                                                              organization=None))
+            articles[spec["doi"]] = article
 
         # Pravidla k DSI mají literaturu, ale prahy jsou orientační –
         # zakládají se neaktivní stejně jako ostatní příklady.

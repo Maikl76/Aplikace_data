@@ -3,4 +3,6 @@
      style="border-color: {% if tab == 'sporty' %}var(--accent){% else %}transparent{% endif %}">Sporty a baterie</a>
   <a href="{% url 'test_list' %}" class="px-3 py-2 -mb-px border-b-2 {% if tab == 'testy' %}font-semibold{% else %}text-muted{% endif %}"
      style="border-color: {% if tab == 'testy' %}var(--accent){% else %}transparent{% endif %}">Testy</a>
+  <a href="{% url 'article_list' %}" class="px-3 py-2 -mb-px border-b-2 {% if tab == 'clanky' %}font-semibold{% else %}text-muted{% endif %}"
+     style="border-color: {% if tab == 'clanky' %}var(--accent){% else %}transparent{% endif %}">Články</a>
 </nav>

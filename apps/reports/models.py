@@ -75,6 +75,10 @@ class Report(OrgScopedModel):
                                        help_text="Proč se model nepoužil, pokud se "
                                                  "nepoužil – např. odmítnutý text.")
     input_fingerprint = models.CharField("otisk vstupů", max_length=64, blank=True)
+    # Články, které model u zprávy dostal, v pořadí jejich čísel [1], [2]…
+    # Zafixují se při vzniku konceptu, aby čísla v souhrnu i v návrhu
+    # doporučení ukazovala na tytéž články, i když se knihovna mezitím změní.
+    literature = models.JSONField("literatura ke zprávě", null=True, blank=True)
 
     # Úpravy člověkem. Text od modelu je návrh: diagnostik ho smí opravit
     # a za vydaný text odpovídá on. Původní verze se schovává kvůli
@@ -210,7 +214,13 @@ class ReportStyle(OrgScopedModel):
     diagnózy) jsou v kódu a měnit nejdou.
     """
 
+    class Kind(models.TextChoices):
+        SUMMARY = "souhrn", "Souhrn zprávy"
+        RECOMMENDATION = "doporuceni", "Návrh doporučení"
+
     audience = models.CharField("pro koho", max_length=10, choices=Audience.choices)
+    kind = models.CharField("k čemu", max_length=12, choices=Kind.choices,
+                            default=Kind.SUMMARY)
     instructions = models.TextField("pokyny pro model")
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="upravil",
                                    on_delete=models.SET_NULL, null=True, blank=True,
@@ -220,12 +230,12 @@ class ReportStyle(OrgScopedModel):
         verbose_name = "styl zprávy"
         verbose_name_plural = "styly zpráv"
         constraints = [
-            models.UniqueConstraint(fields=["organization", "audience"],
-                                    name="uniq_report_style"),
+            models.UniqueConstraint(fields=["organization", "audience", "kind"],
+                                    name="uniq_report_style_kind"),
         ]
 
     def __str__(self):
-        return self.get_audience_display()
+        return f"{self.get_audience_display()} – {self.get_kind_display().lower()}"
 
 
 class ModelTrial(TimeStampedModel):

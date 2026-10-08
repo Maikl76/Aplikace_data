@@ -1,0 +1,6 @@
+<label class="block {{ cls }}">
+  <span class="text-sm font-medium">{{ f.label|capfirst }}</span>{% if not f.field.required %} <span class="text-xs text-muted">– nepovinné</span>{% endif %}
+  {{ f }}
+  {% if hint %}<span class="block text-xs text-muted mt-1">{{ hint }}</span>{% elif f.help_text %}<span class="block text-xs text-muted mt-1">{{ f.help_text }}</span>{% endif %}
+  {% for e in f.errors %}<span class="block text-xs mt-1" style="color: var(--bad)">{{ e }}</span>{% endfor %}
+</label>

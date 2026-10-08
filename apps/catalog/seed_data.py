@@ -490,7 +490,8 @@ QUESTIONNAIRES = [
 
 
 # Články k odvozeným ukazatelům. Zakládají se jako NAVRŽENÉ – do zprávy se
-# dostanou až po schválení člověkem (Katalog → Články).
+# dostanou až po schválení člověkem (Katalog → Články). „metriky“ = témata:
+# po schválení je model dostane u každého, komu se DSI měřilo.
 SEED_ARTICLES = [
     {
         "doi": "10.3390/sports5040072", "pmid": "29910432", "year": 2017,
@@ -500,7 +501,8 @@ SEED_ARTICLES = [
         "journal": "Sports (Basel)", "evidence_level": "cross",
         "population_sex": "M", "population_level": "univerzitní sportovci",
         "sample_size": 53,
-        "curator_note": "Nízké DSI (0,55) × vysoké (0,92): nízké DSI mělo vyšší sílu v IMTP, "
+        "metriky": ["dsi"],
+        "key_finding": "Nízké DSI (0,55) × vysoké (0,92): nízké DSI mělo vyšší sílu v IMTP, "
                         "ale větší brzdný impulz v CMJ. Podporuje balistický trénink při "
                         "nízkém a silový při vysokém DSI.",
     },
@@ -511,8 +513,10 @@ SEED_ARTICLES = [
         "journal": "Sports (Basel)", "evidence_level": "cohort",
         "population_sex": "B", "population_level": "univerzitní sportovci",
         "sample_size": 24,
-        "curator_note": "Čtyři týdny silového tréninku snížily DSI u sportovců s vysokým DSI "
+        "metriky": ["dsi"],
+        "key_finding": "Čtyři týdny silového tréninku snížily DSI u sportovců s vysokým DSI "
                         "(0,85 → 0,74), u nízkého DSI beze změny.",
+        "limitations": "Malý vzorek, krátká intervence (4 týdny).",
     },
     {
         "doi": "10.1123/ijspp.2017-0255", "pmid": "28714767", "year": 2018,
@@ -521,7 +525,8 @@ SEED_ARTICLES = [
         "journal": "Int J Sports Physiol Perform", "evidence_level": "cross",
         "population_sex": "M", "population_age_min": 16, "population_age_max": 18,
         "population_level": "mládež – fotbal, ragby", "sample_size": 27,
-        "curator_note": "DSI z CMJ je spolehlivější než ze squat jumpu (CV 3,8–4,6 %).",
+        "metriky": ["dsi"],
+        "key_finding": "DSI z CMJ je spolehlivější než ze squat jumpu (CV 3,8–4,6 %).",
     },
 ]
 

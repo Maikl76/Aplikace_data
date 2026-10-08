@@ -9,10 +9,14 @@ class ArticleAdmin(admin.ModelAdmin):
     list_filter = ("status", "evidence_level", "year", "population_sex")
     search_fields = ("title", "authors", "doi", "pmid")
     actions = ["schvalit", "zamitnout"]
+    filter_horizontal = ("metrics", "protocols")
     fieldsets = (
         (None, {"fields": ("status", "title", "authors", "journal", "year", "doi", "pmid",
                            "url", "abstract")}),
-        ("Kurátorské hodnocení", {"fields": ("evidence_level", "curator_note", "tags")}),
+        ("Co dostane jazykový model", {"fields": ("evidence_level", "key_finding",
+                                                  "limitations")}),
+        ("Témata", {"fields": ("metrics", "protocols")}),
+        ("Kurátor", {"fields": ("curator_note", "tags")}),
         ("Populace", {
             "fields": ("population_sport", "population_sex", "population_age_min",
                        "population_age_max", "population_level", "sample_size"),

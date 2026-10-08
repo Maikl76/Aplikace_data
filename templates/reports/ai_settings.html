@@ -63,29 +63,41 @@
   </div>
 
 {% elif tab == "pokyny" %}
-  <p class="text-sm text-2 mb-4 max-w-3xl">Každá varianta zprávy má vlastní pokyny: pro koho je, jakým jazykem,
-    jakou strukturou a délkou. Úprava platí pro další zprávy. <strong>Pevná pravidla</strong> (žádná vymyšlená čísla,
-    diagnózy ani zdroje) jsou vždy navrch a měnit nejdou – čísla navíc hlídá kontrola.</p>
+  <p class="text-sm text-2 mb-4 max-w-3xl">Každá varianta zprávy má dvoje pokyny: pro <strong>souhrn zprávy</strong>
+    (pro koho, jakým jazykem, jakou strukturou a délkou) a pro <strong>návrh doporučení</strong> (co a jak odvážně
+    navrhovat, kolik bodů, dávkování). Úprava platí pro další zprávy. <strong>Pevná pravidla</strong> (žádná vymyšlená
+    čísla, diagnózy ani jiné zdroje než schválené články) jsou vždy navrch a měnit nejdou.</p>
   <div class="space-y-4 max-w-4xl">
     {% for s in styles %}
-      <form method="post" id="{{ s.value }}" class="card p-5">
-        {% csrf_token %}
-        <input type="hidden" name="akce" value="pokyny">
-        <input type="hidden" name="audience" value="{{ s.value }}">
-        <div class="flex flex-wrap items-baseline justify-between gap-2 mb-2">
-          <h2 class="card-title">{{ s.label }}</h2>
-          <span class="text-xs text-muted">{% if s.custom %}upraveno {{ s.custom.updated_at|date:"d.m.Y" }}{% if s.custom.updated_by %} ({{ s.custom.updated_by }}){% endif %}{% else %}výchozí pokyny{% endif %}</span>
+      <section class="card p-5" id="{{ s.value }}">
+        <h2 class="card-title mb-3">{{ s.label }}</h2>
+        <div class="grid lg:grid-cols-2 gap-4">
+          {% for p in s.parts %}
+            <form method="post" id="{{ s.value }}-{{ p.kind }}">
+              {% csrf_token %}
+              <input type="hidden" name="akce" value="pokyny">
+              <input type="hidden" name="audience" value="{{ s.value }}">
+              <input type="hidden" name="kind" value="{{ p.kind }}">
+              <div class="flex flex-wrap items-baseline justify-between gap-2 mb-1">
+                <span class="text-sm font-medium">{{ p.label }}</span>
+                <span class="text-xs text-muted">{% if p.custom %}upraveno {{ p.custom.updated_at|date:"d.m.Y" }}{% if p.custom.updated_by %} ({{ p.custom.updated_by }}){% endif %}{% else %}výchozí pokyny{% endif %}</span>
+              </div>
+              <textarea name="instructions" rows="12" class="input text-sm leading-relaxed">{{ p.text }}</textarea>
+              <div class="flex flex-wrap gap-2 mt-2">
+                <button type="submit" class="btn btn-primary btn-sm">{% icon "check" %}Uložit</button>
+                {% if p.custom %}<button type="submit" name="vychozi" value="1" class="btn btn-sm" onclick="return confirm('Vrátit výchozí pokyny?')">Vrátit výchozí</button>{% endif %}
+              </div>
+            </form>
+          {% endfor %}
         </div>
-        <textarea name="instructions" rows="8" class="input text-sm leading-relaxed">{{ s.text }}</textarea>
-        <div class="flex flex-wrap gap-2 mt-2">
-          <button type="submit" class="btn btn-primary btn-sm">{% icon "check" %}Uložit</button>
-          {% if s.custom %}<button type="submit" name="vychozi" value="1" class="btn btn-sm" onclick="return confirm('Vrátit výchozí pokyny?')">Vrátit výchozí</button>{% endif %}
-        </div>
-      </form>
+      </section>
     {% endfor %}
     <details class="card p-5">
       <summary class="cursor-pointer card-title">Pevná pravidla (nelze měnit)</summary>
-      <div class="mt-3 text-sm text-2 whitespace-pre-line">{{ fixed_rules }}</div>
+      <h3 class="text-sm font-medium mt-3">Souhrn zprávy</h3>
+      <div class="mt-1 text-sm text-2 whitespace-pre-line">{{ fixed_rules }}</div>
+      <h3 class="text-sm font-medium mt-4">Návrh doporučení</h3>
+      <div class="mt-1 text-sm text-2 whitespace-pre-line">{{ recommendation_rules }}</div>
     </details>
     <section class="card p-5">
       <h2 class="card-title mb-1">Vzorové zprávy ({{ examples|length }})</h2>

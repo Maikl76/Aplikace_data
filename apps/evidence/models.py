@@ -4,6 +4,11 @@ Knihovna vědeckých článků.
 Hybridní model: kurátorované jádro (vy zařadíte a anotujete) + dávkové
 návrhy novinek z PubMedu, které procházejí schválením. Do zprávy se
 nedostane nic, co jste neschválil.
+
+Do zprávy vede článek dvěma cestami (apps.rules.evidence):
+
+* přes **pravidlo** – pravidlo, ke kterému je připojený, u měření našlo nález;
+* přes **téma** – vztahuje se k ukazateli nebo testu, který se u sportovce měřil.
 """
 
 from django.db import models
@@ -52,9 +57,26 @@ class Article(TimeStampedModel):
     population_level = models.CharField("populace – úroveň", max_length=60, blank=True)
     sample_size = models.PositiveIntegerField("velikost vzorku", null=True, blank=True)
 
-    curator_note = models.TextField("anotace kurátora", blank=True,
-                                    help_text="K čemu je studie relevantní, jaká má omezení.")
+    # Co z článku dostane jazykový model: krátké, člověkem ověřené shrnutí.
+    # Celý abstrakt model nedostává – vykládal by si ho po svém.
+    key_finding = models.TextField(
+        "hlavní zjištění pro praxi", blank=True,
+        help_text="1–3 věty: co studie zjistila a co to znamená pro testování nebo trénink. "
+                  "Tohle dostane jazykový model, když článek cituje.")
+    limitations = models.TextField(
+        "omezení", blank=True,
+        help_text="Na co si dát pozor: malý vzorek, jiná populace, jen korelace…")
+    curator_note = models.TextField("interní poznámka kurátora", blank=True,
+                                    help_text="Pro laboratoř; model ji dostane, jen když "
+                                              "chybí hlavní zjištění.")
     tags = models.JSONField("štítky", default=list, blank=True)
+
+    # Témata: ke kterým ukazatelům a testům se článek vztahuje. Takový
+    # článek dostane model i bez pravidla, když se ukazatel u sportovce měřil.
+    metrics = models.ManyToManyField("catalog.MetricDef", verbose_name="ukazatele",
+                                     blank=True, related_name="articles")
+    protocols = models.ManyToManyField("catalog.Protocol", verbose_name="testy",
+                                       blank=True, related_name="articles")
 
     # Embedding pro sémantické vyhledávání (fáze 4, pgvector).
     # embedding = VectorField(dimensions=1536, null=True, blank=True)
@@ -67,6 +89,29 @@ class Article(TimeStampedModel):
     def __str__(self):
         first_author = self.authors.split(",")[0] if self.authors else "?"
         return f"{first_author} ({self.year}): {self.title[:70]}"
+
+    @property
+    def evidence_rank(self) -> int:
+        """Pořadí podle síly důkazu (metaanalýza první) – kvůli výběru článků k tématu."""
+        order = list(EvidenceLevel.values)
+        return order.index(self.evidence_level) if self.evidence_level in order else len(order)
+
+    def population_text(self) -> str:
+        """Populace studie slovy: „fotbal, muži, 18–30 let, n = 42“."""
+        bits = []
+        if self.population_sport:
+            bits.append(self.population_sport)
+        if self.population_sex == "F":
+            bits.append("ženy")
+        elif self.population_sex == "M":
+            bits.append("muži")
+        if self.population_age_min or self.population_age_max:
+            bits.append(f"{self.population_age_min or '?'}–{self.population_age_max or '?'} let")
+        if self.population_level:
+            bits.append(self.population_level)
+        if self.sample_size:
+            bits.append(f"n = {self.sample_size}")
+        return ", ".join(bits)
 
     def matches_population(self, subject, day=None) -> bool:
         """Sedí studie na tohoto sportovce (věk v den ``day``)? Pokud ne, zpráva to uvede."""

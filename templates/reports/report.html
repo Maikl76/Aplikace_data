@@ -23,7 +23,7 @@
     .potlaceno { background: #f0efec; padding: 3mm; margin: 2mm 0; }
     .dolozka { margin-top: 8mm; padding: 4mm; border: 1px solid #c3c2b7;
                font-size: 9.5pt; }
-    .citace { font-size: 9.5pt; }
+    .citace { font-size: 9.5pt; list-style: none; padding-left: 0; }
     .citace li { margin-bottom: 1.5mm; }
     .upozorneni { color: #8a5a00; font-size: 9.5pt; }
     .protokol { margin: 4mm 0 1mm; font-size: 11pt; font-weight: 600; }
@@ -304,7 +304,7 @@
   <ol class="citace">
     {% for c in citations %}
       <li>
-        {{ c.article.authors }}{% if c.article.year %} ({{ c.article.year }}){% endif %}.
+        [{{ c.number }}] {{ c.article.authors }}{% if c.article.year %} ({{ c.article.year }}){% endif %}.
         {{ c.article.title }}.{% if c.article.journal %} <em>{{ c.article.journal }}</em>.{% endif %}
         {% if c.article.doi %} DOI: {{ c.article.doi }}.{% endif %}
         {% if not c.population_matches %}

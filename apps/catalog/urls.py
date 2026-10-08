@@ -1,5 +1,7 @@
 from django.urls import path
 
+from apps.evidence import views as article_views
+
 from . import battery_views as views
 from . import protocol_views
 
@@ -8,6 +10,10 @@ urlpatterns = [
     path("testy/", protocol_views.test_list, name="test_list"),
     path("testy/novy/", protocol_views.test_new, name="test_new"),
     path("testy/<int:pk>/", protocol_views.test_edit, name="test_edit"),
+    path("clanky/", article_views.article_list, name="article_list"),
+    path("clanky/novy/", article_views.article_new, name="article_new"),
+    path("clanky/<int:pk>/", article_views.article_edit, name="article_edit"),
+    path("clanky/<int:pk>/stav/", article_views.article_status, name="article_status"),
     path("<int:sport_pk>/baterie/", views.battery_add, name="battery_add"),
     path("baterie/<int:pk>/smazat/", views.battery_delete, name="battery_delete"),
     path("baterie/<int:pk>/pridat/", views.battery_item_add, name="battery_item_add"),

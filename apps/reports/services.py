@@ -59,7 +59,7 @@ def build_draft(session, *, user, supersedes: Report | None = None,
     if audience not in Audience.values:
         audience = supersedes.audience if supersedes else Audience.COACH
     findings = engine.evaluate_session(session)
-    citations = evidence.articles_for(findings)
+    citations = evidence.report_citations(session, findings)
     background = llm.is_enabled() and settings.LLM_BACKGROUND
     if background:
         from . import facts as facts_module
@@ -98,6 +98,7 @@ def build_draft(session, *, user, supersedes: Report | None = None,
         rules_version=_rules_fingerprint(findings),
         llm_model=composition.source,
         generation_note=composition.note,
+        literature=[c["article"].pk for c in citations],
     )
     report.input_fingerprint = report.compute_fingerprint(_inputs(session, findings))
     if background:
@@ -154,7 +155,7 @@ def write_summary(report_pk, model, *, rewrite: bool) -> Report:
     report = Report.objects.select_related("session", "subject").get(pk=report_pk)
     session = report.session
     findings = list(session.findings.select_related("rule"))
-    citations = evidence.articles_for(findings)
+    citations = evidence.report_citations(session, findings, frozen=report.literature)
     composition = narrative.compose_report(session, findings, citations,
                                            audience=report.audience, model=model)
     report.refresh_from_db()
@@ -238,7 +239,11 @@ def report_context(report) -> dict:
     session = report.session
     findings = list(session.findings.select_related("rule").all()) if session else []
     findings.sort(key=engine.severity_order)
-    citations = evidence.articles_for(findings)
+    citations = []
+    if session is not None:
+        citations = evidence.shown_citations(
+            evidence.report_citations(session, findings, frozen=report.literature),
+            report.summary, report.custom_note)
     active = [f for f in findings if not f.suppressed]
 
     context = {
@@ -368,7 +373,7 @@ def _machine_readable(report) -> dict:
             for f in context["suppressed"]
         ],
         "citace": [
-            {"nazev": c["article"].title, "doi": c["article"].doi,
+            {"cislo": c["number"], "nazev": c["article"].title, "doi": c["article"].doi,
              "rok": c["article"].year,
              "populace_odpovida": c["population_matches"]}
             for c in context["citations"]
@@ -485,15 +490,12 @@ def try_model(report, *, model: str | None, user) -> ModelTrial:
     Zkušební text pro zprávu ze zkušební sady – jiným modelem nebo s novými
     pokyny. Nic ve zprávě nemění; vzorem pro sebe sama zpráva není.
     """
-    from . import facts as facts_module
     from . import llm
 
     if report.session is None:
         raise ReportError("Zpráva nemá testovací den.")
     session = report.session
-    findings = list(session.findings.select_related("rule"))
-    citations = evidence.articles_for(findings)
-    facts = facts_module.build(session, findings, citations, audience=report.audience)
+    findings, facts = narrative.report_facts(report)
     trial = ModelTrial(report=report, model=model or "", audience=report.audience,
                        created_by=user)
     try:
