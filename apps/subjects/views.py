@@ -16,6 +16,10 @@ from .models import Sport, Subject
 def subject_list(request):
     """Seznam sportovců. Filtry přes HTMX – vrací se jen výsek tabulky."""
     qs = Subject.objects.for_user(request.user).select_related("sport", "team")
+    inactive = qs.filter(is_active=False).count()
+    show_inactive = bool(request.GET.get("neaktivni"))
+    if not show_inactive:
+        qs = qs.filter(is_active=True)
     if sport := request.GET.get("sport"):
         qs = qs.filter(sport_id=sport)
     q = request.GET.get("q", "").strip()
@@ -24,7 +28,7 @@ def subject_list(request):
 
     context = {"subjects": subjects, "q": q,
                "sports": Sport.objects.for_user(request.user).order_by("name"),
-               "sport_id": sport}
+               "sport_id": sport, "inactive": inactive, "show_inactive": show_inactive}
     if request.headers.get("HX-Request"):
         return render(request, "subjects/_subject_rows.html", context)
     return render(request, "subjects/subject_list.html", context)
@@ -154,12 +158,16 @@ def _may_edit(user) -> bool:
 def _form_page(request, form, subject=None, duplicates=None):
     from django.conf import settings
 
+    from .services import has_data
+
     categories = sorted(set(Subject.objects.for_user(request.user).exclude(category="")
                             .values_list("category", flat=True)))
     return render(request, "subjects/subject_form.html", {
         "form": form, "subject": subject, "duplicates": duplicates or {},
         "categories": categories, "has_key": bool(settings.IDENTITY_ENCRYPTION_KEY),
         "display_name": subject.display_for(request.user) if subject else "",
+        "may_manage": _may_manage(request.user),
+        "has_data": has_data(subject) if subject else False,
     })
 
 
@@ -251,3 +259,60 @@ def subject_edit(request, pk):
     record(request, AuditLog.Action.VIEW, subject, subject_code=subject.code, identita=True)
     form = SubjectForm(initial=services.initial(subject), sports=sports)
     return _form_page(request, form, subject)
+
+
+def _may_manage(user) -> bool:
+    """Smazat a anonymizovat sportovce smí jen správce."""
+    from apps.core.models import Role
+
+    return user.is_superuser or getattr(user, "role", "") == Role.ADMIN
+
+
+@login_required
+def subject_action(request, pk):
+    """Deaktivace, smazání a anonymizace (výmaz osobních údajů) sportovce."""
+    from django.contrib import messages
+
+    from . import services
+
+    subject = get_object_or_404(Subject.objects.for_user(request.user), pk=pk)
+    if request.method != "POST":
+        return redirect("subject_edit", pk=pk)
+    action = request.POST.get("akce", "")
+    if action in ("deaktivovat", "aktivovat"):
+        if not _may_edit(request.user):
+            messages.error(request, "Sportovce deaktivuje laborant nebo správce.")
+            return redirect("subject_detail", pk=pk)
+        services.set_active(subject, action == "aktivovat")
+        record(request, AuditLog.Action.UPDATE, subject, subject_code=subject.code,
+               akce=action)
+        messages.success(request, f"Sportovec {subject.code} "
+                                  + ("je znovu aktivní." if action == "aktivovat" else
+                                     "je deaktivovaný – nenabízí se ve výběrech, data zůstala."))
+        return redirect("subject_detail", pk=pk)
+
+    if action not in ("smazat", "anonymizovat"):
+        return redirect("subject_edit", pk=pk)
+    if not _may_manage(request.user):
+        messages.error(request, "Smazat nebo anonymizovat sportovce smí jen správce.")
+        return redirect("subject_edit", pk=pk)
+    if request.POST.get("potvrzeni", "").strip().upper() != subject.code.upper():
+        messages.error(request, f"Pro potvrzení opište kód sportovce ({subject.code}).")
+        return redirect(reverse("subject_edit", args=[pk]) + "#dalsi-akce")
+    code = subject.code
+    try:
+        if action == "smazat":
+            record(request, AuditLog.Action.DELETE, subject, subject_code=code)
+            services.delete_subject(subject)
+            messages.success(request, f"Sportovec {code} smazán.")
+            return redirect("subject_list")
+        done = services.anonymize(subject)
+    except services.SubjectError as exc:
+        messages.error(request, str(exc))
+        return redirect("subject_edit", pk=pk)
+    record(request, AuditLog.Action.DELETE, subject, subject_code=code, anonymizace=done)
+    messages.success(request, f"Osobní údaje sportovce {code} vymazány"
+                              + (f" ({', '.join(done)})" if done else "")
+                              + ". Měření a zprávy zůstaly pod kódem.")
+    return redirect("subject_detail", pk=pk)
+

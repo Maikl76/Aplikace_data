@@ -254,13 +254,17 @@ class Participant(models.Model):
         return f"{self.first_name} {self.last_name}".strip()
 
     @property
-    def birth_date(self) -> date:
-        return date.fromisoformat(crypto.decrypt(self.birth_date_enc))
+    def birth_date(self) -> date | None:
+        # Prázdné po anonymizaci sportovce (výmaz osobních údajů).
+        text = crypto.decrypt(self.birth_date_enc)
+        return date.fromisoformat(text) if text else None
 
     @property
     def injury(self) -> str:
         return crypto.decrypt(self.injury_enc)
 
-    def age_on(self, day: date) -> int:
+    def age_on(self, day: date) -> int | None:
         born = self.birth_date
+        if born is None:
+            return None
         return day.year - born.year - ((day.month, day.day) < (born.month, born.day))

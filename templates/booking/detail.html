@@ -40,8 +40,8 @@
           <tbody>
             {% for p in participants %}
               <tr>
-                <td class="font-medium whitespace-nowrap">{{ p.full_name }}<div class="text-xs text-muted">{{ p.get_sex_display }}</div></td>
-                <td class="tabular-nums whitespace-nowrap">{{ p.birth_date|date:"j. n. Y" }}<div class="text-xs {% if p.vek < 18 %}font-semibold{% else %}text-muted{% endif %}" {% if p.vek < 18 %}style="color: var(--warn)"{% endif %}>{{ p.vek }} let{% if p.vek < 18 %} – nezletilý{% endif %}</div></td>
+                <td class="font-medium whitespace-nowrap">{{ p.full_name|default:"(údaje vymazány)" }}<div class="text-xs text-muted">{{ p.get_sex_display }}</div></td>
+                <td class="tabular-nums whitespace-nowrap">{% if p.vek is None %}<span class="text-muted">vymazáno</span>{% else %}{{ p.birth_date|date:"j. n. Y" }}<div class="text-xs {% if p.vek < 18 %}font-semibold{% else %}text-muted{% endif %}" {% if p.vek < 18 %}style="color: var(--warn)"{% endif %}>{{ p.vek }} let{% if p.vek < 18 %} – nezletilý{% endif %}</div>{% endif %}</td>
                 <td class="text-sm">{% if p.injury %}<span style="color: var(--warn)">{{ p.injury }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
                 <td class="text-sm whitespace-nowrap">
                   {% if p.subject %}

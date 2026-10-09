@@ -134,3 +134,96 @@ def initial(subject) -> dict:
         data.update(first_name=identity.first_name, last_name=identity.last_name,
                     birth_date=identity.birth_date, email=identity.email, phone=identity.phone)
     return data
+
+
+# ---------------------------------------------------------------------------
+# Deaktivace, smazání a anonymizace
+# ---------------------------------------------------------------------------
+
+class SubjectError(Exception):
+    """Akci se sportovcem nejde provést – uživatel se musí dozvědět proč."""
+
+
+def has_data(subject) -> bool:
+    """Má sportovec naměřená data nebo zprávy? Pak ho smazat nejde."""
+    return subject.sessions.exists() or subject.reports.exists()
+
+
+def set_active(subject, active: bool) -> None:
+    subject.is_active = active
+    subject.save(update_fields=["is_active"])
+
+
+@transaction.atomic
+def delete_subject(subject) -> None:
+    """
+    Smazání – jen sportovec bez měření a zpráv (třeba založený omylem).
+    Longitudinální data se nesmí ztratit omylem; s daty jen deaktivace
+    nebo anonymizace.
+    """
+    if has_data(subject):
+        raise SubjectError(f"Sportovce {subject.code} nelze smazat – má naměřená data nebo "
+                           f"zprávy. Použijte deaktivaci, nebo anonymizaci (výmaz osobních "
+                           f"údajů podle GDPR).")
+    for consent in subject.consents.all():
+        if consent.document:
+            consent.document.delete(save=False)
+    subject.delete()
+
+
+@transaction.atomic
+def anonymize(subject) -> list[str]:
+    """
+    Výmaz osobních údajů (GDPR): jméno, datum narození, kontakt, údaje
+    z objednávek, identifikátory v přístrojích a podepsané dokumenty. Měření
+    a zprávy zůstanou pod pseudonymním kódem – už je k člověku nic nepřiřadí.
+    Vrací, co se smazalo (pro záznam a hlášku).
+    """
+    from apps.booking.models import BookingRequest, Participant
+    from apps.ingest.models import StagedMeasurement
+
+    done = []
+    if SubjectIdentity.objects.filter(subject=subject).delete()[0]:
+        done.append("jméno, datum narození a kontakt")
+    if subject.external_ids.all().delete()[0] or subject.source_key:
+        done.append("identifikátory v přístrojích a otisky jména")
+    participants = list(Participant.objects.filter(subject=subject))
+    if participants:
+        Participant.objects.filter(subject=subject).update(
+            first_name_enc="", last_name_enc="", birth_date_enc="", injury_enc="")
+        # Objednávka jen pro tohoto člověka: kontakt a poznámka patří jemu.
+        alone = [p.request_id for p in participants
+                 if not Participant.objects.filter(request_id=p.request_id)
+                 .exclude(subject=subject).exists()]
+        BookingRequest.objects.filter(pk__in=alone).update(
+            contact_name_enc="", email_enc="", phone_enc="", goal_note="")
+        done.append("údaje z objednávek")
+    if StagedMeasurement.objects.filter(subject=subject).exclude(subject_hint="").update(
+            subject_hint="", subject_key=""):
+        done.append("jméno v rozpracovaných importech")
+    documents = [c for c in subject.consents.all() if c.document]
+    for consent in documents:
+        consent.document.delete(save=False)
+        consent.save(update_fields=["document"])
+    if documents:
+        done.append("podepsané dokumenty souhlasů")
+    subject.source_key = ""
+    raw = raw_files_with(subject)
+    if raw:
+        done.append(f"POZOR: {raw} původních souborů z přístrojů obsahuje jméno dál – "
+                    f"nemění se (jsou v nich i další sportovci); je-li třeba, smažte je ručně")
+    subject.note = f"Osobní údaje vymazány {timezone.localdate():%d.%m.%Y} (anonymizace)."
+    subject.is_active = False
+    subject.save(update_fields=["source_key", "note", "is_active"])
+    return done
+
+
+def raw_files_with(subject) -> int:
+    """Původní exporty z přístrojů, ve kterých sportovec je (jméno v nich zůstává)."""
+    from django.db.models import Q
+
+    from apps.measurements.models import RawFile
+
+    return (RawFile.objects.filter(Q(import_batches__staged__subject=subject)
+                                   | Q(protocol_run__session__subject=subject))
+            .distinct().count())

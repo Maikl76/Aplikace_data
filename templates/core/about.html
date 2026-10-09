@@ -180,7 +180,12 @@
         <li><strong>Hledání:</strong> pole nahoře (nebo klávesa <kbd>/</kbd>) hledá podle jména i kódu, bez ohledu na diakritiku. V <a class="link" href="{% url 'subject_list' %}">Sportovcích</a> jde filtrovat i podle sportu.</li>
         <li><strong>Karta sportovce:</strong> dlaždice s posledními hodnotami klíčových ukazatelů, šipka změny proti minulému měření, minigraf, grafy vývoje, stranové rozdíly a seznam testovacích dnů.</li>
         <li><strong>Tlačítka na kartě:</strong> <em>Nové měření</em> (testy předvyplní baterie), <em>Zpráva z posledního měření</em>, ikona QR (karta pro tablet) a tužka (úprava údajů).</li>
-        <li><strong>Úprava údajů</strong> (sport, kategorie, úroveň, dominantní strana, souhlasy) je v administraci – tužka na kartě ji otevře rovnou. Jméno a datum narození mění jen superuživatel (<em>Identity sportovců</em>).</li>
+        <li><strong>Úprava údajů</strong> (jméno, datum narození, kontakt, sport, kategorie, úroveň, dominantní strana, souhlasy): tužka na kartě sportovce.</li>
+        <li><strong>Deaktivace, smazání, anonymizace</strong> – dole na stránce úprav (<em>Další akce</em>):
+          <em>Deaktivovat</em> (sportovec, který už nechodí, zmizí z výběrů, data zůstanou; jde vrátit);
+          <em>Smazat</em> (jen správce a jen sportovec bez měření a zpráv, např. založený omylem);
+          <em>Anonymizovat</em> (jen správce; výmaz osobních údajů podle GDPR – jméno, datum narození, kontakt, údaje z objednávek, identifikátory v přístrojích, dokumenty souhlasů; měření a zprávy zůstanou pod kódem). U smazání a anonymizace se pro jistotu opisuje kód sportovce.
+          Neaktivní sportovce ukáže seznam po zaškrtnutí <em>i neaktivní</em>.</li>
         <li><strong>Kód a jméno:</strong> každý sportovec má pseudonymní kód (FTVS-0001). Jméno je uložené zvlášť a šifrovaně; vidí ho jen správce a diagnostik.</li>
       </ul>
     </section>

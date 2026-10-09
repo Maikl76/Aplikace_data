@@ -22,6 +22,10 @@
     <option value="">Všechny sporty</option>
     {% for sp in sports %}<option value="{{ sp.pk }}" {% if sport_id == sp.pk|stringformat:"s" %}selected{% endif %}>{{ sp.name }}</option>{% endfor %}
   </select>
+  {% if inactive %}
+    <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="neaktivni" value="1" {% if show_inactive %}checked{% endif %}>
+      i neaktivní ({{ inactive }})</label>
+  {% endif %}
 </form>
 
 <div class="card overflow-x-auto">

@@ -118,4 +118,53 @@
     {% endif %}
   </div>
 </form>
+
+{% if subject %}
+  <section id="dalsi-akce" class="card p-5 mt-6 max-w-3xl">
+    <h2 class="card-title">Další akce</h2>
+    <div class="mt-3 space-y-4 text-sm">
+      <form method="post" action="{% url 'subject_action' subject.pk %}" class="flex flex-wrap items-center gap-3">
+        {% csrf_token %}
+        {% if subject.is_active %}
+          <button type="submit" name="akce" value="deaktivovat" class="btn btn-sm">Deaktivovat</button>
+          <span class="text-muted">Sportovec, který už nechodí: zmizí z výběrů (baterie, Dnešní testování, našeptávač), měření a zprávy zůstanou. Jde vrátit.</span>
+        {% else %}
+          <button type="submit" name="akce" value="aktivovat" class="btn btn-sm">Znovu aktivovat</button>
+          <span class="text-muted">Sportovec je deaktivovaný.</span>
+        {% endif %}
+      </form>
+
+      {% if may_manage %}
+        {% if not has_data %}
+          <form method="post" action="{% url 'subject_action' subject.pk %}" class="pt-4 border-t" style="border-color: var(--border)"
+                onsubmit="return confirm('Sportovce {{ subject.code }} nevratně smazat?')">
+            {% csrf_token %}
+            <div class="font-medium" style="color: var(--bad)">Smazat sportovce</div>
+            <p class="text-muted mb-2">Sportovec nemá žádná měření ani zprávy (třeba založený omylem) – smaže se úplně, i se souhlasy.</p>
+            <div class="flex flex-wrap items-center gap-2">
+              <input name="potvrzeni" class="input w-44" placeholder="opište {{ subject.code }}" autocomplete="off">
+              <button type="submit" name="akce" value="smazat" class="btn btn-sm" style="color: var(--bad)">Smazat</button>
+            </div>
+          </form>
+        {% else %}
+          <p class="pt-4 border-t text-muted" style="border-color: var(--border)">Smazat nejde – sportovec má naměřená data nebo zprávy a ty se nesmí ztratit. Použijte deaktivaci, nebo anonymizaci.</p>
+        {% endif %}
+        <form method="post" action="{% url 'subject_action' subject.pk %}" class="pt-4 border-t" style="border-color: var(--border)"
+              onsubmit="return confirm('Nevratně vymazat osobní údaje sportovce {{ subject.code }}?')">
+          {% csrf_token %}
+          <div class="font-medium" style="color: var(--bad)">Anonymizovat (výmaz osobních údajů podle GDPR)</div>
+          <p class="text-muted mb-2">Nevratně se smaže jméno, datum narození, kontakt, údaje z objednávek (jméno, zranění, kontakt),
+            identifikátory v přístrojích a podepsané dokumenty souhlasů. Měření a vydané zprávy zůstanou pod kódem {{ subject.code }} –
+            k člověku je už nic nepřiřadí. Sportovec se zároveň deaktivuje.
+            Původní soubory z přístrojů (např. export z VALD) se nemění – bývají v nich i další sportovci; aplikace řekne,
+            kolik jich jméno obsahuje.</p>
+          <div class="flex flex-wrap items-center gap-2">
+            <input name="potvrzeni" class="input w-44" placeholder="opište {{ subject.code }}" autocomplete="off">
+            <button type="submit" name="akce" value="anonymizovat" class="btn btn-sm" style="color: var(--bad)">Anonymizovat</button>
+          </div>
+        </form>
+      {% endif %}
+    </div>
+  </section>
+{% endif %}
 {% endblock %}
