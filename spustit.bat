@@ -36,6 +36,8 @@ echo Na tabletu otevrete adresu http://ADRESA-POCITACE:8000  - adresa je radek I
 ipconfig | findstr /c:"IPv4"
 echo Kdyz se Windows zepta na branu firewall, povolte jen soukromou sit.
 start "" http://localhost:8000
+rem V siti bez ladiciho rezimu: chybova stranka by jinak ukazala nastaveni i data.
+set DJANGO_DEBUG=False
 python manage.py runserver 0.0.0.0:8000
 exit /b 0
 

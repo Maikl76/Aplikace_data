@@ -45,7 +45,11 @@ LOCAL_APPS = [
     "apps.booking",       # objednávky testování od klientů
 ]
 
-INSTALLED_APPS = DJANGO_APPS + LOCAL_APPS
+THIRD_PARTY_APPS = [
+    "axes",               # zámek účtu po opakovaně špatném heslu
+]
+
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -56,7 +60,23 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "apps.core.middleware.RoleAccessMiddleware",   # trenér/sportovec zatím ne, výzkumník jen čte
+    "axes.middleware.AxesMiddleware",
 ]
+
+# --- přihlášení -------------------------------------------------------
+# Ochrana proti hádání hesla: po několika špatných pokusech se dvojice
+# (účet, adresa) na čtvrt hodiny zamkne. Ukázka je veřejná a účet se
+# jmenuje „admin“ – bez zámku by šlo heslo zkoušet donekonečna.
+AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+AXES_FAILURE_LIMIT = env.int("AXES_FAILURE_LIMIT", default=5)
+AXES_COOLOFF_TIME = env.int("AXES_COOLOFF_MINUTES", default=15) / 60   # hodiny
+AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
+AXES_RESET_ON_SUCCESS = True
+AXES_LOCKOUT_TEMPLATE = "registration/uzamceno.html"
 
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
@@ -73,6 +93,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "apps.core.context_processors.demo_mode",
+                "apps.core.context_processors.read_only",
                 "apps.core.context_processors.booking_counts",
             ],
         },

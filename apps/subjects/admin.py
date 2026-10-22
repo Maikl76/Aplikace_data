@@ -1,6 +1,8 @@
 from django.contrib import admin, messages
 from django.db.models import ProtectedError
 from django.shortcuts import redirect
+from django.urls import reverse
+from django.utils.html import format_html
 
 from .models import Consent, Sport, Subject, SubjectExternalId, SubjectIdentity, Team
 
@@ -19,6 +21,15 @@ class TeamAdmin(admin.ModelAdmin):
 class ConsentInline(admin.TabularInline):
     model = Consent
     extra = 0
+    readonly_fields = ("otevrit",)
+
+    @admin.display(description="dokument")
+    def otevrit(self, obj):
+        """Odkaz přes aplikaci (kontrola role a audit), ne přímo na /media/."""
+        if not obj.pk or not obj.document:
+            return "—"
+        return format_html('<a href="{}" target="_blank">otevřít</a>',
+                           reverse("consent_document", args=[obj.pk]))
 
 
 class ExternalIdInline(admin.TabularInline):

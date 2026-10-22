@@ -109,6 +109,10 @@
     <div class="grid sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
       {% for choice in form.consents %}<label class="flex items-center gap-2">{{ choice.tag }}{{ choice.choice_label }}</label>{% endfor %}
     </div>
+    {% if dokumenty %}
+      <p class="text-sm mt-3"><span class="text-muted">Podepsané dokumenty:</span>
+        {% for c in dokumenty %}<a class="link" href="{% url 'consent_document' c.pk %}" target="_blank">{{ c.get_scope_display }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+    {% endif %}
   </section>
 
   <div class="flex flex-wrap items-center gap-4">

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card p-6 max-w-xl">
+  <h1 class="text-lg font-semibold mb-2">Jen čtení</h1>
+  <p class="text-sm text-2">Vaše role <strong>{{ user.get_role_display }}</strong> smí data prohlížet, ne měnit.
+    Změna se neuložila. Zadávat měření, zakládat sportovce a vydávat zprávy smí laborant nebo správce.</p>
+  <a href="javascript:history.back()" class="btn mt-4">Zpět</a>
+</div>
+{% endblock %}

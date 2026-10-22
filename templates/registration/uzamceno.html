@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content_anon %}
+<div class="card p-6">
+  <h1 class="text-lg font-semibold mb-1">Přihlášení je dočasně zamčené</h1>
+  <p class="text-sm text-2">Pro tento účet bylo z této adresy zadáno několikrát za sebou špatné heslo.
+    Zkuste to znovu {% if cooloff_timedelta %}za {% widthratio cooloff_timedelta.seconds 60 1 %} minut{% else %}později{% endif %}.
+    Pokud jste heslo zapomněli, požádejte správce o nové.</p>
+  <a href="{% url 'login' %}" class="btn mt-4">Zpět na přihlášení</a>
+</div>
+{% endblock %}

@@ -38,6 +38,11 @@
     UKÁZKA — data jsou vygenerovaná. Nevkládejte sem reálná data sportovců.
   </div>
 {% endif %}
+{% if read_only %}
+  <div class="text-sm px-4 py-2 text-center" style="background: var(--surface-2); color: var(--text-2)">
+    Role Výzkumník: jen čtení. Ukládání a změny jsou vypnuté, sportovci jsou vidět pod kódy.
+  </div>
+{% endif %}
 
 {% if user.is_authenticated %}
 <div class="min-h-screen md:flex" x-data="{ menu: false }">

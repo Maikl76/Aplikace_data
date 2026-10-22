@@ -185,14 +185,19 @@ oprávnění se přiřadí sama:
 |---|---|
 | **Správce** | vše včetně uživatelů |
 | **Diagnostik** | zadávat a opravovat měření, importovat, vydávat zprávy; **nesmí mazat** |
-| **Výzkumník** | jen číst; identitu sportovců nevidí |
+| **Výzkumník** | jen číst; identitu sportovců nevidí. Aplikace mu každé uložení odmítne. |
+| **Trenér**, **Sportovec** | zatím bez přístupu: pohled „jen můj tým“ / „jen moje výsledky“ není hotový, aplikace takový účet při přihlášení odmítne |
 
 Do administrace se dostane jen uživatel s příznakem **„Stav týmu"**
 (`is_staff`).
 
 **Trenéři a sportovci sem nepatří.** Administrace Djanga umí oprávnění na
-úrovni modelu, ne řádku — trenér by v ní viděl všechny týmy. Pracují proto
-v samotné aplikaci, která hlídá, na čí data vidí.
+úrovni modelu, ne řádku — trenér by v ní viděl všechny týmy. Pracovat budou
+v samotné aplikaci, která hlídá, na čí data vidí; dokud ten pohled není,
+účet s touto rolí se nepřihlásí.
+
+**Hádání hesla.** Po pěti špatných pokusech se dvojice účet + adresa na
+čtvrt hodiny zamkne (django-axes, bez internetu, záznam v databázi).
 
 ### Mazání sportovce
 

@@ -171,7 +171,38 @@ def _form_page(request, form, subject=None, duplicates=None):
         "display_name": subject.display_for(request.user) if subject else "",
         "may_manage": _may_manage(request.user),
         "has_data": has_data(subject) if subject else False,
+        "dokumenty": subject.consents.exclude(document="") if subject else [],
     })
+
+
+@login_required
+def consent_document(request, pk):
+    """
+    Podepsaný souhlas. Soubor nese jméno a podpis, takže ho aplikace nedává
+    jako obyčejnou adresu /media/…, ale jen tomu, kdo smí vidět jméno,
+    a se záznamem v auditu – stejně jako PDF zprávy.
+    """
+    from pathlib import Path
+
+    from django.http import FileResponse, Http404
+
+    from .models import Consent
+
+    consent = get_object_or_404(
+        Consent.objects.filter(subject__in=Subject.objects.for_user(request.user))
+        .select_related("subject"), pk=pk)
+    if not (request.user.sees_identity or request.user.is_superuser):
+        return render(request, "core/odepreno.html", {
+            "duvod": "Podepsaný souhlas smí otevřít jen správce nebo laborant."}, status=403)
+    if not consent.document:
+        raise Http404("Souhlas nemá přiložený dokument.")
+    try:
+        handle = consent.document.open("rb")
+    except FileNotFoundError as exc:
+        raise Http404("Soubor dokumentu na disku chybí.") from exc
+    record(request, AuditLog.Action.EXPORT, consent, subject_code=consent.subject.code,
+           rozsah=consent.scope)
+    return FileResponse(handle, filename=Path(consent.document.name).name)
 
 
 def _check(request, form, organization, subject=None):

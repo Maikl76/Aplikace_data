@@ -3,6 +3,7 @@ Django>=5.1,<5.2
 django-environ>=0.11            # konfigurace z proměnných prostředí
 psycopg[binary]>=3.2            # PostgreSQL
 cryptography>=42                # šifrování oddělené identity
+django-axes>=7.0                # zámek po opakovaně špatném hesle (bez internetu, v databázi)
 
 # --- fronta úloh (import, generování reportů) --------------------------
 celery>=5.4

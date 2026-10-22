@@ -1,7 +1,20 @@
+from django.core.exceptions import ImproperlyConfigured
+
 from .base import *  # noqa: F403
 from .base import env
 
 DEBUG = False
+
+# Tajný klíč podepisuje přihlašovací cookies. S vývojovým nebo ukázkovým
+# klíčem by se dalo přihlášení podvrhnout, proto se bez skutečného klíče
+# server nespustí. Doplní ho instalace (deploy/pa-update.sh, offline balíček).
+PLACEHOLDER_KEYS = {"", "pouze-pro-vyvoj-nikdy-v-produkci", "zmente-me-na-nahodny-retezec",
+                    "VLOZTE_VYGENEROVANY_KLIC", "__SECRET__"}
+SECRET_KEY = env("DJANGO_SECRET_KEY", default="")
+if SECRET_KEY in PLACEHOLDER_KEYS or len(SECRET_KEY) < 32:
+    raise ImproperlyConfigured(
+        "DJANGO_SECRET_KEY chybí nebo je ukázkový. Do .env doplňte náhodný řetězec, např. "
+        "z příkazu: python -c \"import secrets; print(secrets.token_urlsafe(50))\"")
 
 # Bez explicitního seznamu hostů se aplikace v produkci nespustí.
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS")

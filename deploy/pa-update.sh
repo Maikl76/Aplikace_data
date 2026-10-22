@@ -28,6 +28,16 @@ main() {
 
     echo "Doinstalovávám knihovny..."
     "$VENV/bin/pip" install --no-cache-dir --quiet -r requirements/demo.txt
+    # Tajný klíč Djanga je v produkčním nastavení povinný – bez něj by se
+    # nespustil ani následující příkaz. Chybí-li nebo je ukázkový, doplní se.
+    if ! grep -qE '^DJANGO_SECRET_KEY=.{32,}$' .env \
+       || grep -qE '^DJANGO_SECRET_KEY=(VLOZTE|zmente|__SECRET__|pouze-pro-vyvoj)' .env; then
+        local KEY
+        KEY="$("$PY" -c 'import secrets; print(secrets.token_urlsafe(50))')"
+        sed -i '/^DJANGO_SECRET_KEY=/d' .env
+        printf '\n# Tajný klíč Djanga (podpis přihlášení). Neměňte ho.\nDJANGO_SECRET_KEY=%s\n' "$KEY" >> .env
+        echo "Do .env byl doplněn DJANGO_SECRET_KEY."
+    fi
     # Šifrovací klíč (jména, objednávky) – doplní se jen jednou, pak se nemění.
     "$PY" manage.py zajisti_klic
 

@@ -1,4 +1,7 @@
-"""Volitelné jméno sportovce ve zprávě – jen vědomě, jen rukou, která jméno smí vidět."""
+"""Volitelné jméno sportovce ve zprávě – jen vědomě, jen rukou, která jméno smí vidět.
+
+Roli bez práva na jméno zastupuje výzkumník (trenér se zatím nepřihlásí vůbec).
+"""
 
 from datetime import date
 
@@ -18,7 +21,7 @@ def zprava(db, settings):
     settings.IDENTITY_ENCRYPTION_KEY = Fernet.generate_key().decode()
     org = Organization.objects.create(name="FTVS", short_name="ftvs")
     lab = User.objects.create(username="lab", organization=org, role=Role.LAB)
-    coach = User.objects.create(username="coach", organization=org, role=Role.COACH)
+    coach = User.objects.create(username="vyzkum", organization=org, role=Role.RESEARCHER)
     subject = Subject.objects.create(organization=org, code="FTVS-0001", sex=Sex.FEMALE,
                                      birth_year=2000)
     identity = SubjectIdentity(subject=subject)
@@ -45,7 +48,7 @@ def test_standardne_jen_kod(zprava):
     assert "FTVS-0001" in html and "Nováková" not in html
     page = lab.get(f"/zpravy/{report.pk}/").content.decode()
     assert 'name="show_name"' in page and "Jana Nováková" in page
-    # Trenér jméno nevidí, zaškrtávátko nemá a nic jím nezmění.
+    # Výzkumník jméno nevidí, zaškrtávátko nemá a nic jím nezmění.
     page = coach.get(f"/zpravy/{report.pk}/").content.decode()
     assert 'name="show_name"' not in page and "Nováková" not in page
     coach.post(f"/zpravy/{report.pk}/", {"summary": report.summary, "custom_note": "",

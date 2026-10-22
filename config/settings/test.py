@@ -22,3 +22,7 @@ PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
 # Psaní souhrnu na pozadí běží v testech hned (vlákno by nevidělo testovací transakci).
 LLM_BACKGROUND = False
+
+# Zámek po špatném hesle by testy, které zkoušejí přihlášení, zamykal
+# navzájem; zapíná se jen v testu, který ho ověřuje.
+AXES_ENABLED = False

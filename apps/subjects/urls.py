@@ -12,4 +12,5 @@ urlpatterns = [
     path("<int:pk>/qr/", views.subject_qr, name="subject_qr"),
     path("<int:pk>/dnes/", views.subject_today, name="subject_today"),
     path("qr-karty/", views.team_qr, name="team_qr"),
+    path("souhlas/<int:pk>/dokument/", views.consent_document, name="consent_document"),
 ]
