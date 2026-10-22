@@ -41,7 +41,7 @@ class Role(models.TextChoices):
     LAB = "lab", "Laborant / diagnostik"
     RESEARCHER = "researcher", "Výzkumník (anonymizovaný pohled)"
     COACH = "coach", "Trenér (vlastní tým)"
-    ATHLETE = "athlete", "Sportovec (vlastní výsledky)"
+    ATHLETE = "athlete", "Sportovec / zákonný zástupce (vlastní výsledky)"
 
 
 class User(AbstractUser):
@@ -63,12 +63,28 @@ class User(AbstractUser):
 
 class OrgScopedQuerySet(models.QuerySet):
     def for_user(self, user):
-        """Jediné místo, kde se rozhoduje, na co uživatel vidí."""
+        """
+        Jediné místo, kde se rozhoduje, na co uživatel vidí.
+
+        Laboratoř vidí své pracoviště. Sportovec a trenér jen sportovce,
+        na které mají nárok (apps.subjects.access) – u tabulek bez vazby
+        na sportovce nic.
+        """
         if user.is_superuser:
             return self
         if user.organization_id is None:
             return self.none()
-        return self.filter(organization_id=user.organization_id)
+        qs = self.filter(organization_id=user.organization_id)
+        if getattr(user, "role", "") in (Role.ATHLETE, Role.COACH):
+            from apps.subjects.access import subject_ids_for
+
+            ids = subject_ids_for(user)
+            if self.model._meta.model_name == "subject":
+                return qs.filter(pk__in=ids)
+            if any(f.name == "subject" for f in self.model._meta.fields):
+                return qs.filter(subject_id__in=ids)
+            return qs.none()
+        return qs
 
 
 class OrgScopedManager(models.Manager.from_queryset(OrgScopedQuerySet)):

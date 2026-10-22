@@ -9,8 +9,8 @@ from apps.core.models import AuditLog
 from apps.external.models import ExternalExam
 from apps.measurements.models import TestSession
 
-from . import search
-from .models import Sport, Subject
+from . import accounts, search
+from .models import AccountInvitation, Sport, Subject
 
 
 @login_required
@@ -86,6 +86,9 @@ def subject_detail(request, pk):
         "external_exams": subject.external_exams.order_by("-date"),
         # Stejná logika jako v pravidlech: karta nesmí tvrdit něco jiného než zpráva.
         "restriction": ExternalExam.active_restriction_for(subject),
+        "accounts": accounts.accounts_of(subject) if _may_edit(request.user) else None,
+        "sharings": [_with_coach_label(sh) for sh in subject.sharings.select_related("coach")],
+        "coaches": [_with_coach_label(c) for c in accounts.coaches(subject.organization)],
         "reports": subject.reports.order_by("-created_at")[:10],
         "trends": trends,
         "asymetrie_chart": (_both_themes(lambda theme: charts.asymmetry_chart(asymetrie, theme=theme))
@@ -350,3 +353,74 @@ def subject_action(request, pk):
                               + ". Měření a zprávy zůstaly pod kódem.")
     return redirect("subject_detail", pk=pk)
 
+
+def _with_coach_label(obj):
+    user = obj.coach if hasattr(obj, "coach") else obj
+    obj.trener = accounts.coach_label(user)
+    return obj
+
+
+@login_required
+def subject_invite(request, pk):
+    """Pozvánka k účtu sportovce nebo zákonného zástupce – odkaz a QR k předání."""
+    subject = get_object_or_404(Subject.objects.for_user(request.user), pk=pk)
+    if request.method != "POST" or not _may_edit(request.user):
+        return redirect("subject_detail", pk=pk)
+    kind = request.POST.get("druh")
+    if kind not in AccountInvitation.Kind.values:
+        return redirect("subject_detail", pk=pk)
+    invitation = accounts.create_invitation(subject, kind, user=request.user)
+    record(request, AuditLog.Action.CREATE, invitation, subject_code=subject.code, druh=kind)
+    return redirect("subject_invitation", pk=pk, inv_pk=invitation.pk)
+
+
+@login_required
+def subject_invitation(request, pk, inv_pk):
+    from django.conf import settings
+
+    from apps.measurements.questionnaires import qr_svg
+
+    subject = get_object_or_404(Subject.objects.for_user(request.user), pk=pk)
+    if not _may_edit(request.user):
+        return redirect("subject_detail", pk=pk)
+    invitation = get_object_or_404(subject.invitations, pk=inv_pk)
+    url = request.build_absolute_uri(reverse("portal_register", args=[invitation.token]))
+    identity = getattr(subject, "identity", None)
+    try:
+        email = identity.email if identity is not None else ""
+    except Exception:  # bez klíče
+        email = ""
+    if request.method == "POST" and request.POST.get("akce") == "email":
+        if accounts.send_invitation(invitation, url):
+            from django.contrib import messages
+
+            messages.success(request, f"Pozvánka odeslána na {email}.")
+            record(request, AuditLog.Action.UPDATE, invitation, subject_code=subject.code,
+                   odeslano="e-mail")
+        return redirect("subject_invitation", pk=pk, inv_pk=inv_pk)
+    search.label([subject], request.user, subject=lambda s: s)
+    return render(request, "subjects/invitation.html", {
+        "subject": subject, "invitation": invitation, "url": url, "qr": qr_svg(url),
+        "email": email, "can_email": bool(settings.EMAIL_HOST and email),
+    })
+
+
+@login_required
+def subject_sharing(request, pk):
+    """Laboratoř požádá o sdílení s trenérem; platit začne, až ho sportovec potvrdí v účtu."""
+    from django.contrib import messages
+
+    subject = get_object_or_404(Subject.objects.for_user(request.user), pk=pk)
+    if request.method == "POST" and _may_edit(request.user):
+        coach = accounts.coaches(subject.organization).filter(pk=request.POST.get("trener")).first()
+        if coach is not None:
+            sharing = accounts.request_sharing(subject, coach, by=request.user)
+            record(request, AuditLog.Action.UPDATE, subject, subject_code=subject.code,
+                   sdileni="zadost", trener=coach.get_username())
+            if sharing.status == sharing.Status.ACTIVE:
+                messages.info(request, "Sdílení s tímto trenérem už je aktivní.")
+            else:
+                messages.success(request, f"Žádost o sdílení s trenérem "
+                                          f"{accounts.coach_label(coach)} čeká na potvrzení "
+                                          f"sportovce v jeho účtu.")
+    return redirect(f"{reverse('subject_detail', args=[pk])}#ucet")

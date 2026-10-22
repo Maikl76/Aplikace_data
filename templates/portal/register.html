@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{# Pozvánku otevře nepřihlášený (založí účet) i přihlášený sportovec či rodič (připojí dítě). #}
+{% block content_anon %}{% include "portal/_register_body.html" %}{% endblock %}
+{% block content %}<div class="max-w-md">{% include "portal/_register_body.html" %}</div>{% endblock %}

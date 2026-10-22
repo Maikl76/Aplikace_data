@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+<div class="mb-5">
+  <div class="eyebrow">Portál sportovce</div>
+  <h1 class="text-2xl font-semibold">{% if souhlasy %}Souhlasy a sdílení{% else %}Moje výsledky{% endif %}</h1>
+</div>
+<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  {% for s in subjects %}
+    <a href="{% if souhlasy %}{% url 'portal_consents' s.pk %}{% else %}{% url 'portal_subject' s.pk %}{% endif %}" class="card p-4 flex items-center gap-3 hover:opacity-90">
+      <span class="avatar w-11 h-11">{{ s.jmeno|initials }}</span>
+      <span class="min-w-0 flex-1">
+        <span class="block font-medium truncate">{{ s.jmeno }}</span>
+        <span class="block text-xs text-muted">{{ s.code }} · {{ s.sport|default:"bez sportu" }} · měření: {{ s.pocet_mereni }}</span>
+      </span>
+      {% if s.cekajici %}<span class="badge badge-warn">{{ s.cekajici }} žádost</span>{% endif %}
+    </a>
+  {% empty %}
+    <div class="card p-6 text-sm text-muted sm:col-span-2 lg:col-span-3">
+      K vašemu účtu zatím není připojený žádný sportovec. Požádejte laboratoř o pozvánku.
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

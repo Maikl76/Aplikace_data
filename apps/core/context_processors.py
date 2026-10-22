@@ -9,11 +9,13 @@ def demo_mode(request):
 
 def read_only(request):
     """Výzkumník jen čte – stránky to řeknou předem, ne až po pokusu uložit."""
-    from .middleware import READ_ONLY
+    from .middleware import PORTAL_HOME, READ_ONLY
 
     user = getattr(request, "user", None)
-    return {"read_only": bool(user and user.is_authenticated and not user.is_superuser
-                              and user.role in READ_ONLY)}
+    logged = bool(user and user.is_authenticated and not user.is_superuser)
+    return {"read_only": logged and user.role in READ_ONLY,
+            # portál sportovce/trenéra má vlastní menu, bez hledání a laboratorních akcí
+            "portal": logged and user.role in PORTAL_HOME}
 
 
 def booking_counts(request):

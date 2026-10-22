@@ -165,10 +165,14 @@ def delete_subject(subject) -> None:
         raise SubjectError(f"Sportovce {subject.code} nelze smazat – má naměřená data nebo "
                            f"zprávy. Použijte deaktivaci, nebo anonymizaci (výmaz osobních "
                            f"údajů podle GDPR).")
+    from . import accounts
+
+    users = accounts.account_users(subject)
     for consent in subject.consents.all():
         if consent.document:
             consent.document.delete(save=False)
     subject.delete()
+    accounts.deactivate_orphans(users)
 
 
 @transaction.atomic
@@ -182,9 +186,18 @@ def anonymize(subject) -> list[str]:
     from apps.booking.models import BookingRequest, Participant
     from apps.ingest.models import StagedMeasurement
 
+    from . import accounts
+    from .models import Sharing
+
     done = []
+    users = accounts.account_users(subject)
     if SubjectIdentity.objects.filter(subject=subject).delete()[0]:
         done.append("jméno, datum narození a kontakt")
+    if accounts.deactivate_orphans(users):
+        done.append("účet sportovce / zástupce (vypnut)")
+    if subject.sharings.filter(status=Sharing.Status.ACTIVE).update(
+            status=Sharing.Status.REVOKED, decided_at=timezone.now()):
+        done.append("sdílení s trenérem (odvoláno)")
     if subject.external_ids.all().delete()[0] or subject.source_key:
         done.append("identifikátory v přístrojích a otisky jména")
     participants = list(Participant.objects.filter(subject=subject))

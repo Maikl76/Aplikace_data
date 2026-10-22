@@ -21,13 +21,24 @@ def _plain(text: str) -> str:
 
 
 def names_for(subjects, user) -> dict[int, str]:
-    """Jména sportovců, která smí uživatel vidět: {pk: „Jméno Příjmení“}."""
-    if not user.sees_identity or not settings.IDENTITY_ENCRYPTION_KEY:
+    """
+    Jména sportovců, která smí uživatel vidět: {pk: „Jméno Příjmení“}.
+    Laboratoř všechna, sportovec svoje a dětí, trenér sdílených, výzkumník žádné.
+    """
+    if not settings.IDENTITY_ENCRYPTION_KEY:
         return {}
+    from .access import subject_ids_for
     from .models import SubjectIdentity
 
+    qs = SubjectIdentity.objects.filter(subject__in=subjects)
+    if not user.sees_identity and not user.is_superuser:
+        allowed = subject_ids_for(user)
+        if not allowed:
+            return {}
+        qs = qs.filter(subject_id__in=allowed)
+
     names = {}
-    for identity in SubjectIdentity.objects.filter(subject__in=subjects):
+    for identity in qs:
         try:
             names[identity.subject_id] = identity.full_name
         except Exception:  # jiný klíč, poškozený záznam – radši kód než pád

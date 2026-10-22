@@ -1,0 +1,17 @@
+{% load ui %}
+<div class="card p-5 mb-5 flex flex-wrap items-center gap-4">
+  <span class="avatar w-14 h-14 text-lg">{{ subject.jmeno|initials }}</span>
+  <div class="min-w-0 flex-1">
+    {% if subjects_count > 1 %}<a href="{% url 'portal_home' %}" class="text-sm link">← všichni sportovci</a>{% endif %}
+    <h1 class="text-2xl font-semibold leading-tight">{{ subject.jmeno }}</h1>
+    <div class="mt-1 flex flex-wrap gap-1.5 text-sm">
+      <span class="badge">{{ subject.code }}</span>
+      <span class="badge">{{ subject.sport|default:"bez sportu" }}</span>
+      {% if subject.age is not None %}<span class="badge">{{ subject.age }} let</span>{% endif %}
+    </div>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <a href="{% url 'portal_subject' subject.pk %}" class="btn {% if not souhlasy_stranka %}btn-primary{% endif %}">{% icon "activity" %}Výsledky</a>
+    <a href="{% url 'portal_consents' subject.pk %}" class="btn {% if souhlasy_stranka %}btn-primary{% endif %}">{% icon "check" %}Souhlasy a sdílení{% if pending %} <span class="badge badge-warn ml-1">{{ pending|length }}</span>{% endif %}</a>
+  </div>
+</div>

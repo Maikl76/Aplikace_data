@@ -13,4 +13,7 @@ urlpatterns = [
     path("<int:pk>/dnes/", views.subject_today, name="subject_today"),
     path("qr-karty/", views.team_qr, name="team_qr"),
     path("souhlas/<int:pk>/dokument/", views.consent_document, name="consent_document"),
+    path("<int:pk>/pozvanka/", views.subject_invite, name="subject_invite"),
+    path("<int:pk>/pozvanka/<int:inv_pk>/", views.subject_invitation, name="subject_invitation"),
+    path("<int:pk>/sdileni/", views.subject_sharing, name="subject_sharing"),
 ]

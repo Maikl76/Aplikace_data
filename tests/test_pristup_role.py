@@ -29,8 +29,8 @@ def _user(org, role, username=None):
 
 # --- role ------------------------------------------------------------------
 
-@pytest.mark.parametrize("role", [Role.COACH, Role.ATHLETE])
-def test_trener_a_sportovec_se_neprihlasi(client, org, role):
+@pytest.mark.parametrize("role", [Role.COACH])
+def test_trener_se_zatim_neprihlasi(client, org, role):
     user = _user(org, role)
     response = client.post("/ucet/prihlaseni/", {"username": user.username,
                                                  "password": "tajne-heslo-1234"})

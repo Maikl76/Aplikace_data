@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mb-5">
+  <div class="eyebrow">Portál sportovce</div>
+  <h1 class="text-2xl font-semibold">Účet</h1>
+</div>
+<form method="post" class="card p-5 max-w-md space-y-4">{% csrf_token %}
+  <p class="text-sm text-muted">Přihlašovací jméno: <strong>{{ user.get_username }}</strong></p>
+  {% for field in form %}
+    <label class="block"><span class="text-sm text-2">{{ field.label }}</span>{{ field }}
+      {% for error in field.errors %}<span class="block text-xs" style="color: var(--bad)">{{ error }}</span>{% endfor %}</label>
+  {% endfor %}
+  <button type="submit" class="btn btn-primary">Změnit heslo</button>
+</form>
+{% endblock %}

@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+{% include "portal/_hlavicka.html" %}
+
+{% if pending %}
+  <div class="card px-4 py-3 mb-5 text-sm border-l-4 flex flex-wrap gap-3 items-center" style="border-left-color: var(--warn)">
+    <span style="color: var(--warn)">{% icon "alert" "w-5 h-5" %}</span>
+    <span class="flex-1">{% for s in pending %}Trenér <strong>{{ s.coach.get_full_name|default:s.coach.get_username }}</strong> žádá o přístup k vašim výsledkům.{% endfor %}</span>
+    <a href="{% url 'portal_consents' subject.pk %}" class="btn btn-sm btn-primary">Rozhodnout</a>
+  </div>
+{% endif %}
+
+{% if today_session %}
+  <div class="card px-4 py-3 mb-5 text-sm flex flex-wrap gap-3 items-center">
+    <span class="flex-1">Dnes máte měření. Po testu vyplňte, jak náročné vám přišlo.</span>
+    <a href="{% url 'portal_questionnaire' subject.pk %}" class="btn btn-sm">Vyplnit RPE</a>
+  </div>
+{% endif %}
+
+{% if tiles %}
+  <h2 class="eyebrow mb-2">Klíčové ukazatele</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
+    {% for t in tiles %}
+      <div class="card p-4 flex flex-col gap-2">
+        <div class="flex items-start justify-between gap-2">
+          <div class="text-sm text-2 leading-snug">{{ t.metric.name }}{% if t.label %}<span class="text-muted"> · {{ t.label }}</span>{% endif %}</div>
+          {% if t.verdict %}<span class="badge {{ t.verdict.css }} whitespace-nowrap">{% icon t.verdict.icon "w-3.5 h-3.5" %}{{ t.verdict.text }}</span>{% endif %}
+        </div>
+        <div class="flex items-end justify-between gap-3">
+          <div>
+            <span class="kpi-value tabular-nums">{{ t.value_txt }}</span><span class="kpi-unit">{{ t.unit }}</span>
+            <div class="text-xs text-muted mt-1 tabular-nums">{% if t.delta_txt %}{{ t.delta_txt }} {{ t.unit }} proti minule · {% endif %}{{ t.date|date:"d.m.Y" }}</div>
+          </div>
+          <div class="w-28 shrink-0">{{ t.spark }}</div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  <p class="text-xs text-muted -mt-6 mb-8">„V pásmu chyby měření“ znamená, že rozdíl proti minule je menší, než kolik se liší dvě měření téhož člověka ve stejný den. Není to zhoršení ani zlepšení.</p>
+{% endif %}
+
+{% if trends %}
+  <h2 class="eyebrow mb-2">Vývoj v čase</h2>
+  <div class="grid lg:grid-cols-2 gap-4 mb-8">
+    {% for spec in trends %}{% include "subjects/_chart.html" %}{% endfor %}
+  </div>
+{% endif %}
+
+<div class="grid lg:grid-cols-3 gap-4">
+  <section class="lg:col-span-2 card min-w-0">
+    <div class="px-4 pt-4 pb-2"><h2 class="card-title">Měření</h2></div>
+    <ul>
+      {% for s in sessions %}
+        <li class="border-t flex items-center gap-4 px-4 py-3" style="border-color: var(--border)">
+          <span class="text-center w-12 shrink-0 leading-tight">
+            <span class="block text-lg font-semibold tabular-nums">{{ s.date|date:"j." }}</span>
+            <span class="block text-xs text-muted">{{ s.date|date:"n. Y" }}</span>
+          </span>
+          <span class="flex-1 min-w-0 flex flex-wrap gap-1.5">
+            {% for p in s.protokoly %}<span class="badge">{{ p }}</span>{% empty %}<span class="text-sm text-muted">bez testu</span>{% endfor %}
+          </span>
+          {% if not s.hodnot %}<span class="badge">naplánováno</span>{% endif %}
+        </li>
+      {% empty %}
+        <li class="px-4 py-6 text-sm text-muted border-t" style="border-color: var(--border)">Zatím žádné měření.</li>
+      {% endfor %}
+    </ul>
+  </section>
+  <section class="card min-w-0">
+    <div class="px-4 pt-4 pb-2"><h2 class="card-title">Zprávy pro vás</h2></div>
+    <ul>
+      {% for r in reports %}
+        <li class="border-t px-4 py-3 flex items-center gap-3" style="border-color: var(--border)">
+          <span class="flex-1 min-w-0">
+            <a href="{% url 'portal_report' subject.pk r.pk %}" target="_blank" class="block text-sm font-medium link">{{ r.report_number }}</a>
+            <span class="block text-xs text-muted">{% if r.session %}měření {{ r.session.date|date:"d.m.Y" }}{% endif %}</span>
+          </span>
+          {% if r.pdf %}<a href="{% url 'portal_report_pdf' subject.pk r.pk %}" class="btn btn-sm" title="Stáhnout PDF">{% icon "download" %}</a>{% endif %}
+        </li>
+      {% empty %}
+        <li class="px-4 py-6 text-sm text-muted border-t" style="border-color: var(--border)">Zatím žádná vydaná zpráva pro sportovce. Zprávy pro trenéra nebo lékaře se tu neukazují.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}

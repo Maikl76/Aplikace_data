@@ -26,7 +26,8 @@ make seed                     # katalog + fiktivní data pro vývoj
 make up                       # http://localhost:8000
 ```
 
-Přihlášení po `make seed`: `admin` / `demo-heslo-1234` (jen pro vývoj).
+Přihlášení po `make seed`: `admin` / `demo-heslo-1234` (jen pro vývoj); portál
+sportovce `sportovec`, rodiče `rodic` a trenéra `trener` se stejným heslem.
 
 Bez `make` jsou to tytéž příkazy přes
 `docker compose run --rm web python manage.py <příkaz>`.
@@ -188,7 +189,8 @@ oprávnění se přiřadí sama:
 | **Správce** | vše včetně uživatelů |
 | **Diagnostik** | zadávat a opravovat měření, importovat, vydávat zprávy; **nesmí mazat** |
 | **Výzkumník** | jen číst; identitu sportovců nevidí. Aplikace mu každé uložení odmítne. |
-| **Trenér**, **Sportovec** | zatím bez přístupu: pohled „jen můj tým“ / „jen moje výsledky“ není hotový, aplikace takový účet při přihlášení odmítne |
+| **Sportovec / zákonný zástupce** | vlastní portál `/muj/`: své výsledky, zprávy pro sportovce, dotazníky, souhlasy a sdílení s trenérem; účet vzniká z pozvánky na kartě sportovce (viz [docs/portal.md](docs/portal.md)) |
+| **Trenér** | zatím bez přístupu: pohled „jen můj tým“ není hotový, aplikace takový účet při přihlášení odmítne |
 
 Do administrace se dostane jen uživatel s příznakem **„Stav týmu"**
 (`is_staff`).

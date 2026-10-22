@@ -4,7 +4,17 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.html import format_html
 
-from .models import Consent, Sport, Subject, SubjectExternalId, SubjectIdentity, Team
+from .models import (
+    AccountInvitation,
+    Consent,
+    Guardian,
+    Sharing,
+    Sport,
+    Subject,
+    SubjectExternalId,
+    SubjectIdentity,
+    Team,
+)
 
 
 @admin.register(Sport)
@@ -132,4 +142,29 @@ class SubjectIdentityAdmin(admin.ModelAdmin):
         return request.user.is_superuser
 
     def has_view_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+
+@admin.register(Sharing)
+class SharingAdmin(admin.ModelAdmin):
+    """Sdílení potvrzuje sportovec v účtu – tady jen přehled a nouzové odvolání."""
+
+    list_display = ("subject", "coach", "status", "decided_at")
+    list_filter = ("status",)
+    search_fields = ("subject__code", "coach__username")
+    readonly_fields = ("requested_by", "decided_by", "decided_at", "consent")
+
+
+@admin.register(AccountInvitation)
+class AccountInvitationAdmin(admin.ModelAdmin):
+    list_display = ("subject", "kind", "created_at", "expires_at", "used_at")
+    list_filter = ("kind",)
+    readonly_fields = ("token", "used_at", "used_by")
+
+
+@admin.register(Guardian)
+class GuardianAdmin(admin.ModelAdmin):
+    list_display = ("identity", "user", "created_at")
+
+    def has_module_permission(self, request):
         return request.user.is_superuser

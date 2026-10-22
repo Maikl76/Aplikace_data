@@ -15,15 +15,20 @@ from django.shortcuts import redirect, render
 
 from .models import Role
 
-NOT_READY = (Role.COACH, Role.ATHLETE)
+NOT_READY = (Role.COACH,)
 READ_ONLY = (Role.RESEARCHER,)
 SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
 # Odhlášení musí jít vždy; administrace si oprávnění hlídá sama.
 WRITE_ALLOWED_PREFIXES = ("/ucet/", "/admin/")
+# Portálové role se pohybují jen ve svém portálu; obrazovky laboratoře
+# jsou pro ně neviditelné (jinak by scoping ukázal celé pracoviště).
+PORTAL_HOME = {Role.ATHLETE: "portal_home"}
+PORTAL_PREFIXES = {
+    Role.ATHLETE: ("/muj/", "/ucet/", "/d/", "/objednavka/", "/o-aplikaci/", "/zdravi/"),
+}
 
-NOT_READY_MESSAGE = ("Účty trenérů a sportovců zatím nejsou v provozu – pohled „jen můj tým“ "
-                     "a „jen moje výsledky“ ještě není hotový. Přihlaste se účtem laboranta, "
-                     "nebo požádejte správce.")
+NOT_READY_MESSAGE = ("Účty trenérů zatím nejsou v provozu – pohled „jen můj tým“ ještě není "
+                     "hotový. Přihlaste se účtem laboranta, nebo požádejte správce.")
 
 
 class RoleAccessMiddleware:
@@ -40,4 +45,7 @@ class RoleAccessMiddleware:
             if (user.role in READ_ONLY and request.method not in SAFE_METHODS
                     and not request.path.startswith(WRITE_ALLOWED_PREFIXES)):
                 return render(request, "core/jen_cteni.html", status=403)
+            if (user.role in PORTAL_HOME and not request.path.startswith("/static/")
+                    and not request.path.startswith(PORTAL_PREFIXES[user.role])):
+                return redirect(PORTAL_HOME[user.role])
         return self.get_response(request)

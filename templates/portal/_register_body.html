@@ -1,0 +1,22 @@
+<div class="card p-6">
+  {% if invalid %}
+    <h1 class="text-lg font-semibold mb-1">Pozvánka neplatí</h1>
+    <p class="text-sm text-2">Odkaz je použitý nebo mu vypršela platnost. Požádejte laboratoř o novou pozvánku.</p>
+    <a href="{% url 'login' %}" class="btn mt-4">Přihlášení</a>
+  {% elif attach %}
+    <h1 class="text-lg font-semibold mb-1">Připojit sportovce k účtu</h1>
+    <p class="text-sm text-2 mb-4">Pozvánka pro {{ invitation.get_kind_display }} sportovce <strong>{{ invitation.subject.code }}</strong>. Připojí se k vašemu přihlášenému účtu <strong>{{ user.get_username }}</strong>.</p>
+    <form method="post">{% csrf_token %}<button name="akce" value="prijmout" class="btn btn-primary w-full">Připojit</button></form>
+  {% else %}
+    <h1 class="text-lg font-semibold mb-1">Účet k výsledkům testování</h1>
+    <p class="text-sm text-muted mb-4">Pozvánka pro {{ invitation.get_kind_display }} sportovce <strong>{{ invitation.subject.code }}</strong> od laboratoře FTVS UK. Heslo má aspoň 12 znaků.</p>
+    <form method="post" class="space-y-4">{% csrf_token %}
+      {% for field in form %}
+        <label class="block"><span class="text-sm text-2">{{ field.label }}</span>{{ field }}
+          {% for error in field.errors %}<span class="block text-xs" style="color: var(--bad)">{{ error }}</span>{% endfor %}</label>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary w-full">Založit účet</button>
+    </form>
+    <p class="text-xs text-muted mt-4">Už účet máte (třeba pro druhé dítě)? <a class="link" href="{% url 'login' %}?next={{ request.path|urlencode }}">Přihlaste se</a> a pozvánka se k němu připojí.</p>
+  {% endif %}
+</div>

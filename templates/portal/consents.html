@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+{% include "portal/_hlavicka.html" with souhlasy_stranka=True %}
+
+<div class="grid lg:grid-cols-2 gap-4">
+  <section class="card p-4">
+    <h2 class="card-title mb-1">Sdílení s trenérem</h2>
+    <p class="text-sm text-muted mb-3">Trenér vidí jen vaše výsledky, trendy a zprávy pro trenéra – po dobu, kdy sdílení trvá. Odvolat ho můžete kdykoli, trenér od té chvíle nevidí nic.</p>
+    <ul class="space-y-2 text-sm">
+      {% for s in sharings %}
+        <li class="flex flex-wrap items-center gap-2 p-3 rounded-lg" style="background: var(--surface-2)">
+          <span class="flex-1 min-w-0">
+            <span class="font-medium">{{ s.trener }}</span>
+            <span class="block text-xs text-muted">{{ s.get_status_display }}{% if s.decided_at %} · {{ s.decided_at|date:"d.m.Y" }}{% endif %}</span>
+          </span>
+          <form method="post" class="flex gap-2">{% csrf_token %}<input type="hidden" name="sdileni" value="{{ s.pk }}">
+            {% if s.status == "requested" %}
+              <button name="akce" value="potvrdit" class="btn btn-sm btn-primary">Potvrdit</button>
+              <button name="akce" value="odmitnout" class="btn btn-sm">Odmítnout</button>
+            {% elif s.status == "active" %}
+              <button name="akce" value="odvolat" class="btn btn-sm" onclick="return confirm('Odvolat sdílení? Trenér od teď vaše výsledky neuvidí.')">Odvolat</button>
+            {% endif %}
+          </form>
+        </li>
+      {% empty %}
+        <li class="text-muted">Zatím s nikým nesdílíte.</li>
+      {% endfor %}
+    </ul>
+    {% if coaches %}
+      <form method="post" class="mt-4 flex flex-wrap items-end gap-2">{% csrf_token %}
+        <label class="block flex-1 min-w-[12rem]"><span class="text-xs text-2">Sdílet s trenérem</span>
+          <select name="trener" class="input mt-1">
+            {% for c in coaches %}<option value="{{ c.pk }}">{{ c.label }}</option>{% endfor %}
+          </select></label>
+        <button name="akce" value="sdilet" class="btn btn-primary">{% icon "check" %}Zapnout sdílení</button>
+      </form>
+    {% endif %}
+  </section>
+
+  <section class="card p-4">
+    <h2 class="card-title mb-1">Souhlasy</h2>
+    <p class="text-sm text-muted mb-3">Souhlasy, které laboratoř eviduje. Změnu souhlasu s testováním nebo s předáním zprávy lékaři vyřídíte s laboratoří.</p>
+    <ul class="space-y-1 text-sm">
+      {% for c in consents %}
+        <li class="flex items-center gap-2">
+          {% if c.is_valid %}<span class="badge badge-good">platí</span>{% else %}<span class="badge">neplatí</span>{% endif %}
+          <span class="flex-1">{{ c.get_scope_display }}</span>
+          <span class="text-xs text-muted tabular-nums">{{ c.granted_on|date:"d.m.Y" }}{% if c.revoked_on %} – odvoláno {{ c.revoked_on|date:"d.m.Y" }}{% elif c.valid_until %} – do {{ c.valid_until|date:"d.m.Y" }}{% endif %}</span>
+        </li>
+      {% empty %}<li class="text-muted">Žádný souhlas není evidovaný.</li>{% endfor %}
+    </ul>
+  </section>
+</div>
+
+<section class="card p-4 mt-4">
+  <h2 class="card-title mb-1">Kdo se díval na vaše data</h2>
+  <p class="text-sm text-muted mb-3">Každé zobrazení, stažení a změna se zapisuje. Tady je posledních {{ audit|length }} záznamů (bez vašich vlastních).</p>
+  <table class="table text-sm">
+    <thead><tr><th>Kdy</th><th>Kdo</th><th>Co</th></tr></thead>
+    <tbody>
+      {% for a in audit %}
+        <tr><td class="tabular-nums whitespace-nowrap">{{ a.timestamp|date:"d.m.Y H:i" }}</td>
+            <td>{% if a.user %}{{ a.user.get_full_name|default:a.user.get_username }} <span class="text-muted">({{ a.user.get_role_display }})</span>{% else %}—{% endif %}</td>
+            <td>{{ a.get_action_display|lower }} · {{ a.object_type }}</td></tr>
+      {% empty %}<tr><td colspan="3" class="text-muted">Zatím nikdo.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

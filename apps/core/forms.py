@@ -30,6 +30,6 @@ class LoginForm(AuthenticationForm):
 
     def confirm_login_allowed(self, user):
         super().confirm_login_allowed(user)
-        # Trenér a sportovec: vlastní omezený pohled ještě není, účet by viděl všechno.
+        # Trenér: vlastní omezený pohled ještě není, účet by viděl všechno.
         if user.role in NOT_READY and not user.is_superuser:
             raise forms.ValidationError(NOT_READY_MESSAGE, code="role_not_ready")

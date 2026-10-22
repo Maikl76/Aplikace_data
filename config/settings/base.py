@@ -43,6 +43,7 @@ LOCAL_APPS = [
     "apps.reports",       # generování a předávání zpráv
     "apps.external",      # šev pro AKESO
     "apps.booking",       # objednávky testování od klientů
+    "apps.portal",        # portál sportovce a trenéra
 ]
 
 THIRD_PARTY_APPS = [

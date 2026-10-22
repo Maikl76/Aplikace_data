@@ -7,6 +7,7 @@ Jméno žije v ``SubjectIdentity``, šifrovaně a s vlastním oprávněním.
 čemu se tady vyhýbáme.)
 """
 
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
@@ -126,7 +127,9 @@ class Subject(OrgScopedModel):
 
     def display_for(self, user):
         """Jméno jen těm, kdo na ně mají mít nárok; ostatním pseudonym."""
-        if user.sees_identity and hasattr(self, "identity"):
+        from .access import may_see_name
+
+        if may_see_name(user, self) and hasattr(self, "identity"):
             return self.identity.full_name or self.code
         return self.code
 
@@ -172,6 +175,11 @@ class SubjectIdentity(TimeStampedModel):
 
     subject = models.OneToOneField(Subject, verbose_name="sportovec",
                                    on_delete=models.CASCADE, related_name="identity")
+    # Účet sportovce (role Sportovec). Vazba účet–sportovec je osobní údaj,
+    # proto bydlí tady v trezoru, ne v provozních tabulkách.
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, verbose_name="účet sportovce",
+                                on_delete=models.SET_NULL, null=True, blank=True,
+                                related_name="own_identity")
     first_name_enc = models.TextField("jméno (šifrovaně)", blank=True)
     last_name_enc = models.TextField("příjmení (šifrovaně)", blank=True)
     email_enc = models.TextField("e-mail (šifrovaně)", blank=True)
@@ -229,6 +237,114 @@ class SubjectIdentity(TimeStampedModel):
         return cls.objects.filter(last_name_hash=crypto.search_hash(last_name))
 
 
+class Guardian(TimeStampedModel):
+    """
+    Zákonný zástupce nezletilého sportovce: účet, který za něj vidí výsledky
+    a spravuje souhlasy. Jeden rodič může zastupovat víc dětí.
+    """
+
+    identity = models.ForeignKey(SubjectIdentity, verbose_name="sportovec",
+                                 on_delete=models.CASCADE, related_name="guardians")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="účet zástupce",
+                             on_delete=models.CASCADE, related_name="guardian_of")
+
+    class Meta:
+        verbose_name = "zákonný zástupce"
+        verbose_name_plural = "zákonní zástupci"
+        constraints = [
+            models.UniqueConstraint(fields=["identity", "user"], name="uniq_guardian"),
+        ]
+
+    def __str__(self):
+        return f"zástupce {self.identity.subject.code}"
+
+
+class AccountInvitation(TimeStampedModel):
+    """
+    Pozvánka k účtu: odkaz nebo QR, který laboratoř předá sportovci nebo
+    zákonnému zástupci. Jednorázová, s omezenou platností – vytištěný kód
+    nesmí po roce otevřít účet někomu jinému.
+    """
+
+    class Kind(models.TextChoices):
+        ATHLETE = "athlete", "sportovec"
+        GUARDIAN = "guardian", "zákonný zástupce"
+
+    subject = models.ForeignKey(Subject, verbose_name="sportovec", on_delete=models.CASCADE,
+                                related_name="invitations")
+    kind = models.CharField("pro koho", max_length=10, choices=Kind.choices)
+    token = models.CharField("klíč odkazu", max_length=64, unique=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="vytvořil",
+                                   on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name="+")
+    expires_at = models.DateTimeField("platí do")
+    used_at = models.DateTimeField("použito", null=True, blank=True)
+    used_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="použil",
+                                on_delete=models.SET_NULL, null=True, blank=True,
+                                related_name="+")
+
+    class Meta:
+        verbose_name = "pozvánka k účtu"
+        verbose_name_plural = "pozvánky k účtu"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"pozvánka {self.subject.code} ({self.get_kind_display()})"
+
+    @property
+    def is_valid(self) -> bool:
+        return self.used_at is None and self.expires_at > timezone.now()
+
+
+class Sharing(TimeStampedModel):
+    """
+    Sdílení výsledků sportovce s trenérem.
+
+    Platí jen potvrzené sportovcem (nebo zákonným zástupcem) v jeho účtu –
+    tým v aplikaci je organizační skupina laboratoře, ne právní titul k datům.
+    Trenér vidí sportovce jen po dobu aktivního sdílení, pak ani pod kódem.
+    """
+
+    class Status(models.TextChoices):
+        REQUESTED = "requested", "čeká na potvrzení sportovcem"
+        ACTIVE = "active", "aktivní"
+        REVOKED = "revoked", "odvoláno"
+        DECLINED = "declined", "odmítnuto"
+
+    subject = models.ForeignKey(Subject, verbose_name="sportovec", on_delete=models.CASCADE,
+                                related_name="sharings")
+    coach = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="trenér",
+                              on_delete=models.CASCADE, related_name="sharings",
+                              limit_choices_to={"role": "coach"})
+    status = models.CharField("stav", max_length=10, choices=Status.choices,
+                              default=Status.REQUESTED)
+    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="požádal",
+                                     on_delete=models.SET_NULL, null=True, blank=True,
+                                     related_name="+")
+    decided_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="rozhodl",
+                                   on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name="+")
+    decided_at = models.DateTimeField("rozhodnuto", null=True, blank=True)
+    consent = models.ForeignKey("Consent", verbose_name="souhlas", on_delete=models.SET_NULL,
+                                null=True, blank=True, related_name="sharings")
+    note = models.CharField("poznámka", max_length=200, blank=True)
+
+    class Meta:
+        verbose_name = "sdílení s trenérem"
+        verbose_name_plural = "sdílení s trenéry"
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["subject", "coach"], name="uniq_sharing"),
+        ]
+
+    def __str__(self):
+        return f"{self.subject.code} → {self.coach}: {self.get_status_display()}"
+
+    @property
+    def is_active(self) -> bool:
+        return self.status == self.Status.ACTIVE
+
+
 class Consent(TimeStampedModel):
     """
     Souhlas je entita s rozsahem a platností, ne zaškrtávátko. Odvolat
@@ -243,6 +359,7 @@ class Consent(TimeStampedModel):
         RESEARCH = "research", "Sekundární použití pro výzkum (anonymizovaně)"
         GENETICS = "genetics", "Genetická data"
         MICROBIOME = "microbiome", "Mikrobiom"
+        COACH = "coach", "Sdílení výsledků s trenérem"
 
     subject = models.ForeignKey(Subject, verbose_name="sportovec",
                                 on_delete=models.CASCADE, related_name="consents")

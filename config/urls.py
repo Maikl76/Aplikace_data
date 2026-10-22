@@ -4,12 +4,16 @@ from django.urls import include, path
 
 from apps.core.forms import LoginForm
 from apps.measurements import views as measurement_views
+from apps.portal import views as portal_views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("ucet/prihlaseni/", auth_views.LoginView.as_view(
         template_name="registration/login.html", authentication_form=LoginForm), name="login"),
     path("ucet/odhlaseni/", auth_views.LogoutView.as_view(), name="logout"),
+    # Založení účtu sportovce nebo zákonného zástupce z pozvánky laboratoře.
+    path("ucet/pozvanka/<str:token>/", portal_views.register, name="portal_register"),
+    path("muj/", include("apps.portal.urls")),
     path("", include("apps.core.urls")),
     path("sportovci/", include("apps.subjects.urls")),
     path("sporty/", include("apps.catalog.urls")),

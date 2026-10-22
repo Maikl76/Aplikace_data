@@ -14,6 +14,13 @@ def dashboard(request):
     """Přehled laboratoře: co je nového a co čeká na mě."""
     from datetime import timedelta
 
+    from django.shortcuts import redirect
+
+    from apps.core.models import Role
+
+    if request.user.role == Role.ATHLETE and not request.user.is_superuser:
+        return redirect("portal_home")
+
     from apps.ingest.models import ImportBatch
     from apps.subjects.search import names_for
 

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+<div class="mb-5">
+  <a href="{% url 'subject_detail' subject.pk %}#ucet" class="text-sm link">← {{ subject.jmeno }}</a>
+  <h1 class="text-2xl font-semibold mt-1">Pozvánka k účtu – {{ invitation.get_kind_display }}</h1>
+  <p class="text-sm text-muted">Platí do {{ invitation.expires_at|date:"d.m.Y" }}, jde použít jednou.
+    {% if invitation.used_at %}<strong>Už byla použita {{ invitation.used_at|date:"d.m.Y H:i" }}.</strong>{% endif %}</p>
+</div>
+<div class="grid md:grid-cols-2 gap-4 max-w-4xl">
+  <div class="card p-5 flex flex-col items-center gap-3">
+    <div class="w-56 h-56 [&>svg]:w-full [&>svg]:h-full">{{ qr|safe }}</div>
+    <p class="text-sm text-center text-muted">Sportovec naskenuje telefonem, nebo odkaz opíše.</p>
+  </div>
+  <div class="card p-5 space-y-3">
+    <label class="block"><span class="text-xs text-2">Odkaz</span>
+      <input class="input mt-1 text-sm" value="{{ url }}" readonly onclick="this.select()"></label>
+    {% if can_email %}
+      <form method="post">{% csrf_token %}
+        <button name="akce" value="email" class="btn btn-primary">Poslat na {{ email }}</button>
+      </form>
+    {% else %}
+      <p class="text-sm text-muted">{% if not email %}Sportovec nemá uložený e‑mail.{% else %}Odesílání e‑mailů není nastavené (EMAIL_HOST) – odkaz předejte jinak.{% endif %}</p>
+    {% endif %}
+    <p class="text-xs text-muted">Pozvánku předávejte jen té osobě, pro kterou je. Kdo ji otevře, uvidí výsledky sportovce.</p>
+    <a href="javascript:window.print()" class="btn btn-sm">{% icon "printer" %}Vytisknout</a>
+  </div>
+</div>
+{% endblock %}

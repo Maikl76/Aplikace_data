@@ -146,6 +146,37 @@
     </ul>
   </section>
 
+  <section class="card min-w-0" id="ucet">
+    <div class="px-4 pt-4 pb-2"><h2 class="card-title">Účet a sdílení s trenérem</h2></div>
+    <div class="px-4 pb-4 text-sm space-y-3">
+      {% if accounts %}
+        <div>
+          <span class="text-muted">Účet sportovce:</span>
+          {% if accounts.athlete %}<span class="badge badge-good">{{ accounts.athlete.get_username }}</span>{% else %}<span class="text-muted">žádný</span>{% endif %}
+          {% for g in accounts.guardians %}<span class="badge" title="zákonný zástupce">zástupce {{ g.get_username }}</span>{% endfor %}
+          {% for i in accounts.invitations %}<a class="badge badge-warn" href="{% url 'subject_invitation' subject.pk i.pk %}" title="nepoužitá pozvánka">pozvánka · {{ i.get_kind_display }}</a>{% endfor %}
+        </div>
+        <form method="post" action="{% url 'subject_invite' subject.pk %}" class="flex flex-wrap gap-2">{% csrf_token %}
+          <button name="druh" value="athlete" class="btn btn-sm">{% icon "qr" %}Pozvánka pro sportovce</button>
+          <button name="druh" value="guardian" class="btn btn-sm">{% icon "qr" %}Pozvánka pro zákonného zástupce</button>
+        </form>
+      {% endif %}
+      <div>
+        <span class="text-muted">Trenéři:</span>
+        {% for sh in sharings %}
+          <span class="badge {% if sh.status == 'active' %}badge-good{% elif sh.status == 'requested' %}badge-warn{% endif %}" title="{{ sh.get_status_display }}">{{ sh.trener }} · {{ sh.get_status_display }}</span>
+        {% empty %}<span class="text-muted">bez sdílení</span>{% endfor %}
+      </div>
+      {% if accounts and coaches %}
+        <form method="post" action="{% url 'subject_sharing' subject.pk %}" class="flex flex-wrap items-center gap-2">{% csrf_token %}
+          <select name="trener" class="input w-auto text-sm py-1.5">{% for c in coaches %}<option value="{{ c.pk }}">{{ c.trener }}</option>{% endfor %}</select>
+          <button class="btn btn-sm" title="Sdílení začne platit, až ho sportovec (nebo zástupce) potvrdí ve svém účtu">Požádat o sdílení</button>
+        </form>
+      {% endif %}
+      <p class="text-xs text-muted">Sdílení potvrzuje sportovec nebo zákonný zástupce ve svém účtu; trenér pak vidí jen jeho výsledky, trendy a zprávy pro trenéra.</p>
+    </div>
+  </section>
+
   <section class="card min-w-0">
     <div class="px-4 pt-4 pb-2"><h2 class="card-title">Zprávy</h2></div>
     <ul>

@@ -52,7 +52,7 @@
                 -translate-x-full md:translate-x-0 md:sticky md:top-0 md:h-screen
                 transition-transform duration-200"
          :class="menu ? 'translate-x-0' : '-translate-x-full md:translate-x-0'">
-    <a href="{% url 'dashboard' %}" class="flex items-center gap-3 px-5 h-16 border-b"
+    <a href="{% if portal %}{% url 'portal_home' %}{% else %}{% url 'dashboard' %}{% endif %}" class="flex items-center gap-3 px-5 h-16 border-b"
        style="border-color: var(--border)">
       <span class="avatar w-9 h-9 text-sm" style="background: var(--accent); color: #fff">FT</span>
       <span class="leading-tight">
@@ -61,6 +61,14 @@
       </span>
     </a>
     <nav class="flex-1 p-3 space-y-1">
+      {% if portal %}
+      {% nav_link "portal_home" "Moje výsledky" "activity" "/muj/" %}
+      {% nav_link "portal_consents_home" "Souhlasy a sdílení" "check" "/muj/souhlasy/" %}
+      {% nav_link "portal_account" "Účet" "users" "/muj/ucet/" %}
+      <div class="pt-3 mt-3 border-t" style="border-color: var(--border)">
+        {% nav_link "about" "O aplikaci" "info" %}
+      </div>
+      {% else %}
       {% nav_link "dashboard" "Přehled" "home" %}
       {% nav_link "subject_list" "Sportovci" "users" %}
       {% nav_link "team" "Týmový přehled" "grid" %}
@@ -75,6 +83,7 @@
         {% nav_link "/admin/" "Katalog a nastavení" "settings" "/admin/" %}
         {% nav_link "about" "O aplikaci" "info" %}
       </div>
+      {% endif %}
     </nav>
     <div class="p-3 border-t space-y-1" style="border-color: var(--border)">
       <button type="button" class="nav-link w-full" onclick="prepnoutRezim()">
@@ -105,6 +114,7 @@
         <button type="button" class="md:hidden btn px-2" @click="menu = true" aria-label="Menu">
           {% icon "menu" %}
         </button>
+        {% if not portal %}
         <div class="relative w-full max-w-[16rem]" x-data="{ open: false }" @click.outside="open = false"
              @keydown.escape.window="open = false">
           <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted">{% icon "search" "w-4 h-4" %}</span>
@@ -117,9 +127,10 @@
                                            max-sm:fixed max-sm:inset-x-4 max-sm:top-14 max-sm:w-auto"
                x-show="open" x-cloak></div>
         </div>
+        {% endif %}
         <div class="ml-auto flex items-center gap-2">
           {% block topbar_actions %}
-            <a href="{% url 'session_create' %}" class="btn btn-primary btn-sm">{% icon "plus" %}<span class="hidden sm:inline">Nové měření</span></a>
+            {% if not portal %}<a href="{% url 'session_create' %}" class="btn btn-primary btn-sm">{% icon "plus" %}<span class="hidden sm:inline">Nové měření</span></a>{% endif %}
           {% endblock %}
         </div>
       </div>

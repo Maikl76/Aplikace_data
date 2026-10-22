@@ -174,7 +174,7 @@ class Command(BaseCommand):
             short_name="ftvs", defaults={"name": "FTVS UK – laboratoř funkční diagnostiky"},
         )
 
-        self._ensure_admin(org, options.get("admin_password"))
+        demo_password = self._ensure_admin(org, options.get("admin_password"))
 
         metrics = {m.code: m for m in MetricDef.objects.filter(organization=None)}
         for code, (mdc, swc) in DEMO_MDC.items():
@@ -277,6 +277,7 @@ class Command(BaseCommand):
             recompute(session)
 
         self._demo_booking(org, protocols)
+        self._demo_accounts(org, demo_password)
         # Průvodce „Nový přístroj“ s ukázkovým přístrojem (soubory se v ukázce nenahrávají).
         from apps.ingest.device_setup import create_demo_device
 
@@ -356,10 +357,10 @@ class Command(BaseCommand):
         """
         from django.conf import settings
 
-        if User.objects.filter(username="admin").exists():
-            return
-
         password = password or os.environ.get("DEMO_ADMIN_PASSWORD")
+        if User.objects.filter(username="admin").exists():
+            return password
+
         if not password:
             # Známé heslo jen při vývoji na vlastním stroji. Zapnutý
             # DEMO_MODE znamená veřejně dostupnou instanci, a tam by to
@@ -369,7 +370,7 @@ class Command(BaseCommand):
                     "Účet správce se nezaložil: mimo vývoj je potřeba heslo. "
                     "Spusťte s --admin-password, nebo nastavte DEMO_ADMIN_PASSWORD."
                 ))
-                return
+                return None
             password = "demo-heslo-1234"
             self.stdout.write("Vytvořen účet admin / demo-heslo-1234 (jen pro vývoj).")
         else:
@@ -378,6 +379,52 @@ class Command(BaseCommand):
         User.objects.create_superuser(
             "admin", "admin@example.cz", password, organization=org, role=Role.ADMIN,
         )
+        return password
+
+    def _demo_accounts(self, org, password):
+        """
+        Ukázkové účty portálu se stejným heslem jako admin: sportovec
+        (FTVS-0001), rodič (zástupce FTVS-0002) a trenér (sdílení s 0001–0003).
+        Jména jsou vymyšlená; bez šifrovacího klíče zůstanou jen kódy.
+        """
+        from django.conf import settings
+
+        from apps.subjects import accounts
+        from apps.subjects.models import Guardian, SubjectIdentity
+
+        if not password or User.objects.filter(username="sportovec").exists():
+            return
+        subjects = {s.code: s for s in Subject.objects.filter(
+            organization=org, code__in=["FTVS-0001", "FTVS-0002", "FTVS-0003"])}
+        if len(subjects) < 3:
+            return
+        names = {"FTVS-0001": ("Jana", "Ukázková"), "FTVS-0002": ("Tomáš", "Ukázkový"),
+                 "FTVS-0003": ("Petra", "Vzorová")}
+        for code, (first, last) in names.items():
+            identity, _ = SubjectIdentity.objects.get_or_create(subject=subjects[code])
+            if settings.IDENTITY_ENCRYPTION_KEY and not identity.first_name_enc:
+                identity.set_names(first, last)
+                identity.save()
+
+        def make(username, role, **extra):
+            user = User(username=username, email=f"{username}@example.cz", organization=org,
+                        role=role, **extra)
+            user.set_password(password)
+            user.save()
+            return user
+
+        athlete = make("sportovec", Role.ATHLETE)
+        identity = SubjectIdentity.objects.get(subject=subjects["FTVS-0001"])
+        identity.user = athlete
+        identity.save(update_fields=["user"])
+        parent = make("rodic", Role.ATHLETE)
+        Guardian.objects.create(identity=SubjectIdentity.objects.get(subject=subjects["FTVS-0002"]),
+                                user=parent)
+        coach = make("trener", Role.COACH, first_name="Karel", last_name="Ukázkový")
+        for code in ("FTVS-0001", "FTVS-0003"):
+            accounts.start_sharing(subjects[code], coach, by=athlete)
+        accounts.request_sharing(subjects["FTVS-0002"], coach, by=coach)
+        self.stdout.write("Účty portálu: sportovec, rodic, trener (heslo jako admin).")
 
     def _make_values(self, trial, protocol_metric, ability, session_index, *,
                      body, body_day) -> int:
