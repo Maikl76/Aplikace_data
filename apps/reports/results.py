@@ -17,15 +17,15 @@ from django.utils import timezone
 from apps.analytics import queries
 from apps.analytics.charts import cz, qualifier_label
 from apps.analytics.queries import _combo_order
-from apps.analytics.services import find_norm
+from apps.analytics.services import NormIndex, find_norm
 from apps.catalog.models import Direction
-from apps.measurements.models import Measurement
+from apps.measurements.models import Measurement, canonical_side
 
 ASYMMETRY_THRESHOLD_PCT = 10.0
 
 
 def _key(m) -> tuple:
-    return (m.metric.code, m.side, m.mode, m.speed, m.segment)
+    return (m.metric.code, canonical_side(m.side), m.mode, m.speed, m.segment)
 
 
 def change_verdict(metric, delta: float) -> tuple[str, str]:
@@ -143,7 +143,7 @@ def _time(run) -> str:
     return timezone.localtime(run.started_at).strftime("%H:%M") if run.started_at else ""
 
 
-def protocol_results(session) -> list[dict]:
+def protocol_results(session, *, norms=None) -> list[dict]:
     """
     Tabulky výsledků po protokolech.
 
@@ -152,6 +152,7 @@ def protocol_results(session) -> list[dict]:
     tabulce vedle sebe – aby šlo porovnat „před“ a „po“ na jeden pohled.
     """
     subject = session.subject
+    norms = norms if norms is not None else NormIndex()
     blocks = []
 
     runs = list(session.protocol_runs.select_related("protocol")
@@ -216,7 +217,7 @@ def protocol_results(session) -> list[dict]:
                 row["verdict"], row["verdict_kind"] = change_verdict(metric, delta)
 
             norm = find_norm(metric, subject, side=side, mode=mode, speed=speed,
-                             day=session.date)
+                             day=session.date, norms=norms)
             if norm is not None and norm.mean is not None:
                 row["norm_txt"] = cz(norm.mean, d) + (f" ± {cz(norm.sd, d)}" if norm.sd else "")
                 if (z := norm.z_score(value)) is not None:
@@ -323,13 +324,13 @@ def _conditions_text(conditions: dict) -> str:
     return " · ".join(parts)
 
 
-def trend_series(session, *, limit: int = 8) -> list[dict]:
+def trend_series(session, *, limit: int = 8, norms=None) -> list[dict]:
     """
     Vývoj klíčových metrik do data tohoto měření (pozdější měření do zprávy
     nepatří). Jen řady, které mají hodnotu z tohoto dne a aspoň jedno
     starší měření – jediný bod není vývoj.
     """
-    series = queries.primary_metric_series(session.subject, limit_metrics=50,
+    series = queries.primary_metric_series(session.subject, limit_metrics=50, norms=norms,
                                            until=session.date)
     useful = [s for s in series
               if len(s["points"]) >= 2 and s["points"][-1][0] == session.date]
@@ -359,7 +360,8 @@ def machine_readable(blocks) -> list[dict]:
                 {
                     "metrika": r["metric"].code,
                     "jednotka": r["metric"].unit,
-                    "strana": r["qualifiers"]["side"],
+                    # Oboustranná hodnota je v příloze bez strany – tvar se nemění.
+                    "strana": "" if r["qualifiers"]["side"] in ("", "B") else str(r["qualifiers"]["side"]),
                     "rezim": r["qualifiers"]["mode"],
                     "rychlost": r["qualifiers"]["speed"],
                     "segment": r["qualifiers"]["segment"],

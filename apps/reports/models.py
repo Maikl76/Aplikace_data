@@ -75,7 +75,7 @@ class Report(OrgScopedModel):
                   "smějí jen uživatelé, kteří jméno smějí vidět (správce, laborant).")
 
     # Otisk pro rekonstrukci: proč zpráva říká to, co říká.
-    rules_version = models.CharField("verze sady pravidel", max_length=40, blank=True)
+    rules_version = models.TextField("verze sady pravidel", blank=True)
     llm_model = models.CharField("text sestavil", max_length=80, blank=True,
                                  help_text="Název jazykového modelu, nebo „šablona“.")
     generation_note = models.TextField("poznámka ke vzniku textu", blank=True,

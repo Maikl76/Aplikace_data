@@ -85,7 +85,13 @@ def stage_file(*, uploaded_file, user, organization, adapter_code="auto",
                 f"jako „{existing.original_name}“. Pokud jste mezitím doplnil profil "
                 f"importu, použijte v historii importů „načíst znovu“."
             )
-        existing.delete()  # zrušený nebo neúspěšný pokus – jde znovu
+        # Zrušený nebo neúspěšný pokus – jde znovu. Staré pokusy (chrání
+        # soubor před smazáním) i soubor na disku pryč, nový import začne čistě.
+        for old in existing.import_batches.all():
+            old.purge_staging()
+            old.delete()
+        existing.file.delete(save=False)
+        existing.delete()
 
     adapter = get_adapter(adapter_code)
     raw_file = RawFile.objects.create(

@@ -152,31 +152,14 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Raw exporty z přístrojů a vygenerovaná PDF jdou do objektového úložiště.
-# Lokálně lze nechat USE_S3=False a ukládat na disk; kód je stejný.
-if env.bool("USE_S3", default=False):
-    STORAGES = {
-        "default": {"BACKEND": "storages.backends.s3.S3Storage"},
-        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
-    }
-    AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
-    AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
-    AWS_S3_ENDPOINT_URL = env("AWS_S3_ENDPOINT_URL", default=None)
-    AWS_S3_FILE_OVERWRITE = False       # raw soubory se nikdy nepřepisují
-    AWS_DEFAULT_ACL = None
-else:
-    STORAGES = {
-        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
-    }
-
-# --- fronta úloh ------------------------------------------------------
-
-CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://redis:6379/0")
-CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default=CELERY_BROKER_URL)
-CELERY_TASK_TIME_LIMIT = 30 * 60
-CELERY_TIMEZONE = TIME_ZONE
+# Nahrané soubory (exporty z přístrojů, PDF zpráv, dokumenty souhlasů) jsou
+# na disku ve složce media – zálohuje ji zalohovat.bat / deploy/backup.sh.
+# Objektové úložiště (S3/MinIO) ani fronta úloh (Celery/Redis) se nepoužívají:
+# model píše souhrn ve vlákně aplikace. Přibudou, až bude potřeba.
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
 
 # --- vlastní nastavení aplikace --------------------------------------
 

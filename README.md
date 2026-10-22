@@ -116,8 +116,9 @@ identita žije šifrovaně v odděleném trezoru s vlastním oprávněním.
 | `apps/reports` | generování a předávání zpráv |
 | `apps/external` | šev pro AKESO (jen omezení zátěže, žádné nálezy) |
 
-Technologie: Django 5 + PostgreSQL + HTMX + Plotly, Celery/Redis na dlouhé
-úlohy, S3/MinIO na zdrojové soubory, WeasyPrint na PDF.
+Technologie: Django 5 + PostgreSQL (lokálně SQLite) + HTMX + Plotly,
+WeasyPrint na PDF. Souhrn píše jazykový model ve vlákně aplikace; fronta
+úloh ani objektové úložiště nejsou potřeba, soubory jsou na disku v `media/`.
 
 Knihovny pro prohlížeč jsou v `static/vendor/`, ne z CDN — fakultní server
 může být za firewallem bez přístupu do internetu a aplikace načítající
@@ -316,8 +317,8 @@ Další kroky:
    připojit k nim literaturu; teprve pak je zapnout
 3. **Adaptéry na přístroje** — `apps/ingest/adapters/`, kostra i registr jsou
    hotové; přidat ForceDecks, Biodex/HUMAC, Cosmed
-4. **Generování textu na pozadí** — s modelem na CPU trvá souhrn desítky
-   sekund; pro provoz přesunout do Celery
+4. **Generování textu na pozadí** — hotové ve vlákně aplikace (stránka
+   na model nečeká); fronta úloh až při víc souběžných uživatelích na serveru
 
 ## Vývoj
 

@@ -27,8 +27,9 @@ import operator
 import string
 
 from apps.analytics import queries
-from apps.analytics.services import find_norm
+from apps.analytics.services import NormIndex, find_norm
 from apps.external.models import ExternalExam
+from apps.measurements.models import canonical_side
 
 from .models import Finding, Severity
 
@@ -272,6 +273,7 @@ def _build_context(session) -> dict:
         "previous": queries.previous_session_values(session),
         "asymmetries": queries.session_asymmetries(session),
         "subject": session.subject,
+        "norms": NormIndex(),
     }
 
 
@@ -323,6 +325,9 @@ def _matches_where(entry: dict, where: dict) -> bool:
         actual = entry.get(key)
         if key == "speed" and actual is not None and expected is not None:
             if float(actual) != float(expected):
+                return False
+        elif key == "side":
+            if canonical_side(actual or "") != canonical_side(expected or ""):
                 return False
         elif actual != expected:
             return False
@@ -415,7 +420,7 @@ def _eval_z(condition, context) -> list[dict]:
             continue
         norm = find_norm(metric, context["subject"], side=entry["side"],
                          mode=entry["mode"], speed=entry["speed"],
-                         day=context["session"].date)
+                         day=context["session"].date, norms=context.get("norms"))
         if norm is None:
             continue
         z = norm.z_score(entry["value"])

@@ -28,7 +28,13 @@ def test_demo_je_podmnozinou_base():
 
 
 def test_demo_obsahuje_to_co_se_importuje_pri_startu():
-    """Celery se importuje v config/__init__.py – bez něj aplikace nenaběhne."""
+    """Bez těchto knihoven aplikace nenaběhne ani v ukázce."""
     demo = _packages(REQ / "demo.txt")
-    for nutne in ("django", "django-environ", "celery", "whitenoise", "cryptography"):
+    for nutne in ("django", "django-environ", "django-axes", "whitenoise", "cryptography"):
         assert nutne in demo, f"{nutne} chybí v demo.txt"
+
+
+def test_nepouzivane_sluzby_nejsou_v_knihovnach():
+    """Celery, Redis a S3 se nepoužívají – nesmí se vracet potichu."""
+    base = _packages(REQ / "base.txt")
+    assert not base & {"celery", "redis", "boto3", "django-storages"}

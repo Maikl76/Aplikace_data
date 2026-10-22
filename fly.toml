@@ -45,8 +45,7 @@ primary_region = "fra"          # Frankfurt – nejblíž a v EU
   memory = "512mb"
 
 # Nahrané soubory a vygenerovaná PDF. Bez disku by zmizely při každém
-# nasazení. Disk je vázaný na jeden stroj – pro ukázku to stačí, pro
-# provoz patří soubory do objektového úložiště (viz USE_S3).
+# nasazení. Disk je vázaný na jeden stroj – pro ukázku to stačí.
 [[mounts]]
   source = "ftvs_media"
   destination = "/app/media"

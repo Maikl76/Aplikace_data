@@ -95,8 +95,8 @@ se známým heslem.
 fly volumes create ftvs_media --region fra --size 1
 ```
 
-Drží vygenerovaná PDF mezi nasazeními. Pro ostrý provoz sem patří
-objektové úložiště (`USE_S3`), ne disk vázaný na jeden stroj.
+Drží vygenerovaná PDF mezi nasazeními. Pro ostrý provoz je to disk vázaný
+na jeden stroj – stačí pro ukázku, ne pro fakultní server.
 
 ## 5. Nasazení
 

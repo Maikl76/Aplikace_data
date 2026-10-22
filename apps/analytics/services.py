@@ -6,6 +6,7 @@ nic specifického pro force plate nebo izokinetiku. Přidáním nového
 protokolu do katalogu tyhle funkce začnou fungovat i pro něj.
 """
 
+from collections import defaultdict
 from dataclasses import dataclass
 
 from apps.catalog.models import Direction, Norm
@@ -54,7 +55,24 @@ def compare_to_previous(metric, current: float, previous: float) -> ChangeResult
     return ChangeResult(delta, is_real, is_worthwhile, improvement, text)
 
 
-def find_norm(metric, subject, *, side="", mode="", speed=None, day=None):
+class NormIndex:
+    """
+    Normy načtené jedním dotazem pro celou zprávu nebo kartu sportovce.
+
+    Hledání normy běželo pro každý řádek tabulky zvlášť – u zprávy přes
+    sto dotazů. Tady se načtou jednou a dál se jen vybírá v paměti.
+    """
+
+    def __init__(self):
+        self._by_metric: dict[int, list] = defaultdict(list)
+        for norm in Norm.objects.all():
+            self._by_metric[norm.metric_id].append(norm)
+
+    def for_metric(self, metric) -> list:
+        return self._by_metric.get(metric.pk, [])
+
+
+def find_norm(metric, subject, *, side="", mode="", speed=None, day=None, norms=None):
     """
     Nejspecifičtější norma, která na sportovce a měření sedí (věk v den
     ``day``, jinak dnes).
@@ -64,7 +82,7 @@ def find_norm(metric, subject, *, side="", mode="", speed=None, day=None):
     sportovce bez vyplněné úrovně) a norma pro levou stranu ne na pravou.
     Prázdné kritérium = norma platí obecně.
     """
-    qs = Norm.objects.filter(metric=metric)
+    qs = norms.for_metric(metric) if norms is not None else Norm.objects.filter(metric=metric)
     candidates = []
     age = subject.age_on(day)
     side = side or Side.BILATERAL   # oboustranná hodnota bývá uložená i bez strany

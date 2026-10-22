@@ -20,6 +20,7 @@ from django.db import transaction
 from django.template.loader import render_to_string
 from django.utils import timezone
 
+from apps.analytics.services import NormIndex
 from apps.rules import engine, evidence
 from apps.subjects.models import Consent
 
@@ -58,6 +59,10 @@ def build_draft(session, *, user, supersedes: Report | None = None,
 
     if audience not in Audience.values:
         audience = supersedes.audience if supersedes else Audience.COACH
+    # Číslo zprávy se bere z posledního vydaného; dva koncepty naráz by si
+    # ho mohly vzít stejné. Řádek organizace se proto na dobu transakce zamkne
+    # (PostgreSQL; SQLite zapisuje vždy jen jeden).
+    type(session.organization).objects.select_for_update().get(pk=session.organization_id)
     findings = engine.evaluate_session(session)
     citations = evidence.report_citations(session, findings)
     background = llm.is_enabled() and settings.LLM_BACKGROUND
@@ -222,7 +227,7 @@ TITLES = {
 def _rules_fingerprint(findings) -> str:
     """Které verze pravidel zprávu vyrobily – kvůli rekonstrukci."""
     used = sorted({f"{f.rule.code}@{f.rule_version}" for f in findings})
-    return ",".join(used)[:40]
+    return ",".join(used)
 
 
 def _inputs(session, findings) -> dict:
@@ -283,7 +288,8 @@ def report_context(report) -> dict:
     if session is None:
         return context
 
-    context["results"] = results.protocol_results(session)
+    norms = NormIndex()     # jednou pro celou zprávu
+    context["results"] = results.protocol_results(session, norms=norms)
     context["conditions"] = results.session_conditions(session)
     context["trends"] = [
         {
@@ -294,7 +300,7 @@ def report_context(report) -> dict:
             "caption": svg.trend_caption(s["metric"], s["points"]),
             "norm": s["norm"],
         }
-        for s in results.trend_series(session)
+        for s in results.trend_series(session, norms=norms)
     ]
     asymmetries = results.asymmetries(session)
     context["asymmetries"] = asymmetries

@@ -1,5 +1,7 @@
 # Vývojové prostředí. Stejné služby jako na serveru – proto se nasazení
 # obejde bez přepisování. Rozdíly jsou jen v docker-compose.prod.yml.
+# Fronta úloh ani objektové úložiště nejsou potřeba: model píše ve vlákně
+# aplikace, soubory jsou na disku ve složce media.
 
 services:
   db:
@@ -17,21 +19,6 @@ services:
       interval: 5s
       retries: 10
 
-  redis:
-    image: redis:7-alpine
-
-  minio:
-    image: minio/minio
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    volumes:
-      - miniodata:/data
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-
   web:
     build: .
     command: python manage.py runserver 0.0.0.0:8000
@@ -43,19 +30,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      redis:
-        condition: service_started
-
-  worker:
-    build: .
-    command: celery -A config worker -l info
-    volumes:
-      - .:/app
-    env_file: .env
-    depends_on:
-      - db
-      - redis
 
 volumes:
   pgdata:
-  miniodata:

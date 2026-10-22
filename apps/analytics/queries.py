@@ -13,9 +13,9 @@ které v žádné tabulce zprávy není.
 
 from collections import defaultdict
 
-from apps.measurements.models import Measurement, Side
+from apps.measurements.models import Measurement, Side, canonical_side
 
-from .services import asymmetries_for_run, find_norm
+from .services import NormIndex, asymmetries_for_run, find_norm
 
 
 def _primary_protocols() -> dict[int, set[int]]:
@@ -34,7 +34,7 @@ def canonical_protocol(protocols, metric, primary: dict):
     return min(protocols, key=lambda p: (p.pk not in primary.get(metric.pk, ()), p.code, p.pk))
 
 
-def primary_metric_series(subject, *, limit_metrics: int = 6, until=None):
+def primary_metric_series(subject, *, limit_metrics: int = 6, until=None, norms=None):
     """
     Pro klíčové metriky vrátí vývoj v čase.
 
@@ -60,11 +60,12 @@ def primary_metric_series(subject, *, limit_metrics: int = 6, until=None):
     # klíč -> den -> test -> hodnoty pokusů
     buckets = defaultdict(lambda: defaultdict(dict))
     for m in measurements:
-        key = (m.metric, m.side, m.mode, m.speed, m.segment)
+        key = (m.metric, canonical_side(m.side), m.mode, m.speed, m.segment)
         run = m.trial.protocol_run
         buckets[key][run.session.date].setdefault(run.protocol, []).append(m.value)
 
     primary = _primary_protocols()
+    norms = norms if norms is not None else NormIndex()
     series = []
     for (metric, side, mode, speed, segment), by_date in buckets.items():
         points = sorted(
@@ -76,7 +77,7 @@ def primary_metric_series(subject, *, limit_metrics: int = 6, until=None):
             "metric": metric,
             "qualifiers": {"side": side, "mode": mode, "speed": speed, "segment": segment},
             "points": points,
-            "norm": find_norm(metric, subject, side=side, mode=mode, speed=speed),
+            "norm": find_norm(metric, subject, side=side, mode=mode, speed=speed, norms=norms),
         })
 
     return _spread_across_metrics(series, limit=limit_metrics)
@@ -157,7 +158,7 @@ def session_metric_values(session) -> dict:
                       trial__protocol_run__is_primary=True)
               .select_related("metric", "trial__protocol_run__protocol")
               .order_by("trial__number")):
-        key = (m.metric.code, m.side, m.mode, m.speed, m.segment)
+        key = (m.metric.code, canonical_side(m.side), m.mode, m.speed, m.segment)
         buckets[key].setdefault(m.trial.protocol_run.protocol, []).append(m.value)
         metrics[key] = m.metric
 
@@ -200,7 +201,7 @@ def previous_session_values(session, *, protocol=None) -> dict:
     buckets = defaultdict(lambda: defaultdict(dict))
     metrics = {}
     for m in qs:
-        key = (m.metric.code, m.side, m.mode, m.speed, m.segment)
+        key = (m.metric.code, canonical_side(m.side), m.mode, m.speed, m.segment)
         run = m.trial.protocol_run
         buckets[key][run.session.date].setdefault(run.protocol, []).append(m.value)
         metrics[key] = m.metric

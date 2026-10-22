@@ -18,7 +18,7 @@ import statistics
 from collections import defaultdict
 
 from apps.catalog.models import Direction
-from apps.measurements.models import Measurement
+from apps.measurements.models import Measurement, canonical_side
 
 from .charts import cz, qualifier_label
 
@@ -59,7 +59,7 @@ def columns_for(protocols) -> list[dict]:
 def _key(protocol_id, metric_id, side, mode, speed, segment):
     # Oboustranná hodnota bývá uložená jako „B“ i bez strany – je to totéž.
     # Test je součást klíče: hmotnost z plošiny nepatří do sloupce složení těla.
-    return (protocol_id, metric_id, "B" if side in ("", "B") else side, mode or "",
+    return (protocol_id, metric_id, canonical_side(side), mode or "",
             float(speed) if speed is not None else None, segment or "")
 
 

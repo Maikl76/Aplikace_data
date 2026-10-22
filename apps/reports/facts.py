@@ -10,7 +10,7 @@ Sportovec vystupuje pod pseudonymním kódem. Jméno model nikdy nedostane.
 """
 
 from apps.analytics import queries
-from apps.analytics.services import find_norm
+from apps.analytics.services import NormIndex, find_norm
 from apps.catalog.models import ProtocolMetric
 
 from . import narrative
@@ -182,6 +182,7 @@ def _key_metrics(session) -> list[dict]:
     )
     current = queries.session_metric_values(session)
     previous = queries.previous_session_values(session)
+    norms = NormIndex()
 
     out = []
     for key, entry in sorted(current.items(), key=lambda kv: kv[1]["metric"].name):
@@ -215,7 +216,8 @@ def _key_metrics(session) -> list[dict]:
                 item["mdc"] = round(metric.mdc, d)
 
         norm = find_norm(metric, session.subject, side=entry["side"],
-                         mode=entry["mode"], speed=entry["speed"], day=session.date)
+                         mode=entry["mode"], speed=entry["speed"], day=session.date,
+                         norms=norms)
         if norm is not None and (z := norm.z_score(entry["value"])) is not None:
             item["z_skore_vuci_norme"] = round(z, 1)
             item["norma_prumer"] = round(norm.mean, d)

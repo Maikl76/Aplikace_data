@@ -27,6 +27,11 @@ class Side(models.TextChoices):
     NONDOMINANT = "N", "Nedominantní"
 
 
+def canonical_side(side: str) -> str:
+    """Oboustranná hodnota bývá uložená jako „B“ i bez strany – pro klíče je to totéž."""
+    return Side.BILATERAL if side in ("", Side.BILATERAL) else side
+
+
 class Mode(models.TextChoices):
     CONCENTRIC = "con", "Koncentricky"
     ECCENTRIC = "ecc", "Excentricky"

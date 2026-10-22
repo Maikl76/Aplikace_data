@@ -37,6 +37,9 @@ REF_PREFIX = "odvozeno:"
 
 
 def _value(values: dict, code: str, side: str):
+    from apps.measurements.models import canonical_side
+
+    side = canonical_side(side)
     for (metric_code, s, mode, speed, segment), entry in values.items():
         if metric_code == code and s == side and not mode and speed is None and not segment:
             return entry["value"]
