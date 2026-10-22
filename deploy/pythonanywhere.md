@@ -161,25 +161,51 @@ git pull
 bash deploy/pa-update.sh
 ```
 
-Stáhne novou verzi, doinstaluje, co je potřeba, doplní do katalogu nové
-testy a restartuje aplikaci. Data zůstanou. Pak v prohlížeči **Ctrl+F5**.
+Stáhne novou verzi, **zazálohuje databázi a nahrané soubory** do složky
+`~/Zalohy-FTVS` (posledních 10 záloh), upraví databázi, doplní do katalogu
+nové testy a do ukázky chybějící ukázkové účty portálu (`sportovec`,
+`rodic`, `trener`) a restartuje aplikaci. **Data zůstanou** – účty, zprávy,
+cokoli jste v ukázce zadali. Pak v prohlížeči **Ctrl+F5**.
 
 `git pull` zvlášť předem je důležitý: skript se při stahování sám mění
 a bash by jinak dojel starou verzi.
 
-### Když nová verze přinese věci, které stará data nemají
+Pozor na **šipku nahoru** v konzoli: vrátí poslední příkaz i s přepínačem
+(třeba `--nova-data`).
 
-Například baterie testů, Wingate nebo RPE – stará vygenerovaná data je
-nemají, takže Týmový přehled a Dnešní testování zůstanou prázdné. Pak
-místo posledního příkazu:
+### Návrat ze zálohy
+
+```
+bash deploy/pa-update.sh --obnovit
+```
+
+Vrátí ukázku do stavu před poslední aktualizací – databázi i nahrané
+soubory. Skript chce opsat `OBNOVIT` a současný stav předtím zazálohuje.
+Starší zálohu obnovíte uvedením její složky (seznam: `ls ~/Zalohy-FTVS`):
+`bash deploy/pa-update.sh --obnovit ~/Zalohy-FTVS/ftvs-zaloha-…`.
+
+### Úplně nová ukázková data – smaže všechno
 
 ```
 bash deploy/pa-update.sh --nova-data
 ```
 
-Smaže ukázková data a vygeneruje nová (sportovce, měření, baterie).
-Přihlášení `admin` zůstane s heslem z `.env`. Jde to jen v ukázkovém
-režimu – ostrá data tímhle smazat nejde.
+**Smaže všechna data ukázky** – účty, zprávy, sportovce, měření, články,
+objednávky – a vygeneruje nová (sportovce, měření, baterie, ukázkové
+účty). Jen když chcete začít načisto. Skript se zeptá, chce opsat
+`SMAZAT` a před smazáním udělá zálohu. Přihlášení `admin` zůstane s heslem
+z `.env`. Jde to jen v ukázkovém režimu.
+
+Kvůli novým funkcím se data mazat nemusí – běžná aktualizace doplní, co
+je potřeba (katalog, ukázkové účty).
+
+### Databáze na síťovém disku
+
+Disk na PythonAnywhere je síťový. Režim WAL databáze SQLite přes síťový
+disk nefunguje a může ztratit data, proto je v `.env` `SQLITE_WAL=False`
+(aktualizace ho doplní sama). Databázi, kterou předchozí verze do WAL
+přepnula, aktualizace vrátí do klasického režimu – vypíše
+„Režim databáze: delete“.
 
 ## Ukázková zpráva od AI
 
@@ -209,7 +235,8 @@ Nejčastější příčiny:
 | *DisallowedHost* | v `.env` nesedí `DJANGO_ALLOWED_HOSTS` s adresou |
 | stránka bez stylů | neproběhl `collectstatic` (krok 6) |
 | nejde se přihlásit | heslo se bere z `.env` jen při prvním `bootstrap_demo`; změna pak v administraci nebo `python manage.py changepassword admin` |
-| *Disk quota exceeded* | instalace bez `--no-cache-dir`; smažte `~/.cache/pip` |
+| *Disk quota exceeded* | instalace bez `--no-cache-dir`; smažte `~/.cache/pip`; zálohy v `~/Zalohy-FTVS` (nechává se jich 10) |
+| po aktualizaci chybí data | `bash deploy/pa-update.sh --obnovit` vrátí stav před poslední aktualizací |
 
 ## Co tu nepoběží
 
