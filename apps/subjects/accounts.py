@@ -72,12 +72,13 @@ def register(invitation, *, email: str, password: str) -> User:
     return user
 
 
-def send_invitation(invitation, url: str) -> bool:
+def send_invitation(invitation, url: str, email: str = "") -> bool:
     """E‑mail s odkazem na uložený kontakt sportovce. Bez nastaveného serveru nic."""
     if not settings.EMAIL_HOST:
         return False
-    identity = SubjectIdentity.objects.filter(subject=invitation.subject).first()
-    email = identity.email if identity is not None else ""
+    if not email:
+        identity = SubjectIdentity.objects.filter(subject=invitation.subject).first()
+        email = identity.email if identity is not None else ""
     if not email:
         return False
     from django.core.mail import send_mail
@@ -86,6 +87,99 @@ def send_invitation(invitation, url: str) -> bool:
         "Přístup k výsledkům funkčního testování",
         "Dobrý den,\n\nlaboratoř FTVS UK vám zřizuje přístup k výsledkům testování. "
         f"Účet si založíte tímto odkazem (platí {INVITATION_DAYS} dní):\n\n{url}\n\n"
+        "Laboratoř funkční diagnostiky FTVS UK",
+        None, [email])
+    return True
+
+
+# --- přihlášení odkazem na e‑mail ------------------------------------------------
+
+LINK_SALT = "prihlaseni-odkazem"
+LINK_MAX_AGE = 30 * 60
+
+
+def identities_with_email(email: str) -> list:
+    """Identity s tímto uloženým e‑mailem (šifrovaný, porovnává se v paměti)."""
+    email = email.strip().lower()
+    if not email or not settings.IDENTITY_ENCRYPTION_KEY:
+        return []
+    found = []
+    for identity in (SubjectIdentity.objects.exclude(email_enc="")
+                     .select_related("subject").filter(subject__is_active=True)):
+        try:
+            if identity.email.strip().lower() == email:
+                found.append(identity)
+        except Exception:   # jiný klíč, poškozený záznam
+            continue
+    return found
+
+
+def login_link_token(user) -> str:
+    """Podepsaný odkaz; změna hesla ho zneplatní (nese kousek otisku hesla)."""
+    from django.core import signing
+
+    return signing.dumps({"u": user.pk, "h": user.password[-12:]}, salt=LINK_SALT)
+
+
+def user_from_login_link(token: str):
+    from django.core import signing
+
+    try:
+        data = signing.loads(token, salt=LINK_SALT, max_age=LINK_MAX_AGE)
+    except signing.BadSignature:
+        return None
+    user = User.objects.filter(pk=data.get("u"), role=Role.ATHLETE, is_active=True).first()
+    if user is None or user.password[-12:] != data.get("h"):
+        return None
+    return user
+
+
+def send_email_link(email: str, *, login_url, register_url, user=None) -> bool:
+    """
+    Druhá cesta k účtu, bez pozvánky od laboratoře. Komu patří e‑mail:
+    - účet sportovce/zástupce → odkaz pro přihlášení (30 minut),
+    - jen uložený kontakt sportovce → pozvánka k založení účtu (nezletilému
+      pro zákonného zástupce),
+    - nikomu → nic; stránka odpoví stejně, aby adresy nešlo zkoušet.
+    """
+    from django.core.mail import send_mail
+
+    email = email.strip().lower()
+    if not settings.EMAIL_HOST or not email:
+        return False
+    account = User.objects.filter(role=Role.ATHLETE, is_active=True, email__iexact=email).first()
+    if account is not None:
+        send_mail(
+            "Přihlášení k výsledkům testování",
+            "Dobrý den,\n\npřihlásíte se tímto odkazem (platí 30 minut):\n\n"
+            f"{login_url(login_link_token(account))}\n\nPokud jste o odkaz nežádali, "
+            "e-mail ignorujte.\n\nLaboratoř funkční diagnostiky FTVS UK",
+            None, [email])
+        return True
+
+    identities = identities_with_email(email)
+    if not identities:
+        return False
+    lines = []
+    for identity in identities:
+        subject = identity.subject
+        valid = [i for i in subject.invitations.all() if i.is_valid]
+        if valid:
+            invitation = valid[0]
+        else:
+            age = subject.age_on()
+            kind = (AccountInvitation.Kind.GUARDIAN if age is not None and age < 18
+                    else AccountInvitation.Kind.ATHLETE)
+            invitation = create_invitation(subject, kind, user=user)
+        who = ("zákonný zástupce – " if invitation.kind == AccountInvitation.Kind.GUARDIAN
+               else "") + (identity.full_name or subject.code)
+        lines.append(f"- {who}: {register_url(invitation.token)}")
+    send_mail(
+        "Přístup k výsledkům funkčního testování",
+        "Dobrý den,\n\nk tomuto e-mailu laboratoř FTVS UK eviduje testovaného sportovce. "
+        f"Účet si založíte odkazem (platí {INVITATION_DAYS} dní, jde použít jednou):\n\n"
+        + "\n".join(lines)
+        + "\n\nPokud jste o přístup nežádali, e-mail ignorujte.\n\n"
         "Laboratoř funkční diagnostiky FTVS UK",
         None, [email])
     return True

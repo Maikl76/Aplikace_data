@@ -189,7 +189,7 @@ oprávnění se přiřadí sama:
 | **Správce** | vše včetně uživatelů |
 | **Diagnostik** | zadávat a opravovat měření, importovat, vydávat zprávy; **nesmí mazat** |
 | **Výzkumník** | jen číst; identitu sportovců nevidí. Aplikace mu každé uložení odmítne. |
-| **Sportovec / zákonný zástupce** | vlastní portál `/muj/`: své výsledky, zprávy pro sportovce, dotazníky, souhlasy a sdílení s trenérem; účet vzniká z pozvánky na kartě sportovce (viz [docs/portal.md](docs/portal.md)) |
+| **Sportovec / zákonný zástupce** | vlastní portál `/muj/`: své výsledky, zprávy pro sportovce, dotazníky, souhlasy a sdílení s trenérem; účet vzniká z pozvánky (karta sportovce, potvrzení objednávky) nebo odkazem na e‑mail uložený v laboratoři (viz [docs/portal.md](docs/portal.md)) |
 | **Trenér** | vlastní portál `/trener/`: jen sportovci, kteří mu sdílení potvrdili, jménem; trendy, přehled skupiny, zprávy pro trenéra; o sdílení žádá kódem sportovce |
 
 Do administrace se dostane jen uživatel s příznakem **„Stav týmu"**

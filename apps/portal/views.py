@@ -400,3 +400,45 @@ def portal_home_url(user) -> str:
     if user.role == Role.COACH:
         return reverse("coach_home")
     return reverse("dashboard")
+
+
+# --- přihlášení odkazem na e‑mail ------------------------------------------------
+
+LINK_REQUESTS_PER_HOUR = 5
+
+
+def email_link_request(request):
+    """
+    Druhá cesta k účtu: sportovec nebo rodič zadá e‑mail. Má‑li účet, dostane
+    odkaz pro přihlášení; má‑li laboratoř jen jeho kontakt, dostane pozvánku.
+    Odpověď je vždy stejná, aby nešlo zkoušet, které adresy laboratoř zná.
+    """
+    from django.conf import settings
+    from django.core.cache import cache
+
+    enabled = bool(settings.EMAIL_HOST)
+    sent = False
+    if request.method == "POST" and enabled:
+        key = f"odkaz:{request.META.get('REMOTE_ADDR', '')}"
+        if cache.get(key, 0) >= LINK_REQUESTS_PER_HOUR:
+            messages.error(request, "Příliš mnoho pokusů. Zkuste to za hodinu, nebo "
+                                    "požádejte laboratoř o pozvánku.")
+            return redirect("email_link_request")
+        cache.set(key, cache.get(key, 0) + 1, 60 * 60)
+        email = (request.POST.get("email") or "").strip().lower()
+        if email:
+            accounts.send_email_link(
+                email,
+                login_url=lambda t: request.build_absolute_uri(reverse("email_link", args=[t])),
+                register_url=lambda t: request.build_absolute_uri(
+                    reverse("portal_register", args=[t])))
+            sent = True
+    return render(request, "registration/odkaz.html", {"enabled": enabled, "sent": sent})
+
+
+def email_link(request, token):
+    user = accounts.user_from_login_link(token)
+    if user is None:
+        return render(request, "registration/odkaz.html", {"invalid": True}, status=410)
+    login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+    return redirect("portal_home")

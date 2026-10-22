@@ -13,6 +13,8 @@ urlpatterns = [
     path("ucet/odhlaseni/", auth_views.LogoutView.as_view(), name="logout"),
     # Založení účtu sportovce nebo zákonného zástupce z pozvánky laboratoře.
     path("ucet/pozvanka/<str:token>/", portal_views.register, name="portal_register"),
+    path("ucet/odkaz/", portal_views.email_link_request, name="email_link_request"),
+    path("ucet/odkaz/<str:token>/", portal_views.email_link, name="email_link"),
     path("muj/", include("apps.portal.urls")),
     path("trener/", include("apps.portal.coach_urls")),
     path("", include("apps.core.urls")),

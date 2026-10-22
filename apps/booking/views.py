@@ -85,6 +85,7 @@ def request_decide(request, pk):
     if request.method != "POST":
         return redirect("booking_detail", pk=pk)
     note = request.POST.get("zprava", "").strip()
+    invitations = []
     try:
         if request.POST.get("akce") == "schvalit":
             if (new_slot := request.POST.get("termin")) and new_slot != str(booking.slot_id):
@@ -96,8 +97,11 @@ def request_decide(request, pk):
             participants = services.approve(booking, request.user, note=note)
             record(request, AuditLog.Action.UPDATE, booking, akce="schváleno")
             created = sum(1 for p in participants if p.subject.note.endswith(booking.number))
+            invitations = services.invitations_for(participants, request.user)
             messages.success(request, f"Objednávka schválena: {len(participants)} testovacích dnů"
-                                      f" založeno ({created} nových sportovců).")
+                                      f" založeno ({created} nových sportovců)."
+                                      + (f" Pozvánky k účtu: {len(invitations)} – v e-mailu "
+                                         "klientovi a na kartě sportovce." if invitations else ""))
             event = "schvalena"
         else:
             services.reject(booking, request.user, note=note)
@@ -108,7 +112,8 @@ def request_decide(request, pk):
         messages.error(request, str(exc))
         return redirect("booking_detail", pk=pk)
 
-    if not services.notify(request, booking, event):
+    if not services.notify(request, booking, event,
+                           invitations=invitations if event == "schvalena" else ()):
         messages.warning(request, "E-mail klientovi se nepodařilo odeslat – dejte mu vědět jinak.")
     return redirect("booking_detail", pk=pk)
 

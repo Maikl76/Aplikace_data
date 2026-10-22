@@ -263,16 +263,46 @@ def reject(request: BookingRequest, user, *, note: str = ""):
     request.save(update_fields=["status", "decided_at", "decided_by", "decision_note"])
 
 
+def invitations_for(participants, user) -> list[tuple]:
+    """
+    Pozvánky k účtu pro účastníky, kteří účet ještě nemají: nezletilému
+    pozvánka pro zákonného zástupce, dospělému pro sportovce. Nevyužitá
+    platná pozvánka se použije znovu. Vrací dvojice (účastník, pozvánka).
+    """
+    from apps.subjects import accounts
+    from apps.subjects.models import AccountInvitation
+
+    today = timezone.localdate()
+    out = []
+    for participant in participants:
+        if participant.subject_id is None:
+            continue
+        existing = accounts.accounts_of(participant.subject)
+        if existing["athlete"] or existing["guardians"]:
+            continue
+        if existing["invitations"]:
+            invitation = existing["invitations"][0]
+        else:
+            age = participant.age_on(today)
+            kind = (AccountInvitation.Kind.GUARDIAN if age is not None and age < 18
+                    else AccountInvitation.Kind.ATHLETE)
+            invitation = accounts.create_invitation(participant.subject, kind, user=user)
+        out.append((participant, invitation))
+    return out
+
+
 # --- e-maily ---------------------------------------------------------------
 
 def _absolute(http_request, name, *args) -> str:
     return http_request.build_absolute_uri(reverse(name, args=args))
 
 
-def notify(http_request, request: BookingRequest, event: str) -> bool:
+def notify(http_request, request: BookingRequest, event: str, invitations=()) -> bool:
     """
     E-mail klientovi. Když se nepodaří (není nastavený server), objednávka
     tím nepadá – vrací False a aplikace to řekne laborantovi.
+    ``invitations``: dvojice (účastník, pozvánka) – odkazy k účtu do
+    potvrzení objednávky.
     """
     slot = timezone.localtime(request.slot.start)
     when = f"{slot:%d.%m.%Y v %H:%M}{', ' + request.slot.location if request.slot.location else ''}"
@@ -292,7 +322,8 @@ def notify(http_request, request: BookingRequest, event: str) -> bool:
             f"Objednávka {request.number} potvrzena",
             f"Dobrý den,\n\nvaše testování je potvrzené na termín {when}.\n"
             + (f"\n{request.decision_note}\n" if request.decision_note else "")
-            + f"\nStav objednávky: {status_url}"),
+            + f"\nStav objednávky: {status_url}"
+            + _invitation_lines(http_request, invitations)),
         "zamitnuta": (
             f"Objednávka {request.number}",
             f"Dobrý den,\n\nobjednávku na termín {when} bohužel nemůžeme potvrdit.\n"
@@ -300,9 +331,22 @@ def notify(http_request, request: BookingRequest, event: str) -> bool:
             + "\nNapište nám prosím, domluvíme jiný termín."),
     }
     subject, body = texts[event]
+    if not settings.EMAIL_HOST:
+        return False
     try:
         send_mail(subject, body + "\n\nLaboratoř funkční diagnostiky FTVS UK",
                   None, [request.email])
         return True
     except Exception:  # SMTP nedostupné, špatná adresa – objednávka platí dál
         return False
+
+
+def _invitation_lines(http_request, invitations) -> str:
+    if not invitations:
+        return ""
+    lines = ["", "Výsledky testování uvidíte ve svém účtu. Účet si založíte odkazem "
+                 "(platí 30 dní, jde použít jednou):"]
+    for participant, invitation in invitations:
+        who = ("zákonný zástupce – " if invitation.kind == "guardian" else "") + participant.full_name
+        lines.append(f"- {who}: {_absolute(http_request, 'portal_register', invitation.token)}")
+    return "\n".join(lines)

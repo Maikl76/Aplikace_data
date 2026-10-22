@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content_anon %}
+<div class="card p-6">
+  {% if invalid %}
+    <h1 class="text-lg font-semibold mb-1">Odkaz neplatí</h1>
+    <p class="text-sm text-2">Odkaz pro přihlášení vypršel (platí 30 minut) nebo byl použitý po změně hesla.</p>
+    <a href="{% url 'email_link_request' %}" class="btn mt-4">Poslat nový</a>
+  {% elif not enabled %}
+    <h1 class="text-lg font-semibold mb-1">Přihlášení e‑mailem</h1>
+    <p class="text-sm text-2">Na tomto serveru není odesílání e‑mailů zapnuté. Požádejte laboratoř o pozvánku – dostanete odkaz nebo QR kód.</p>
+    <a href="{% url 'login' %}" class="btn mt-4">Zpět na přihlášení</a>
+  {% elif sent %}
+    <h1 class="text-lg font-semibold mb-1">Zkontrolujte e‑mail</h1>
+    <p class="text-sm text-2">Pokud tuto adresu laboratoř zná, poslali jsme na ni odkaz: pro přihlášení (platí 30 minut), nebo pozvánku k založení účtu. Nic nepřišlo? Zkontrolujte nevyžádanou poštu, nebo požádejte laboratoř o pozvánku.</p>
+    <a href="{% url 'login' %}" class="btn mt-4">Zpět na přihlášení</a>
+  {% else %}
+    <h1 class="text-lg font-semibold mb-1">Přihlášení e‑mailem</h1>
+    <p class="text-sm text-muted mb-4">Pro sportovce a rodiče. Zadejte e‑mail, který máte v laboratoři uložený. Máte‑li už účet, přijde odkaz pro přihlášení; jinak pozvánka k jeho založení.</p>
+    <form method="post" class="space-y-4">{% csrf_token %}
+      <label class="block"><span class="text-sm text-2">E‑mail</span>
+        <input type="email" name="email" class="input mt-1" autocomplete="email" required autofocus></label>
+      <button type="submit" class="btn btn-primary w-full">Poslat odkaz</button>
+    </form>
+    <p class="text-xs text-muted mt-4"><a class="link" href="{% url 'login' %}">Zpět na přihlášení heslem</a></p>
+  {% endif %}
+</div>
+{% endblock %}

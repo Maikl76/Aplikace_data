@@ -16,8 +16,20 @@ a sdílení s trenérem. Laboratoř v portálu nic nezadává.
    hotový. Rodič s účtem otevře pozvánku pro druhé dítě přihlášený – dítě
    se k účtu připojí.
 
-Účet nejde založit jinak než z pozvánky: kdokoli jiný by se mohl
-zaregistrovat „jako“ sportovec.
+Další dvě cesty, obě přes e‑mail (server musí umět posílat poštu,
+`EMAIL_HOST`):
+
+- **Po schválení objednávky** odejde pozvánka automaticky v potvrzení
+  objednávky – dospělému pro sportovce, nezletilému pro zákonného zástupce.
+  Nevyužitá pozvánka je vidět i na kartě sportovce.
+- **Přihlášení e‑mailem** (odkaz na přihlašovací stránce): sportovec nebo
+  rodič zadá e‑mail, který má laboratoř uložený. Má‑li už účet, přijde
+  odkaz pro přihlášení (platí 30 minut); jinak pozvánka k založení účtu.
+  Odpověď stránky je vždy stejná, takže nejde zkoušet, které adresy
+  laboratoř zná; z jedné adresy jde poslat nejvýš pět žádostí za hodinu.
+
+Bez e‑mailu zůstává jen pozvánka: kdokoli jiný by se mohl zaregistrovat
+„jako“ sportovec.
 
 ## Sdílení s trenérem
 

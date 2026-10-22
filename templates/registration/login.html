@@ -23,6 +23,7 @@
     </label>
     <button type="submit" class="btn btn-primary w-full">Přihlásit</button>
   </form>
-  <p class="text-xs text-muted mt-4">Sportovci a rodiče: účet vzniká z pozvánky od laboratoře, přihlašovací jméno je váš e‑mail.</p>
+  <p class="text-xs text-muted mt-4">Sportovci a rodiče: účet vzniká z pozvánky od laboratoře, přihlašovací jméno je váš e‑mail.
+    <a class="link" href="{% url 'email_link_request' %}">Přihlásit se e‑mailem bez hesla</a>.</p>
 </div>
 {% endblock %}

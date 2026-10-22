@@ -24,6 +24,7 @@ def lab(db, settings):
 
     cache.clear()          # omezení počtu objednávek z jedné adresy
     settings.IDENTITY_ENCRYPTION_KEY = Fernet.generate_key().decode()
+    settings.EMAIL_HOST = "smtp.test"      # e-maily jdou v testech do schránky v paměti
     call_command("seed_catalog", verbosity=0)
     org = Organization.objects.create(name="FTVS", short_name="ftvs")
     silova = Offer.objects.create(organization=org, kind=Offer.Kind.PACKAGE,
