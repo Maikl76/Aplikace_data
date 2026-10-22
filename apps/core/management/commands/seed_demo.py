@@ -43,6 +43,62 @@ DEMO_MDC = {
     "segment_mass": (0.3, 0.2), "segment_lean_mass": (0.3, 0.2), "serve_speed": (4, 2),
 }
 
+# Podíl jedné strany segmentu na hmotnosti těla a kolik tělesného tuku nese.
+# Hlava a krk se neměří, proto součet segmentů nedává celou hmotnost.
+SEGMENT_SHARE = {"paze": 0.050, "noha": 0.165, "trup": 0.215}
+SEGMENT_FAT = {"paze": 0.8, "noha": 0.9, "trup": 1.2}
+BODY_CODES = {"height", "body_mass", "body_fat_pct", "lean_mass", "segment_mass",
+              "segment_lean_mass"}
+
+
+class _Body:
+    """
+    Tělo jednoho sportovce, ze kterého se odvozují všechny tělesné hodnoty.
+
+    Dřív se každá hodnota losovala zvlášť: výška se měnila o centimetry,
+    hmotnost na plošině nesouhlasila se složením těla, segmenty
+    neodpovídaly celku. Pro kolegy to vypadalo jako chyba aplikace.
+    Tady je výška stálá, hmotnost jedna na den (plošina ji jen o pár
+    deka rozhodí), beztuková hmota a segmenty se počítají z hmotnosti
+    a podílu tuku.
+    """
+
+    def __init__(self, sex, dominant_side):
+        self.height = round(random.uniform(*((158, 182) if sex == Sex.FEMALE else (170, 196))))
+        bmi = random.uniform(20, 24.5) if sex == Sex.FEMALE else random.uniform(21.5, 26)
+        self.mass0 = bmi * (self.height / 100) ** 2
+        self.fat0 = random.uniform(14, 24) if sex == Sex.FEMALE else random.uniform(8, 16)
+        self.mass_drift = random.uniform(-1.2, 1.2)     # kg mezi měřeními
+        self.fat_drift = random.uniform(-0.7, 0.4)       # procentní body mezi měřeními
+        weak = Side.LEFT if dominant_side == Side.RIGHT else Side.RIGHT
+        # Slabší strana je lehčí stále o totéž – ať je asymetrie v čase stálá.
+        self.side_factor = {(weak, seg): random.uniform(0.95, 0.99) for seg in SEGMENT_SHARE}
+
+    def day(self, index: int) -> dict:
+        mass = self.mass0 + self.mass_drift * index
+        fat = max(5.0, self.fat0 + self.fat_drift * index)
+        return {"mass": round(mass, 1), "fat": round(fat, 1)}
+
+    def value(self, code: str, combo: dict, day: dict, protocol_code: str):
+        mass, fat = day["mass"], day["fat"]
+        if code == "height":
+            return self.height
+        if code == "body_mass":
+            # Plošina váží při každém pokusu – liší se o pár deka, ne o kila.
+            return round(mass + (random.uniform(-0.2, 0.2) if protocol_code != "bodycomp"
+                                 else 0), 1)
+        if code == "body_fat_pct":
+            return fat
+        if code == "lean_mass":
+            return round(mass * (1 - fat / 100), 1)
+        segment = combo.get("segment") or "trup"
+        share = SEGMENT_SHARE.get(segment, 0.1)
+        seg_mass = mass * share * self.side_factor.get((combo.get("side"), segment), 1.0)
+        if code == "segment_mass":
+            return round(seg_mass, 2)
+        return round(seg_mass * (1 - fat / 100 * SEGMENT_FAT.get(segment, 1.0)), 2)
+
+
 # Rozumná rozmezí pro generování hodnot.
 RANGES = {
     "cmj_height": (28, 48), "cmj_peak_force": (1400, 2600), "cmj_rsi_mod": (0.35, 0.75),
@@ -177,9 +233,11 @@ class Command(BaseCommand):
                 )
 
             ability = {code: random.uniform(-1, 1) for code in RANGES}
+            body = _Body(subject.sex, subject.dominant_side)
             rpe = questionnaires.questionnaire(questionnaires.RPE)
 
             for index in range(options["sessions"]):
+                body_day = body.day(index)
                 day = today - timedelta(
                     days=(options["sessions"] - index - 1) * 120 + random.randint(0, 20))
                 session, _ = TestSession.objects.get_or_create(
@@ -207,7 +265,8 @@ class Command(BaseCommand):
                         # zadávací formulář, takže demo data mají tvar,
                         # jaký vznikne i ručním zadáním.
                         for pm in protocol.protocol_metrics.select_related("metric"):
-                            created += self._make_values(trial, pm, ability, index)
+                            created += self._make_values(trial, pm, ability, index,
+                                                         body=body, body_day=body_day)
                     if protocol.rpe_after and rpe:
                         questionnaires.save(session, rpe, {rpe.questions.first(): random.randint(7, 10)},
                                             run=run, source=QuestionnaireResponse.Source.SUBJECT)
@@ -320,12 +379,26 @@ class Command(BaseCommand):
             "admin", "admin@example.cz", password, organization=org, role=Role.ADMIN,
         )
 
-    def _make_values(self, trial, protocol_metric, ability, session_index) -> int:
+    def _make_values(self, trial, protocol_metric, ability, session_index, *,
+                     body, body_day) -> int:
         from apps.analytics.derived import DERIVED_METRICS
 
         metric = protocol_metric.metric
         if metric.code in DERIVED_METRICS:  # W/kg apod. se dopočítá
             return 0
+        protocol_code = trial.protocol_run.protocol.code
+        if metric.code in BODY_CODES:
+            made = 0
+            for combo in protocol_metric.qualifier_combinations():
+                _, is_new = Measurement.objects.get_or_create(
+                    trial=trial, metric=metric,
+                    side=combo["side"], mode=combo["mode"] or Mode.NA,
+                    speed=combo["speed"], segment=combo["segment"],
+                    defaults={"value": body.value(metric.code, combo, body_day, protocol_code)},
+                )
+                made += int(is_new)
+            return made
+
         low, high = RANGES[metric.code]
         centre = low + (high - low) * (0.5 + ability[metric.code] * 0.2)
         trend = session_index * (high - low) * 0.015
