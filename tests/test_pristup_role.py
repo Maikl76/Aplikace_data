@@ -29,18 +29,17 @@ def _user(org, role, username=None):
 
 # --- role ------------------------------------------------------------------
 
-@pytest.mark.parametrize("role", [Role.COACH])
-def test_trener_se_zatim_neprihlasi(client, org, role):
-    user = _user(org, role)
-    response = client.post("/ucet/prihlaseni/", {"username": user.username,
+def test_trener_a_sportovec_maji_jen_svuj_portal(client, org):
+    coach = _user(org, Role.COACH)
+    response = client.post("/ucet/prihlaseni/", {"username": coach.username,
                                                  "password": "tajne-heslo-1234"})
-    assert response.status_code == 200
-    assert "zatím nejsou v provozu" in response.content.decode()
-    # Ani s už existujícím přihlášením se do aplikace nedostane.
-    client.force_login(user)
-    response = client.get("/", follow=True)
-    assert response.redirect_chain[0][0].startswith("/ucet/prihlaseni/")
-    assert "zatím nejsou v provozu" in response.content.decode()
+    assert response.status_code == 302
+    assert client.get("/").url == "/trener/"
+    assert client.get("/sportovci/").url == "/trener/"
+    assert client.get("/trener/").status_code == 200
+    client.force_login(_user(org, Role.ATHLETE))
+    assert client.get("/").url == "/muj/"
+    assert client.get("/trener/").url == "/muj/"
 
 
 def test_vyzkumnik_jen_cte(client, org):

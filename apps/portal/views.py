@@ -14,7 +14,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.views import PasswordChangeView
-from django.db.models import Count
+from django.db.models import Count, Max
 from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -33,15 +33,22 @@ from apps.subjects.models import Sharing
 from .forms import RegistrationForm
 
 
-def athlete_required(view):
-    """Jen účet sportovce / zástupce (správce se podívat může)."""
-    @wraps(view)
-    @login_required
-    def wrapper(request, *args, **kwargs):
-        if request.user.role != Role.ATHLETE and not request.user.is_superuser:
-            return redirect("dashboard")
-        return view(request, *args, **kwargs)
-    return wrapper
+def _role_required(*roles):
+    """Jen účty daných rolí (správce se podívat může)."""
+    def decorator(view):
+        @wraps(view)
+        @login_required
+        def wrapper(request, *args, **kwargs):
+            if request.user.role not in roles and not request.user.is_superuser:
+                return redirect("dashboard")
+            return view(request, *args, **kwargs)
+        return wrapper
+    return decorator
+
+
+athlete_required = _role_required(Role.ATHLETE)
+coach_required = _role_required(Role.COACH)
+portal_required = _role_required(Role.ATHLETE, Role.COACH)
 
 
 def _subject(request, pk):
@@ -224,7 +231,127 @@ class AccountView(PasswordChangeView):
         return super().form_valid(form)
 
 
-account = athlete_required(AccountView.as_view())
+account = portal_required(AccountView.as_view())
+
+
+# --- trenér ------------------------------------------------------------------
+
+def _coach_subject(request, pk):
+    subject = get_object_or_404(subjects_for(request.user).filter(is_active=True), pk=pk)
+    subject.jmeno = subject.display_for(request.user)
+    return subject
+
+
+@coach_required
+def coach_home(request):
+    """Moji sportovci: jen ti, kdo sdílení potvrdili. Žádost o další podle kódu."""
+    from apps.analytics.team import columns_for, team_table
+    from apps.measurements.planning import battery_for
+
+    if request.method == "POST":
+        _coach_request(request)
+        return redirect("coach_home")
+
+    rows = list(subjects_for(request.user).filter(is_active=True)
+                .annotate(pocet_mereni=Count("sessions", distinct=True),
+                          posledni=Max("sessions__date")).order_by("code"))
+    for s in rows:
+        s.jmeno = s.display_for(request.user)
+    rows.sort(key=lambda s: s.jmeno.lower())
+    pending = (Sharing.objects.filter(coach=request.user, status=Sharing.Status.REQUESTED)
+               .select_related("subject").order_by("-created_at"))
+
+    # Týmový přehled po bateriích: sportovci téhož sportu vedle sebe.
+    tables = []
+    by_battery = {}
+    for s in rows:
+        battery = battery_for(s)
+        if battery is not None:
+            by_battery.setdefault(battery.pk, (battery, []))[1].append(s)
+    for battery, members in by_battery.values():
+        columns = columns_for(battery.protocols())
+        if columns:
+            table = team_table(members, columns, today=timezone.localdate())
+            tables.append({"battery": battery, "columns": columns, "rows": table["rows"],
+                           "summary": list(zip(columns, table["summary"], strict=True))})
+    return render(request, "portal/coach_home.html", {
+        "subjects": rows, "pending": pending, "tables": tables,
+    })
+
+
+def _coach_request(request):
+    from apps.subjects.models import Subject
+
+    code = (request.POST.get("kod") or "").strip().upper()
+    subject = Subject.objects.filter(organization=request.user.organization, code=code,
+                                     is_active=True).first()
+    if subject is None:
+        messages.error(request, f"Sportovec s kódem „{code}“ tu není. Kód má na své QR kartě "
+                                "a ve svém účtu.")
+        return
+    sharing = accounts.request_sharing(subject, request.user, by=request.user)
+    record(request, AuditLog.Action.UPDATE, subject, subject_code=subject.code,
+           sdileni="zadost-trener")
+    if sharing.status == Sharing.Status.ACTIVE:
+        messages.info(request, f"Sportovec {code} s vámi výsledky už sdílí.")
+    else:
+        messages.success(request, f"Žádost odeslána. Sportovec {code} ji uvidí ve svém účtu; "
+                                  "výsledky uvidíte, až ji potvrdí.")
+
+
+@coach_required
+def coach_subject(request, pk):
+    from apps.subjects.views import _both_themes
+
+    subject = _coach_subject(request, pk)
+    record(request, AuditLog.Action.VIEW, subject, subject_code=subject.code)
+    sessions = list(TestSession.objects.filter(subject=subject)
+                    .prefetch_related("protocol_runs__protocol")
+                    .annotate(hodnot=Count("protocol_runs__trials__measurements"))
+                    .order_by("-date"))
+    for s in sessions:
+        s.protokoly = sorted({run.protocol.name for run in s.protocol_runs.all()})
+    trends = [
+        _both_themes(lambda theme, s=s: charts.trend_chart(
+            s["metric"], s["points"], qualifiers=s["qualifiers"], norm=s["norm"], theme=theme))
+        for s in queries.primary_metric_series(subject)
+    ]
+    posledni, asymetrie = queries.latest_asymmetries(subject)
+    reports = (Report.objects.filter(subject=subject, status=Report.Status.RELEASED,
+                                     audience=Audience.COACH)
+               .select_related("session").order_by("-released_at"))
+    sharing = Sharing.objects.filter(subject=subject, coach=request.user).first()
+    return render(request, "portal/coach_subject.html", {
+        "subject": subject, "tiles": overview.kpi_tiles(subject), "trends": trends,
+        "sessions": sessions, "reports": reports, "asymetrie": asymetrie,
+        "asymetrie_session": posledni, "sharing": sharing,
+    })
+
+
+def _coach_report(subject, report_pk):
+    return get_object_or_404(Report, pk=report_pk, subject=subject,
+                             status=Report.Status.RELEASED, audience=Audience.COACH)
+
+
+@coach_required
+def coach_report(request, pk, report_pk):
+    from apps.reports.services import render_html
+
+    subject = _coach_subject(request, pk)
+    report = _coach_report(subject, report_pk)
+    record(request, AuditLog.Action.VIEW, report, subject_code=subject.code)
+    return HttpResponse(render_html(report))
+
+
+@coach_required
+def coach_report_pdf(request, pk, report_pk):
+    subject = _coach_subject(request, pk)
+    report = _coach_report(subject, report_pk)
+    if not report.pdf:
+        raise Http404("Zpráva nemá PDF.")
+    record(request, AuditLog.Action.EXPORT, report, subject_code=subject.code)
+    return FileResponse(report.pdf.open("rb"), as_attachment=True,
+                        filename=f"{report.report_number}.pdf")
 
 
 def register(request, token):
@@ -268,4 +395,8 @@ def register(request, token):
 
 def portal_home_url(user) -> str:
     """Kam patří účet po přihlášení."""
-    return reverse("portal_home") if user.role == Role.ATHLETE else reverse("dashboard")
+    if user.role == Role.ATHLETE:
+        return reverse("portal_home")
+    if user.role == Role.COACH:
+        return reverse("coach_home")
+    return reverse("dashboard")

@@ -15,20 +15,21 @@ from django.shortcuts import redirect, render
 
 from .models import Role
 
-NOT_READY = (Role.COACH,)
+NOT_READY = ()          # role, jejichž pohled ještě není hotový (dnes žádná)
 READ_ONLY = (Role.RESEARCHER,)
 SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
 # Odhlášení musí jít vždy; administrace si oprávnění hlídá sama.
 WRITE_ALLOWED_PREFIXES = ("/ucet/", "/admin/")
 # Portálové role se pohybují jen ve svém portálu; obrazovky laboratoře
 # jsou pro ně neviditelné (jinak by scoping ukázal celé pracoviště).
-PORTAL_HOME = {Role.ATHLETE: "portal_home"}
+PORTAL_HOME = {Role.ATHLETE: "portal_home", Role.COACH: "coach_home"}
 PORTAL_PREFIXES = {
     Role.ATHLETE: ("/muj/", "/ucet/", "/d/", "/objednavka/", "/o-aplikaci/", "/zdravi/"),
+    Role.COACH: ("/trener/", "/muj/ucet/", "/ucet/", "/objednavka/", "/o-aplikaci/", "/zdravi/"),
 }
 
-NOT_READY_MESSAGE = ("Účty trenérů zatím nejsou v provozu – pohled „jen můj tým“ ještě není "
-                     "hotový. Přihlaste se účtem laboranta, nebo požádejte správce.")
+NOT_READY_MESSAGE = ("Tento typ účtu zatím není v provozu. Přihlaste se účtem laboranta, "
+                     "nebo požádejte správce.")
 
 
 class RoleAccessMiddleware:

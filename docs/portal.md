@@ -1,4 +1,4 @@
-# Portál sportovce a zákonného zástupce
+# Portál sportovce, zákonného zástupce a trenéra
 
 Sportovec je subjektem údajů: má nárok vidět všechno o sobě, včetně toho,
 kdo si jeho data zobrazil. Portál (`/muj/`) mu dává vlastní výsledky,
@@ -44,3 +44,18 @@ kódem.
 
 Účty portálu nemají přístup do obrazovek laboratoře ani do administrace;
 každý pokus je přesměruje zpět do portálu.
+
+## Portál trenéra
+
+Účet trenéra zakládá správce v administraci (role Trenér, jméno
+a příjmení). Trenér v portálu (`/trener/`) vidí:
+
+- jen sportovce, kteří mu sdílení potvrdili – jménem, s klíčovými
+  ukazateli, trendy, stranovými rozdíly a seznamem měření,
+- přehled skupiny po bateriích testů (poslední hodnota, změna proti minule
+  nad pásmem chyby měření, průměr skupiny),
+- vydané zprávy **pro trenéra**; zprávy pro sportovce a lékaře ne.
+
+O sdílení žádá **kódem sportovce** (sportovec ho má na QR kartě a ve svém
+účtu). Dokud sportovec žádost nepotvrdí, trenér nevidí nic, ani jméno.
+Každé zobrazení se zapisuje do auditu a sportovec ho vidí v „Kdo se díval“.

@@ -14,6 +14,7 @@ urlpatterns = [
     # Založení účtu sportovce nebo zákonného zástupce z pozvánky laboratoře.
     path("ucet/pozvanka/<str:token>/", portal_views.register, name="portal_register"),
     path("muj/", include("apps.portal.urls")),
+    path("trener/", include("apps.portal.coach_urls")),
     path("", include("apps.core.urls")),
     path("sportovci/", include("apps.subjects.urls")),
     path("sporty/", include("apps.catalog.urls")),

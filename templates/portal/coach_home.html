@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <div class="eyebrow">Portál trenéra</div>
+    <h1 class="text-2xl font-semibold">Moji sportovci</h1>
+    <p class="text-sm text-muted">Vidíte jen sportovce, kteří vám sdílení potvrdili ve svém účtu. Sdílení mohou kdykoli odvolat.</p>
+  </div>
+  <form method="post" class="flex flex-wrap items-end gap-2">{% csrf_token %}
+    <label class="block"><span class="text-xs text-2">Kód sportovce</span>
+      <input name="kod" class="input mt-1 w-40 uppercase" placeholder="FTVS-0001" required></label>
+    <button class="btn btn-primary" title="Sportovec žádost uvidí ve svém účtu; výsledky uvidíte, až ji potvrdí">{% icon "plus" %}Požádat o sdílení</button>
+  </form>
+</div>
+
+{% if pending %}
+  <div class="card px-4 py-3 mb-5 text-sm">
+    <span class="text-muted">Čeká na potvrzení sportovcem:</span>
+    {% for s in pending %}<span class="badge badge-warn">{{ s.subject.code }}</span>{% endfor %}
+  </div>
+{% endif %}
+
+<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+  {% for s in subjects %}
+    <a href="{% url 'coach_subject' s.pk %}" class="card p-4 flex items-center gap-3 hover:opacity-90">
+      <span class="avatar w-11 h-11">{{ s.jmeno|initials }}</span>
+      <span class="min-w-0 flex-1">
+        <span class="block font-medium truncate">{{ s.jmeno }}</span>
+        <span class="block text-xs text-muted">{{ s.code }} · {{ s.sport|default:"bez sportu" }} · měření: {{ s.pocet_mereni }}{% if s.posledni %} · naposledy {{ s.posledni|date:"d.m.Y" }}{% endif %}</span>
+      </span>
+      <span class="text-muted">{% icon "chevron-right" "w-4 h-4" %}</span>
+    </a>
+  {% empty %}
+    <div class="card p-6 text-sm text-muted sm:col-span-2 lg:col-span-3">
+      Zatím s vámi nikdo nesdílí. Požádejte o sdílení kódem sportovce (má ho na QR kartě a ve svém účtu), nebo ať si vás sportovec vybere ve svém účtu sám.
+    </div>
+  {% endfor %}
+</div>
+
+{% for t in tables %}
+  <div class="flex items-baseline justify-between mb-2">
+    <h2 class="eyebrow">Přehled: {{ t.battery.label }}</h2>
+    <span class="text-xs text-muted">klíčové ukazatele baterie testů, poslední hodnota a změna proti minule</span>
+  </div>
+  <div class="card overflow-x-auto mb-8">
+    <table class="table text-sm">
+      <thead><tr><th>Sportovec</th>{% for c in t.columns %}<th class="text-right">{{ c.metric.name }}{% if c.label %}<span class="block text-xs font-normal text-muted">{{ c.label }}</span>{% endif %}{% if c.unit %}<span class="block text-xs font-normal text-muted">{{ c.unit }}</span>{% endif %}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for r in t.rows %}
+          <tr>
+            <td><a class="link" href="{% url 'coach_subject' r.subject.pk %}">{{ r.subject.jmeno }}</a></td>
+            {% for cell in r.cells %}
+              <td class="text-right tabular-nums">{% if cell %}{{ cell.value_txt }}{% if cell.verdict %}<span class="block text-xs {% if not cell.verdict.css %}text-muted{% endif %}" {% if cell.verdict.css == 'badge-good' %}style="color: var(--good)"{% elif cell.verdict.css == 'badge-warn' %}style="color: var(--warn)"{% endif %}>{{ cell.verdict.delta_txt }} · {{ cell.verdict.text }}</span>{% endif %}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+      {% if t.summary %}
+        <tfoot><tr><th>průměr skupiny</th>{% for c, s in t.summary %}<th class="text-right tabular-nums">{% if s.n %}{{ s.mean_txt }}<span class="block text-xs font-normal text-muted">n = {{ s.n }}</span>{% else %}—{% endif %}</th>{% endfor %}</tr></tfoot>
+      {% endif %}
+    </table>
+  </div>
+{% endfor %}
+{% endblock %}

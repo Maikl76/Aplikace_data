@@ -52,7 +52,7 @@
                 -translate-x-full md:translate-x-0 md:sticky md:top-0 md:h-screen
                 transition-transform duration-200"
          :class="menu ? 'translate-x-0' : '-translate-x-full md:translate-x-0'">
-    <a href="{% if portal %}{% url 'portal_home' %}{% else %}{% url 'dashboard' %}{% endif %}" class="flex items-center gap-3 px-5 h-16 border-b"
+    <a href="{% if portal and user.role == 'coach' %}{% url 'coach_home' %}{% elif portal %}{% url 'portal_home' %}{% else %}{% url 'dashboard' %}{% endif %}" class="flex items-center gap-3 px-5 h-16 border-b"
        style="border-color: var(--border)">
       <span class="avatar w-9 h-9 text-sm" style="background: var(--accent); color: #fff">FT</span>
       <span class="leading-tight">
@@ -62,9 +62,13 @@
     </a>
     <nav class="flex-1 p-3 space-y-1">
       {% if portal %}
+      {% if user.role == "coach" %}
+      {% nav_link "coach_home" "Moji sportovci" "users" "/trener/" %}
+      {% else %}
       {% nav_link "portal_home" "Moje výsledky" "activity" "/muj/" %}
       {% nav_link "portal_consents_home" "Souhlasy a sdílení" "check" "/muj/souhlasy/" %}
-      {% nav_link "portal_account" "Účet" "users" "/muj/ucet/" %}
+      {% endif %}
+      {% nav_link "portal_account" "Účet" "settings" "/muj/ucet/" %}
       <div class="pt-3 mt-3 border-t" style="border-color: var(--border)">
         {% nav_link "about" "O aplikaci" "info" %}
       </div>

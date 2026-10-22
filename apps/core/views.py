@@ -18,8 +18,11 @@ def dashboard(request):
 
     from apps.core.models import Role
 
-    if request.user.role == Role.ATHLETE and not request.user.is_superuser:
-        return redirect("portal_home")
+    if not request.user.is_superuser:
+        if request.user.role == Role.ATHLETE:
+            return redirect("portal_home")
+        if request.user.role == Role.COACH:
+            return redirect("coach_home")
 
     from apps.ingest.models import ImportBatch
     from apps.subjects.search import names_for

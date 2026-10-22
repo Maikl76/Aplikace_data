@@ -190,15 +190,16 @@ oprávnění se přiřadí sama:
 | **Diagnostik** | zadávat a opravovat měření, importovat, vydávat zprávy; **nesmí mazat** |
 | **Výzkumník** | jen číst; identitu sportovců nevidí. Aplikace mu každé uložení odmítne. |
 | **Sportovec / zákonný zástupce** | vlastní portál `/muj/`: své výsledky, zprávy pro sportovce, dotazníky, souhlasy a sdílení s trenérem; účet vzniká z pozvánky na kartě sportovce (viz [docs/portal.md](docs/portal.md)) |
-| **Trenér** | zatím bez přístupu: pohled „jen můj tým“ není hotový, aplikace takový účet při přihlášení odmítne |
+| **Trenér** | vlastní portál `/trener/`: jen sportovci, kteří mu sdílení potvrdili, jménem; trendy, přehled skupiny, zprávy pro trenéra; o sdílení žádá kódem sportovce |
 
 Do administrace se dostane jen uživatel s příznakem **„Stav týmu"**
 (`is_staff`).
 
-**Trenéři a sportovci sem nepatří.** Administrace Djanga umí oprávnění na
-úrovni modelu, ne řádku — trenér by v ní viděl všechny týmy. Pracovat budou
-v samotné aplikaci, která hlídá, na čí data vidí; dokud ten pohled není,
-účet s touto rolí se nepřihlásí.
+**Trenéři a sportovci do administrace nepatří.** Administrace Djanga umí
+oprávnění na úrovni modelu, ne řádku — trenér by v ní viděl všechny týmy.
+Pracují v portálu (`/muj/`, `/trener/`), který hlídá, na čí data vidí
+(`apps/subjects/access.py`); účet trenéra zakládá správce v administraci,
+účet sportovce vzniká z pozvánky.
 
 **Hádání hesla.** Po pěti špatných pokusech se dvojice účet + adresa na
 čtvrt hodiny zamkne (django-axes, bez internetu, záznam v databázi).

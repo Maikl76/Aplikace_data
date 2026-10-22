@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+<div class="card p-5 mb-5 flex flex-wrap items-center gap-4">
+  <span class="avatar w-14 h-14 text-lg">{{ subject.jmeno|initials }}</span>
+  <div class="min-w-0 flex-1">
+    <a href="{% url 'coach_home' %}" class="text-sm link">← moji sportovci</a>
+    <h1 class="text-2xl font-semibold leading-tight">{{ subject.jmeno }}</h1>
+    <div class="mt-1 flex flex-wrap gap-1.5 text-sm">
+      <span class="badge">{{ subject.code }}</span>
+      <span class="badge">{{ subject.sport|default:"bez sportu" }}</span>
+      {% if subject.age is not None %}<span class="badge">{{ subject.age }} let</span>{% endif %}
+      {% if sharing and sharing.decided_at %}<span class="badge badge-good" title="sdílení potvrzené sportovcem">sdílí od {{ sharing.decided_at|date:"d.m.Y" }}</span>{% endif %}
+    </div>
+  </div>
+</div>
+
+{% if tiles %}
+  <h2 class="eyebrow mb-2">Klíčové ukazatele</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
+    {% for t in tiles %}
+      <div class="card p-4 flex flex-col gap-2">
+        <div class="flex items-start justify-between gap-2">
+          <div class="text-sm text-2 leading-snug">{{ t.metric.name }}{% if t.label %}<span class="text-muted"> · {{ t.label }}</span>{% endif %}</div>
+          {% if t.verdict %}<span class="badge {{ t.verdict.css }} whitespace-nowrap">{% icon t.verdict.icon "w-3.5 h-3.5" %}{{ t.verdict.text }}</span>{% endif %}
+        </div>
+        <div class="flex items-end justify-between gap-3">
+          <div>
+            <span class="kpi-value tabular-nums">{{ t.value_txt }}</span><span class="kpi-unit">{{ t.unit }}</span>
+            <div class="text-xs text-muted mt-1 tabular-nums">{% if t.delta_txt %}{{ t.delta_txt }} {{ t.unit }} proti minule · {% endif %}{{ t.date|date:"d.m.Y" }}</div>
+          </div>
+          <div class="w-28 shrink-0">{{ t.spark }}</div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% if trends %}
+  <h2 class="eyebrow mb-2">Vývoj v čase</h2>
+  <div class="grid lg:grid-cols-2 gap-4 mb-8">
+    {% for spec in trends %}{% include "subjects/_chart.html" %}{% endfor %}
+  </div>
+{% endif %}
+
+{% if asymetrie %}
+  <div class="flex items-baseline justify-between mb-2">
+    <h2 class="eyebrow">Stranové rozdíly</h2>
+    <span class="text-xs text-muted">měření {{ asymetrie_session.date|date:"d.m.Y" }}</span>
+  </div>
+  <div class="card overflow-x-auto mb-8">
+    <table class="table text-sm">
+      <thead><tr><th>Ukazatel</th><th class="text-right">Rozdíl</th><th>Stav</th></tr></thead>
+      <tbody>
+        {% for r in asymetrie|slice:":10" %}
+          <tr>
+            <td>{{ r.metric.name }}{% if r.qualifiers.speed %}<span class="text-muted"> · {{ r.qualifiers.speed|floatformat:0 }}°/s</span>{% endif %}{% if r.qualifiers.segment %}<span class="text-muted"> · {{ r.qualifiers.segment }}</span>{% endif %}</td>
+            <td class="text-right tabular-nums">{{ r.index_pct|floatformat:1 }} %</td>
+            <td>{% if r.exceeds_threshold %}<span class="badge badge-warn">{% icon "alert" "w-3.5 h-3.5" %}nad 10 %</span>{% else %}<span class="text-muted text-xs">v mezích</span>{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+
+<div class="grid lg:grid-cols-3 gap-4">
+  <section class="lg:col-span-2 card min-w-0">
+    <div class="px-4 pt-4 pb-2"><h2 class="card-title">Měření</h2></div>
+    <ul>
+      {% for s in sessions %}
+        <li class="border-t flex items-center gap-4 px-4 py-3" style="border-color: var(--border)">
+          <span class="text-center w-12 shrink-0 leading-tight">
+            <span class="block text-lg font-semibold tabular-nums">{{ s.date|date:"j." }}</span>
+            <span class="block text-xs text-muted">{{ s.date|date:"n. Y" }}</span>
+          </span>
+          <span class="flex-1 min-w-0 flex flex-wrap gap-1.5">
+            {% for p in s.protokoly %}<span class="badge">{{ p }}</span>{% empty %}<span class="text-sm text-muted">bez testu</span>{% endfor %}
+          </span>
+          {% if not s.hodnot %}<span class="badge">naplánováno</span>{% endif %}
+        </li>
+      {% empty %}
+        <li class="px-4 py-6 text-sm text-muted border-t" style="border-color: var(--border)">Zatím žádné měření.</li>
+      {% endfor %}
+    </ul>
+  </section>
+  <section class="card min-w-0">
+    <div class="px-4 pt-4 pb-2"><h2 class="card-title">Zprávy pro trenéra</h2></div>
+    <ul>
+      {% for r in reports %}
+        <li class="border-t px-4 py-3 flex items-center gap-3" style="border-color: var(--border)">
+          <span class="flex-1 min-w-0">
+            <a href="{% url 'coach_report' subject.pk r.pk %}" target="_blank" class="block text-sm font-medium link">{{ r.report_number }}</a>
+            <span class="block text-xs text-muted">{% if r.session %}měření {{ r.session.date|date:"d.m.Y" }}{% endif %}</span>
+          </span>
+          {% if r.pdf %}<a href="{% url 'coach_report_pdf' subject.pk r.pk %}" class="btn btn-sm" title="Stáhnout PDF">{% icon "download" %}</a>{% endif %}
+        </li>
+      {% empty %}
+        <li class="px-4 py-6 text-sm text-muted border-t" style="border-color: var(--border)">Zatím žádná vydaná zpráva pro trenéra.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}

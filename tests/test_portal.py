@@ -211,3 +211,81 @@ def test_anonymizace_vypne_ucet_a_odvola_sdileni(lab):
 def test_laborator_do_portalu_nepatri(lab):
     _, _, client = lab
     assert client.get("/muj/").url == "/"
+
+
+# --- trenér ------------------------------------------------------------------
+
+def _coach(org, username="trener", first="Karel", last="Trenér"):
+    return User.objects.create(username=username, organization=org, role=Role.COACH,
+                               first_name=first, last_name=last)
+
+
+def test_trener_vidi_jen_sdilene_sportovce_jmenem(lab):
+    org, _, client = lab
+    jana = _subject(org, "FTVS-0001", "Jana", "Nováková")
+    petr = _subject(org, "FTVS-0002", "Petr", "Dvořák")
+    coach = _coach(org)
+    trener = Client()
+    trener.force_login(coach)
+    page = trener.get("/trener/").content.decode()
+    assert "Zatím s vámi nikdo nesdílí" in page and "Nováková" not in page
+
+    # Žádost kódem: sportovec ji vidí, trenér dál nic.
+    response = trener.post("/trener/", {"kod": "ftvs-0001"}, follow=True)
+    assert "Žádost odeslána" in response.content.decode()
+    assert "FTVS-0001" in trener.get("/trener/").content.decode()   # čeká na potvrzení
+    assert trener.get(f"/trener/{jana.pk}/").status_code == 404
+    response = trener.post("/trener/", {"kod": "FTVS-9999"}, follow=True)
+    assert "tu není" in response.content.decode()
+
+    athlete = _register(_invite(client, jana))
+    sharing = Sharing.objects.get(subject=jana, coach=coach)
+    athlete.post(f"/muj/{jana.pk}/souhlasy/", {"akce": "potvrdit", "sdileni": sharing.pk})
+
+    page = trener.get("/trener/").content.decode()
+    assert "Jana Nováková" in page and "Dvořák" not in page and "FTVS-0002" not in page
+    page = trener.get(f"/trener/{jana.pk}/").content.decode()
+    assert "Jana Nováková" in page and "sdílí od" in page
+    assert trener.get(f"/trener/{petr.pk}/").status_code == 404
+    # Zobrazení trenérem vidí sportovec v auditu.
+    assert "Karel Trenér" in athlete.get(f"/muj/{jana.pk}/souhlasy/").content.decode()
+
+    athlete.post(f"/muj/{jana.pk}/souhlasy/", {"akce": "odvolat", "sdileni": sharing.pk})
+    assert trener.get(f"/trener/{jana.pk}/").status_code == 404
+    assert "Nováková" not in trener.get("/trener/").content.decode()
+
+
+def test_trener_vidi_jen_zpravy_pro_trenera_a_prehled_skupiny(prostredi, settings):  # noqa: F811
+    from apps.catalog.models import BatteryItem, MetricDef, Protocol, ProtocolMetric, TestBattery
+
+    settings.IDENTITY_ENCRYPTION_KEY = Fernet.generate_key().decode()
+    org, user, subject, session = prostredi
+    identity = SubjectIdentity(subject=subject)
+    identity.set_names("Jana", "Nováková")
+    identity.save()
+    coach = _coach(org)
+    accounts.start_sharing(subject, coach, by=user)
+    for_coach = reports.release(reports.build_draft(session, user=user, audience="trener"),
+                                user=user)
+    for_athlete = reports.release(reports.build_draft(session, user=user, audience="sportovec"),
+                                  user=user)
+    trener = Client()
+    trener.force_login(coach)
+    page = trener.get(f"/trener/{subject.pk}/").content.decode()
+    assert for_coach.report_number in page and for_athlete.report_number not in page
+    assert "0,85" in trener.get(f"/trener/{subject.pk}/zprava/{for_coach.pk}/").content.decode()
+    assert trener.get(f"/trener/{subject.pk}/zprava/{for_athlete.pk}/").status_code == 404
+
+    # Baterie sportu -> přehled skupiny s hodnotou klíčového ukazatele.
+    from apps.subjects.models import Sport
+
+    sport = Sport.objects.create(organization=org, code="tenis", name="Tenis")
+    subject.sport = sport
+    subject.save()
+    protocol = Protocol.objects.get(code="p")
+    ProtocolMetric.objects.create(protocol=protocol, metric=MetricDef.objects.get(code="ir_er_ratio"),
+                                  is_primary=True, sides=["B"], speeds=[210])
+    battery = TestBattery.objects.create(organization=org, sport=sport)
+    BatteryItem.objects.create(battery=battery, protocol=protocol, order=1)
+    page = trener.get("/trener/").content.decode()
+    assert "Přehled:" in page and "Poměr IR/ER" in page and "0,85" in page

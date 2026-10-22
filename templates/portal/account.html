@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="mb-5">
-  <div class="eyebrow">Portál sportovce</div>
+  <div class="eyebrow">{% if user.role == "coach" %}Portál trenéra{% else %}Portál sportovce{% endif %}</div>
   <h1 class="text-2xl font-semibold">Účet</h1>
 </div>
 <form method="post" class="card p-5 max-w-md space-y-4">{% csrf_token %}
