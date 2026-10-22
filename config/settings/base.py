@@ -7,6 +7,7 @@ jde z proměnných prostředí (.env lokálně, systémové proměnné na server
 aby byl stejný obraz kontejneru použitelný na notebooku i na serveru.
 """
 
+import os
 from pathlib import Path
 
 import environ
@@ -110,16 +111,21 @@ DATABASES = {
 }
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("DATABASE_CONN_MAX_AGE", default=60)
 
-# SQLite (laboratorní počítač, ukázka): souhrn zprávy píše model ve
-# vlákně, zatímco se dál pracuje. Dva zapisující najednou by bez toho
-# občas skončili na „database is locked“. WAL pouští čtení souběžně se
-# zápisem, timeout nechá druhého zapisujícího počkat, IMMEDIATE zamkne
-# hned na začátku transakce místo až při prvním zápisu.
+# SQLite (laboratorní počítač, notebook, ukázka): souhrn zprávy píše model
+# ve vlákně, zatímco se dál pracuje. Timeout nechá druhého zapisujícího
+# počkat, IMMEDIATE zamkne hned na začátku transakce místo až při prvním
+# zápisu – bez toho by občas skončil na „database is locked“.
+#
+# Režim WAL (čtení souběžně se zápisem) jen na MÍSTNÍM disku. Přes síťový
+# disk (PythonAnywhere má NFS) WAL nefunguje a může ztratit data – tam
+# zůstává klasický deník. Výchozí: zapnuto na Windows (laboratorní PC,
+# notebook), jinde vypnuto; přepíše SQLITE_WAL v .env. Režim nastavuje
+# při každém připojení apps/core/sqlite.py (umí i převést zpět).
+SQLITE_WAL = env.bool("SQLITE_WAL", default=os.name == "nt")
 if DATABASES["default"]["ENGINE"].endswith("sqlite3"):
     DATABASES["default"].setdefault("OPTIONS", {}).update({
         "timeout": 20,
         "transaction_mode": "IMMEDIATE",
-        "init_command": "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;",
     })
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

@@ -382,49 +382,11 @@ class Command(BaseCommand):
         return password
 
     def _demo_accounts(self, org, password):
-        """
-        Ukázkové účty portálu se stejným heslem jako admin: sportovec
-        (FTVS-0001), rodič (zástupce FTVS-0002) a trenér (sdílení s 0001–0003).
-        Jména jsou vymyšlená; bez šifrovacího klíče zůstanou jen kódy.
-        """
-        from django.conf import settings
+        from apps.portal.demo import create_demo_accounts
 
-        from apps.subjects import accounts
-        from apps.subjects.models import Guardian, SubjectIdentity
+        if password and create_demo_accounts(org, password):
+            self.stdout.write("Účty portálu: sportovec, rodic, trener (heslo jako admin).")
 
-        if not password or User.objects.filter(username="sportovec").exists():
-            return
-        subjects = {s.code: s for s in Subject.objects.filter(
-            organization=org, code__in=["FTVS-0001", "FTVS-0002", "FTVS-0003"])}
-        if len(subjects) < 3:
-            return
-        names = {"FTVS-0001": ("Jana", "Ukázková"), "FTVS-0002": ("Tomáš", "Ukázkový"),
-                 "FTVS-0003": ("Petra", "Vzorová")}
-        for code, (first, last) in names.items():
-            identity, _ = SubjectIdentity.objects.get_or_create(subject=subjects[code])
-            if settings.IDENTITY_ENCRYPTION_KEY and not identity.first_name_enc:
-                identity.set_names(first, last)
-                identity.save()
-
-        def make(username, role, **extra):
-            user = User(username=username, email=f"{username}@example.cz", organization=org,
-                        role=role, **extra)
-            user.set_password(password)
-            user.save()
-            return user
-
-        athlete = make("sportovec", Role.ATHLETE)
-        identity = SubjectIdentity.objects.get(subject=subjects["FTVS-0001"])
-        identity.user = athlete
-        identity.save(update_fields=["user"])
-        parent = make("rodic", Role.ATHLETE)
-        Guardian.objects.create(identity=SubjectIdentity.objects.get(subject=subjects["FTVS-0002"]),
-                                user=parent)
-        coach = make("trener", Role.COACH, first_name="Karel", last_name="Ukázkový")
-        for code in ("FTVS-0001", "FTVS-0003"):
-            accounts.start_sharing(subjects[code], coach, by=athlete)
-        accounts.request_sharing(subjects["FTVS-0002"], coach, by=coach)
-        self.stdout.write("Účty portálu: sportovec, rodic, trener (heslo jako admin).")
 
     def _make_values(self, trial, protocol_metric, ability, session_index, *,
                      body, body_day) -> int:

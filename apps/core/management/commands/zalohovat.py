@@ -29,6 +29,8 @@ class Command(BaseCommand):
                             help="Kolik posledních záloh v cílové složce nechat; starší se smažou.")
         parser.add_argument("--databaze", default=None,
                             help="Soubor databáze; výchozí je ten z nastavení (DATABASE_URL).")
+        parser.add_argument("--popis", default="",
+                            help="Připojí se k názvu složky, např. pred-aktualizaci.")
 
     def handle(self, *args, **options):
         if connection.vendor != "sqlite":
@@ -44,7 +46,11 @@ class Command(BaseCommand):
             raise CommandError(f"Soubor databáze {source_path} neexistuje.")
 
         root = Path(options["cil"] or Path.home() / "Zalohy-FTVS")
+        from django.utils.text import slugify
+
         stamp = f"ftvs-zaloha-{timezone.localtime():%Y-%m-%d-%H%M%S}"
+        if popis := slugify(options["popis"]):
+            stamp += f"-{popis}"
         target, n = root / stamp, 2
         while target.exists():                  # dvě zálohy v téže sekundě
             target, n = root / f"{stamp}-{n}", n + 1
