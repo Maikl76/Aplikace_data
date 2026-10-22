@@ -236,16 +236,31 @@ def _inputs(session, findings) -> dict:
 
 
 def report_context(report) -> dict:
-    """Podklad pro náhled i pro PDF – jedno místo, jeden obsah."""
+    """
+    Podklad pro náhled i pro PDF – jedno místo, jeden obsah.
+
+    Vydaná zpráva bere nálezy, doporučení a citace ze snímku pořízeného
+    při vydání; koncept je počítá živě podle dnešních pravidel a knihovny.
+    """
     session = report.session
-    findings = list(session.findings.select_related("rule").all()) if session else []
-    findings.sort(key=engine.severity_order)
-    citations = []
-    if session is not None:
-        citations = evidence.shown_citations(
-            evidence.report_citations(session, findings, frozen=report.literature),
-            report.summary, report.custom_note)
-    active = [f for f in findings if not f.suppressed]
+    if report.snapshot:
+        findings, suppressed, recommendations, citations, warnings = _from_snapshot(
+            report.snapshot)
+    else:
+        findings = list(session.findings.select_related("rule").all()) if session else []
+        findings.sort(key=engine.severity_order)
+        for finding in findings:          # stejná pole jako snímek – jedna šablona
+            finding.severity_label = finding.get_severity_display()
+            finding.rule_code = finding.rule.code
+        citations = []
+        if session is not None:
+            citations = evidence.shown_citations(
+                evidence.report_citations(session, findings, frozen=report.literature),
+                report.summary, report.custom_note)
+        suppressed = [f for f in findings if f.suppressed]
+        findings = [f for f in findings if not f.suppressed]
+        recommendations = narrative.recommendations(findings)
+        warnings = evidence.population_warnings(citations)
 
     context = {
         "report": report,
@@ -254,11 +269,11 @@ def report_context(report) -> dict:
         "display_name": subject_name(report),
         # věk v den měření – zpráva o měření před rokem nesmí uvést dnešní věk
         "age": report.subject.age_on(session.date) if session else report.subject.age,
-        "findings": active,
-        "suppressed": [f for f in findings if f.suppressed],
-        "recommendations": narrative.recommendations(active),
+        "findings": findings,
+        "suppressed": suppressed,
+        "recommendations": recommendations,
         "citations": citations,
-        "population_warnings": evidence.population_warnings(citations),
+        "population_warnings": warnings,
         "generated_at": timezone.now(),
         "results": [],
         "trends": [],
@@ -288,6 +303,36 @@ def report_context(report) -> dict:
             asymmetries[:12], threshold_pct=results.ASYMMETRY_THRESHOLD_PCT)
     context["asymmetries_over"] = sum(r["exceeds_threshold"] for r in asymmetries)
     return context
+
+
+def _snapshot(context: dict) -> dict:
+    """Nálezy, doporučení a citace tak, jak šly do vydané zprávy (do JSON)."""
+    def finding(f):
+        return {"text": f.text, "severity": f.severity, "severity_label": f.severity_label,
+                "rule_code": f.rule_code, "rule_version": f.rule_version,
+                "suppressed": f.suppressed, "suppressed_reason": f.suppressed_reason,
+                "values": f.values}
+
+    return {
+        "findings": [finding(f) for f in context["findings"]],
+        "suppressed": [finding(f) for f in context["suppressed"]],
+        "recommendations": list(context["recommendations"]),
+        "citations": [{"number": c["number"], "article": str(c["article"]), "kind": c["kind"],
+                       "population_matches": c["population_matches"],
+                       "title": c["article"].title, "doi": c["article"].doi,
+                       "year": c["article"].year}
+                      for c in context["citations"]],
+        "population_warnings": list(context["population_warnings"]),
+    }
+
+
+def _from_snapshot(snapshot: dict) -> tuple:
+    from types import SimpleNamespace
+
+    findings = [SimpleNamespace(**f) for f in snapshot.get("findings", [])]
+    suppressed = [SimpleNamespace(**f) for f in snapshot.get("suppressed", [])]
+    return (findings, suppressed, list(snapshot.get("recommendations", [])),
+            list(snapshot.get("citations", [])), list(snapshot.get("population_warnings", [])))
 
 
 def subject_name(report) -> str:
@@ -356,12 +401,14 @@ def release(report, *, user) -> Report:
     report.status = Report.Status.RELEASED
     report.released_at = timezone.now()
     report.released_by = user
-    report.rendered_html = render_html(report)
+    context = report_context(report)
+    report.rendered_html = render_to_string("reports/report.html", context)
+    report.snapshot = _snapshot(context)
 
     if pdf := render_pdf(report):
         report.pdf.save(f"{report.report_number}.pdf", ContentFile(pdf), save=False)
 
-    data = json.dumps(_machine_readable(report), ensure_ascii=False, indent=2)
+    data = json.dumps(_machine_readable(report, context), ensure_ascii=False, indent=2)
     report.data_json.save(f"{report.report_number}.json",
                           ContentFile(data.encode()), save=False)
     report.save()
@@ -372,7 +419,7 @@ def release(report, *, user) -> Report:
     return report
 
 
-def _machine_readable(report) -> dict:
+def _machine_readable(report, context: dict | None = None) -> dict:
     """
     Strojově čitelná příloha vedle PDF.
 
@@ -380,7 +427,16 @@ def _machine_readable(report) -> dict:
     bude, načte si hodnoty rovnou – a nemusíme kvůli tomu měnit formát
     zprávy ani jednat o rozhraní předem.
     """
-    context = report_context(report)
+    if context is None:
+        context = report_context(report)
+
+    def cite(c):
+        article = c["article"]
+        if isinstance(article, str):          # ze snímku vydané zprávy
+            return {"nazev": c.get("title", article), "doi": c.get("doi", ""),
+                    "rok": c.get("year")}
+        return {"nazev": article.title, "doi": article.doi, "rok": article.year}
+
     return {
         "cislo_zpravy": report.report_number,
         "verze": report.version,
@@ -389,18 +445,16 @@ def _machine_readable(report) -> dict:
         "mereni": {"datum": report.session.date.isoformat()} if report.session else None,
         "vysledky": results.machine_readable(context["results"]),
         "nalezy": [
-            {"pravidlo": f.rule.code, "verze_pravidla": f.rule_version,
+            {"pravidlo": f.rule_code, "verze_pravidla": f.rule_version,
              "zavaznost": f.severity, "text": f.text, "hodnoty": f.values}
             for f in context["findings"]
         ],
         "potlacene_nalezy": [
-            {"pravidlo": f.rule.code, "text": f.text, "duvod": f.suppressed_reason}
+            {"pravidlo": f.rule_code, "text": f.text, "duvod": f.suppressed_reason}
             for f in context["suppressed"]
         ],
         "citace": [
-            {"cislo": c["number"], "nazev": c["article"].title, "doi": c["article"].doi,
-             "rok": c["article"].year,
-             "populace_odpovida": c["population_matches"]}
+            {"cislo": c["number"], **cite(c), "populace_odpovida": c["population_matches"]}
             for c in context["citations"]
         ],
         "doporuceni": context["recommendations"],

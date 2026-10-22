@@ -121,6 +121,9 @@ class Report(OrgScopedModel):
     rendered_html = models.TextField(
         "podoba při vydání", blank=True,
         help_text="Snímek zprávy pořízený při vydání; vydaná zpráva se už nepřepočítává.")
+    # Nálezy, doporučení a citace, jak byly při vydání. Detail zprávy je
+    # ukazuje odsud – ne přepočítané podle dnešních pravidel a knihovny.
+    snapshot = models.JSONField("nálezy a citace při vydání", null=True, blank=True)
 
     pdf = models.FileField("PDF", upload_to="reports/%Y/%m/", blank=True)
     data_json = models.FileField("strojově čitelná příloha", upload_to="reports/%Y/%m/",

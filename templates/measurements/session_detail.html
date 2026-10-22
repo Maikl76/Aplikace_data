@@ -80,6 +80,8 @@
       {% csrf_token %}
       <label class="text-sm text-2" for="id_protocol">Přidat test</label>
       {{ add_form.protocol }}
+      <label class="text-sm text-2 inline-flex items-center gap-1" title="Tentýž test podruhé v jednom dni, např. po zátěži. Do trendů a pravidel jde první měření dne, opakované se ukazuje vedle něj.">
+        <input type="checkbox" name="repeat" value="1"> opakované měření</label>
       <button type="submit" class="btn">{% icon "plus" %}Přidat</button>
     </form>
   </section>

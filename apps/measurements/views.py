@@ -14,6 +14,7 @@ from apps.subjects.models import Subject
 from . import planning, questionnaires
 from .forms import AddProtocolForm, TestSessionForm, build_grid, parse_field_name, parse_value
 from .models import Measurement, ProtocolRun, QuestionnaireResponse, TestSession, Trial
+from .trials import apply_trial_states, trial_states
 
 
 @login_required
@@ -307,8 +308,18 @@ def session_add_protocol(request, pk):
     session = get_object_or_404(TestSession.objects.for_user(request.user), pk=pk)
     form = AddProtocolForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        run, _ = ProtocolRun.objects.get_or_create(
-            session=session, protocol=form.cleaned_data["protocol"])
+        protocol = form.cleaned_data["protocol"]
+        existing = session.protocol_runs.filter(protocol=protocol).order_by("pk").first()
+        if existing is not None and form.cleaned_data["repeat"]:
+            # Opakované měření (po zátěži): vlastní provedení s časem, hlavní zůstává.
+            run = ProtocolRun.objects.create(session=session, protocol=protocol,
+                                             is_primary=False, started_at=timezone.now())
+            messages.info(request, f"{protocol.name}: založeno opakované měření. Do trendů "
+                                   "a pravidel jde dál první měření dne.")
+        elif existing is not None:
+            run = existing
+        else:
+            run = ProtocolRun.objects.create(session=session, protocol=protocol)
         return redirect("run_entry", pk=run.pk)
     return redirect("session_detail", pk=pk)
 
@@ -328,8 +339,13 @@ def run_entry(request, pk):
     label([run.session], request.user)
 
     if request.method == "POST":
-        saved, flagged = _save_grid(request, run)
+        saved, flagged, deleted, invalid = _save_grid(request, run)
         message = f"Uloženo {saved} hodnot."
+        if deleted:
+            message += f" Smazáno {deleted} vymazaných hodnot."
+        if invalid:
+            message += (" Neplatný pokus: " + ", ".join(str(n) for n in invalid)
+                        + " – do výsledků se nepočítá.")
         if flagged:
             message += (f" {flagged} mimo věrohodný rozsah – hodnoty jsou uložené "
                         f"a označené, zkontrolujte je.")
@@ -358,7 +374,7 @@ def _entry_context(run) -> dict:
     return {
         "run": run,
         "rows": build_grid(run),
-        "trials": range(1, run.protocol.default_trials + 1),
+        "trials": trial_states(run),
         "rpe_question": rpe.questions.first() if rpe else None,
         "rpe_value": int(answer.value) if answer and answer.value is not None else None,
         "next_run": _next_run(run),
@@ -395,18 +411,26 @@ def _next_run_url(run) -> str:
 
 
 @transaction.atomic
-def _save_grid(request, run) -> tuple[int, int]:
+def _save_grid(request, run) -> tuple[int, int, int, list[int]]:
     metrics = {pm.pk: pm.metric
                for pm in run.protocol.protocol_metrics.select_related("metric")}
     trials: dict[int, Trial] = {}
-    saved = flagged = 0
+    saved = flagged = deleted = 0
 
     for name, raw in request.POST.items():
         parsed = parse_field_name(name)
-        if parsed is None or not str(raw).strip():
+        if parsed is None:
             continue
         metric = metrics.get(parsed["protocol_metric_id"])
         if metric is None:
+            continue
+        if not str(raw).strip():
+            # Vymazané pole = hodnota pryč. Špatně zapsané číslo tak jde
+            # opravit smazáním, ne jen přepsáním.
+            deleted += Measurement.objects.filter(
+                trial__protocol_run=run, trial__number=parsed["trial_number"], metric=metric,
+                side=parsed["side"], mode=parsed["mode"], speed=parsed["speed"],
+                segment=parsed["segment"]).delete()[0]
             continue
         value = parse_value(raw)
         if value is None:
@@ -433,10 +457,12 @@ def _save_grid(request, run) -> tuple[int, int]:
             questionnaires.save(run.session, rpe, answers, run=run,
                                 source=QuestionnaireResponse.Source.OPERATOR)
 
+    invalid = apply_trial_states(run, request.POST)
     record(request, AuditLog.Action.UPDATE, run,
-           subject_code=run.session.subject.code, hodnot=saved)
+           subject_code=run.session.subject.code, hodnot=saved, smazano=deleted,
+           neplatne_pokusy=invalid)
     # Nové hodnoty CMJ nebo IMTP mění i odvozené ukazatele (DSI).
     from apps.analytics.derived import recompute
 
     recompute(run.session)
-    return saved, flagged
+    return saved, flagged, deleted, invalid

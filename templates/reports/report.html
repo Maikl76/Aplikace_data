@@ -264,8 +264,8 @@
   {% for f in findings %}
     <p class="nalez {{ f.severity }}">
       {{ f.text }}
-      <span class="zavaznost">({{ f.get_severity_display|lower }}, pravidlo
-        {{ f.rule.code }} v{{ f.rule_version }})</span>
+      <span class="zavaznost">({{ f.severity_label|lower }}, pravidlo
+        {{ f.rule_code }} v{{ f.rule_version }})</span>
     </p>
   {% endfor %}
 {% else %}

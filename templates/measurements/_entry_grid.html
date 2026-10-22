@@ -5,11 +5,21 @@
       Uloženo {{ saved }} hodnot.
     </p>
   {% endif %}
+  <input type="hidden" name="pokusy_stav" value="1">
   <table class="table">
     <thead>
       <tr>
         <th>Ukazatel</th>
-        {% for i in trials %}<th class="text-center">{{ i }}. pokus</th>{% endfor %}
+        {% for t in trials %}
+          <th class="text-center" x-data="{ neplatny: {% if t.is_valid %}false{% else %}true{% endif %} }">
+            <div>{{ t.number }}. pokus</div>
+            <label class="inline-flex items-center gap-1 text-xs font-normal {% if not t.is_valid %}text-2{% else %}text-muted{% endif %}" title="Neplatný pokus se nemaže – zůstane v datech s důvodem, jen se s ním nepočítá">
+              <input type="checkbox" name="neplatny|{{ t.number }}" value="1" x-model="neplatny" {% if not t.is_valid %}checked{% endif %}> neplatný
+            </label>
+            <input type="text" name="duvod|{{ t.number }}" value="{{ t.invalid_reason }}" x-show="neplatny" x-cloak
+                   class="input text-xs py-1 mt-1 font-normal" placeholder="důvod (např. nedoskok)" maxlength="255">
+          </th>
+        {% endfor %}
       </tr>
     </thead>
     <tbody>
@@ -29,7 +39,7 @@
                        value="{{ cell.value }}" autocomplete="off"
                        aria-label="{{ row.metric.name }} {{ row.label }} – {{ forloop.counter }}. pokus"
                        class="input text-center text-lg py-2.5 tabular-nums{% if row.is_time %} pr-9{% endif %}"
-                       {% if cell.quality == 'range' %}style="border-color: var(--warn); background: var(--warn-soft)" title="Mimo věrohodný rozsah – zkontrolujte"{% endif %}>
+                       {% if cell.quality == 'range' %}style="border-color: var(--warn); background: var(--warn-soft)" title="Mimo věrohodný rozsah – zkontrolujte"{% elif cell.invalid %}style="opacity: .55; text-decoration: line-through" title="Neplatný pokus – do výsledků se nepočítá"{% endif %}>
                 {% if row.is_time %}
                   <button type="button" class="stopky-tlacitko" title="Změřit stopkami"
                           onclick="window.dispatchEvent(new CustomEvent('stopky', {detail: {pole: this.previousElementSibling, des: {{ row.metric.decimals }}}}))">

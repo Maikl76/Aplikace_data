@@ -95,6 +95,10 @@
     </section>
     {% endif %}
 
+    {% if report.snapshot %}
+      <p class="text-xs text-muted">Nálezy, doporučení a citace jsou tak, jak byly při vydání
+        ({{ report.released_at|date:"d.m.Y H:i" }}) – pozdější změna pravidel ani knihovny je nemění.</p>
+    {% endif %}
     {% if findings %}
       <section class="card p-4">
         <h2 class="card-title mb-2">Nálezy ({{ findings|length }})</h2>
@@ -103,7 +107,7 @@
                style="border-left-color: {% if f.severity == 'high' %}var(--bad){% elif f.severity == 'medium' %}var(--warn){% else %}var(--border-strong){% endif %}">
             <div class="text-sm">{{ f.text }}</div>
             <div class="text-xs text-muted">
-              {{ f.get_severity_display|lower }} · pravidlo {{ f.rule.code }} v{{ f.rule_version }}
+              {{ f.severity_label|lower }} · pravidlo {{ f.rule_code }} v{{ f.rule_version }}
             </div>
           </div>
         {% endfor %}

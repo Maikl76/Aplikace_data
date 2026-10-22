@@ -77,6 +77,9 @@ class AddProtocolForm(forms.Form):
         label="Protokol", empty_label="vyberte test…",
         widget=forms.Select(attrs={"class": "input w-auto flex-1 min-w-[12rem]"}),
     )
+    # Tentýž test podruhé v jednom dni (před a po zátěži): nové provedení
+    # vedle hlavního, do trendů a pravidel jde dál to hlavní.
+    repeat = forms.BooleanField(required=False, label="opakované měření (např. po zátěži)")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -142,6 +145,7 @@ def build_grid(protocol_run) -> list[dict]:
         for m in Measurement.objects.filter(trial__protocol_run=protocol_run)
         .select_related("trial", "metric")
     }
+    invalid = set(protocol_run.trials.filter(is_valid=False).values_list("number", flat=True))
 
     trials = list(range(1, protocol_run.protocol.default_trials + 1))
     rows = []
@@ -164,6 +168,7 @@ def build_grid(protocol_run) -> list[dict]:
                     "value": ("" if measurement is None
                               else f"{measurement.value:.{pm.metric.decimals}f}"),
                     "quality": measurement.quality if measurement else "",
+                    "invalid": trial_number in invalid,
                 })
             rows.append({
                 "protocol_metric": pm,

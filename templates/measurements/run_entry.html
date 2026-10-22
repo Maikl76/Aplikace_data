@@ -6,7 +6,7 @@
 <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
   <div>
     <a href="{% url 'session_detail' run.session_id %}" class="text-sm link">← {{ run.session.jmeno }} · {{ run.session.date|date:"j. n. Y" }}</a>
-    <h1 class="text-2xl font-semibold mt-1">{{ run.protocol.name }}</h1>
+    <h1 class="text-2xl font-semibold mt-1">{{ run.protocol.name }}{% if not run.is_primary %} <span class="badge align-middle">opakované měření</span>{% endif %}</h1>
     <p class="text-sm text-muted">
       {% if run.protocol.device %}{{ run.protocol.device }}{% endif %}{% if run.started_at %} · {{ run.started_at|time:"H:i" }}{% endif %}{% if run.external_ref|slice:":9" == "odvozeno:" %} · vypočteno automaticky z ostatních testů{% elif run.external_ref %} · importováno z přístroje{% endif %}
     </p>
@@ -67,7 +67,7 @@
       {% if next_run %}Uložit a další: {{ next_run.protocol.name }}{% else %}Uložit a zpět na den{% endif %}
       {% icon "chevron-right" %}
     </button>
-    <span class="text-sm text-muted">Desetinná čárka i tečka, u časů i min:s. Prázdná pole se neukládají.</span>
+    <span class="text-sm text-muted">Desetinná čárka i tečka, u časů i min:s. Vymazané pole hodnotu smaže.</span>
   </div>
 </form>
 
