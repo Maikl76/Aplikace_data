@@ -160,6 +160,9 @@ def team(request):
         context.update(columns=columns, rows=table["rows"],
                        summary=list(zip(columns, table["summary"], strict=True)))
         if request.GET.get("format") == "csv":
+            # Tabulka odchází z aplikace (se jmény, pokud je uživatel vidí) – do auditu.
+            record(request, AuditLog.Action.EXPORT, battery, baterie=battery.label,
+                   sportovci=[r["subject"].code for r in table["rows"]])
             return _team_csv(battery, columns, table["rows"])
     return render(request, "measurements/team.html", context)
 

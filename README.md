@@ -59,6 +59,7 @@ aplikace poběží i v ostrém nasazení. Reálná data sem nepatří.
 |---|---|
 | `zalozit.bat` | jednou na novém počítači: prostředí, knihovny, `.env`, databáze, ukázková data |
 | `spustit.bat` | pokaždé: stáhne novou verzi (`git pull`), upraví databázi a spustí aplikaci |
+| `zalohovat.bat` | záloha databáze, nahraných souborů a `.env` s klíči do `Zalohy-FTVS` (nebo do složky zadané jako parametr) |
 | `ulozit-katalog.bat` | po změně katalogu v administraci: uloží ho do repozitáře a nahraje |
 | `nacist-katalog.bat` | na druhém počítači: načte uložený katalog |
 

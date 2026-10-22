@@ -16,9 +16,11 @@ import hashlib
 import io
 import logging
 from collections import Counter
+from datetime import timedelta
 
 from django.core.files.base import ContentFile
 from django.db import transaction
+from django.utils import timezone
 
 from apps.catalog.models import MetricDef, Protocol
 from apps.measurements.models import (
@@ -99,6 +101,31 @@ def stage_file(*, uploaded_file, user, organization, adapter_code="auto",
         protocol=protocol, uploaded_by=user,
     )
     return _parse_into(batch, adapter, data, protocol=protocol)
+
+
+STALE_DAYS = 30
+
+
+def expire_stale(*, days: int = STALE_DAYS) -> int:
+    """
+    Nedokončené importy starší než ``days`` dní smaže i se souborem.
+
+    Náhled importu drží jména tak, jak stála v souboru (souhrn, staging),
+    a zrušený import drží soubor na disku. Rozpracovaný import, na který
+    se zapomnělo, by tam zůstal navždy. Uložené importy se nemažou nikdy.
+    """
+    limit = timezone.now() - timedelta(days=days)
+    stale = list(ImportBatch.objects.filter(created_at__lt=limit)
+                 .exclude(status=ImportBatch.Status.COMMITTED).select_related("raw_file"))
+    for batch in stale:
+        raw = batch.raw_file
+        batch.purge_staging()
+        batch.delete()
+        # Soubor pryč, pokud ho nedrží jiný (uložený) import ani provedení testu.
+        if raw.protocol_run_id is None and not raw.import_batches.exists():
+            raw.file.delete(save=False)
+            raw.delete()
+    return len(stale)
 
 
 def known_formats(organization) -> list[str]:

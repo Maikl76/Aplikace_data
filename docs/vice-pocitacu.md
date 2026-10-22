@@ -54,3 +54,20 @@ Na serveru se katalog načte příkazem
 `python manage.py import_katalog --organizace <zkratka>`; zkratku
 organizace je potřeba zadat, pokud se na serveru jmenuje jinak.
 Načítání nic nemaže – co v souboru není, zůstane beze změny.
+
+
+## Záloha laboratorního počítače
+
+Na laboratorním počítači jsou skutečná měření, ne jen ukázková data.
+Jednou týdně (a před každou větší změnou) dvakrát klikněte na
+**`zalohovat.bat`**. Uloží databázi, nahrané soubory a soubor `.env`
+s klíči do složky `Zalohy-FTVS` ve vašem profilu; jinam ji uloží
+`zalohovat.bat "E:\zalohy"`. Složku pak zkopírujte mimo počítač – na
+šifrovaný disk nebo síťové úložiště fakulty; obsahuje jména sportovců.
+Nechává se posledních deset záloh, starší se mažou samy.
+
+Bez `.env` jsou jména v záloze databáze nečitelná (klíč
+`IDENTITY_ENCRYPTION_KEY`), proto patří do zálohy i on.
+
+Obnova: zavřete okno aplikace, soubory `db.sqlite3`, `.env` a složku
+`media` nahraďte těmi ze zálohy a spusťte `spustit.bat`.

@@ -72,6 +72,7 @@ def report_detail(request, pk):
         messages.warning(request, "Psaní souhrnu modelem se nedokončilo – souhrn zůstal, "
                                   "jak byl. Můžete ho nechat napsat znovu.")
     label([report], request.user)
+    record(request, AuditLog.Action.VIEW, report, subject_code=report.subject.code)
     context = services.report_context(report)
     context.update({
         "may_open": services.may_open(report, request.user),

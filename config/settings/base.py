@@ -109,6 +109,18 @@ DATABASES = {
 }
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("DATABASE_CONN_MAX_AGE", default=60)
 
+# SQLite (laboratorní počítač, ukázka): souhrn zprávy píše model ve
+# vlákně, zatímco se dál pracuje. Dva zapisující najednou by bez toho
+# občas skončili na „database is locked“. WAL pouští čtení souběžně se
+# zápisem, timeout nechá druhého zapisujícího počkat, IMMEDIATE zamkne
+# hned na začátku transakce místo až při prvním zápisu.
+if DATABASES["default"]["ENGINE"].endswith("sqlite3"):
+    DATABASES["default"].setdefault("OPTIONS", {}).update({
+        "timeout": 20,
+        "transaction_mode": "IMMEDIATE",
+        "init_command": "PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;",
+    })
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "core.User"
 

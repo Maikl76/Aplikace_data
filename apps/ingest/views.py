@@ -15,6 +15,8 @@ from .models import ImportBatch, StagedMeasurement
 
 @login_required
 def import_list(request):
+    # Zapomenuté náhledy drží jména ze souboru – po měsíci se uklidí samy.
+    services.expire_stale()
     batches = (ImportBatch.objects.for_user(request.user)
                .select_related("raw_file", "uploaded_by")[:50])
     devices = device_views.device_cards(request.user)
