@@ -1,10 +1,37 @@
-"""Dotazy, které krmí grafy na kartě sportovce."""
+"""
+Dotazy, které krmí grafy na kartě sportovce, pravidla a zprávu.
+
+Hodnota dne jednoho ukazatele
+-----------------------------
+Stejný ukazatel se může měřit ve dvou testech téhož dne (tělesná hmotnost
+na plošině při CMJ i ve složení těla). Do souhrnu, pravidel, dlaždic
+a grafů vstupuje **jedna** hodnota dne – z testu, kde je ukazatel klíčový;
+když takový není, z testu s abecedně prvním kódem (ať je to pokaždé stejné).
+Hodnoty z různých testů se nikdy neprůměrují dohromady – to by dalo číslo,
+které v žádné tabulce zprávy není.
+"""
 
 from collections import defaultdict
 
 from apps.measurements.models import Measurement, Side
 
 from .services import asymmetries_for_run, find_norm
+
+
+def _primary_protocols() -> dict[int, set[int]]:
+    """{metrika: {testy, kde je klíčová}} – podle toho se vybírá zdroj hodnoty dne."""
+    from apps.catalog.models import ProtocolMetric
+
+    out: dict[int, set[int]] = defaultdict(set)
+    for metric_id, protocol_id in (ProtocolMetric.objects.filter(is_primary=True)
+                                   .values_list("metric_id", "protocol_id")):
+        out[metric_id].add(protocol_id)
+    return out
+
+
+def canonical_protocol(protocols, metric, primary: dict):
+    """Ze testů, které ukazatel ten den měřily, ten, odkud se bere hodnota dne."""
+    return min(protocols, key=lambda p: (p.pk not in primary.get(metric.pk, ()), p.code, p.pk))
 
 
 def primary_metric_series(subject, *, limit_metrics: int = 6, until=None):
@@ -22,24 +49,27 @@ def primary_metric_series(subject, *, limit_metrics: int = 6, until=None):
         .filter(trial__protocol_run__session__subject=subject, trial__is_valid=True,
                 trial__protocol_run__is_primary=True,
                 metric__protocol_metrics__is_primary=True)
-        .select_related("metric", "trial__protocol_run__session")
+        .select_related("metric", "trial__protocol_run__session",
+                        "trial__protocol_run__protocol")
         .distinct()
         .order_by("trial__number")
     )
     if until is not None:
         measurements = measurements.filter(trial__protocol_run__session__date__lte=until)
 
-    buckets = defaultdict(list)
+    # klíč -> den -> test -> hodnoty pokusů
+    buckets = defaultdict(lambda: defaultdict(dict))
     for m in measurements:
         key = (m.metric, m.side, m.mode, m.speed, m.segment)
-        buckets[key].append((m.trial.protocol_run.session.date, m.value))
+        run = m.trial.protocol_run
+        buckets[key][run.session.date].setdefault(run.protocol, []).append(m.value)
 
+    primary = _primary_protocols()
     series = []
-    for (metric, side, mode, speed, segment), values in buckets.items():
-        by_date = defaultdict(list)
-        for day, value in values:
-            by_date[day].append(value)
-        points = sorted((day, metric.day_value(v)) for day, v in by_date.items())
+    for (metric, side, mode, speed, segment), by_date in buckets.items():
+        points = sorted(
+            (day, metric.day_value(by_protocol[canonical_protocol(by_protocol, metric, primary)]))
+            for day, by_protocol in by_date.items())
         if not points:
             continue
         series.append({
@@ -120,25 +150,29 @@ def session_metric_values(session) -> dict:
     po zátěži), bere se jen hlavní provedení – průměr přes „před“ a „po“
     by neodpovídal ničemu.
     """
-    from apps.measurements.models import Measurement
-
-    buckets = defaultdict(list)
+    buckets: dict[tuple, dict] = defaultdict(dict)   # klíč -> test -> hodnoty pokusů
+    metrics = {}
     for m in (Measurement.objects
               .filter(trial__protocol_run__session=session, trial__is_valid=True,
                       trial__protocol_run__is_primary=True)
-              .select_related("metric").order_by("trial__number")):
+              .select_related("metric", "trial__protocol_run__protocol")
+              .order_by("trial__number")):
         key = (m.metric.code, m.side, m.mode, m.speed, m.segment)
-        buckets[key].append((m.metric, m.value))
+        buckets[key].setdefault(m.trial.protocol_run.protocol, []).append(m.value)
+        metrics[key] = m.metric
 
-    return {
-        key: {"metric": values[0][0],
-              "value": values[0][0].day_value([v for _, v in values]),
-              "side": key[1], "mode": key[2], "speed": key[3], "segment": key[4]}
-        for key, values in buckets.items()
-    }
+    primary = _primary_protocols()
+    out = {}
+    for key, by_protocol in buckets.items():
+        metric = metrics[key]
+        protocol = canonical_protocol(by_protocol, metric, primary)
+        out[key] = {"metric": metric, "value": metric.day_value(by_protocol[protocol]),
+                    "side": key[1], "mode": key[2], "speed": key[3], "segment": key[4],
+                    "protocol": protocol.code}
+    return out
 
 
-def previous_session_values(session) -> dict:
+def previous_session_values(session, *, protocol=None) -> dict:
     """
     Poslední dřívější hodnota každé metriky (i s kvalifikátory), kvůli změně
     v čase.
@@ -147,24 +181,40 @@ def previous_session_values(session) -> dict:
     ne prostě předchozí testovací den. Izokinetika se často měří jen
     dvakrát do roka; kdyby mezi tím proběhl jen výskok, tvrdila by zpráva
     „první měření“, zatímco graf vedle ukazuje starší bod.
-    """
-    buckets = defaultdict(list)
-    for m in (Measurement.objects
-              .filter(trial__protocol_run__session__subject=session.subject,
-                      trial__protocol_run__session__date__lt=session.date,
-                      trial__is_valid=True, trial__protocol_run__is_primary=True)
-              .select_related("metric", "trial__protocol_run__session")
-              .order_by("trial__number")):
-        key = (m.metric.code, m.side, m.mode, m.speed, m.segment)
-        buckets[key].append((m.trial.protocol_run.session.date, m.metric, m.value))
 
+    S ``protocol`` jen hodnoty z toho testu – tabulka testu ve zprávě
+    srovnává s minulým měřením téhož testu (hmotnost z plošiny s hmotností
+    z plošiny). Bez něj hodnota dne podle testu, kde je ukazatel klíčový.
+    """
+    qs = (Measurement.objects
+          .filter(trial__protocol_run__session__subject=session.subject,
+                  trial__protocol_run__session__date__lt=session.date,
+                  trial__is_valid=True, trial__protocol_run__is_primary=True)
+          .select_related("metric", "trial__protocol_run__session",
+                          "trial__protocol_run__protocol")
+          .order_by("trial__number"))
+    if protocol is not None:
+        qs = qs.filter(trial__protocol_run__protocol=protocol)
+
+    # klíč -> den -> test -> hodnoty pokusů
+    buckets = defaultdict(lambda: defaultdict(dict))
+    metrics = {}
+    for m in qs:
+        key = (m.metric.code, m.side, m.mode, m.speed, m.segment)
+        run = m.trial.protocol_run
+        buckets[key][run.session.date].setdefault(run.protocol, []).append(m.value)
+        metrics[key] = m.metric
+
+    primary = _primary_protocols()
     out = {}
-    for key, rows in buckets.items():
-        latest = max(day for day, _, _ in rows)
-        values = [v for day, _, v in rows if day == latest]
-        out[key] = {"metric": rows[0][1], "value": rows[0][1].day_value(values),
+    for key, by_date in buckets.items():
+        metric = metrics[key]
+        latest = max(by_date)
+        by_protocol = by_date[latest]
+        chosen = canonical_protocol(by_protocol, metric, primary)
+        out[key] = {"metric": metric, "value": metric.day_value(by_protocol[chosen]),
                     "date": latest, "side": key[1], "mode": key[2],
-                    "speed": key[3], "segment": key[4]}
+                    "speed": key[3], "segment": key[4], "protocol": chosen.code}
     return out
 
 

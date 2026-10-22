@@ -13,6 +13,8 @@ Záznamy s ``organization = NULL`` jsou sdílené napříč pracovišti.
 from django.db import models
 
 from apps.core.models import Organization, OrgScopedModel, TimeStampedModel
+from apps.measurements.models import Mode, Side
+from apps.subjects.models import Subject
 
 
 class TestFamily(models.TextChoices):
@@ -273,11 +275,19 @@ class Norm(CatalogModel):
                            help_text="Prázdné = obě pohlaví.")
     age_min = models.PositiveSmallIntegerField("věk od", null=True, blank=True)
     age_max = models.PositiveSmallIntegerField("věk do", null=True, blank=True)
-    level = models.CharField("úroveň", max_length=20, blank=True)
+    level = models.CharField("úroveň", max_length=20, blank=True,
+                             choices=Subject.Level.choices,
+                             help_text="Prázdné = všechny úrovně. Vyplněná norma platí jen "
+                                       "pro sportovce s touž úrovní.")
 
-    # Kvalifikátory – norma pro 210°/s je jiná než pro 300°/s.
-    side = models.CharField("strana", max_length=10, blank=True)
-    mode = models.CharField("režim", max_length=20, blank=True)
+    # Kvalifikátory – norma pro 210°/s je jiná než pro 300°/s a norma pro
+    # dominantní stranu se nesmí použít na druhou.
+    side = models.CharField("strana", max_length=10, blank=True, choices=Side.choices,
+                            help_text="Prázdné = bez ohledu na stranu. Oboustranná hodnota "
+                                      "sedí na normu „Oboustranně“.")
+    mode = models.CharField("režim", max_length=20, blank=True,
+                            choices=[c for c in Mode.choices if c[0]],
+                            help_text="Prázdné = všechny režimy.")
     speed = models.FloatField("rychlost", null=True, blank=True)
 
     mean = models.FloatField("průměr", null=True, blank=True)
@@ -302,6 +312,10 @@ class Norm(CatalogModel):
             parts.append(str(self.sport))
         if self.sex:
             parts.append(self.get_sex_display())
+        if self.level:
+            parts.append(self.get_level_display().lower())
+        if self.side:
+            parts.append(self.get_side_display().lower())
         return " / ".join(parts)
 
     def z_score(self, value: float):

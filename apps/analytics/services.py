@@ -55,27 +55,40 @@ def compare_to_previous(metric, current: float, previous: float) -> ChangeResult
 
 
 def find_norm(metric, subject, *, side="", mode="", speed=None, day=None):
-    """Nejspecifičtější norma, která na sportovce sedí (věk v den ``day``, jinak dnes)."""
+    """
+    Nejspecifičtější norma, která na sportovce a měření sedí (věk v den
+    ``day``, jinak dnes).
+
+    Norma s vyplněným kritériem platí jen tam, kde kritérium sedí: norma
+    pro mezinárodní úroveň se nepoužije na rekreačního sportovce (ani na
+    sportovce bez vyplněné úrovně) a norma pro levou stranu ne na pravou.
+    Prázdné kritérium = norma platí obecně.
+    """
     qs = Norm.objects.filter(metric=metric)
     candidates = []
     age = subject.age_on(day)
+    side = side or Side.BILATERAL   # oboustranná hodnota bývá uložená i bez strany
     for norm in qs:
         if norm.sport_id and norm.sport_id != subject.sport_id:
             continue
         if norm.sex and norm.sex != subject.sex:
+            continue
+        if norm.level and norm.level != subject.level:
             continue
         if age is not None:
             if norm.age_min and age < norm.age_min:
                 continue
             if norm.age_max and age > norm.age_max:
                 continue
+        if norm.side and norm.side != side:
+            continue
         if norm.mode and mode and norm.mode != mode:
             continue
         if norm.speed is not None and speed is not None and norm.speed != speed:
             continue
         # skóre specifičnosti – čím víc kritérií norma určuje, tím lépe sedí
-        score = sum(bool(x) for x in [norm.sport_id, norm.sex, norm.age_min,
-                                      norm.level, norm.mode, norm.speed])
+        score = sum(bool(x) for x in [norm.sport_id, norm.sex, norm.age_min or norm.age_max,
+                                      norm.level, norm.side, norm.mode, norm.speed])
         candidates.append((score, norm))
     if not candidates:
         return None

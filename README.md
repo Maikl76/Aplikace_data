@@ -277,6 +277,9 @@ nevydá. Nález se ale nezahazuje: uloží se s důvodem, aby bylo doložitelné
 **Vydání je nevratné.** Koncept → vydání (vědomý krok) → předání. Vydanou
 zprávu nelze upravit; oprava se řeší novou verzí, která tu starou nahrazuje.
 Bez platného souhlasu (`Consent.Scope.REPORT_HANDOVER`) se zpráva nepředá.
+Zpráva je pod pseudonymem; jméno sportovce do ní laborant nebo správce přidá
+vědomě zaškrtnutím u konkrétní zprávy – takovou zprávu pak v aplikaci otevřou
+zase jen oni, trenér či lékař ji dostane předáním.
 Ke každé se ukládá otisk vstupů a verze pravidel, takže jde zpětně
 zrekonstruovat, proč říká to, co říká.
 

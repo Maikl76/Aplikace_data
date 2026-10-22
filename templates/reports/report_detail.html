@@ -18,9 +18,14 @@
       </p>
     </div>
   </div>
-  <a href="{% url 'report_preview' report.pk %}" target="_blank" class="btn btn-primary"
-     title="Výsledky všech testů, grafy, nálezy a doporučení – v podobě pro tisk a předání">
-    {% icon "file" %}Otevřít celou zprávu</a>
+  {% if may_open %}
+    <a href="{% url 'report_preview' report.pk %}" target="_blank" class="btn btn-primary"
+       title="Výsledky všech testů, grafy, nálezy a doporučení – v podobě pro tisk a předání">
+      {% icon "file" %}Otevřít celou zprávu</a>
+  {% else %}
+    <span class="btn" style="opacity: .6; cursor: not-allowed" title="Zpráva uvádí jméno sportovce; otevřít ji může jen správce nebo laborant.">
+      {% icon "file" %}Zpráva se jménem – jen správce a laborant</span>
+  {% endif %}
 </div>
 
 <div class="grid lg:grid-cols-3 gap-6">
@@ -165,6 +170,16 @@
         <textarea name="custom_note" form="upravy" rows="10"
                   class="input mt-2 text-sm leading-relaxed"
                   >{{ report.custom_note }}</textarea>
+        {% if may_show_name %}
+          <label class="flex items-start gap-2 mt-3 text-sm">
+            <input type="checkbox" name="show_name" value="1" form="upravy" class="mt-1" {% if report.show_name %}checked{% endif %}>
+            <span>Uvést ve zprávě jméno sportovce ({{ report.jmeno }})
+              <span class="block text-xs text-muted">Jinak je zpráva jen pod kódem {{ subject.code }}. Zprávu se jménem
+                pak v aplikaci otevře jen správce nebo laborant; trenér či lékař ji dostane předáním.</span></span>
+          </label>
+        {% elif report.show_name %}
+          <p class="text-sm mt-3" style="color: var(--warn)">Zpráva uvádí jméno sportovce – zapnul ho laborant nebo správce.</p>
+        {% endif %}
         <div class="mt-2 flex flex-wrap gap-2">
           <button type="submit" form="upravy" class="btn btn-primary">
             {% icon "check" %}Uložit úpravy
@@ -193,7 +208,7 @@
   </div>
 
   <div class="space-y-4">
-    {% if report.pdf %}
+    {% if report.pdf and may_open %}
       <section class="card p-4">
         <a href="{% url 'report_pdf' report.pk %}"
            class="text-sm link">stáhnout PDF →</a>

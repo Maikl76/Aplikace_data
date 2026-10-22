@@ -61,8 +61,9 @@ class MetricDefAdmin(admin.ModelAdmin):
 
 @admin.register(Norm)
 class NormAdmin(admin.ModelAdmin):
-    list_display = ("metric", "sport", "sex", "age_min", "age_max", "mean", "sd", "sample_size")
-    list_filter = ("metric__family", "sport", "sex")
+    list_display = ("metric", "sport", "sex", "level", "age_min", "age_max", "side", "mode",
+                    "speed", "mean", "sd", "sample_size")
+    list_filter = ("metric__family", "sport", "sex", "level", "side")
     search_fields = ("metric__code", "metric__name", "source_citation")
     autocomplete_fields = ["metric"]
 

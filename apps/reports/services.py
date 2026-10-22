@@ -92,6 +92,7 @@ def build_draft(session, *, user, supersedes: Report | None = None,
         version=(supersedes.version + 1) if supersedes else 1,
         supersedes=supersedes,
         audience=audience,
+        show_name=supersedes.show_name if supersedes else False,
         title=TITLES[audience],
         summary=text,
         summary_generated=text,
@@ -250,6 +251,9 @@ def report_context(report) -> dict:
         "report": report,
         "session": session,
         "subject": report.subject,
+        "display_name": subject_name(report),
+        # věk v den měření – zpráva o měření před rokem nesmí uvést dnešní věk
+        "age": report.subject.age_on(session.date) if session else report.subject.age,
         "findings": active,
         "suppressed": [f for f in findings if f.suppressed],
         "recommendations": narrative.recommendations(active),
@@ -284,6 +288,27 @@ def report_context(report) -> dict:
             asymmetries[:12], threshold_pct=results.ASYMMETRY_THRESHOLD_PCT)
     context["asymmetries_over"] = sum(r["exceeds_threshold"] for r in asymmetries)
     return context
+
+
+def subject_name(report) -> str:
+    """Jméno sportovce do zprávy – jen když to zpráva výslovně má a jméno je uložené."""
+    from django.conf import settings
+
+    if not report.show_name or not settings.IDENTITY_ENCRYPTION_KEY:
+        return ""
+    identity = getattr(report.subject, "identity", None)
+    if identity is None:
+        return ""
+    try:
+        return identity.full_name
+    except Exception:   # jiný klíč, poškozený záznam – radši bez jména než pád
+        logger.warning("Jméno sportovce %s se nepodařilo přečíst.", report.subject.code)
+        return ""
+
+
+def may_open(report, user) -> bool:
+    """Zprávu se jménem otevře jen ten, kdo jméno smí vidět."""
+    return not report.show_name or user.sees_identity or user.is_superuser
 
 
 def render_html(report) -> str:
@@ -407,11 +432,15 @@ def deliver(report, *, recipient, channel, user, note="") -> ReportDelivery:
     )
 
 
-def save_edits(report, *, summary: str, custom_note: str) -> list[str]:
+def save_edits(report, *, summary: str, custom_note: str,
+               show_name: bool | None = None) -> list[str]:
     """
     Úpravy textu diagnostikem. Vrací čísla, která v textu nemají oporu
     v datech – jako upozornění. Člověka neblokujeme: může opravit překlep
     modelu nebo doplnit údaj, který aplikace nezná; za text odpovídá on.
+
+    ``show_name`` (jméno sportovce ve zprávě) se mění jen, když je dáno –
+    pohled ho předává jen od uživatelů, kteří jméno smějí vidět.
     """
     if not report.is_editable:
         raise ReportError("Vydanou zprávu nelze upravit – vytvořte novou verzi.")
@@ -426,8 +455,12 @@ def save_edits(report, *, summary: str, custom_note: str) -> list[str]:
     report.summary_edited = summary != report.summary_generated.strip()
     report.custom_note = custom_note
     report.note_pending_review = False
-    report.save(update_fields=["summary", "summary_generated", "summary_edited",
-                               "custom_note", "note_pending_review"])
+    fields = ["summary", "summary_generated", "summary_edited", "custom_note",
+              "note_pending_review"]
+    if show_name is not None:
+        report.show_name = bool(show_name)
+        fields.append("show_name")
+    report.save(update_fields=fields)
     return narrative.unsupported_numbers(report, summary)
 
 

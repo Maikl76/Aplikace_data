@@ -31,6 +31,7 @@ from .models import (
     Questionnaire,
     TestBattery,
 )
+from .norms import normalize_fields
 
 FORMAT_VERSION = 1
 SKIP = {"id", "created_at", "updated_at", "organization"}
@@ -293,6 +294,9 @@ def import_catalog(data: dict, *, default_org: Organization | None = None) -> di
     # Normy nemají přirozený klíč; párují se podle toho, pro koho platí.
     for item in data["normy"]:
         org = imp.org(item["organizace"])
+        # Starší soubory mají úroveň, stranu a režim jako volný text.
+        for lost in normalize_fields(item):
+            item["note"] = f"{item.get('note', '')}\nPři převodu nešlo poznat: {lost}.".strip()
         lookup = {
             "organization": org,
             "metric": imp.metric(item["metrika"], org),

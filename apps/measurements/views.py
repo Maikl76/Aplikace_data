@@ -55,6 +55,14 @@ def session_create(request):
         planning.ensure_runs(session, form.cleaned_data["protocols"])
         record(request, AuditLog.Action.CREATE, session, subject_code=session.subject.code)
         return redirect("session_detail", pk=session.pk)
+    if request.method == "POST" and form.existing is not None and len(form.errors) == 1:
+        # Den už existuje: druhý se nezakládá, zvolené testy se přidají do něj.
+        session = form.existing
+        added = planning.ensure_runs(session, form.cleaned_data.get("protocols") or [])
+        messages.info(request, f"Testovací den {session.date:%d.%m.%Y} pro "
+                               f"{session.subject.code} už existoval – otevřen"
+                               + (f", přidáno testů: {added}." if added else "."))
+        return redirect("session_detail", pk=session.pk)
     return render(request, "measurements/session_form.html", {
         "form": form, "battery": planning.battery_for(subject) if subject else None})
 

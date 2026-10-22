@@ -53,7 +53,8 @@ def report_detail(request, pk):
 
     if request.method == "POST" and report.is_editable:
         problems = services.save_edits(report, summary=request.POST.get("summary", ""),
-                                       custom_note=request.POST.get("custom_note", ""))
+                                       custom_note=request.POST.get("custom_note", ""),
+                                       show_name=_show_name(request))
         record(request, AuditLog.Action.UPDATE, report, subject_code=report.subject.code)
         messages.success(request, "Úpravy uloženy.")
         if problems:
@@ -73,6 +74,9 @@ def report_detail(request, pk):
     label([report], request.user)
     context = services.report_context(report)
     context.update({
+        "may_open": services.may_open(report, request.user),
+        # Zaškrtávátko „jméno ve zprávě“ jen tomu, kdo jméno vidí a kdo ho má kde vzít.
+        "may_show_name": request.user.sees_identity and report.jmeno != report.subject.code,
         "audiences": Audience.choices,
         "model_choices": ai_models.choices() if llm.is_enabled() else [],
         "writing_label": ai_models.label_for(report.writing_model),
@@ -99,7 +103,8 @@ def report_suggest(request, pk):
         # Tlačítko je ve formuláři s úpravami – neuložený text se neztratí.
         if "summary" in request.POST:
             services.save_edits(report, summary=request.POST["summary"],
-                                custom_note=request.POST.get("custom_note", ""))
+                                custom_note=request.POST.get("custom_note", ""),
+                                show_name=_show_name(request))
         draft = services.suggest_recommendations(report)
     except services.ReportError as exc:
         messages.error(request, f"Návrh se nepodařil: {exc}")
@@ -117,10 +122,28 @@ def report_suggest(request, pk):
     return redirect("report_detail", pk=pk)
 
 
+def _show_name(request):
+    """Jméno ve zprávě smí zapnout jen ten, kdo jméno vidí; ostatním se nic nemění."""
+    if not request.user.sees_identity:
+        return None
+    return request.POST.get("show_name") == "1"
+
+
+def _name_blocked(request, report):
+    """Zprávu se jménem sportovce neotevře role, která jméno vidět nesmí."""
+    if services.may_open(report, request.user):
+        return None
+    messages.warning(request, f"Zpráva {report.report_number} obsahuje jméno sportovce – "
+                              "otevřít ji může jen správce nebo laborant.")
+    return redirect("report_detail", pk=report.pk)
+
+
 @login_required
 def report_preview(request, pk):
     """Náhled přesně toho, co půjde do PDF."""
     report = get_object_or_404(Report.objects.for_user(request.user), pk=pk)
+    if blocked := _name_blocked(request, report):
+        return blocked
     record(request, AuditLog.Action.VIEW, report, subject_code=report.subject.code)
     return HttpResponse(services.render_html(report))
 
@@ -186,6 +209,8 @@ def report_supersede(request, pk):
 @login_required
 def report_pdf(request, pk):
     report = get_object_or_404(Report.objects.for_user(request.user), pk=pk)
+    if blocked := _name_blocked(request, report):
+        return blocked
     if not report.pdf:
         raise Http404("Zpráva nemá vygenerované PDF.")
     record(request, AuditLog.Action.EXPORT, report, subject_code=report.subject.code)
@@ -362,7 +387,8 @@ def report_rewrite(request, pk):
     try:
         if "summary" in request.POST and report.is_editable and not report.is_writing:
             services.save_edits(report, summary=request.POST["summary"],
-                                custom_note=request.POST.get("custom_note", ""))
+                                custom_note=request.POST.get("custom_note", ""),
+                                show_name=_show_name(request))
         services.rewrite_summary(report, model=model if model and is_offered(model) else None)
     except services.ReportError as exc:
         messages.error(request, str(exc))

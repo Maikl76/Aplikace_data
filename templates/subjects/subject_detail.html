@@ -34,16 +34,14 @@
   </div>
 </div>
 
-{% with restriction=subject.external_exams.first %}
-  {% if restriction and restriction.restriction_is_active %}
-    <div class="card px-4 py-3 mb-5 text-sm border-l-4 flex gap-3 items-start" style="border-left-color: var(--warn)">
-      <span style="color: var(--warn)">{% icon "alert" "w-5 h-5" %}</span>
-      <div><strong>Platné omezení zátěže</strong> ({{ restriction.get_load_restriction_display }})
-        z {{ restriction.date|date:"d.m.Y" }}, {{ restriction.provider }}.
-        Doporučení vyžadující zátěž se negenerují.</div>
-    </div>
-  {% endif %}
-{% endwith %}
+{% if restriction %}
+  <div class="card px-4 py-3 mb-5 text-sm border-l-4 flex gap-3 items-start" style="border-left-color: var(--warn)">
+    <span style="color: var(--warn)">{% icon "alert" "w-5 h-5" %}</span>
+    <div><strong>Platné omezení zátěže</strong> ({{ restriction.get_load_restriction_display }})
+      z {{ restriction.date|date:"d.m.Y" }}, {{ restriction.provider }}{% if restriction.restriction_valid_until %}, platí do {{ restriction.restriction_valid_until|date:"d.m.Y" }}{% endif %}.
+      Doporučení vyžadující zátěž se negenerují.</div>
+  </div>
+{% endif %}
 
 {# --- hlavní čísla ---------------------------------------------------------- #}
 {% if tiles %}

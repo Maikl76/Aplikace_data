@@ -65,6 +65,14 @@ class TestSession(OrgScopedModel):
         verbose_name_plural = "testovací dny"
         ordering = ["-date"]
         indexes = [models.Index(fields=["subject", "-date"])]
+        # Jeden sportovec má v jeden den jeden testovací den. Druhý by rozdělil
+        # měření do dvou zpráv a shodil zakládání dne ze skupiny.
+        constraints = [
+            models.UniqueConstraint(
+                fields=["subject", "date"], name="uniq_session_per_day",
+                violation_error_message="Tento sportovec už má v ten den testovací den – "
+                                        "testy přidejte do něj."),
+        ]
 
     def __str__(self):
         return f"{self.subject.code} – {self.date:%d.%m.%Y}"

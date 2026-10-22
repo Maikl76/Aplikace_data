@@ -20,9 +20,14 @@ class RuleAdmin(admin.ModelAdmin):
                            "severity", "is_active")}),
         ("Podmínka", {
             "fields": ("condition", "contraindication"),
-            "description": 'Např. {"metric": "ir_er_ratio", "op": "&lt;", "value": 1.0, '
-                           '"speed": 210}. Kontraindikace pravidlo potlačí – typicky '
-                           'platné omezení zátěže.',
+            "description": (
+                'Podmínka, např. {"metric": "ir_er_ratio", "op": "&lt;", "value": 1.0, '
+                '"where": {"speed": 210}} – strana, režim, rychlost a segment patří do '
+                '"where". Druhy: metric (hodnota), asymmetry (rozdíl stran v %, kód nebo '
+                '"*"), change (změna proti minule, jen nad MDC), z (z-skóre proti normě); '
+                'skládání {"all": [...]} / {"any": [...]}. Kontraindikace '
+                '{"load_restriction": true} pravidlo potlačí, když má sportovec platné '
+                'omezení zátěže od lékaře. Tvar se při uložení kontroluje.'),
         }),
         ("Texty", {"fields": ("finding_template", "recommendation_template")}),
     )

@@ -28,11 +28,15 @@ class Rule(CatalogModel):
     záměrně omezený (ne volný Python) – pravidlo musí být čitelné,
     auditovatelné a musí ho umět zkontrolovat i nekodér.
 
-    Příklad condition:
-        {"metric": "ir_er_ratio", "op": "<", "value": 1.0, "speed": 210}
+    Příklad condition (strana, režim, rychlost a segment patří do "where"):
+        {"metric": "ir_er_ratio", "op": "<", "value": 1.0, "where": {"speed": 210}}
 
-    Příklad contraindication (bezpečnostní pojistka):
-        {"external_exam": "load_restriction", "state": "none"}
+    Příklad contraindication (bezpečnostní pojistka – pravidlo se potlačí,
+    když má sportovec platné omezení zátěže od lékaře):
+        {"load_restriction": true}
+
+    Tvar se kontroluje při ukládání (``clean``), aby špatně zapsané
+    pravidlo neprošlo a nesedělo na víc měření, než má.
     """
 
     code = models.SlugField("kód", max_length=64)
@@ -41,9 +45,15 @@ class Rule(CatalogModel):
     applies_to_sport = models.ForeignKey("subjects.Sport", verbose_name="platí pro sport",
                                          on_delete=models.CASCADE, null=True, blank=True,
                                          help_text="Prázdné = napříč sporty.")
-    condition = models.JSONField("podmínka", default=dict)
-    contraindication = models.JSONField("kontraindikace", default=dict, blank=True,
-                                        help_text="Podmínka, která pravidlo potlačí.")
+    condition = models.JSONField(
+        "podmínka", default=dict,
+        help_text='Např. {"metric": "ir_er_ratio", "op": "<", "value": 1.0, '
+                  '"where": {"speed": 210}}. Druhy: metric, asymmetry, change, z; '
+                  "skládání: all, any.")
+    contraindication = models.JSONField(
+        "kontraindikace", default=dict, blank=True,
+        help_text='Podmínka, která pravidlo potlačí: {"load_restriction": true} = platné '
+                  "omezení zátěže od lékaře.")
     severity = models.CharField("závažnost", max_length=10, choices=Severity.choices,
                                 default=Severity.MEDIUM)
     finding_template = models.TextField("text nálezu",
@@ -63,6 +73,40 @@ class Rule(CatalogModel):
 
     def __str__(self):
         return f"{self.name} (v{self.version})"
+
+    def clean(self):
+        """Špatně zapsané pravidlo se neuloží – chyba se ukáže u pole s nápovědou."""
+        from django.core.exceptions import ValidationError
+
+        from apps.catalog.models import MetricDef
+
+        from .engine import (
+            RuleError,
+            template_fields,
+            validate_condition,
+            validate_contraindication,
+            validate_template,
+        )
+
+        errors = {}
+        try:
+            validate_condition(self.condition,
+                               metrics=set(MetricDef.objects.values_list("code", flat=True)))
+        except RuleError as exc:
+            errors["condition"] = str(exc)
+        try:
+            validate_contraindication(self.contraindication)
+        except RuleError as exc:
+            errors["contraindication"] = str(exc)
+        if "condition" not in errors:
+            fields = template_fields(self.condition)
+            for name in ("finding_template", "recommendation_template"):
+                try:
+                    validate_template(getattr(self, name), fields)
+                except RuleError as exc:
+                    errors[name] = str(exc)
+        if errors:
+            raise ValidationError(errors)
 
 
 class RuleArticle(models.Model):

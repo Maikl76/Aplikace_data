@@ -63,7 +63,16 @@ class ExternalExam(TimeStampedModel):
 
     @classmethod
     def active_restriction_for(cls, subject):
-        for exam in cls.objects.filter(subject=subject).order_by("-date"):
-            if exam.restriction_is_active:
-                return exam
-        return None
+        """
+        Platné omezení zátěže, nebo None.
+
+        Rozhoduje nejnovější vyšetření, které o omezení něco říká („Neuvedeno“
+        se přeskočí). Novější „Bez omezení“ tak zruší starší omezení – lékař
+        sportovce uvolnil a aplikace nesmí dál tvrdit opak.
+        """
+        latest = (cls.objects.filter(subject=subject)
+                  .exclude(load_restriction=cls.Restriction.UNKNOWN)
+                  .order_by("-date", "-pk").first())
+        if latest is None or not latest.restriction_is_active:
+            return None
+        return latest

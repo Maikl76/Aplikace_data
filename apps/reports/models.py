@@ -66,6 +66,13 @@ class Report(OrgScopedModel):
     summary = models.TextField("souhrn", blank=True)
     custom_note = models.TextField("vlastní komentář", blank=True)
     disclaimer = models.TextField("doložka", default=DISCLAIMER)
+    # Zpráva je standardně pod pseudonymem. Jméno se do ní dá přidat jen
+    # vědomě a jen rukou, která ho smí vidět; zprávu se jménem pak v aplikaci
+    # otevřou zase jen takové role.
+    show_name = models.BooleanField(
+        "jméno sportovce ve zprávě", default=False,
+        help_text="Zpráva uvede vedle kódu i jméno sportovce. Otevřít ji pak v aplikaci "
+                  "smějí jen uživatelé, kteří jméno smějí vidět (správce, laborant).")
 
     # Otisk pro rekonstrukci: proč zpráva říká to, co říká.
     rules_version = models.CharField("verze sady pravidel", max_length=40, blank=True)

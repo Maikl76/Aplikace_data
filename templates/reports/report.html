@@ -74,10 +74,10 @@
 </div>
 
 <table>
-  <tr><th style="width:35%">Sportovec</th><td>{{ subject.code }}</td></tr>
+  <tr><th style="width:35%">Sportovec</th><td>{% if display_name %}{{ display_name }} ({{ subject.code }}){% else %}{{ subject.code }}{% endif %}</td></tr>
   <tr><th>Sport</th><td>{{ subject.sport|default:"—" }}</td></tr>
   <tr><th>Pohlaví / věk</th>
-      <td>{{ subject.get_sex_display }}{% if subject.age %} · {{ subject.age }} let{% endif %}</td></tr>
+      <td>{{ subject.get_sex_display }}{% if age %} · {{ age }} let{% if session %} v den měření{% endif %}{% endif %}</td></tr>
   {% if session %}
     <tr><th>Datum měření</th><td>{{ session.date|date:"d.m.Y" }}</td></tr>
     {% for label, value in conditions %}<tr><th>{{ label }}</th><td>{{ value }}</td></tr>{% endfor %}
@@ -204,7 +204,9 @@
   <p class="vysvetlivka">
     Hodnota = průměr platných pokusů, u ukazatelů s poznámkou „nejlepší pokus“ nejlepší z nich (jednotlivé pokusy pod ní). Tučně klíčové ukazatele.
     Když se test ten den opakoval, do grafů, pravidel a srovnání vstupuje první
-    měření; opakovaná jsou uvedena zvlášť.
+    měření; opakovaná jsou uvedena zvlášť. „Minule“ je minulé měření téhož testu.
+    Měří-li stejný ukazatel víc testů (hmotnost na plošině i ve složení těla), do souhrnu,
+    grafů a pravidel vstupuje hodnota z testu, kde je ukazatel klíčový.
     Změna se posuzuje proti nejmenší detekovatelné změně (MDC): změna menší než MDC
     je „v pásmu chyby měření“ a nelze ji vykládat jako zlepšení ani zhoršení.
     Norma = průměr ± směrodatná odchylka referenční skupiny, z = odchylka od průměru

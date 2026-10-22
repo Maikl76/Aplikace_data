@@ -40,6 +40,7 @@ class TestSessionForm(forms.ModelForm):
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.existing = None   # testovací den, který už pro sportovce a datum existuje
         if user is not None:
             subjects = Subject.objects.for_user(user).filter(is_active=True)
             self.fields["subject"].queryset = subjects
@@ -54,6 +55,18 @@ class TestSessionForm(forms.ModelForm):
                 field.label_from_instance = lambda p: p.name
                 continue
             field.widget.attrs["class"] = f"{field.widget.attrs.get('class', '')} input".strip()
+
+    def clean(self):
+        cleaned = super().clean()
+        subject, day = cleaned.get("subject"), cleaned.get("date")
+        if subject is not None and day is not None:
+            self.existing = (TestSession.objects.filter(subject=subject, date=day)
+                             .exclude(pk=self.instance.pk).first())
+            if self.existing is not None:
+                self.add_error("date", forms.ValidationError(
+                    "Tento sportovec už má v ten den testovací den – testy přidejte do něj.",
+                    code="duplicate"))
+        return cleaned
 
 
 class AddProtocolForm(forms.Form):

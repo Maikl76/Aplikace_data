@@ -151,7 +151,6 @@ def protocol_results(session) -> list[dict]:
     tabulka je z prvního měření a opakovaná jsou pod ní v kompaktní
     tabulce vedle sebe – aby šlo porovnat „před“ a „po“ na jeden pohled.
     """
-    previous = queries.previous_session_values(session)
     subject = session.subject
     blocks = []
 
@@ -165,6 +164,9 @@ def protocol_results(session) -> list[dict]:
 
     for protocol_runs in by_protocol.values():
         run, repeats = protocol_runs[0], protocol_runs[1:]
+        # „Minule“ = minulé měření TÉHOŽ testu: hmotnost z plošiny se srovnává
+        # s hmotností z plošiny, ne se složením těla.
+        previous = queries.previous_session_values(session, protocol=run.protocol)
         order = {pm.metric_id: pm.order for pm in run.protocol.protocol_metrics.all()}
         primary = {pm.metric_id for pm in run.protocol.protocol_metrics.all() if pm.is_primary}
 

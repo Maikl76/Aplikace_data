@@ -56,9 +56,10 @@ def columns_for(protocols) -> list[dict]:
     return cols
 
 
-def _key(metric_id, side, mode, speed, segment):
+def _key(protocol_id, metric_id, side, mode, speed, segment):
     # Oboustranná hodnota bývá uložená jako „B“ i bez strany – je to totéž.
-    return (metric_id, "B" if side in ("", "B") else side, mode or "",
+    # Test je součást klíče: hmotnost z plošiny nepatří do sloupce složení těla.
+    return (protocol_id, metric_id, "B" if side in ("", "B") else side, mode or "",
             float(speed) if speed is not None else None, segment or "")
 
 
@@ -68,20 +69,24 @@ def team_table(subjects, columns, *, today) -> dict:
 
     from .overview import VERDICTS
 
-    wanted = {_key(c["metric"].pk, c["side"], c["mode"], c["speed"], c["segment"]): i
+    wanted = {_key(c["protocol"].pk, c["metric"].pk, c["side"], c["mode"], c["speed"],
+                   c["segment"]): i
               for i, c in enumerate(columns)}
     # (sportovec, sloupec) -> {den: [hodnoty]}
     days = defaultdict(lambda: defaultdict(list))
     measurements = (Measurement.objects
                     .filter(trial__protocol_run__session__subject__in=subjects,
                             trial__protocol_run__is_primary=True, trial__is_valid=True,
+                            trial__protocol_run__protocol__in={c["protocol"].pk
+                                                               for c in columns},
                             metric__in={c["metric"].pk for c in columns})
                     .order_by("trial__number")
                     .values_list("trial__protocol_run__session__subject_id",
                                  "trial__protocol_run__session__date",
+                                 "trial__protocol_run__protocol_id",
                                  "metric_id", "side", "mode", "speed", "segment", "value"))
-    for subject_id, day, metric_id, side, mode, speed, segment, value in measurements:
-        index = wanted.get(_key(metric_id, side, mode, speed, segment))
+    for subject_id, day, protocol_id, metric_id, side, mode, speed, segment, value in measurements:
+        index = wanted.get(_key(protocol_id, metric_id, side, mode, speed, segment))
         if index is not None:
             days[(subject_id, index)][day].append(value)
 

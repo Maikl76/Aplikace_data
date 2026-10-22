@@ -6,6 +6,7 @@ from django.urls import reverse
 from apps.analytics import charts, overview, queries
 from apps.core.audit import record
 from apps.core.models import AuditLog
+from apps.external.models import ExternalExam
 from apps.measurements.models import TestSession
 
 from . import search
@@ -83,6 +84,8 @@ def subject_detail(request, pk):
         "last_session": measured[0] if measured else None,
         "tiles": overview.kpi_tiles(subject),
         "external_exams": subject.external_exams.order_by("-date"),
+        # Stejná logika jako v pravidlech: karta nesmí tvrdit něco jiného než zpráva.
+        "restriction": ExternalExam.active_restriction_for(subject),
         "reports": subject.reports.order_by("-created_at")[:10],
         "trends": trends,
         "asymetrie_chart": (_both_themes(lambda theme: charts.asymmetry_chart(asymetrie, theme=theme))
