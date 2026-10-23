@@ -13,7 +13,7 @@ from django.utils.text import slugify
 from django.views.decorators.http import require_POST
 
 from apps.core.audit import record
-from apps.core.models import AuditLog
+from apps.core.models import AuditLog, default_organization
 from apps.subjects.models import Sport
 
 from .models import BatteryItem, Protocol, TestBattery
@@ -33,8 +33,11 @@ def _card(request, battery):
 def sport_list(request):
     if request.method == "POST":
         name = request.POST.get("name", "").strip()
-        if name:
-            org = request.user.organization
+        org = request.user.organization or default_organization()
+        if name and org is None:
+            messages.error(request, "Účet nemá přiřazené pracoviště – v administraci "
+                                    "u uživatele vyberte organizaci.")
+        elif name:
             code = slugify(name)[:32] or "sport"
             sport, created = Sport.objects.get_or_create(
                 organization=org, code=code, defaults={"name": name})

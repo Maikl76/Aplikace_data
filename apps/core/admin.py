@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import Group
 
-from .models import AuditLog, Organization, Role, User
+from .models import AuditLog, Organization, Role, User, default_organization
 
 admin.site.site_header = "Funkční testování — administrace"
 admin.site.site_title = "Funkční testování"
@@ -48,6 +48,16 @@ class UserAdmin(BaseUserAdmin):
                            "která hlídá, na čí data vidí.",
         }),
     )
+
+    def get_form(self, request, obj=None, **kwargs):
+        """Pracoviště je povinné: účet bez něj v aplikaci nevidí nic."""
+        form = super().get_form(request, obj, **kwargs)
+        field = form.base_fields.get("organization")
+        if field is not None and Organization.objects.exists():
+            field.required = True
+            field.initial = field.initial or default_organization()
+            field.help_text = "Bez pracoviště by účet v aplikaci neviděl žádná data."
+        return form
 
     def save_model(self, request, obj, form, change):
         """Role není jen popisek – po uložení se srovnají skupiny."""

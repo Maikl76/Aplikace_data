@@ -247,6 +247,10 @@ def subject_new(request):
         messages.error(request, "Sportovce zakládá laborant nebo správce.")
         return redirect("subject_list")
     organization = request.user.organization or booking.organization()
+    if organization is None:
+        messages.error(request, "Účet nemá přiřazené pracoviště – v administraci "
+                                "u uživatele vyberte organizaci.")
+        return redirect("subject_list")
     sports = Sport.objects.for_user(request.user).order_by("name")
     form = SubjectForm(request.POST or None, sports=sports)
     if request.method == "POST":

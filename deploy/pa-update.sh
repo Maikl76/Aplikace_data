@@ -173,6 +173,8 @@ main() {
     # se vrátí do klasického režimu (jde to, jen když ji nikdo jiný nemá otevřenou).
     sleep 5
     "$PY" manage.py rezim_databaze --opakovat 10 || true
+    # Kontrola: databáze, zápis, účty bez pracoviště, poslední chyba webu.
+    "$PY" manage.py kontrola_ukazky || true
 
     local LAST
     LAST="$(ls -1d "$BACKUPS"/ftvs-zaloha-* 2>/dev/null | tail -n 1 || true)"

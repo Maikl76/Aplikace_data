@@ -60,6 +60,23 @@ class User(AbstractUser):
         """Jen tyto role smějí vidět jméno sportovce, ne jen pseudonym."""
         return self.role in {Role.ADMIN, Role.LAB}
 
+    def save(self, *args, **kwargs):
+        # Účet bez pracoviště by v aplikaci neviděl nic a založení sportu nebo
+        # sportovce by skončilo chybou. Pole je v administraci snadné přehlédnout
+        # (a createsuperuser se na něj neptá) – když je pracoviště jediné,
+        # patří k němu každý účet.
+        if self.organization_id is None and (org := default_organization()) is not None:
+            self.organization = org
+            if (fields := kwargs.get("update_fields")) is not None:
+                kwargs["update_fields"] = {*fields, "organization"}
+        super().save(*args, **kwargs)
+
+
+def default_organization():
+    """Jediné pracoviště v instanci (laboratoř FTVS); když je jich víc nebo žádné, None."""
+    found = list(Organization.objects.order_by("pk")[:2])
+    return found[0] if len(found) == 1 else None
+
 
 class OrgScopedQuerySet(models.QuerySet):
     def for_user(self, user):
