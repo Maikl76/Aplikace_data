@@ -1,0 +1,3027 @@
+{
+  "format": 1,
+  "metriky": [
+    {
+      "organizace": null,
+      "code": "body_fat_pct",
+      "name": "Podíl tělesného tuku",
+      "family": "body_comp",
+      "unit": "%",
+      "direction": "lower",
+      "description": "",
+      "typical_error": 0.561,
+      "mdc": 1.1,
+      "swc": 0.7,
+      "plausible_min": 3.0,
+      "plausible_max": 45.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "body_mass",
+      "name": "Tělesná hmotnost",
+      "family": "body_comp",
+      "unit": "kg",
+      "direction": "neutral",
+      "description": "",
+      "typical_error": 0.255,
+      "mdc": 0.5,
+      "swc": 0.3,
+      "plausible_min": 30.0,
+      "plausible_max": 180.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "boxlift_hip_flex_lift",
+      "name": "Flexe kyčle při max. flexi kolene – zvedání",
+      "family": "field",
+      "unit": "°",
+      "direction": "neutral",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 0.0,
+      "plausible_max": 180.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "boxlift_hip_flex_lower",
+      "name": "Flexe kyčle při max. flexi kolene – pokládání",
+      "family": "field",
+      "unit": "°",
+      "direction": "neutral",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 0.0,
+      "plausible_max": 180.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "boxlift_knee_flex_lift",
+      "name": "Max. flexe kolene – zvedání",
+      "family": "field",
+      "unit": "°",
+      "direction": "neutral",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 0.0,
+      "plausible_max": 180.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "boxlift_knee_flex_lower",
+      "name": "Max. flexe kolene – pokládání",
+      "family": "field",
+      "unit": "°",
+      "direction": "neutral",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 0.0,
+      "plausible_max": 180.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "boxlift_shoulder_flex",
+      "name": "Max. flexe ramene při zakládání",
+      "family": "field",
+      "unit": "°",
+      "direction": "neutral",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 0.0,
+      "plausible_max": 200.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "boxlift_spine_flex_lift",
+      "name": "Flexe páteře při max. flexi kolene – zvedání",
+      "family": "field",
+      "unit": "°",
+      "direction": "lower",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": -30.0,
+      "plausible_max": 120.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "boxlift_spine_flex_lower",
+      "name": "Flexe páteře při max. flexi kolene – pokládání",
+      "family": "field",
+      "unit": "°",
+      "direction": "lower",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": -30.0,
+      "plausible_max": 120.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "boxlift_trunk_ext",
+      "name": "Max. extenze trupu",
+      "family": "field",
+      "unit": "°",
+      "direction": "neutral",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": -60.0,
+      "plausible_max": 90.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "boxlift_trunk_flex_lift",
+      "name": "Flexe trupu při max. flexi kolene – zvedání",
+      "family": "field",
+      "unit": "°",
+      "direction": "neutral",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": -30.0,
+      "plausible_max": 150.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "boxlift_trunk_flex_lower",
+      "name": "Flexe trupu při max. flexi kolene – pokládání",
+      "family": "field",
+      "unit": "°",
+      "direction": "neutral",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": -30.0,
+      "plausible_max": 150.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": "ftvs",
+      "code": "cas_vykonu",
+      "name": "Čas výkonu",
+      "family": "field",
+      "unit": "min",
+      "direction": "lower",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": null,
+      "plausible_max": null,
+      "decimals": 2,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "nejlepsi",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "cmj_contraction_time",
+      "name": "Doba kontrakce (CMJ)",
+      "family": "force_plate",
+      "unit": "ms",
+      "direction": "lower",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 200.0,
+      "plausible_max": 1500.0,
+      "decimals": 0,
+      "ods_role": "strategie",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "cmj_depth",
+      "name": "Hloubka protipohybu (CMJ)",
+      "family": "force_plate",
+      "unit": "cm",
+      "direction": "neutral",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 5.0,
+      "plausible_max": 80.0,
+      "decimals": 1,
+      "ods_role": "strategie",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "cmj_ecc_braking_rfd",
+      "name": "Excentrické brzdné RFD (CMJ)",
+      "family": "force_plate",
+      "unit": "N/s",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 100.0,
+      "plausible_max": 30000.0,
+      "decimals": 0,
+      "ods_role": "pricina",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "cmj_height",
+      "name": "Výška výskoku (CMJ)",
+      "family": "force_plate",
+      "unit": "cm",
+      "direction": "higher",
+      "description": "",
+      "typical_error": 0.918,
+      "mdc": 1.8,
+      "swc": 1.0,
+      "plausible_min": 5.0,
+      "plausible_max": 80.0,
+      "decimals": 1,
+      "ods_role": "vysledek",
+      "trial_cv_limit": 10.0,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "cmj_landing_force",
+      "name": "Vrcholová síla při doskoku (CMJ)",
+      "family": "force_plate",
+      "unit": "N",
+      "direction": "neutral",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 300.0,
+      "plausible_max": 20000.0,
+      "decimals": 0,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "cmj_peak_force",
+      "name": "Koncentrická vrcholová síla (CMJ)",
+      "family": "force_plate",
+      "unit": "N",
+      "direction": "higher",
+      "description": "",
+      "typical_error": 48.469,
+      "mdc": 95.0,
+      "swc": 55.0,
+      "plausible_min": 200.0,
+      "plausible_max": 6000.0,
+      "decimals": 0,
+      "ods_role": "pricina",
+      "trial_cv_limit": 10.0,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "cmj_peak_power_bm",
+      "name": "Vrcholový výkon / hmotnost (CMJ)",
+      "family": "force_plate",
+      "unit": "W/kg",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 15.0,
+      "plausible_max": 100.0,
+      "decimals": 1,
+      "ods_role": "pricina",
+      "trial_cv_limit": 10.0,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "cmj_rsi_mod",
+      "name": "RSI modified",
+      "family": "force_plate",
+      "unit": "m/s",
+      "direction": "higher",
+      "description": "",
+      "typical_error": 0.026,
+      "mdc": 0.05,
+      "swc": 0.03,
+      "plausible_min": 0.05,
+      "plausible_max": 1.5,
+      "decimals": 2,
+      "ods_role": "vysledek",
+      "trial_cv_limit": 10.0,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "dsi",
+      "name": "Dynamic Strength Index (CMJ ÷ IMTP)",
+      "family": "force_plate",
+      "unit": "-",
+      "direction": "neutral",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 0.2,
+      "plausible_max": 1.6,
+      "decimals": 2,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "eur",
+      "name": "Eccentric Utilization Ratio (CMJ ÷ SJ)",
+      "family": "force_plate",
+      "unit": "-",
+      "direction": "neutral",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 0.7,
+      "plausible_max": 1.6,
+      "decimals": 2,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "grip_strength",
+      "name": "Síla stisku ruky",
+      "family": "dynamometry",
+      "unit": "kg",
+      "direction": "higher",
+      "description": "",
+      "typical_error": 1.224,
+      "mdc": 2.4,
+      "swc": 1.4,
+      "plausible_min": 5.0,
+      "plausible_max": 100.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "nejlepsi",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "height",
+      "name": "Tělesná výška",
+      "family": "body_comp",
+      "unit": "cm",
+      "direction": "neutral",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 120.0,
+      "plausible_max": 230.0,
+      "decimals": 0,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "hr_max",
+      "name": "Maximální tepová frekvence",
+      "family": "spiro",
+      "unit": "BPM",
+      "direction": "neutral",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 100.0,
+      "plausible_max": 230.0,
+      "decimals": 0,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "imtp_force_100",
+      "name": "Síla ve 100 ms (IMTP)",
+      "family": "force_plate",
+      "unit": "N",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 0.0,
+      "plausible_max": 5000.0,
+      "decimals": 0,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "imtp_force_200",
+      "name": "Síla ve 200 ms (IMTP)",
+      "family": "force_plate",
+      "unit": "N",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 0.0,
+      "plausible_max": 5000.0,
+      "decimals": 0,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "imtp_peak_force",
+      "name": "Vrcholová síla (IMTP)",
+      "family": "force_plate",
+      "unit": "N",
+      "direction": "higher",
+      "description": "",
+      "typical_error": 61.224,
+      "mdc": 120.0,
+      "swc": 70.0,
+      "plausible_min": 300.0,
+      "plausible_max": 6000.0,
+      "decimals": 0,
+      "ods_role": "",
+      "trial_cv_limit": 10.0,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "imtp_peak_force_bm",
+      "name": "Vrcholová síla / hmotnost (IMTP)",
+      "family": "force_plate",
+      "unit": "N/kg",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 8.0,
+      "plausible_max": 70.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "imtp_rfd_100",
+      "name": "RFD 0–100 ms (IMTP)",
+      "family": "force_plate",
+      "unit": "N/s",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": -2000.0,
+      "plausible_max": 40000.0,
+      "decimals": 0,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "imtp_rfd_200",
+      "name": "RFD 0–200 ms (IMTP)",
+      "family": "force_plate",
+      "unit": "N/s",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": -2000.0,
+      "plausible_max": 30000.0,
+      "decimals": 0,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "imtp_time_to_peak",
+      "name": "Čas do vrcholové síly (IMTP)",
+      "family": "force_plate",
+      "unit": "s",
+      "direction": "lower",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 0.1,
+      "plausible_max": 10.0,
+      "decimals": 2,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "ir_er_ratio",
+      "name": "Poměr IR/ER",
+      "family": "dynamometry",
+      "unit": "-",
+      "direction": "optimal",
+      "description": "",
+      "typical_error": 0.041,
+      "mdc": 0.08,
+      "swc": 0.05,
+      "plausible_min": 0.3,
+      "plausible_max": 2.5,
+      "decimals": 2,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "lactate_max",
+      "name": "Laktát maximální",
+      "family": "spiro",
+      "unit": "mmol/l",
+      "direction": "neutral",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 1.0,
+      "plausible_max": 30.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "lean_mass",
+      "name": "Celková beztuková hmota",
+      "family": "body_comp",
+      "unit": "kg",
+      "direction": "higher",
+      "description": "",
+      "typical_error": 0.306,
+      "mdc": 0.6,
+      "swc": 0.4,
+      "plausible_min": 20.0,
+      "plausible_max": 100.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "segment_lean_mass",
+      "name": "Beztuková hmota segmentu",
+      "family": "body_comp",
+      "unit": "kg",
+      "direction": "higher",
+      "description": "",
+      "typical_error": 0.153,
+      "mdc": 0.3,
+      "swc": 0.2,
+      "plausible_min": 0.3,
+      "plausible_max": 55.0,
+      "decimals": 2,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "segment_mass",
+      "name": "Hmotnost segmentu",
+      "family": "body_comp",
+      "unit": "kg",
+      "direction": "neutral",
+      "description": "",
+      "typical_error": 0.153,
+      "mdc": 0.3,
+      "swc": 0.2,
+      "plausible_min": 0.5,
+      "plausible_max": 60.0,
+      "decimals": 2,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "serve_speed",
+      "name": "Rychlost podání",
+      "family": "field",
+      "unit": "km/h",
+      "direction": "higher",
+      "description": "",
+      "typical_error": 2.041,
+      "mdc": 4.0,
+      "swc": 2.0,
+      "plausible_min": 50.0,
+      "plausible_max": 260.0,
+      "decimals": 0,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "nejlepsi",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "shoulder_er_torque",
+      "name": "Vnější rotace ramene – točivý moment",
+      "family": "dynamometry",
+      "unit": "Nm",
+      "direction": "higher",
+      "description": "",
+      "typical_error": 1.582,
+      "mdc": 3.1,
+      "swc": 1.8,
+      "plausible_min": 3.0,
+      "plausible_max": 200.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "shoulder_ir_torque",
+      "name": "Vnitřní rotace ramene – točivý moment",
+      "family": "dynamometry",
+      "unit": "Nm",
+      "direction": "higher",
+      "description": "",
+      "typical_error": 1.582,
+      "mdc": 3.1,
+      "swc": 1.8,
+      "plausible_min": 3.0,
+      "plausible_max": 200.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "sj_height",
+      "name": "Výška výskoku (SJ)",
+      "family": "force_plate",
+      "unit": "cm",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 5.0,
+      "plausible_max": 80.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "sj_peak_power_bm",
+      "name": "Vrcholový výkon / hmotnost (SJ)",
+      "family": "force_plate",
+      "unit": "W/kg",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 15.0,
+      "plausible_max": 100.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "sls_cop_area",
+      "name": "Plocha elipsy CoP (stoj na 1 DK)",
+      "family": "force_plate",
+      "unit": "mm²",
+      "direction": "lower",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 50.0,
+      "plausible_max": 30000.0,
+      "decimals": 0,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "sls_mean_velocity",
+      "name": "Průměrná rychlost CoP (stoj na 1 DK)",
+      "family": "force_plate",
+      "unit": "mm/s",
+      "direction": "lower",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 3.0,
+      "plausible_max": 500.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "sls_total_excursion",
+      "name": "Celková dráha CoP (stoj na 1 DK)",
+      "family": "force_plate",
+      "unit": "mm",
+      "direction": "lower",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 100.0,
+      "plausible_max": 15000.0,
+      "decimals": 0,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "sprint_10m",
+      "name": "Sprint – čas na 10 m",
+      "family": "field",
+      "unit": "s",
+      "direction": "lower",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 1.3,
+      "plausible_max": 4.0,
+      "decimals": 2,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "nejlepsi",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "sprint_30m",
+      "name": "Sprint – čas na 30 m",
+      "family": "field",
+      "unit": "s",
+      "direction": "lower",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 3.0,
+      "plausible_max": 8.0,
+      "decimals": 2,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "nejlepsi",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "sprint_5m",
+      "name": "Sprint – čas na 5 m",
+      "family": "field",
+      "unit": "s",
+      "direction": "lower",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 0.7,
+      "plausible_max": 3.0,
+      "decimals": 2,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "nejlepsi",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "vo2max",
+      "name": "VO2max",
+      "family": "spiro",
+      "unit": "ml/kg/min",
+      "direction": "higher",
+      "description": "",
+      "typical_error": 1.122,
+      "mdc": 2.2,
+      "swc": 1.3,
+      "plausible_min": 15.0,
+      "plausible_max": 90.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "vt2_power",
+      "name": "Výkon na VT2",
+      "family": "spiro",
+      "unit": "W",
+      "direction": "higher",
+      "description": "",
+      "typical_error": 6.122,
+      "mdc": 12.0,
+      "swc": 7.0,
+      "plausible_min": 50.0,
+      "plausible_max": 600.0,
+      "decimals": 0,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "wingate_fatigue_index",
+      "name": "Index únavy (Wingate)",
+      "family": "spiro",
+      "unit": "%",
+      "direction": "lower",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 5.0,
+      "plausible_max": 95.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "wingate_p5s_max",
+      "name": "Nejvyšší pětivteřinový průměr (Wingate)",
+      "family": "spiro",
+      "unit": "W",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 200.0,
+      "plausible_max": 2500.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "wingate_p5s_min",
+      "name": "Nejnižší pětivteřinový průměr (Wingate)",
+      "family": "spiro",
+      "unit": "W",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 50.0,
+      "plausible_max": 1500.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "wingate_pmax",
+      "name": "Maximální výkon (Wingate)",
+      "family": "spiro",
+      "unit": "W",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 200.0,
+      "plausible_max": 2500.0,
+      "decimals": 0,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "wingate_pmax_ath",
+      "name": "Maximální výkon / ATH (Wingate)",
+      "family": "spiro",
+      "unit": "W/kg",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 3.0,
+      "plausible_max": 35.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "wingate_pmax_th",
+      "name": "Maximální výkon / TH (Wingate)",
+      "family": "spiro",
+      "unit": "W/kg",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 3.0,
+      "plausible_max": 30.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "wingate_pmin",
+      "name": "Minimální výkon (Wingate)",
+      "family": "spiro",
+      "unit": "W",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 50.0,
+      "plausible_max": 1500.0,
+      "decimals": 0,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "wingate_pmin_th",
+      "name": "Minimální výkon / TH (Wingate)",
+      "family": "spiro",
+      "unit": "W/kg",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 1.0,
+      "plausible_max": 20.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "wingate_revolutions",
+      "name": "Počet otáček (Wingate)",
+      "family": "spiro",
+      "unit": "",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 10.0,
+      "plausible_max": 200.0,
+      "decimals": 0,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "wingate_work",
+      "name": "Celková práce (Wingate)",
+      "family": "spiro",
+      "unit": "kJ",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 3.0,
+      "plausible_max": 60.0,
+      "decimals": 1,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "wingate_work_ath",
+      "name": "Celková práce / ATH (Wingate)",
+      "family": "spiro",
+      "unit": "J/kg",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 50.0,
+      "plausible_max": 800.0,
+      "decimals": 0,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    },
+    {
+      "organizace": null,
+      "code": "wingate_work_th",
+      "name": "Celková práce / TH (Wingate) – anaerobní kapacita",
+      "family": "spiro",
+      "unit": "J/kg",
+      "direction": "higher",
+      "description": "",
+      "typical_error": null,
+      "mdc": null,
+      "swc": null,
+      "plausible_min": 50.0,
+      "plausible_max": 700.0,
+      "decimals": 0,
+      "ods_role": "",
+      "trial_cv_limit": null,
+      "trial_rule": "prumer",
+      "loinc_code": "",
+      "is_active": true
+    }
+  ],
+  "protokoly": [
+    {
+      "organizace": "ftvs",
+      "code": "beh_1500_m",
+      "name": "Běh 1500 m",
+      "family": "field",
+      "version": 1,
+      "description": "",
+      "device": "Stopky",
+      "default_trials": 1,
+      "rest_seconds": null,
+      "rpe_after": false,
+      "is_active": true,
+      "metriky": [
+        {
+          "metrika": "cas_vykonu",
+          "order": 1,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "code": "bodycomp",
+      "name": "Složení těla",
+      "family": "body_comp",
+      "version": 1,
+      "description": "",
+      "device": "DXA / BIA",
+      "default_trials": 1,
+      "rest_seconds": null,
+      "rpe_after": false,
+      "is_active": true,
+      "metriky": [
+        {
+          "metrika": "body_mass",
+          "order": 0,
+          "is_primary": true,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "height",
+          "order": 1,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "lean_mass",
+          "order": 2,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "body_fat_pct",
+          "order": 3,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "segment_mass",
+          "order": 4,
+          "is_primary": false,
+          "sides": [
+            "L",
+            "R"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": [
+            "paze",
+            "noha",
+            "trup"
+          ]
+        },
+        {
+          "metrika": "segment_lean_mass",
+          "order": 5,
+          "is_primary": false,
+          "sides": [
+            "L",
+            "R"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": [
+            "paze",
+            "noha",
+            "trup"
+          ]
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "code": "box_lift",
+      "name": "Box lift – nad hlavu",
+      "family": "field",
+      "version": 1,
+      "description": "",
+      "device": "VALD HumanTrak",
+      "default_trials": 1,
+      "rest_seconds": null,
+      "rpe_after": false,
+      "is_active": true,
+      "metriky": [
+        {
+          "metrika": "boxlift_spine_flex_lift",
+          "order": 0,
+          "is_primary": true,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "boxlift_spine_flex_lower",
+          "order": 1,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "boxlift_hip_flex_lift",
+          "order": 2,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "boxlift_hip_flex_lower",
+          "order": 3,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "boxlift_knee_flex_lift",
+          "order": 4,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "boxlift_knee_flex_lower",
+          "order": 5,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "boxlift_trunk_flex_lift",
+          "order": 6,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "boxlift_trunk_flex_lower",
+          "order": 7,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "boxlift_shoulder_flex",
+          "order": 8,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "boxlift_trunk_ext",
+          "order": 9,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "code": "cmj",
+      "name": "Countermovement jump",
+      "family": "force_plate",
+      "version": 1,
+      "description": "",
+      "device": "VALD ForceDecks",
+      "default_trials": 3,
+      "rest_seconds": null,
+      "rpe_after": false,
+      "is_active": true,
+      "metriky": [
+        {
+          "metrika": "cmj_height",
+          "order": 0,
+          "is_primary": true,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "cmj_rsi_mod",
+          "order": 1,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "cmj_peak_force",
+          "order": 2,
+          "is_primary": false,
+          "sides": [
+            "B",
+            "L",
+            "R"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "cmj_peak_power_bm",
+          "order": 3,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "cmj_depth",
+          "order": 4,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "cmj_contraction_time",
+          "order": 5,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "cmj_ecc_braking_rfd",
+          "order": 6,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "cmj_landing_force",
+          "order": 7,
+          "is_primary": false,
+          "sides": [
+            "B",
+            "L",
+            "R"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "body_mass",
+          "order": 8,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "code": "dsi",
+      "name": "Dynamic Strength Index",
+      "family": "force_plate",
+      "version": 1,
+      "description": "",
+      "device": "výpočet z CMJ a IMTP",
+      "default_trials": 1,
+      "rest_seconds": null,
+      "rpe_after": false,
+      "is_active": true,
+      "metriky": [
+        {
+          "metrika": "dsi",
+          "order": 0,
+          "is_primary": true,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "code": "eur",
+      "name": "Eccentric Utilization Ratio",
+      "family": "force_plate",
+      "version": 1,
+      "description": "",
+      "device": "výpočet z CMJ a SJ",
+      "default_trials": 1,
+      "rest_seconds": null,
+      "rpe_after": false,
+      "is_active": true,
+      "metriky": [
+        {
+          "metrika": "eur",
+          "order": 0,
+          "is_primary": true,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "code": "grip",
+      "name": "Síla stisku ruky",
+      "family": "dynamometry",
+      "version": 1,
+      "description": "",
+      "device": "ruční dynamometr",
+      "default_trials": 2,
+      "rest_seconds": null,
+      "rpe_after": false,
+      "is_active": true,
+      "metriky": [
+        {
+          "metrika": "grip_strength",
+          "order": 0,
+          "is_primary": true,
+          "sides": [
+            "L",
+            "R"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "code": "imtp",
+      "name": "Izometrický tah (IMTP)",
+      "family": "force_plate",
+      "version": 1,
+      "description": "",
+      "device": "VALD ForceDecks",
+      "default_trials": 3,
+      "rest_seconds": null,
+      "rpe_after": false,
+      "is_active": true,
+      "metriky": [
+        {
+          "metrika": "imtp_peak_force",
+          "order": 0,
+          "is_primary": true,
+          "sides": [
+            "B",
+            "L",
+            "R"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "imtp_peak_force_bm",
+          "order": 1,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "imtp_force_100",
+          "order": 2,
+          "is_primary": false,
+          "sides": [
+            "B",
+            "L",
+            "R"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "imtp_force_200",
+          "order": 3,
+          "is_primary": false,
+          "sides": [
+            "B",
+            "L",
+            "R"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "imtp_rfd_100",
+          "order": 4,
+          "is_primary": false,
+          "sides": [
+            "B",
+            "L",
+            "R"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "imtp_rfd_200",
+          "order": 5,
+          "is_primary": false,
+          "sides": [
+            "B",
+            "L",
+            "R"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "imtp_time_to_peak",
+          "order": 6,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "code": "iso_shoulder",
+      "name": "Izokinetika ramene",
+      "family": "dynamometry",
+      "version": 1,
+      "description": "",
+      "device": "izokinetický dynamometr",
+      "default_trials": 3,
+      "rest_seconds": null,
+      "rpe_after": false,
+      "is_active": true,
+      "metriky": [
+        {
+          "metrika": "shoulder_ir_torque",
+          "order": 0,
+          "is_primary": true,
+          "sides": [
+            "L",
+            "R"
+          ],
+          "modes": [
+            "con",
+            "ecc"
+          ],
+          "speeds": [
+            210,
+            300
+          ],
+          "segments": []
+        },
+        {
+          "metrika": "shoulder_er_torque",
+          "order": 1,
+          "is_primary": false,
+          "sides": [
+            "L",
+            "R"
+          ],
+          "modes": [
+            "con",
+            "ecc"
+          ],
+          "speeds": [
+            210,
+            300
+          ],
+          "segments": []
+        },
+        {
+          "metrika": "ir_er_ratio",
+          "order": 2,
+          "is_primary": false,
+          "sides": [
+            "L",
+            "R"
+          ],
+          "modes": [],
+          "speeds": [
+            210,
+            300
+          ],
+          "segments": []
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "code": "serve",
+      "name": "Rychlost podání",
+      "family": "field",
+      "version": 1,
+      "description": "",
+      "device": "radar",
+      "default_trials": 3,
+      "rest_seconds": null,
+      "rpe_after": false,
+      "is_active": true,
+      "metriky": [
+        {
+          "metrika": "serve_speed",
+          "order": 0,
+          "is_primary": true,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "code": "sj",
+      "name": "Squat jump",
+      "family": "force_plate",
+      "version": 1,
+      "description": "",
+      "device": "VALD ForceDecks",
+      "default_trials": 3,
+      "rest_seconds": null,
+      "rpe_after": false,
+      "is_active": true,
+      "metriky": [
+        {
+          "metrika": "sj_height",
+          "order": 0,
+          "is_primary": true,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "sj_peak_power_bm",
+          "order": 1,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "code": "sls",
+      "name": "Stoj na jedné noze (SLS)",
+      "family": "force_plate",
+      "version": 1,
+      "description": "",
+      "device": "VALD ForceDecks",
+      "default_trials": 2,
+      "rest_seconds": null,
+      "rpe_after": false,
+      "is_active": true,
+      "metriky": [
+        {
+          "metrika": "sls_cop_area",
+          "order": 0,
+          "is_primary": true,
+          "sides": [
+            "L",
+            "R"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "sls_total_excursion",
+          "order": 1,
+          "is_primary": false,
+          "sides": [
+            "L",
+            "R"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "sls_mean_velocity",
+          "order": 2,
+          "is_primary": false,
+          "sides": [
+            "L",
+            "R"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "code": "spiro_ramp",
+      "name": "Spiroergometrie – rampový protokol",
+      "family": "spiro",
+      "version": 1,
+      "description": "",
+      "device": "spiroergometr",
+      "default_trials": 1,
+      "rest_seconds": null,
+      "rpe_after": true,
+      "is_active": true,
+      "metriky": [
+        {
+          "metrika": "vo2max",
+          "order": 0,
+          "is_primary": true,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "vt2_power",
+          "order": 1,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "code": "sprint30",
+      "name": "Sprint 30 m",
+      "family": "field",
+      "version": 1,
+      "description": "",
+      "device": "fotobuňky",
+      "default_trials": 3,
+      "rest_seconds": 180,
+      "rpe_after": false,
+      "is_active": true,
+      "metriky": [
+        {
+          "metrika": "sprint_5m",
+          "order": 0,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "sprint_10m",
+          "order": 1,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "sprint_30m",
+          "order": 2,
+          "is_primary": true,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "code": "wingate",
+      "name": "Wingate test 30 s",
+      "family": "spiro",
+      "version": 1,
+      "description": "",
+      "device": "bicyklový ergometr",
+      "default_trials": 1,
+      "rest_seconds": null,
+      "rpe_after": true,
+      "is_active": true,
+      "metriky": [
+        {
+          "metrika": "wingate_pmax",
+          "order": 0,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "wingate_pmax_th",
+          "order": 1,
+          "is_primary": true,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "wingate_pmax_ath",
+          "order": 2,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "wingate_p5s_max",
+          "order": 3,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "wingate_pmin",
+          "order": 4,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "wingate_pmin_th",
+          "order": 5,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "wingate_p5s_min",
+          "order": 6,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "wingate_work",
+          "order": 7,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "wingate_work_th",
+          "order": 8,
+          "is_primary": true,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "wingate_work_ath",
+          "order": 9,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "wingate_fatigue_index",
+          "order": 10,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "wingate_revolutions",
+          "order": 11,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "lactate_max",
+          "order": 12,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        },
+        {
+          "metrika": "hr_max",
+          "order": 13,
+          "is_primary": false,
+          "sides": [
+            "B"
+          ],
+          "modes": [],
+          "speeds": [],
+          "segments": []
+        }
+      ]
+    }
+  ],
+  "pristroje": [],
+  "profily_importu": [
+    {
+      "organizace": null,
+      "protokol": "cmj",
+      "verze_protokolu": 1,
+      "device": "vald_forcedecks",
+      "test_type": "Countermovement Jump",
+      "is_active": true,
+      "sloupce": [
+        {
+          "metrika": "cmj_height",
+          "column": "Jump Height (Imp-Mom) [cm]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "cmj_rsi_mod",
+          "column": "RSI-modified (Imp-Mom) [m/s]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "cmj_peak_force",
+          "column": "Concentric Peak Force [N]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "cmj_peak_power_bm",
+          "column": "Peak Power / BM [W/kg]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "cmj_depth",
+          "column": "Countermovement Depth [cm]",
+          "with_sides": true,
+          "factor": -1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "cmj_contraction_time",
+          "column": "Contraction Time [ms]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "cmj_ecc_braking_rfd",
+          "column": "Eccentric Braking RFD [N/s]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "cmj_landing_force",
+          "column": "Peak Landing Force [N]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "body_mass",
+          "column": "Body Weight [kg]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "protokol": "imtp",
+      "verze_protokolu": 1,
+      "device": "vald_forcedecks",
+      "test_type": "Isometric Mid-Thigh Pull",
+      "is_active": true,
+      "sloupce": [
+        {
+          "metrika": "imtp_peak_force",
+          "column": "Peak Vertical Force [N]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "imtp_peak_force_bm",
+          "column": "Peak Vertical Force / BM [N/kg]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "imtp_force_100",
+          "column": "Force at 100ms [N]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "imtp_force_200",
+          "column": "Force at 200ms [N]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "imtp_rfd_100",
+          "column": "RFD - 100ms [N/s]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "imtp_rfd_200",
+          "column": "RFD - 200ms [N/s]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "imtp_time_to_peak",
+          "column": "Start Time to Peak Force [s]",
+          "with_sides": false,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "protokol": "sls",
+      "verze_protokolu": 1,
+      "device": "vald_forcedecks",
+      "test_type": "Single Leg Stand",
+      "is_active": true,
+      "sloupce": [
+        {
+          "metrika": "sls_cop_area",
+          "column": "Area of CoP Ellipse [mm sq]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "sls_total_excursion",
+          "column": "Total Excursion [mm]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "sls_mean_velocity",
+          "column": "Mean Velocity [mm/s]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "protokol": "sj",
+      "verze_protokolu": 1,
+      "device": "vald_forcedecks",
+      "test_type": "Squat Jump",
+      "is_active": true,
+      "sloupce": [
+        {
+          "metrika": "sj_height",
+          "column": "Jump Height (Imp-Mom) [cm]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "sj_peak_power_bm",
+          "column": "Peak Power / BM [W/kg]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "protokol": "box_lift",
+      "verze_protokolu": 1,
+      "device": "vald_humantrak",
+      "test_type": "Box Lift - Overhead",
+      "is_active": true,
+      "sloupce": [
+        {
+          "metrika": "boxlift_hip_flex_lift",
+          "column": "Hip Flexion at Peak Knee Flexion During Lift[°]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "boxlift_hip_flex_lower",
+          "column": "Hip Flexion at Peak Knee Flexion During Lower[°]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "boxlift_knee_flex_lift",
+          "column": "Peak Knee Flexion During Lift[°]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "boxlift_knee_flex_lower",
+          "column": "Peak Knee Flexion During Lower[°]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "boxlift_shoulder_flex",
+          "column": "Peak Shoulder Flexion During Place[°]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "boxlift_trunk_ext",
+          "column": "Peak Trunk Extension[°]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "boxlift_spine_flex_lift",
+          "column": "Spinal Flexion at Peak Knee Flexion During Lift[°]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "boxlift_spine_flex_lower",
+          "column": "Spinal Flexion at Peak Knee Flexion During Lower[°]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "boxlift_trunk_flex_lift",
+          "column": "Trunk Flexion at Peak Knee Flexion During Lift[°]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        },
+        {
+          "metrika": "boxlift_trunk_flex_lower",
+          "column": "Trunk Flexion at Peak Knee Flexion During Lower[°]",
+          "with_sides": true,
+          "factor": 1.0,
+          "side": "",
+          "segment": ""
+        }
+      ]
+    }
+  ],
+  "baterie": [
+    {
+      "sport": {
+        "code": "armadni-testovani",
+        "name": "Armádní testování",
+        "organizace": "ftvs"
+      },
+      "category": "",
+      "name": "",
+      "note": "",
+      "protokoly": []
+    },
+    {
+      "sport": {
+        "code": "atletika",
+        "name": "Atletika",
+        "organizace": "ftvs"
+      },
+      "category": "",
+      "name": "",
+      "note": "",
+      "protokoly": [
+        {
+          "kod": "cmj",
+          "verze": 1
+        },
+        {
+          "kod": "bodycomp",
+          "verze": 1
+        },
+        {
+          "kod": "beh_1500_m",
+          "verze": 1
+        }
+      ]
+    },
+    {
+      "sport": {
+        "code": "fotbal",
+        "name": "Fotbal",
+        "organizace": "ftvs"
+      },
+      "category": "",
+      "name": "",
+      "note": "",
+      "protokoly": [
+        {
+          "kod": "cmj",
+          "verze": 1
+        },
+        {
+          "kod": "bodycomp",
+          "verze": 1
+        }
+      ]
+    },
+    {
+      "sport": {
+        "code": "ledni-hokej",
+        "name": "Lední hokej",
+        "organizace": "ftvs"
+      },
+      "category": "",
+      "name": "",
+      "note": "",
+      "protokoly": [
+        {
+          "kod": "bodycomp",
+          "verze": 1
+        },
+        {
+          "kod": "wingate",
+          "verze": 1
+        },
+        {
+          "kod": "sprint30",
+          "verze": 1
+        },
+        {
+          "kod": "sj",
+          "verze": 1
+        },
+        {
+          "kod": "cmj",
+          "verze": 1
+        },
+        {
+          "kod": "beh_1500_m",
+          "verze": 1
+        }
+      ]
+    },
+    {
+      "sport": {
+        "code": "tenis",
+        "name": "Tenis",
+        "organizace": "ftvs"
+      },
+      "category": "",
+      "name": "",
+      "note": "",
+      "protokoly": [
+        {
+          "kod": "iso_shoulder",
+          "verze": 1
+        },
+        {
+          "kod": "eur",
+          "verze": 1
+        },
+        {
+          "kod": "serve",
+          "verze": 1
+        },
+        {
+          "kod": "grip",
+          "verze": 1
+        },
+        {
+          "kod": "sls",
+          "verze": 1
+        },
+        {
+          "kod": "spiro_ramp",
+          "verze": 1
+        }
+      ]
+    },
+    {
+      "sport": {
+        "code": "veslovani",
+        "name": "Veslování",
+        "organizace": "ftvs"
+      },
+      "category": "",
+      "name": "",
+      "note": "",
+      "protokoly": [
+        {
+          "kod": "grip",
+          "verze": 1
+        },
+        {
+          "kod": "bodycomp",
+          "verze": 1
+        },
+        {
+          "kod": "imtp",
+          "verze": 1
+        }
+      ]
+    }
+  ],
+  "styly_zprav": [],
+  "dotazniky": [
+    {
+      "organizace": null,
+      "code": "rpe",
+      "name": "RPE – vnímané úsilí (CR-10)",
+      "description": "Vyberte číslo, které nejlépe odpovídá celkovému úsilí.",
+      "is_active": true,
+      "otazky": [
+        {
+          "code": "rpe",
+          "text": "Jak náročné to pro vás bylo?",
+          "order": 0,
+          "scale_min": 0,
+          "scale_max": 10,
+          "anchors": {
+            "0": "klid",
+            "1": "velmi, velmi lehké",
+            "2": "lehké",
+            "3": "středně těžké",
+            "4": "poněkud těžké",
+            "5": "těžké",
+            "7": "velmi těžké",
+            "10": "maximální"
+          }
+        }
+      ]
+    }
+  ],
+  "normy": [],
+  "clanky": [
+    {
+      "title": "The Relationship Between Maximum Isometric Strength and Ball Velocity in the Tennis Serve",
+      "authors": "Baiget E, Corbi F, Fuentes JP, Fernández-Fernández J",
+      "journal": "J Hum Kinet",
+      "year": 2016,
+      "doi": "10.1515/hukin-2016-0028",
+      "pmid": "28149411",
+      "abstract": "The aims of this study were to analyze the relationship between maximum isometric strength levels in different upper and lower limb joints and serve velocity in competitive tennis players as well as to develop a prediction model based on this information. Twelve male competitive tennis players (mean ± SD; age: 17.2 ± 1.0 years; body height: 180.1 ± 6.2 cm; body mass: 71.9 ± 5.6 kg) were tested using maximum isometric strength levels (i.e., wrist, elbow and shoulder flexion and extension; leg and back extension; shoulder external and internal rotation). Serve velocity was measured using a radar gun. Results showed a strong positive relationship between serve velocity and shoulder internal rotation (r = 0.67; p < 0.05). Low to moderate correlations were also found between serve velocity and wrist, elbow and shoulder flexion - extension, leg and back extension and shoulder external rotation (r = 0.36 - 0.53; p = 0.377 - 0.054). Bivariate and multivariate models for predicting serve velocity were developed, with shoulder flexion and internal rotation explaining 55% of the variance in serve velocity (r = 0.74; p < 0.001). The maximum isometric strength level in shoulder internal rotation was strongly related to serve velocity, and a large part of the variability in serve velocity was explained by the maximum isometric strength levels in shoulder internal rotation and shoulder flexion.",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/28149411/",
+      "status": "approved",
+      "evidence_level": "cross",
+      "population_sport": "",
+      "population_sex": "M",
+      "population_age_min": 16,
+      "population_age_max": 18,
+      "population_level": "výkonnostní junioři (ITN 1–2)",
+      "sample_size": 12,
+      "key_finding": "U juniorských tenistů souvisela s rychlostí podání nejvíce maximální izometrická síla vnitřní rotace ramene dominantní paže (r = 0,67). Spolu s izometrickou silou flexe ramene vysvětlila přibližně 55 % rozdílů v rychlosti podání. Síla zápěstí, lokte, extenze a zevní rotace ramene ani nohou a zad sama o sobě rychlost podání nepředpovídala. Autoři doporučují rozvíjet vnitřní rotaci a flexi ramene v rámci pohybového řetězce podání (diagonální tah kladky nad hlavou, hody medicinbalem) a izolovaný izometrický trénink používat jen jako doplněk dynamického a balistického tréninku.",
+      "limitations": "Malý vzorek: 12 mužů, juniorů (17 ± 1 rok), výkonnostní úroveň ITN 1–2. Jde o korelační průřezovou studii, takže neprokazuje, že posílení vnitřní rotace rychlost podání zvýší. Měřila se jen izometrická síla dominantní paže v jedné poloze. Starší studie s izokinetickým měřením tento vztah nenašly, proto se výsledek nedá přímo přenést na izokinetický test. Studie nezohledňuje techniku, koordinaci, sílu trupu, raketu a výplet, ani přesnost a rotaci míče.",
+      "curator_note": "",
+      "tags": [],
+      "metriky": [
+        "shoulder_ir_torque"
+      ],
+      "testy": [
+        "iso_shoulder"
+      ],
+      "sporty": [
+        {
+          "code": "tenis",
+          "name": "Tenis",
+          "organizace": "ftvs"
+        }
+      ]
+    },
+    {
+      "title": "Influence of Dynamic Strength Index on Countermovement Jump Force-, Power-, Velocity-, and Displacement-Time Curves",
+      "authors": "McMahon JJ, Jones PA, Dos'Santos T, Comfort P",
+      "journal": "Sports (Basel)",
+      "year": 2017,
+      "doi": "10.3390/sports5040072",
+      "pmid": "29910432",
+      "abstract": "",
+      "url": "",
+      "status": "suggested",
+      "evidence_level": "cross",
+      "population_sport": "",
+      "population_sex": "M",
+      "population_age_min": null,
+      "population_age_max": null,
+      "population_level": "univerzitní sportovci",
+      "sample_size": 53,
+      "key_finding": "",
+      "limitations": "",
+      "curator_note": "Nízké DSI (0,55) × vysoké (0,92): nízké DSI mělo vyšší sílu v IMTP, ale větší brzdný impulz v CMJ. Podporuje balistický trénink při nízkém a silový při vysokém DSI.",
+      "tags": [],
+      "metriky": [
+        "dsi"
+      ],
+      "testy": [],
+      "sporty": []
+    },
+    {
+      "title": "Changes in Dynamic Strength Index in Response to Strength Training",
+      "authors": "Comfort P, Thomas C, Dos'Santos T, Suchomel TJ, Jones PA, McMahon JJ",
+      "journal": "Sports (Basel)",
+      "year": 2018,
+      "doi": "10.3390/sports6040176",
+      "pmid": "30572561",
+      "abstract": "",
+      "url": "",
+      "status": "suggested",
+      "evidence_level": "cohort",
+      "population_sport": "",
+      "population_sex": "B",
+      "population_age_min": null,
+      "population_age_max": null,
+      "population_level": "univerzitní sportovci",
+      "sample_size": 24,
+      "key_finding": "",
+      "limitations": "",
+      "curator_note": "Čtyři týdny silového tréninku snížily DSI u sportovců s vysokým DSI (0,85 → 0,74), u nízkého DSI beze změny.",
+      "tags": [],
+      "metriky": [
+        "dsi"
+      ],
+      "testy": [],
+      "sporty": []
+    },
+    {
+      "title": "Comparison of Methods of Calculating Dynamic Strength Index",
+      "authors": "Comfort P, Thomas C, Dos'Santos T, Jones PA, Suchomel TJ, McMahon JJ",
+      "journal": "Int J Sports Physiol Perform",
+      "year": 2018,
+      "doi": "10.1123/ijspp.2017-0255",
+      "pmid": "28714767",
+      "abstract": "",
+      "url": "",
+      "status": "suggested",
+      "evidence_level": "cross",
+      "population_sport": "",
+      "population_sex": "M",
+      "population_age_min": 16,
+      "population_age_max": 18,
+      "population_level": "mládež – fotbal, ragby",
+      "sample_size": 27,
+      "key_finding": "",
+      "limitations": "",
+      "curator_note": "DSI z CMJ je spolehlivější než ze squat jumpu (CV 3,8–4,6 %).",
+      "tags": [],
+      "metriky": [
+        "dsi"
+      ],
+      "testy": [],
+      "sporty": []
+    },
+    {
+      "title": "The Influence of Kinematics on Tennis Serve Speed: An In-Depth Analysis Using Xsens MVN Biomech Link Technology",
+      "authors": "Brito AV, Fonseca P, Costa MJ, Cardoso R, Santos CC, Fernandez-Fernandez J, Fernandes RJ",
+      "journal": "Bioengineering (Basel)",
+      "year": 2024,
+      "doi": "10.3390/bioengineering11100971",
+      "pmid": "39451347",
+      "abstract": "An inertial measurement system, using a combination of accelerometers, gyroscopes and magnetometers, is of great interest to capture tennis movements. We have assessed the key biomechanical moments of the serve phases and events, as well as the kinematic metrics during the serve, to analyze their influence on serve speed. Eighteen male competitive tennis players, equipped with the inertial measurement units, performed a prolonged serve game consisting of 12 simulated points. Participants were divided into groups A and B in accordance with their positioning above or below the sample average serve speed. Group A (compared with their counterparts) presented with lower back hip adduction and knee flexion, and a higher leftward thoracic tilt during the impact event (-14.9 ± 6.9 vs. 13.8 ± 6.4, 2.8 ± 5.9 vs. 14.3 ± 13.0 and -28.9 ± 6.3 vs. 28.0 ± 7.3°). In addition, group A exhibited higher maximal angular velocities in the wrist and thorax, as well as a lower maximal angular velocity in the back hip than group B (427.0 ± 99.8 vs. 205.4 ± 9.7, 162.4 ± 81.7 vs. 193.5 ± 43.8, 205.4 ± 9.7 vs. 308.3 ± 111.7, 193.5 ± 43.8 vs. 81.1 ± 49.7°/s). The relevant biomechanical differences during the serve were identified, highlighting the changes in joint angles and angular velocities between the groups, providing meaningful information for coaches and players to improve their serve proficiency.",
+      "url": "https://pubmed.ncbi.nlm.nih.gov/39451347/",
+      "status": "approved",
+      "evidence_level": "cross",
+      "population_sport": "",
+      "population_sex": "M",
+      "population_age_min": 15,
+      "population_age_max": 20,
+      "population_level": "pokročilí (level 2)",
+      "sample_size": 18,
+      "key_finding": "Vyšší rychlost podání je přímo souvislá s vyššími maximálními úhlovými rychlostmi zápěstí (427,0 ± 99,8°/s vs. 308,3 ± 111,7°/s) a hrudníku (162,4 ± 81,7°/s vs. 81,1 ± 49,7°/s). Výsledky naznačují, že pro zvýšení rychlosti podání je klíčové trénovat vyšší úhlové rychlosti zápěstí a hrudníku.",
+      "limitations": "Studie má malý vzorek (18 účastníků) a omezenou věkovou skupinu, což omezuje reprezentativitu výsledků. Autoři upozorňují na nedostatečné měření vlivu větru a na to, že dělení do skupin vycházelo pouze z rychlosti podání bez ohledu na jiná parametry jako přesnost.",
+      "curator_note": "",
+      "tags": [],
+      "metriky": [
+        "serve_speed"
+      ],
+      "testy": [
+        "serve"
+      ],
+      "sporty": [
+        {
+          "code": "tenis",
+          "name": "Tenis",
+          "organizace": "ftvs"
+        }
+      ]
+    }
+  ],
+  "pravidla": [
+    {
+      "organizace": null,
+      "sport": null,
+      "code": "asymetrie",
+      "name": "PŘÍKLAD: stranová asymetrie nad prahem",
+      "version": 1,
+      "condition": {
+        "asymmetry": "*",
+        "op": ">",
+        "value": 10
+      },
+      "contraindication": {
+        "load_restriction": true
+      },
+      "severity": "medium",
+      "finding_template": "{metric}: rozdíl mezi stranami {index_txt} % (levá {left_txt}, pravá {right_txt} {unit}), silnější je {silnejsi} strana. Překračuje orientační práh {threshold_txt} %.",
+      "recommendation_template": "Zvážit jednostranné zatížení slabší strany a kontrolní měření.",
+      "is_active": false,
+      "clanky": []
+    },
+    {
+      "organizace": null,
+      "sport": null,
+      "code": "dsi_nizky",
+      "name": "DSI nízký – prostor pro balistický trénink",
+      "version": 1,
+      "condition": {
+        "metric": "dsi",
+        "op": "<",
+        "value": 0.6
+      },
+      "contraindication": {
+        "load_restriction": true
+      },
+      "severity": "low",
+      "finding_template": "Dynamic Strength Index {value_txt} je pod orientační hranicí {threshold_txt}: sportovec v dynamickém pohybu využije jen menší část své maximální síly.",
+      "recommendation_template": "Zvážit důraz na balistický a rychlostně-silový trénink (skoky, odhody, vzpěračské varianty); maximální síla je vůči projevu v pohybu dostatečná.",
+      "is_active": false,
+      "clanky": [
+        {
+          "clanek": {
+            "doi": "10.3390/sports5040072"
+          },
+          "relevance_note": ""
+        },
+        {
+          "clanek": {
+            "doi": "10.1123/ijspp.2017-0255"
+          },
+          "relevance_note": ""
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "sport": null,
+      "code": "dsi_vysoky",
+      "name": "DSI vysoký – prostor pro rozvoj maximální síly",
+      "version": 1,
+      "condition": {
+        "metric": "dsi",
+        "op": ">",
+        "value": 0.8
+      },
+      "contraindication": {
+        "load_restriction": true
+      },
+      "severity": "low",
+      "finding_template": "Dynamic Strength Index {value_txt} je nad orientační hranicí {threshold_txt}: sportovec v dynamickém pohybu využívá velkou část své maximální síly.",
+      "recommendation_template": "Zvážit důraz na rozvoj maximální síly (těžký silový trénink); v dynamickém projevu je sportovec vůči své maximální síle dobře využitý.",
+      "is_active": false,
+      "clanky": [
+        {
+          "clanek": {
+            "doi": "10.3390/sports5040072"
+          },
+          "relevance_note": ""
+        },
+        {
+          "clanek": {
+            "doi": "10.3390/sports6040176"
+          },
+          "relevance_note": ""
+        }
+      ]
+    },
+    {
+      "organizace": null,
+      "sport": null,
+      "code": "ir_er_pomer",
+      "name": "PŘÍKLAD: poměr IR/ER pod doporučenou hodnotou",
+      "version": 1,
+      "condition": {
+        "metric": "ir_er_ratio",
+        "op": "<",
+        "value": 1.0,
+        "where": {
+          "speed": 210
+        }
+      },
+      "contraindication": {
+        "load_restriction": true
+      },
+      "severity": "medium",
+      "finding_template": "Poměr vnitřní a vnější rotace ramene {value_txt} při {speed_txt} °/s je pod orientační hodnotou {threshold_txt}.",
+      "recommendation_template": "Zvážit posílení zevních rotátorů ramene. Práh i postup je třeba ověřit proti literatuře pro daný sport.",
+      "is_active": false,
+      "clanky": []
+    },
+    {
+      "organizace": null,
+      "sport": null,
+      "code": "pokles_vysky_vyskoku",
+      "name": "PŘÍKLAD: pokles výšky výskoku nad chybu měření",
+      "version": 1,
+      "condition": {
+        "change": "cmj_height",
+        "op": "<",
+        "value": 0,
+        "require_mdc": true
+      },
+      "contraindication": {},
+      "severity": "high",
+      "finding_template": "Výška výskoku klesla o {delta_txt} {unit} proti minulému měření (z {predchozi} na {value_txt}). Změna přesahuje nejmenší detekovatelnou změnu {mdc_txt} {unit}, nejde tedy o šum měření.",
+      "recommendation_template": "Prověřit tréninkové zatížení a regeneraci, zvážit kontrolní měření.",
+      "is_active": false,
+      "clanky": []
+    },
+    {
+      "organizace": null,
+      "sport": null,
+      "code": "vo2max_pod_normou",
+      "name": "PŘÍKLAD: VO2max pod normou",
+      "version": 1,
+      "condition": {
+        "z": "vo2max",
+        "op": "<",
+        "value": -1.0
+      },
+      "contraindication": {},
+      "severity": "low",
+      "finding_template": "VO2max {value_txt} {unit} odpovídá z-skóre {z} vůči normě (průměr {norma} {unit}, zdroj: {citace}).",
+      "recommendation_template": "Zvážit zařazení rozvoje aerobní kapacity.",
+      "is_active": false,
+      "clanky": []
+    }
+  ]
+}
