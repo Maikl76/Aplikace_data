@@ -25,6 +25,8 @@ GROUPS = {
         "rules": ["add", "change", "delete", "view"],
         "reports": ["add", "change", "delete", "view"],
         "external": ["add", "change", "delete", "view"],
+        "booking": ["add", "change", "delete", "view"],
+        "genetics": ["add", "change", "delete", "view"],
     },
     "Diagnostik": {
         # Zadává a opravuje měření, nesmí ale mazat – smazané měření
@@ -34,6 +36,10 @@ GROUPS = {
         "ingest": ["add", "change", "view"],
         "reports": ["add", "change", "view"],
         "external": ["add", "change", "view"],
+        "booking": ["add", "change", "view"],
+        # Revize genových karet (garanti jsou diagnostici); původní znění
+        # a schválené verze si administrace zamyká sama.
+        "genetics": ["add", "change", "view"],
         "catalog": ["view"],
         "evidence": ["view"],
         "rules": ["view"],
@@ -46,7 +52,15 @@ GROUPS = {
         "catalog": ["view"],
         "evidence": ["view"],
         "rules": ["view"],
+        "genetics": ["view"],
     },
+}
+
+# Modely, na které skupina nedosáhne ani s právem k aplikaci: výzkumník vidí
+# genové karty, ale ne vzorky a genotypy sportovců (administrace je ukazuje
+# dešifrované).
+EXCLUDED = {
+    "Výzkumník": {"genetics": ["geneticsample", "genotype"]},
 }
 
 
@@ -55,21 +69,26 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
+        quiet = options.get("verbosity", 1) == 0
         for name, apps in GROUPS.items():
             group, created = Group.objects.get_or_create(name=name)
             permissions = []
             for app_label, actions in apps.items():
+                excluded = EXCLUDED.get(name, {}).get(app_label, [])
                 for action in actions:
                     permissions.extend(
                         Permission.objects.filter(
                             content_type__app_label=app_label,
                             codename__startswith=f"{action}_",
-                        )
+                        ).exclude(content_type__model__in=excluded)
                     )
             group.permissions.set(permissions)
             stav = "vytvořena" if created else "aktualizována"
-            self.stdout.write(f"  {name:<12} {stav}, {len(permissions)} oprávnění")
+            if not quiet:
+                self.stdout.write(f"  {name:<12} {stav}, {len(permissions)} oprávnění")
 
+        if quiet:
+            return
         self.stdout.write(self.style.SUCCESS("\nSkupiny připravené."))
         self.stdout.write(
             "Uživateli stačí v administraci nastavit roli – skupina se k němu "

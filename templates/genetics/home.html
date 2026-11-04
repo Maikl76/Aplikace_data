@@ -7,7 +7,7 @@
     <h1 class="text-2xl font-semibold">Genetika</h1>
     <p class="text-sm text-muted mt-1">Genové karty, panel variant a garanti oblastí. Do zprávy smí jen schválená verze karty; schvaluje ji garant oblasti.</p>
   </div>
-  <a href="/admin/genetics/" class="btn">{% icon "settings" %}Administrace genetiky</a>
+  {% if user.is_staff %}<a href="/admin/genetics/" class="btn">{% icon "settings" %}Administrace genetiky</a>{% else %}<span class="text-xs text-muted">Karty, panel a garanty upravuje účet s přístupem do administrace (zapíná správce: „Stav týmu“).</span>{% endif %}
 </div>
 
 {% if key_missing %}

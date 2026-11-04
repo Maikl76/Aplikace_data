@@ -41,6 +41,10 @@ fáze (viz konec).
 
 ## Postup
 
+0. **Přístup do administrace.** Karty, panel, garanty a dotazník se upravují
+   v administraci Djanga. Účet potřebuje zaškrtnuté „Stav týmu“ (is_staff)
+   a roli správce nebo diagnostika; skupiny oprávnění srovná `seed_roles`
+   (spustit.bat i aktualizace serveru ho volají samy).
 1. **Garanti.** Správce v administraci (Genetika → Oblasti) přiřadí ke každé
    oblasti metodika. Bez garanta nejde karta oblasti schválit.
 2. **Karty z podkladů.** Na počítači s databází:

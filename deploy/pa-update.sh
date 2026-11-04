@@ -140,6 +140,9 @@ main() {
             "$PY" manage.py prepocitat_odvozene
             ;;
     esac
+    # Skupiny oprávnění pro role: nová část aplikace (genetika, objednávky)
+    # by jinak v administraci chyběla všem kromě superuživatele.
+    "$PY" manage.py seed_roles --verbosity 0
 
     if [ "$MODE" != "--obnovit" ]; then
         # Ukázkové zprávy od AI uložené z laboratorního počítače (demo/ukazkove_zpravy/).

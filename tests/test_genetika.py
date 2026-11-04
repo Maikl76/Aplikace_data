@@ -599,3 +599,42 @@ def test_katalog_genetiky_projde_tam_a_zpet(org):
     assert ForbiddenStatement.objects.get(card__isnull=True).text == "nevyužíváte potenciál"
     # Druhé načtení jen aktualizuje.
     assert import_catalog(data)["genové karty"] == [0, 2]
+
+
+# --- administrace: skupiny rolí ---------------------------------------------------------
+
+def test_skupiny_roli_dosahnou_na_genetiku(org):
+    """Správce a diagnostik bez superuživatele musí administraci genetiky otevřít."""
+    from django.contrib.auth.models import Group
+    from django.core.management import call_command
+
+    call_command("seed_roles", verbosity=0)
+    spravce = Group.objects.get(name="Správce")
+    diagnostik = Group.objects.get(name="Diagnostik")
+    vyzkumnik = Group.objects.get(name="Výzkumník")
+    codes = lambda g: set(g.permissions.values_list("codename", flat=True))  # noqa: E731
+    assert {"add_genecard", "change_genecard", "delete_genecard", "view_geneticsample",
+            "change_bookingrequest"} <= codes(spravce)
+    assert {"change_genecard", "view_geneticsample"} <= codes(diagnostik)
+    assert "delete_genecard" not in codes(diagnostik)
+    assert "view_genecard" in codes(vyzkumnik)
+    assert not {"view_geneticsample", "view_genotype", "change_genecard"} & codes(vyzkumnik)
+
+    admin, admin_client = _user(org, Role.ADMIN, "spravce-bez-super")
+    admin.is_staff = True
+    admin.save()
+    admin.groups.add(spravce)
+    assert admin_client.get("/admin/genetics/").status_code == 200
+    assert admin_client.get("/admin/genetics/genecard/").status_code == 200
+    page = admin_client.get("/genetika/").content.decode()
+    assert "Administrace genetiky" in page
+    researcher, r_client = _user(org, Role.RESEARCHER, "vyzkum-staff")
+    researcher.is_staff = True
+    researcher.save()
+    researcher.groups.add(vyzkumnik)
+    assert r_client.get("/admin/genetics/genecard/").status_code == 200
+    assert r_client.get("/admin/genetics/geneticsample/").status_code == 403
+    # Bez přístupu do administrace se tlačítko nenabízí.
+    lab, lab_client = _user(org, Role.LAB, "laborant-bez-admin")
+    page = lab_client.get("/genetika/").content.decode()
+    assert "Administrace genetiky" not in page and "Stav týmu" in page

@@ -238,6 +238,7 @@ Nejčastější příčiny:
 | *Disk quota exceeded* | instalace bez `--no-cache-dir`; smažte `~/.cache/pip`; zálohy v `~/Zalohy-FTVS` (nechává se jich 10) |
 | po aktualizaci chybí data | `bash deploy/pa-update.sh --obnovit` vrátí stav před poslední aktualizací |
 | aplikace je prázdná a přidání sportu či sportovce skončí chybou | účet nemá vyplněnou organizaci; aktualizace ji doplní sama, jinak v administraci u uživatele vyberte organizaci |
+| *Administrace genetiky* (nebo jiná nová část administrace) hlásí „nenalezeno“ | skupiny oprávnění rolí jsou ze starší verze; aktualizace je srovná sama, jinak `python manage.py seed_roles` (superuživatele se netýká) |
 
 ## Co tu nepoběží
 
