@@ -310,7 +310,8 @@ def _repeat_table(first_run, rows, repeats) -> dict:
 
 
 CONDITION_LABELS = {"parametry": "", "zatez_kg": "zátěž {} kg",
-                    "opakovani": "opakování: {}", "stitky": "štítky: {}"}
+                    "opakovani": "opakování: {}", "stitky": "štítky: {}",
+                    "kofein_mg_kg": "kofein {} mg/kg"}
 
 
 def _conditions_text(conditions: dict) -> str:

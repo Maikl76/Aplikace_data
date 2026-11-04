@@ -266,6 +266,16 @@ def _check_contraindication(rule, restriction) -> tuple[bool, str]:
     return False, ""
 
 
+def build_context(session) -> dict:
+    """Hodnoty jednoho testovacího dne pro vyhodnocení podmínek (i mimo pravidla)."""
+    return _build_context(session)
+
+
+def evaluate(condition, context) -> list[dict]:
+    """Shody podmínky nad připraveným kontextem; prázdný seznam = nesedí."""
+    return _evaluate(condition, context)
+
+
 def _build_context(session) -> dict:
     return {
         "session": session,

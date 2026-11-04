@@ -58,15 +58,29 @@
 </table>
 
 <h2>3. Výsledky podle oblastí</h2>
+<p class="vysvetlivka">V každé oblasti je nejdřív to, co se změřilo a jak to sportovec vnímá, a teprve potom genotyp. {{ c.mereni_poznamka }}</p>
 {% for area in c.oblasti %}
   <div class="protokol">{{ area.nazev }}{% if area.popis %} <span class="protokol-meta">· {{ area.popis }}</span>{% endif %}</div>
+  {% if area.mereni %}
+    <table class="vysledky">
+      <thead><tr><th style="width:34%">Měření</th><th class="cislo" style="text-align:right">Hodnota</th><th>Proti normě</th><th>Změna proti minulému měření</th></tr></thead>
+      <tbody>
+        {% for r in area.mereni %}<tr><td>{{ r.ukazatel }}{% if r.upresneni %} <span class="upresneni">{{ r.upresneni }}</span>{% endif %}<br><span class="pokusy">{{ r.datum }}</span></td><td class="cislo" style="white-space:nowrap">{{ r.hodnota }}</td><td>{{ r.norma|default:"bez normy" }}</td><td class="{{ r.zmena_kod }}">{{ r.zmena|default:"první měření" }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  {% elif area.kod != "kofein" and area.kod != "laktoza" %}
+    <p class="vysvetlivka">Bez měření z posledního roku.</p>
+  {% endif %}
+  {% if area.unava %}
+    <p class="vysvetlivka">Subjektivní únava a RPE (jak je sportovec uvedl): {% for r in area.unava %}{{ r.datum }} únava {{ r.unava|default:"—" }}/10{% if r.rpe %}, RPE {{ r.rpe|join:", " }}{% endif %}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+  {% endif %}
   {% for e in area.polozky %}
     <div class="polozka">
       <div class="hlava">{{ e.gen }} {{ e.genotyp_txt }} <span>· {{ e.rsid }} · karta {{ e.karta }}{% if e.frekvence %} · frekvence {{ e.frekvence }}{% endif %}</span></div>
       {% if e.biologie %}<p class="duvod">{{ e.biologie }}</p>{% endif %}
       <p>{{ e.text }}</p>
       {% if e.ucinek %}<p class="duvod">Účinek varianty: {{ e.ucinek }}</p>{% endif %}
-      {% for k in e.kontext %}<div class="kontext"><span class="stitek">z dotazníku</span> {{ k.otazka }}: „{{ k.odpoved }}“ — {{ k.text }}</div>{% endfor %}
+      {% for k in e.kontext %}<div class="kontext"><span class="stitek">{{ k.zdroj }}</span> {{ k.otazka }}{% if k.odpoved %}: „{{ k.odpoved }}“{% endif %} — {{ k.text }}</div>{% endfor %}
       {% for r in e.doporuceni %}<p><span class="stitek">{{ r.druh }}</span>{{ r.text }} <span class="duvod">(důvod: {{ r.duvod|lower }})</span></p>{% endfor %}
       {% if e.dukazy %}<table class="vysledky"><thead><tr><th>Důkaz</th><th>Podklad a omezení</th><th>Použití</th></tr></thead><tbody>{% for d in e.dukazy %}<tr><td>{{ d.kod }} {{ d.znak }}</td><td>{{ d.podklad }}</td><td>{{ d.pouziti }}</td></tr>{% endfor %}</tbody></table>{% endif %}
     </div>
@@ -74,6 +88,16 @@
 {% empty %}
   <p class="prazdne">Žádná varianta nemá interpretaci (viz část 6).</p>
 {% endfor %}
+{% if c.kofein %}
+  <div class="protokol">Pokus s kofeinem <span class="protokol-meta">· provedení testu s kofeinem proti nejbližšímu provedení bez kofeinu; změna posouzená podle chyby měření</span></div>
+  {% for k in c.kofein %}
+    <table class="vysledky">
+      <thead><tr><th style="width:34%">{{ k.test }}</th><th class="cislo" style="text-align:right">s kofeinem {{ k.davka|floatformat:"-1" }} mg/kg<br><span class="pokusy">{{ k.s_kofeinem }}</span></th><th class="cislo" style="text-align:right">bez kofeinu<br><span class="pokusy">{{ k.bez }}</span></th><th class="cislo" style="text-align:right">Rozdíl</th><th>Posouzení</th></tr></thead>
+      <tbody>{% for r in k.rozdily %}<tr><td>{{ r.ukazatel }}</td><td class="cislo">{{ r.s_kofeinem }}</td><td class="cislo">{{ r.bez }}</td><td class="cislo">{{ r.rozdil }}</td><td class="posouzeni {{ r.kod }}">{{ r.posouzeni }}</td></tr>{% endfor %}</tbody>
+    </table>
+  {% endfor %}
+  <p class="vysvetlivka">Rozdíl mezi dvěma dny má i jiné příčiny než kofein (trénink, spánek, denní doba). Genotyp CYP1A2 výsledek nevysvětluje ani nepotvrzuje.</p>
+{% endif %}
 
 <h2>4. Praktická doporučení a jejich důvody</h2>
 {% if c.doporuceni %}

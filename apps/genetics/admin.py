@@ -202,10 +202,16 @@ class GenePanelAdmin(admin.ModelAdmin):
 
 @admin.register(Domain)
 class DomainAdmin(admin.ModelAdmin):
-    list_display = ("name", "code", "garanti", "order", "is_active")
+    list_display = ("name", "code", "garanti", "ukazatele", "order", "is_active")
     list_filter = ("is_active",)
     search_fields = ("name", "code")
-    filter_horizontal = ("guarantors",)
+    filter_horizontal = ("guarantors", "metrics")
+    fields = ("organization", ("code", "name"), "description", ("order", "is_active"), "guarantors",
+              "metrics", ("show_measurements", "uses_fatigue"))
+
+    @admin.display(description="ukazatele")
+    def ukazatele(self, obj):
+        return obj.metrics.count()
 
     @admin.display(description="garanti")
     def garanti(self, obj):

@@ -367,6 +367,33 @@ def run_entry(request, pk):
     return render(request, "measurements/run_entry.html", _entry_context(run))
 
 
+@login_required
+def run_conditions(request, pk):
+    """
+    Podmínky provedení testu (kofein před testem, poznámka). Dávka kofeinu
+    se ukládá do podmínek provedení jako ``kofein_mg_kg`` – genetická zpráva
+    z ní pozná pokus s kofeinem a porovná ho s provedením bez kofeinu.
+    """
+    run = get_object_or_404(
+        ProtocolRun.objects.select_related("session"), pk=pk)
+    if run.session.organization_id != request.user.organization_id and not request.user.is_superuser:
+        return redirect("session_list")
+    if request.method == "POST":
+        conditions = dict(run.conditions or {})
+        dose = parse_value(request.POST.get("kofein_mg_kg", ""))
+        if dose:
+            conditions["kofein_mg_kg"] = dose
+        else:
+            conditions.pop("kofein_mg_kg", None)
+        run.conditions = conditions
+        run.note = request.POST.get("poznamka", "").strip()[:1000]
+        run.save(update_fields=["conditions", "note"])
+        record(request, AuditLog.Action.UPDATE, run, subject_code=run.session.subject.code,
+               podminky=conditions)
+        messages.success(request, "Podmínky provedení uloženy.")
+    return redirect("run_entry", pk=pk)
+
+
 def _entry_context(run) -> dict:
     rpe = (questionnaires.questionnaire(questionnaires.RPE, run.session.organization)
            if run.protocol.rpe_after else None)

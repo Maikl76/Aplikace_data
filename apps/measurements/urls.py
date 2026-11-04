@@ -13,4 +13,5 @@ urlpatterns = [
     path("<int:pk>/dotaznik/qr/", views.session_questionnaire_qr,
          name="session_questionnaire_qr"),
     path("provedeni/<int:pk>/", views.run_entry, name="run_entry"),
+    path("provedeni/<int:pk>/podminky/", views.run_conditions, name="run_conditions"),
 ]

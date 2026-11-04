@@ -276,10 +276,17 @@ def report_context(report) -> dict:
         recommendations = narrative.recommendations(findings)
         warnings = evidence.population_warnings(citations)
 
+    if report.snapshot:
+        genetic_context = report.snapshot.get("genetic_context")
+    else:
+        from apps.genetics import report as genetics_report
+
+        genetic_context = genetics_report.context_for_testing(report)
     context = {
         "report": report,
         "session": session,
         "subject": report.subject,
+        "genetic_context": genetic_context,
         "display_name": subject_name(report),
         # věk v den měření – zpráva o měření před rokem nesmí uvést dnešní věk
         "age": report.subject.age_on(session.date) if session else report.subject.age,
@@ -338,6 +345,7 @@ def _snapshot(context: dict) -> dict:
                        "year": c["article"].year}
                       for c in context["citations"]],
         "population_warnings": list(context["population_warnings"]),
+        "genetic_context": context.get("genetic_context"),
     }
 
 

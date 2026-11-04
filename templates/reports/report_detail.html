@@ -384,6 +384,15 @@
       </section>
     {% endif %}
 
+    {% if genetic_context %}
+      <section class="card p-4 text-sm">
+        <h2 class="card-title mb-1">Souvislost s genetickým vyšetřením</h2>
+        <p class="text-xs text-muted mb-1">Z vydané zprávy {{ genetic_context.cislo }} ({{ genetic_context.vydano }}); ve zprávě část 7.</p>
+        <div class="flex flex-wrap gap-1">{% for g in genetic_context.genotypy %}<span class="badge">{{ g.gen }} {{ g.genotyp_txt }}</span>{% endfor %}</div>
+        <p class="text-xs text-muted mt-2">{{ genetic_context.veta }}</p>
+      </section>
+    {% endif %}
+
     <section class="card p-4 text-xs text-muted">
       <h2 class="card-title mb-2" style="color: var(--text)">Doložitelnost</h2>
       <div>Text sestavil: {{ report.llm_model|default:"šablona" }}</div>

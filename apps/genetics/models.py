@@ -33,6 +33,17 @@ class Domain(CatalogModel):
         related_name="guaranteed_domains",
         help_text="Metodici, kteří za oblast odpovídají. Jen garant oblasti smí schválit "
                   "její genovou kartu.")
+    # Fenotyp oblasti: co se v ní měří. Zpráva to ukáže PŘED genotypem –
+    # měření mluví první, genotyp je kontext.
+    metrics = models.ManyToManyField(
+        "catalog.MetricDef", verbose_name="ukazatele oblasti", blank=True,
+        related_name="gene_domains",
+        help_text="Co se v oblasti měří. Genetická zpráva u oblasti ukáže poslední hodnotu, "
+                  "normu slovy a změnu proti minulému měření – před genotypem.")
+    show_measurements = models.BooleanField("ukázat měření ve zprávě", default=True)
+    uses_fatigue = models.BooleanField(
+        "sledovat únavu a RPE", default=False,
+        help_text="Zpráva v oblasti ukáže subjektivní únavu z testovacích dnů a RPE po testech.")
     is_active = models.BooleanField("aktivní", default=True)
 
     class Meta:
@@ -438,6 +449,30 @@ class ContextScenario(models.Model):
 
     def __str__(self):
         return f"{self.get_kind_display()}: {self.statement[:60]}"
+
+    def clean(self):
+        """Špatně zapsaný scénář se neuloží – podmínka i shoda odpovědi se kontrolují."""
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+        if self.kind == self.Kind.MEASUREMENT and self.condition:
+            from apps.catalog.models import MetricDef
+            from apps.rules.engine import RuleError, validate_condition
+
+            try:
+                validate_condition(self.condition,
+                                   metrics=set(MetricDef.objects.values_list("code", flat=True)))
+            except RuleError as exc:
+                errors["condition"] = str(exc)
+        if self.answer_match and not set(self.answer_match) & {"choices", "value", "min", "max"}:
+            errors["answer_match"] = 'Použijte "choices", "value", "min" nebo "max".'
+        if self.is_active and self.kind == self.Kind.QUESTIONNAIRE and not (
+                self.question_id and self.answer_match):
+            errors["is_active"] = "Aktivní scénář z dotazníku potřebuje otázku a shodu odpovědi."
+        if self.is_active and self.kind == self.Kind.MEASUREMENT and not self.condition:
+            errors["is_active"] = "Aktivní scénář s měřením potřebuje podmínku nad měřením."
+        if errors:
+            raise ValidationError(errors)
 
     def matches(self, answer) -> bool:
         """Spouští scénář tahle odpověď? Jen odpovězená otázka; „nevím“ nikdy."""

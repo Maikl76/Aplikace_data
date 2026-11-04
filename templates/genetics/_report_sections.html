@@ -19,16 +19,33 @@
 {% for area in c.oblasti %}
   <section class="card p-4">
     <h2 class="card-title mb-2">{{ area.nazev }}</h2>
+    {% if area.mereni %}
+      <table class="table text-sm mb-3">
+        <thead><tr><th>Měření</th><th>Hodnota</th><th>Proti normě</th><th>Změna</th></tr></thead>
+        <tbody>{% for r in area.mereni %}<tr><td>{{ r.ukazatel }}{% if r.upresneni %} <span class="text-muted">{{ r.upresneni }}</span>{% endif %} <span class="text-xs text-muted">{{ r.datum }}</span></td><td class="tabular-nums">{{ r.hodnota }}</td><td>{{ r.norma|default:"—" }}</td><td>{{ r.zmena|default:"první měření" }}</td></tr>{% endfor %}</tbody>
+      </table>
+    {% endif %}
+    {% if area.unava %}<p class="text-xs text-muted mb-2">Únava a RPE: {% for r in area.unava %}{{ r.datum }} {{ r.unava|default:"—" }}/10{% if r.rpe %} (RPE {{ r.rpe|join:", " }}){% endif %}{% if not forloop.last %} · {% endif %}{% endfor %}</p>{% endif %}
     {% for e in area.polozky %}
       <div class="mb-3 pl-3 border-l-4" style="border-left-color: var(--border-strong)">
         <div class="text-sm font-medium">{{ e.gen }} {{ e.genotyp_txt }} <span class="text-xs text-muted font-normal">· karta {{ e.karta }}</span></div>
         <p class="text-sm mt-1 whitespace-pre-line">{{ e.text }}</p>
-        {% for k in e.kontext %}<p class="text-sm mt-1 p-2 rounded-lg" style="background: var(--surface-2)"><span class="badge mr-1">z dotazníku</span>{{ k.otazka }}: „{{ k.odpoved }}“ — {{ k.text }}</p>{% endfor %}
+        {% for k in e.kontext %}<p class="text-sm mt-1 p-2 rounded-lg" style="background: var(--surface-2)"><span class="badge mr-1">{{ k.zdroj }}</span>{{ k.otazka }}{% if k.odpoved %}: „{{ k.odpoved }}“{% endif %} — {{ k.text }}</p>{% endfor %}
         {% for r in e.doporuceni %}<p class="text-sm mt-1"><span class="badge mr-1">{{ r.druh }}</span>{{ r.text }} <span class="text-xs text-muted">(důvod: {{ r.duvod|lower }})</span></p>{% endfor %}
       </div>
     {% endfor %}
   </section>
 {% endfor %}
+
+{% if c.kofein %}
+  <section class="card p-4">
+    <h2 class="card-title mb-2">Pokus s kofeinem</h2>
+    {% for k in c.kofein %}
+      <p class="text-sm font-medium">{{ k.test }} · {{ k.davka|floatformat:"-1" }} mg/kg ({{ k.s_kofeinem }}) vs. bez kofeinu ({{ k.bez }})</p>
+      <ul class="text-sm list-disc pl-5 mb-2">{% for r in k.rozdily %}<li>{{ r.ukazatel }}: {{ r.s_kofeinem }} vs. {{ r.bez }} ({{ r.rozdil }}) – {{ r.posouzeni }}</li>{% endfor %}</ul>
+    {% endfor %}
+  </section>
+{% endif %}
 
 <section class="card p-4">
   <h2 class="card-title mb-2">Doporučení ({{ c.doporuceni|length }})</h2>

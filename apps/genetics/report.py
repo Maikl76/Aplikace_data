@@ -19,8 +19,14 @@ from datetime import timedelta
 from django.db import transaction
 from django.utils import timezone
 
+from apps.analytics import queries
+from apps.analytics.services import NormIndex, find_norm
 from apps.measurements import questionnaires
+from apps.measurements.models import ProtocolRun, TestSession
+from apps.reports import results
 from apps.reports.models import Audience, Report
+from apps.rules import engine
+from apps.rules.engine import RuleError
 
 from . import crypto
 from . import services as genetics
@@ -48,6 +54,9 @@ LIMITATIONS = [
 MEASUREMENT_MONTHS = 12
 KIND_ORDER = [k for k, _ in Recommendation.Kind.choices]
 MAX_WORDS = 160
+CAFFEINE_KEY = "kofein_mg_kg"
+MEASUREMENT_NOTE = ("Měření popisuje aktuální stav sportovce a má přednost před genotypem; "
+                    "genotyp nepotvrzuje ani nevysvětluje.")
 
 
 class GeneticsReportError(Exception):
@@ -87,6 +96,131 @@ def _availability(subject, protocol) -> dict | None:
             "date_txt": run.session.date.strftime("%d.%m.%Y"), "values": rows}
 
 
+def _window(until):
+    return until - timedelta(days=30 * MEASUREMENT_MONTHS)
+
+
+def _latest_session(subject, until, *, metric=None):
+    """Poslední testovací den z posledního roku s platným měřením (daného ukazatele)."""
+    qs = TestSession.objects.filter(subject=subject, date__lte=until, date__gte=_window(until),
+                                    protocol_runs__is_primary=True,
+                                    protocol_runs__trials__is_valid=True)
+    if metric is not None:
+        qs = qs.filter(protocol_runs__trials__measurements__metric=metric)
+    return qs.distinct().order_by("-date", "-pk").first()
+
+
+def _norm_words(z: float, metric) -> str:
+    from apps.reports.facts import _norm_words as words
+
+    return words(z, metric)
+
+
+def _phenotype(subject, domain, *, until, norms, cache) -> list[dict]:
+    """
+    Měření oblasti: poslední hodnota každého ukazatele oblasti, norma slovy
+    a změna proti minulému měření podle MDC. Bez výkladu vůči genotypu.
+    """
+    rows = []
+    for metric in domain.metrics.filter(is_active=True).order_by("name"):
+        session = _latest_session(subject, until, metric=metric)
+        if session is None:
+            continue
+        values = cache.setdefault(("values", session.pk), queries.session_metric_values(session))
+        previous = cache.setdefault(("previous", session.pk),
+                                    queries.previous_session_values(session))
+        for key, entry in values.items():
+            if key[0] != metric.code:
+                continue
+            value = entry["value"]
+            row = {"ukazatel": metric.name,
+                   "upresneni": results.qualifier_label({"side": entry["side"], "mode": entry["mode"],
+                                                         "speed": entry["speed"],
+                                                         "segment": entry["segment"]}),
+                   "hodnota": _value(value, metric), "datum": session.date.strftime("%d.%m.%Y"),
+                   "norma": "", "zmena": "", "zmena_kod": ""}
+            norm = find_norm(metric, subject, side=entry["side"], mode=entry["mode"],
+                             speed=entry["speed"], day=session.date, norms=norms)
+            if norm is not None and (z := norm.z_score(value)) is not None:
+                row["norma"] = _norm_words(z, metric)
+            prev = previous.get(key)
+            if prev is not None:
+                verdict, kind = results.change_verdict(metric, value - prev["value"])
+                row["zmena"] = (f"{verdict} (minule {_value(prev['value'], metric)}, "
+                                f"{prev['date'].strftime('%d.%m.%Y')})")
+                row["zmena_kod"] = kind
+            rows.append(row)
+    return rows
+
+
+def _fatigue(subject, until) -> list[dict]:
+    """Subjektivní únava v testovacích dnech a RPE po testech – jak je sportovec uvedl."""
+    rows = []
+    sessions = (TestSession.objects.filter(subject=subject, date__lte=until, date__gte=_window(until))
+                .order_by("-date", "-pk")[:5])
+    for session in sessions:
+        rpe = [f"{a['value']:g}" for item in questionnaires.summary(session)
+               if item["questionnaire"].code == questionnaires.RPE
+               for a in item["answers"] if a["value"] is not None]
+        if session.fatigue_rating or rpe:
+            rows.append({"datum": session.date.strftime("%d.%m.%Y"),
+                         "unava": session.fatigue_rating, "rpe": rpe})
+    return rows
+
+
+def _dose(run) -> float:
+    try:
+        return float((run.conditions or {}).get(CAFFEINE_KEY) or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _caffeine(subject, until) -> list[dict]:
+    """
+    Pokus s kofeinem: provedení testu s dávkou kofeinu (podmínka kofein_mg_kg)
+    proti nejbližšímu provedení téhož testu bez kofeinu. Jen klíčové ukazatele
+    testu, změna posouzená podle MDC – bez vztahu ke genotypu.
+    """
+    runs = list(ProtocolRun.objects.filter(session__subject=subject, session__date__lte=until,
+                                           session__date__gte=_window(until))
+                .select_related("protocol", "session").order_by("session__date", "pk"))
+    out = []
+    for run in runs:
+        dose = _dose(run)
+        if not dose:
+            continue
+        controls = [r for r in runs if r.protocol_id == run.protocol_id and not _dose(r)]
+        if not controls:
+            continue
+        control = min(controls, key=lambda r: (abs((r.session.date - run.session.date).days), r.pk))
+        rows = _compare_runs(run, control)
+        if rows:
+            out.append({"test": run.protocol.name, "davka": dose,
+                        "s_kofeinem": run.session.date.strftime("%d.%m.%Y"),
+                        "bez": control.session.date.strftime("%d.%m.%Y"), "rozdily": rows})
+    return out
+
+
+def _compare_runs(run, control) -> list[dict]:
+    primary = set(run.protocol.protocol_metrics.filter(is_primary=True)
+                  .values_list("metric__code", flat=True))
+    values, metrics = results._run_values(run)
+    base, _ = results._run_values(control)
+    rows = []
+    for key, trials in values.items():
+        metric = metrics[key]
+        if metric.code not in primary or key not in base:
+            continue
+        value, before = metric.day_value(trials), metric.day_value(base[key])
+        verdict, kind = results.change_verdict(metric, value - before)
+        unit = metric.unit if metric.unit and metric.unit != "-" else ""
+        rows.append({"ukazatel": metric.name, "s_kofeinem": _value(value, metric),
+                     "bez": _value(before, metric),
+                     "rozdil": f"{results.signed(value - before, metric.decimals)} {unit}".strip(),
+                     "posouzeni": verdict, "kod": kind})
+    return rows
+
+
 def _goal(answers: dict) -> dict:
     out = {}
     for code, label in (("hlavni_sport", "sport"), ("zamereni", "zamereni"), ("cil", "cil"),
@@ -112,20 +246,34 @@ def _questionnaire(response) -> dict | None:
             "zdroj": response.get_source_display(), "oddily": sections}
 
 
-def _context_for(card, genotype: str, answers: dict) -> list[dict]:
-    """Aktivní scénáře z dotazníku, které spouští odpověď sportovce."""
+def _context_for(card, genotype: str, answers: dict, measurement=None) -> list[dict]:
+    """
+    Aktivní scénáře: z dotazníku ty, které spouští odpověď sportovce; s měřením
+    ty, jejichž podmínka (zápis jako u pravidel) sedí na poslední testovací den.
+    """
     out = []
-    scenarios = (card.scenarios.filter(is_active=True, kind=ContextScenario.Kind.QUESTIONNAIRE,
-                                       question__isnull=False)
-                 .select_related("question").prefetch_related("texts"))
+    scenarios = (card.scenarios.filter(is_active=True).select_related("question")
+                 .prefetch_related("texts"))
     for scenario in scenarios:
-        answer = answers.get(scenario.question.code)
-        if not scenario.matches(answer):
-            continue
         text = next((t.text for t in scenario.texts.all() if t.genotype == genotype), "")
-        if text:
-            out.append({"otazka": scenario.question.text, "odpoved": answer.display(),
-                        "text": text})
+        if not text:
+            continue
+        if scenario.kind == ContextScenario.Kind.QUESTIONNAIRE:
+            if scenario.question_id is None:
+                continue
+            answer = answers.get(scenario.question.code)
+            if scenario.matches(answer):
+                out.append({"zdroj": "z dotazníku", "otazka": scenario.question.text,
+                            "odpoved": answer.display(), "text": text})
+        elif scenario.kind == ContextScenario.Kind.MEASUREMENT and measurement and scenario.condition:
+            try:
+                matched = engine.evaluate(scenario.condition, measurement["context"])
+            except RuleError as exc:
+                logger.warning("Scénář %s: %s", scenario.pk, exc)
+                continue
+            if matched:
+                out.append({"zdroj": f"z měření {measurement['datum']}", "otazka": scenario.statement,
+                            "odpoved": "", "text": text})
     return out
 
 
@@ -197,6 +345,14 @@ def compose(sample, response=None, *, audience=Audience.ATHLETE) -> dict:
     clinician = audience == Audience.CLINICIAN
     answers = response.answers_by_code() if response is not None else {}
     genotypes = {g.variant_id: g for g in sample.genotypes.all()}
+    until = timezone.localdate()
+    norms = NormIndex()
+    cache: dict = {}
+    latest = _latest_session(subject, until)
+    measurement = None
+    if latest is not None:
+        measurement = {"context": engine.build_context(latest),
+                       "datum": latest.date.strftime("%d.%m.%Y")}
 
     by_domain: dict = {}
     overview, not_interpreted, rec_rows, measure_rows, sources, forbidden_hits = [], [], [], [], [], []
@@ -236,7 +392,7 @@ def compose(sample, response=None, *, audience=Audience.ATHLETE) -> dict:
             **row, "text": shown, "biologie": biology,
             "ucinek": card.effect if clinician else "",
             "omezeni": card.limitations, "frekvence": text.frequency,
-            "kontext": _context_for(card, value, answers),
+            "kontext": _context_for(card, value, answers, measurement),
             "doporuceni": [r for r in rec_dicts if r["duvod_kod"] != Recommendation.Basis.MEASUREMENT],
             "dukazy": [{"kod": e.code, "znak": e.trait, "podklad": e.basis_text,
                         "pouziti": e.usage, "zdroje": e.source_labels}
@@ -251,7 +407,10 @@ def compose(sample, response=None, *, audience=Audience.ATHLETE) -> dict:
                             "oznaceni": src.label, "varianta": variant.label})
 
     areas = [{"kod": domain.code, "nazev": domain.name, "popis": domain.description,
-              "polozky": items}
+              "polozky": items,
+              "mereni": (_phenotype(subject, domain, until=until, norms=norms, cache=cache)
+                         if domain.show_measurements else []),
+              "unava": _fatigue(subject, until) if domain.uses_fatigue else []}
              for domain, items in sorted(by_domain.items(), key=lambda d: (d[0].order, d[0].name))]
     merged, conflicts = _merge(rec_rows)
     numbered, seen = [], {}
@@ -285,6 +444,8 @@ def compose(sample, response=None, *, audience=Audience.ATHLETE) -> dict:
         "doporuceni": merged,
         "k_posouzeni": conflicts,
         "co_doplnit": _to_measure(measure_rows, subject),
+        "kofein": _caffeine(subject, until),
+        "mereni_poznamka": MEASUREMENT_NOTE,
         "neinterpretovano": not_interpreted,
         "omezeni": limitations,
         "zdroje": numbered,
@@ -330,18 +491,38 @@ def facts(content: dict) -> dict:
         "cil_klienta": content["cil"],
         "oblasti": [{
             "oblast": area["nazev"],
+            "mereni": [_measurement_line(r) for r in area.get("mereni", [])],
+            "unava": [f"{r['datum']}: únava {r['unava'] or '—'}/10"
+                      + (f", RPE {', '.join(r['rpe'])}" if r["rpe"] else "")
+                      for r in area.get("unava", [])],
             "varianty": [{"varianta": e["varianta"], "genotyp": e["genotyp_txt"],
                           "text_karty": e["text"],
-                          "kontext_z_dotazniku": [c["text"] for c in e["kontext"]],
+                          "kontext": [f"{c['zdroj']}: {c['text']}" for c in e["kontext"]],
                           "doporuceni": [r["text"] for r in e["doporuceni"]]}
                          for e in area["polozky"]],
         } for area in content["oblasti"]],
+        "pokus_s_kofeinem": [
+            f"{k['test']} ({k['davka']:g} mg/kg, {k['s_kofeinem']} vs. bez kofeinu {k['bez']}): "
+            + "; ".join(f"{r['ukazatel']} {r['s_kofeinem']} vs. {r['bez']} – {r['posouzeni']}"
+                        for r in k["rozdily"])
+            for k in content.get("kofein", [])],
+        "poznamka_k_mereni": MEASUREMENT_NOTE,
         "doporuceni_sloucena": [r["text"] for r in content["doporuceni"]],
         "k_odbornemu_posouzeni": [c["klic"] for c in content["k_posouzeni"]],
         "co_doplnit": [m["text"] for m in content["co_doplnit"]],
         "neinterpretovano": [f"{n['varianta']}: {n['duvod']}" for n in content["neinterpretovano"]],
         "omezeni": content["omezeni"],
     }
+
+
+def _measurement_line(row: dict) -> str:
+    text = row["ukazatel"] + (f" {row['upresneni']}" if row["upresneni"] else "")
+    text += f": {row['hodnota']} ({row['datum']})"
+    if row["norma"]:
+        text += f", {row['norma']}"
+    if row["zmena"]:
+        text += f", {row['zmena']}"
+    return text
 
 
 FIXED_RULES = """Jsi odborný asistent laboratoře funkční diagnostiky na fakultě tělesné \
@@ -360,6 +541,8 @@ které není ve faktech. Nic neodvozuj z kombinace variant.
 4. Neuváděj zdroje ani studie.
 5. Vykej. Nepoužívej číslované seznamy; na výčet používej odrážky „•“.
 6. Nepiš úvodní ani závěrečné fráze o sobě; nepiš doložku – tu zpráva obsahuje zvlášť.
+7. Měření (pole mereni, unava, pokus_s_kofeinem) uváděj jen jako aktuální stav; nikdy ne \
+jako potvrzení, vysvětlení nebo důsledek genotypu.
 Struktura: 2–3 věty, k čemu zpráva je a z čeho vychází (panel, dotazník, cíl klienta), pak \
 odrážky po oblastech – u každé jen jedna věta, o čem oblast je, bez výkladu genotypu. \
 Rozsah nejvýš 150 slov."""
@@ -543,6 +726,29 @@ def build_draft(sample, *, user, audience, supersedes=None, model=None) -> Repor
     return report
 
 
+def context_for_testing(report) -> dict | None:
+    """
+    Souvislost s genetickým vyšetřením pro zprávu z měření: jen pro sportovce
+    nebo lékaře, jen s platným souhlasem a jen z vydané genetické zprávy pro
+    téhož čtenáře (stejné karty, stejný vzorek, stejná dohledatelnost).
+    """
+    if report.audience not in AUDIENCES or not genetics.consent_state(report.subject).valid:
+        return None
+    genetic = (Report.objects.filter(subject=report.subject, kind=Report.Kind.GENETICS,
+                                     status=Report.Status.RELEASED, audience=report.audience)
+               .order_by("-released_at").first())
+    if genetic is None or not genetic.snapshot:
+        return None
+    content = genetic.snapshot.get("genetika", {})
+    return {
+        "cislo": genetic.report_number,
+        "vydano": genetic.released_at.strftime("%d.%m.%Y") if genetic.released_at else "",
+        "genotypy": [g for g in content.get("genotypy", []) if g.get("karta") not in ("—", None, "")],
+        "oblasti": [a["nazev"] for a in content.get("oblasti", [])],
+        "veta": MEASUREMENT_NOTE,
+    }
+
+
 def machine_readable(report, context: dict) -> dict:
     content = context["content"]
     return {
@@ -562,6 +768,9 @@ def machine_readable(report, context: dict) -> dict:
         "doporuceni": content["doporuceni"],
         "k_odbornemu_posouzeni": content["k_posouzeni"],
         "co_doplnit": content["co_doplnit"],
+        "mereni": [{"oblast": a["nazev"], "ukazatele": a.get("mereni", []), "unava": a.get("unava", [])}
+                   for a in content["oblasti"]],
+        "pokus_s_kofeinem": content.get("kofein", []),
         "neinterpretovano": content["neinterpretovano"],
         "omezeni": content["omezeni"],
         "zdroje": content["zdroje"],

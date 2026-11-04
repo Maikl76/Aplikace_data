@@ -21,6 +21,19 @@
   </div>
 </div>
 
+{# Podmínky provedení: kofein před testem (pokus s kofeinem pro genetickou zprávu), poznámka. #}
+<details class="card px-4 py-3 mb-4 text-sm" {% if run.conditions.kofein_mg_kg or run.note %}open{% endif %}>
+  <summary class="cursor-pointer font-medium">Podmínky provedení{% if run.conditions.kofein_mg_kg %} · kofein {{ run.conditions.kofein_mg_kg|floatformat:"-1" }} mg/kg{% endif %}{% if run.note %} · poznámka{% endif %}</summary>
+  <form method="post" action="{% url 'run_conditions' run.pk %}" class="mt-2 flex flex-wrap items-end gap-2">{% csrf_token %}
+    <label class="block"><span class="text-xs text-2">Kofein před testem (mg/kg)</span>
+      <input type="number" step="0.1" min="0" name="kofein_mg_kg" value="{{ run.conditions.kofein_mg_kg|stringformat:'g' }}" class="input w-32 text-sm py-1.5" placeholder="prázdné = bez"></label>
+    <label class="block flex-1 min-w-[12rem]"><span class="text-xs text-2">Poznámka k provedení</span>
+      <input name="poznamka" value="{{ run.note }}" maxlength="1000" class="input text-sm py-1.5"></label>
+    <button class="btn btn-sm">Uložit</button>
+  </form>
+  <p class="text-xs text-muted mt-1">Dávka kofeinu označí provedení jako pokus s kofeinem; genetická zpráva ho porovná s nejbližším provedením téhož testu bez kofeinu.</p>
+</details>
+
 {# Odpočet pauzy mezi pokusy – na konci pípne a zavibruje. #}
 <div x-data="pauza()" @pauza.window="spustit($event.detail.sekundy)" x-show="bezi || hotovo" x-cloak
      class="card px-4 py-3 mb-4 flex items-center gap-4 sticky top-16 z-10"

@@ -148,9 +148,41 @@ pozdější změna karty vydanou zprávu nemění, nová verze zprávy bere nov�
 znění. Vydaná zpráva zůstává i po odvolání souhlasu; nový koncept bez
 souhlasu nejde.
 
+## Propojení s měřením
+
+Zásada: **měření mluví první, genotyp je kontext.** Zpráva měření nikdy
+nepopisuje jako potvrzení nebo vysvětlení genotypu.
+
+- **Ukazatele oblasti.** Každá oblast má v administraci (Genetika → Oblasti)
+  seznam ukazatelů z katalogu (*ukazatele oblasti*); seed doplní výchozí
+  výběr jen do oblasti bez ukazatelů. V části 3 genetické zprávy je u každé
+  oblasti **před genotypem** tabulka měření: poslední hodnota z posledního
+  roku, norma slovy (stejně jako ve zprávě z měření) a změna proti minulému
+  měření posouzená podle MDC. Vypne se volbou *ukázat měření ve zprávě*.
+- **Únava a RPE.** Oblast se zapnutým *sledovat únavu a RPE* (výchozí
+  Regenerace) ukáže subjektivní únavu z testovacích dnů a RPE po testech –
+  jak je sportovec uvedl, bez výkladu.
+- **Scénáře s měřením.** Scénář karty druhu *měření* má podmínku ve stejném
+  zápisu jako pravidla (např. `{"z": "vo2max", "op": ">", "value": 1}`);
+  vyhodnocuje se nad posledním testovacím dnem sportovce. Zapíná ho garant;
+  ve zprávě je označený „z měření <datum>“. Špatně zapsaná podmínka se
+  neuloží.
+- **Pokus s kofeinem.** U provedení testu (stránka zadávání → *Podmínky
+  provedení*) se zapíše dávka kofeinu v mg/kg (podmínka `kofein_mg_kg`).
+  Zpráva takové provedení porovná s nejbližším provedením téhož testu bez
+  kofeinu (klíčové ukazatele testu, rozdíl posouzený podle MDC) v části 3
+  jako „Pokus s kofeinem“ – s poznámkou, že rozdíl mezi dvěma dny má i jiné
+  příčiny a genotyp CYP1A2 ho nevysvětluje.
+- **Souvislost ve zprávě z měření.** Zpráva z funkčního testování pro
+  sportovce nebo pro lékaře dostane část *7. Souvislost s genetickým
+  vyšetřením* – číslo a datum vydané genetické zprávy pro téhož čtenáře
+  a zjištěné genotypy interpretovaných variant, s větou, že měření má
+  přednost. Bez vydané genetické zprávy, bez platného souhlasu nebo pro
+  trenéra se část neobjeví. Při vydání se zmrazí do snímku.
+- Jazykový model dostane měření, únavu i pokus s kofeinem ve faktech
+  (čísla z nich smí použít), s pravidlem uvádět je jen jako aktuální stav.
+
 ## Co je další fáze
 
-- propojení s měřením (měření mluví první, genotyp je kontext): scénáře
-  s měřením po schválení v katalogu, pokus s kofeinem přes podmínky testu,
-  kombinovaná zpráva,
-- výzkumný export (anonymizovaně, se souhlasem s výzkumem).
+- výzkumný export (anonymizovaně, se souhlasem s výzkumem), vlastní
+  frekvence genotypů z populace laboratoře.

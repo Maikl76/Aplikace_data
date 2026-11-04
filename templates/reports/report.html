@@ -239,6 +239,13 @@
   <p class="prazdne">Z výsledků nevyplývá žádné doporučení podle pravidel laboratoře.</p>
 {% endif %}
 
+{% if genetic_context %}
+  <h2>7. Souvislost s genetickým vyšetřením</h2>
+  <p>Sportovec má vydanou zprávu z genetického vyšetření {{ genetic_context.cislo }} ({{ genetic_context.vydano }}).
+    Zjištěné genotypy: {% for g in genetic_context.genotypy %}{{ g.gen }} {{ g.genotyp_txt }} ({{ g.oblast|lower }}){% if not forloop.last %}, {% endif %}{% empty %}bez interpretované varianty{% endfor %}.</p>
+  <p class="vysvetlivka">{{ genetic_context.veta }}</p>
+{% endif %}
+
 {% if population_warnings %}
   <h2>Omezení přenositelnosti</h2>
   {% for w in population_warnings %}<p class="upozorneni">{{ w }}</p>{% endfor %}

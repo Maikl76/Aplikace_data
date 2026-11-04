@@ -14,14 +14,31 @@ DOMAINS = [
 ]
 
 
+# Fenotyp oblasti: ukazatele z katalogu, které zpráva ukáže před genotypem.
+# Doplní se jen do oblasti bez ukazatelů; výběr pak patří administraci.
+DOMAIN_METRICS = {
+    "vykon": ["cmj_height", "cmj_peak_power_bm", "wingate_pmax_th", "wingate_work_th",
+              "sprint_30m", "vo2max", "vt2_power"],
+    "pohybovy_aparat": ["sls_cop_area", "imtp_peak_force", "cmj_landing_force"],
+    "hmotnost": ["body_mass", "body_fat_pct", "lean_mass"],
+}
+DOMAIN_FATIGUE = {"regenerace"}
+
+
 def seed_domains() -> int:
     """Doplní chybějící sdílené oblasti; existující nemění. Vrací počet nových."""
+    from apps.catalog.models import MetricDef
+
     created = 0
     for order, (code, name, description) in enumerate(DOMAINS, start=1):
-        _, is_new = Domain.objects.get_or_create(
+        domain, is_new = Domain.objects.get_or_create(
             organization=None, code=code,
-            defaults={"name": name, "description": description, "order": order})
+            defaults={"name": name, "description": description, "order": order,
+                      "uses_fatigue": code in DOMAIN_FATIGUE})
         created += is_new
+        if code in DOMAIN_METRICS and not domain.metrics.exists():
+            domain.metrics.set(MetricDef.objects.filter(organization__isnull=True,
+                                                        code__in=DOMAIN_METRICS[code]))
     return created
 
 

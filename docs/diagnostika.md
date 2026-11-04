@@ -69,3 +69,10 @@ dopočítají i **na kg tělesné hmotnosti (TH)** a **na kg aktivní tělesné 
 Hmotnost i aktivní hmota se berou ze stejného dne (Složení těla, případně
 hmotnost z CMJ). Vypočtené hodnoty se nezadávají, v zadávací tabulce nejsou
 a přepočítají se, kdykoli se změní vstupy.
+
+## Podmínky provedení testu
+
+U provedení testu (stránka zadávání → *Podmínky provedení*) lze zapsat dávku
+kofeinu před testem v mg/kg a poznámku. Dávka se ukládá do podmínek provedení
+jako `kofein_mg_kg`, ve zprávě z měření je vidět u testu a genetická zpráva
+z ní sestaví „Pokus s kofeinem“ (viz `docs/genetika.md`).
