@@ -76,6 +76,35 @@
         <p class="text-xs text-muted mt-1">Vzorky se zadávají na kartě sportovce (Genetika).</p>
       </section>
     {% endif %}
+    {% if vyzkum %}
+      <section class="card p-4">
+        <h2 class="card-title mb-1">Výzkum</h2>
+        <p class="text-sm">{{ vyzkum.osob }} osob se souhlasem s výzkumem i genetikou a ověřeným vzorkem.</p>
+        {% if vyzkum.osob >= vyzkum.minimum %}
+          <a href="{% url 'genetics_research_export' %}" class="btn btn-sm mt-2">{% icon "download" %}Anonymizovaný export (ZIP)</a>
+        {% else %}
+          <p class="text-xs text-muted mt-1">Export se vydá od {{ vyzkum.minimum }} osob – s pár řádky by šel člověk poznat i bez jména.</p>
+        {% endif %}
+        <p class="text-xs text-muted mt-2">Bez kódu a jména, věk v pásmech, měření po měsících, z dotazníku jen volby a čísla. Každé stažení je v auditu.</p>
+      </section>
+    {% endif %}
   </div>
 </div>
+
+{% if vyzkum.frekvence %}
+  <section class="card p-4 mt-4">
+    <h2 class="card-title mb-1">Frekvence genotypů v populaci laboratoře</h2>
+    <p class="text-xs text-muted mb-3">Jen z osob se souhlasem s výzkumem; ukáže se od {{ vyzkum.minimum }} výsledků u varianty. Frekvence není mírou výhodnosti genotypu – karty uvádějí frekvence z literatury se zdrojem.</p>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+      {% for f in vyzkum.frekvence %}
+        <div class="p-3 rounded-lg" style="background: var(--surface-2)">
+          <div class="font-medium">{{ f.variant.gene }} <span class="text-muted font-normal">{{ f.variant.rsid }}</span> <span class="text-xs text-muted">n = {{ f.n }}</span></div>
+          {% if f.enough %}
+            <div class="flex flex-wrap gap-2 mt-1">{% for g in f.genotypes %}<span class="badge">{{ g.genotyp }} {{ g.procent }} % ({{ g.pocet }})</span>{% endfor %}</div>
+          {% else %}<div class="text-xs text-muted mt-1">zatím málo výsledků</div>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}
 {% endblock %}

@@ -182,7 +182,21 @@ nepopisuje jako potvrzení nebo vysvětlení genotypu.
 - Jazykový model dostane měření, únavu i pokus s kofeinem ve faktech
   (čísla z nich smí použít), s pravidlem uvádět je jen jako aktuální stav.
 
-## Co je další fáze
+## Výzkum: anonymizovaný export a vlastní frekvence
 
-- výzkumný export (anonymizovaně, se souhlasem s výzkumem), vlastní
-  frekvence genotypů z populace laboratoře.
+Stránka Genetika (správce, laborant, výzkumník) nabízí **anonymizovaný
+export** (ZIP) a **frekvence genotypů v populaci laboratoře**. Do obojího
+vstupují jen sportovci s platným souhlasem **se sekundárním použitím pro
+výzkum** a zároveň **s genetickými daty** a s ověřeným vzorkem.
+
+- Export obsahuje `sportovci.csv` (pohlaví, věkové pásmo, sport, úroveň),
+  `genotypy.csv` (z posledního ověřeného vzorku, jen aktivní varianty),
+  `mereni.csv` (hodnoty dne všech klíčových ukazatelů po měsících,
+  subjektivní únava), `dotaznik.csv` (jen volby a čísla, žádný volný text)
+  a `README.txt` s popisem sloupců a podmínkami.
+- Osoba má stálý identifikátor bez vazby na kód (hash odvozený tajným
+  klíčem instance); kód ani jméno se neexportují, data jsou jen po měsících.
+- Export se vydá **od 5 osob**; každé stažení je v auditu. Na offline
+  serveru ho uloží `python manage.py vyzkumny_export --cil soubor.zip`.
+- Frekvence se ukážou u varianty od 5 výsledků. Frekvence není mírou
+  výhodnosti genotypu; karty dál uvádějí frekvence z literatury se zdrojem.

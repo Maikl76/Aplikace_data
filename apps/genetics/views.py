@@ -14,6 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from apps.core.audit import record
@@ -23,7 +24,7 @@ from apps.measurements.models import QuestionnaireResponse
 from apps.reports.models import Audience
 from apps.subjects.models import Subject
 
-from . import crypto, seed, services
+from . import crypto, research, seed, services
 from .models import Domain, GeneCard, GenePanel, GeneticSample, GeneVariant
 
 
@@ -34,6 +35,11 @@ def _catalog(model, user):
 
 def _is_admin(user) -> bool:
     return user.is_superuser or user.role == Role.ADMIN
+
+
+def _may_research(user) -> bool:
+    """Anonymizovaný export a frekvence: správce, laborant a výzkumník."""
+    return user.is_superuser or user.role in (Role.ADMIN, Role.LAB, Role.RESEARCHER)
 
 
 def _denied(request, reason):
@@ -61,11 +67,43 @@ def home(request):
         rows = GeneticSample.objects.filter(subject__organization=user.organization)
         samples = {"celkem": rows.count(),
                    "neovereno": rows.filter(status=GeneticSample.Status.RECEIVED).count()}
+    vyzkum = None
+    if _may_research(user) and user.organization_id:
+        try:
+            eligible = len(research.eligible_subjects(user.organization))
+            vyzkum = {"osob": eligible, "minimum": research.MIN_SUBJECTS,
+                      "frekvence": research.frequencies(user.organization)
+                      if crypto.configured() else []}
+        except Exception:  # bez klíče nebo s jiným klíčem genotypy nejdou číst
+            vyzkum = {"osob": 0, "minimum": research.MIN_SUBJECTS, "frekvence": []}
     return render(request, "genetics/home.html", {
         "variants": variants, "review": review, "domains": domains, "panels": panels,
         "samples": samples, "key_missing": not crypto.configured(),
         "approved_count": sum(1 for v in variants if v.approved),
+        "vyzkum": vyzkum,
     })
+
+
+@login_required
+def research_export(request):
+    """Anonymizovaný ZIP pro výzkum – jen osoby se souhlasem s výzkumem, od pěti osob."""
+    from django.http import HttpResponse
+
+    if not _may_research(request.user):
+        return _denied(request, "Výzkumný export smí stáhnout správce, laborant nebo výzkumník.")
+    if not crypto.configured():
+        messages.error(request, crypto.CHYBI)
+        return redirect("genetics_home")
+    try:
+        content, count = research.build_export(request.user.organization)
+    except ValueError as exc:
+        messages.error(request, str(exc))
+        return redirect("genetics_home")
+    record(request, AuditLog.Action.EXPORT, request.user.organization, vyzkum="genetika",
+           osob=count)
+    name = f"vyzkum-genetika-{timezone.localdate():%Y-%m-%d}.zip"
+    return HttpResponse(content, content_type="application/zip",
+                        headers={"Content-Disposition": f'attachment; filename="{name}"'})
 
 
 # --- karta -----------------------------------------------------------------------

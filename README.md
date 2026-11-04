@@ -367,4 +367,5 @@ posouzení vlivu (DPIA), členěné souhlasy, retenční politika, role
 a auditní přístupy. Model je na to připravený (`Consent`, `AuditLog`,
 oddělená identita), ale technika nenahrazuje rozhodnutí.
 Genetické údaje (modul genetiky) mají vlastní souhlas jen pro dospělé,
-vlastní šifrovací klíč a odvolání souhlasu je maže – viz `docs/genetika.md`.
+vlastní šifrovací klíč a odvolání souhlasu je maže; pro výzkum je jen
+anonymizovaný export se souhlasem s výzkumem – viz `docs/genetika.md`.
