@@ -52,7 +52,8 @@ class GenotypeTextInline(LockedInlineMixin, admin.StackedInline):
 
 class RecommendationInline(LockedInlineMixin, admin.StackedInline):
     model = Recommendation
-    fields = (("genotype", "kind", "basis"), "text", ("merge_key", "order"))
+    fields = (("genotype", "kind", "basis"), "text", ("merge_key", "protocol", "order"))
+    autocomplete_fields = ["protocol"]
 
 
 class CardEvidenceInline(LockedInlineMixin, admin.StackedInline):
@@ -74,7 +75,7 @@ class ForbiddenStatementInline(LockedInlineMixin, admin.TabularInline):
 
 class ContextScenarioInline(LockedInlineMixin, admin.TabularInline):
     model = ContextScenario
-    fields = ("kind", "title", "statement", "is_active", "order")
+    fields = ("kind", "title", "statement", "question", "answer_match", "is_active", "order")
     show_change_link = True
 
 
@@ -144,8 +145,10 @@ class ScenarioTextInline(admin.StackedInline):
 
 @admin.register(ContextScenario)
 class ContextScenarioAdmin(admin.ModelAdmin):
-    list_display = ("statement", "card", "kind", "is_active")
+    list_display = ("statement", "card", "kind", "question", "is_active")
     list_filter = ("kind", "is_active")
+    fields = ("card", "kind", "title", "statement", "question", "answer_match", "condition",
+              "is_active", "order")
     search_fields = ("statement", "card__variant__gene")
     autocomplete_fields = ["card"]
     inlines = [ScenarioTextInline]

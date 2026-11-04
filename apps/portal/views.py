@@ -24,7 +24,7 @@ from apps.analytics import charts, overview, queries
 from apps.core.audit import record
 from apps.core.models import AuditLog, Role
 from apps.measurements import questionnaires
-from apps.measurements.models import TestSession
+from apps.measurements.models import QuestionnaireResponse, TestSession
 from apps.reports.models import Audience, Report
 from apps.subjects import accounts
 from apps.subjects.access import subjects_for
@@ -177,6 +177,7 @@ def consents(request, pk):
     return render(request, "portal/consents.html", {
         "subject": subject,
         "genetika": genetics.consent_state(subject),
+        "genetika_dotaznik": questionnaires.latest(subject, "genetika"),
         "consents": subject.consents.order_by("-granted_on"),
         "sharings": sharings,
         "coaches": available,
@@ -219,6 +220,42 @@ def _consent_action(request, subject):
         return
     record(request, AuditLog.Action.UPDATE, subject, subject_code=subject.code,
            sdileni=action, trener=sharing.coach.get_username())
+
+
+@athlete_required
+def genetics_questionnaire(request, pk):
+    """Dotazník ke genetickému vyšetření vyplňuje sportovec sám – jen s platným souhlasem."""
+    from apps.genetics import seed
+    from apps.genetics import services as genetics
+
+    subject = _subject(request, pk)
+    if not genetics.consent_state(subject).valid:
+        messages.warning(request, "Dotazník je k dispozici po udělení souhlasu s genetickými daty.")
+        return redirect("portal_consents", pk=pk)
+    form = questionnaires.questionnaire(seed.QUESTIONNAIRE_CODE, subject.organization)
+    if form is None:
+        messages.error(request, "Dotazník zatím není připravený.")
+        return redirect("portal_consents", pk=pk)
+    previous = questionnaires.latest(subject, seed.QUESTIONNAIRE_CODE)
+    missing = []
+    if request.method == "POST":
+        values = questionnaires.parse_answers(form, request.POST)
+        missing = questionnaires.missing_required(form, values)
+        if not missing:
+            response = questionnaires.save_standalone(
+                subject, form, values, source=QuestionnaireResponse.Source.SUBJECT)
+            record(request, AuditLog.Action.UPDATE, response, subject_code=subject.code,
+                   dotaznik=form.code)
+            messages.success(request, "Děkujeme, dotazník je uložený.")
+            return redirect("portal_consents", pk=pk)
+        messages.error(request, "Doplňte povinné otázky, nebo u nich zvolte „nevím“ / „netýká se“.")
+    return render(request, "measurements/questionnaire_form.html", {
+        "questionnaire": form, "subject": subject, "previous": previous, "missing": missing,
+        "sections": questionnaires.sections(form, previous),
+        "back_url": reverse("portal_consents", args=[subject.pk]),
+        "back_label": "Souhlasy a sdílení",
+        "subjects_count": subjects_for(request.user).count(),
+    })
 
 
 def _genetics_consent(request, subject, action):

@@ -13,13 +13,16 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from apps.core.audit import record
 from apps.core.models import AuditLog, Role
+from apps.measurements import questionnaires
+from apps.measurements.models import QuestionnaireResponse
 from apps.subjects.models import Subject
 
-from . import crypto, services
+from . import crypto, seed, services
 from .models import Domain, GeneCard, GenePanel, GeneticSample, GeneVariant
 
 
@@ -210,10 +213,48 @@ def subject(request, pk):
                    .prefetch_related("genotypes__variant").order_by("-created_at"))
     for s in samples:
         s.rows = [_genotype_row(g) for g in s.genotypes.all() if g.variant.is_active]
+    response = questionnaires.latest(subject, seed.QUESTIONNAIRE_CODE)
     return render(request, "genetics/subject.html", {
         "subject": subject, "display_name": subject.display_for(request.user),
         "state": state, "samples": samples, "panels": panels, "panel": panel, "form": form,
         "entry_blocked": entry_blocked, "demo": settings.DEMO_MODE,
+        "questionnaire": questionnaires.questionnaire(seed.QUESTIONNAIRE_CODE,
+                                                     request.user.organization),
+        "response": response,
+        "answers": questionnaires.sections(response.questionnaire, response) if response else [],
+    })
+
+
+@login_required
+def questionnaire(request, pk):
+    """Dotazník ke genetickému vyšetření vyplněný v laboratoři (za sportovce nebo s ním)."""
+    if not services.may_view_genotypes(request.user):
+        return _denied(request, "Dotazník genetiky smí otevřít jen správce nebo laborant.")
+    subject = _subject(request, pk)
+    form = questionnaires.questionnaire(seed.QUESTIONNAIRE_CODE, request.user.organization)
+    if form is None:
+        messages.error(request, "Dotazník genetiky není v katalogu (seed_catalog ho založí).")
+        return redirect("genetics_subject", pk=pk)
+    previous = questionnaires.latest(subject, seed.QUESTIONNAIRE_CODE)
+    missing = []
+    if request.method == "POST":
+        values = questionnaires.parse_answers(form, request.POST)
+        missing = questionnaires.missing_required(form, values)
+        if not missing:
+            source = (QuestionnaireResponse.Source.SUBJECT if request.POST.get("vyplnil") == "sportovec"
+                      else QuestionnaireResponse.Source.OPERATOR)
+            response = questionnaires.save_standalone(subject, form, values, source=source)
+            record(request, AuditLog.Action.UPDATE, response, subject_code=subject.code,
+                   dotaznik=form.code)
+            messages.success(request, "Dotazník je uložený.")
+            return redirect("genetics_subject", pk=pk)
+        messages.error(request, "Doplňte povinné otázky, nebo u nich zvolte „nevím“ / „netýká se“.")
+    return render(request, "measurements/questionnaire_form.html", {
+        "questionnaire": form, "subject": subject, "previous": previous, "missing": missing,
+        "sections": questionnaires.sections(form, previous),
+        "back_url": reverse("genetics_subject", args=[subject.pk]),
+        "back_label": f"Genetika · {subject.display_for(request.user)}",
+        "who": True,
     })
 
 

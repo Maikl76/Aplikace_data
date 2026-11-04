@@ -60,6 +60,8 @@
     {% if genetika.valid %}
       <span class="badge badge-good">souhlas platí od {{ genetika.consent.granted_on|date:"d.m.Y" }}</span>
       {% if genetika.samples %}<span class="text-muted">vzorky: {{ genetika.samples }}</span>{% else %}<span class="text-muted">zatím žádný vzorek</span>{% endif %}
+      <a href="{% url 'portal_genetics_questionnaire' subject.pk %}" class="btn btn-sm">{% icon "edit" %}{% if genetika_dotaznik %}Upravit dotazník{% else %}Vyplnit dotazník{% endif %}</a>
+      {% if genetika_dotaznik %}<span class="text-xs text-muted">dotazník vyplněn {{ genetika_dotaznik.created_at|date:"d.m.Y" }}</span>{% endif %}
       <form method="post">{% csrf_token %}<button name="akce" value="genetika_odvolat" class="btn btn-sm" onclick="return confirm('Odvolat souhlas s genetickými daty? Uložené genotypy se smažou.')">Odvolat souhlas</button></form>
     {% elif genetika.blocked_reason %}
       <span class="text-muted">{{ genetika.blocked_reason }}</span>

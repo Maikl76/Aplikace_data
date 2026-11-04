@@ -555,13 +555,36 @@ class Questionnaire(CatalogModel):
 
 
 class Question(models.Model):
-    """Jedna otázka dotazníku. Zatím škála (celá čísla od–do s popisky)."""
+    """
+    Jedna otázka dotazníku: škála (RPE), číslo, ano/ne, jedna nebo více
+    možností, text. Odpověď může být i „nevím“ nebo „netýká se“ – a to se
+    nikdy nesmí zaměnit za „ne“.
+    """
+
+    class Kind(models.TextChoices):
+        SCALE = "scale", "Škála (celá čísla od–do)"
+        NUMBER = "number", "Číslo"
+        YESNO = "yesno", "Ano / ne"
+        CHOICE = "choice", "Jedna možnost"
+        MULTI = "multi", "Více možností"
+        TEXT = "text", "Text"
 
     questionnaire = models.ForeignKey(Questionnaire, verbose_name="dotazník",
                                       on_delete=models.CASCADE, related_name="questions")
     code = models.SlugField("kód", max_length=64)
     text = models.CharField("otázka", max_length=300)
     order = models.PositiveSmallIntegerField("pořadí", default=0)
+    kind = models.CharField("druh", max_length=8, choices=Kind.choices, default=Kind.SCALE)
+    section = models.CharField("oddíl", max_length=120, blank=True,
+                               help_text="Blok dotazníku, např. „Regenerace“.")
+    help_text = models.CharField("vysvětlení", max_length=300, blank=True)
+    options = models.JSONField(
+        "možnosti", default=list, blank=True,
+        help_text='Pro „jedna / více možností“: [{"code": "ano", "label": "Ano"}, …].')
+    unit = models.CharField("jednotka", max_length=20, blank=True)
+    required = models.BooleanField("povinná", default=True)
+    allow_unknown = models.BooleanField("nabídnout „nevím“", default=False)
+    allow_na = models.BooleanField("nabídnout „netýká se“", default=False)
     scale_min = models.SmallIntegerField("škála od", default=0)
     scale_max = models.SmallIntegerField("škála do", default=10)
     anchors = models.JSONField(
@@ -586,3 +609,16 @@ class Question(models.Model):
 
     def label(self, value) -> str:
         return self.anchors.get(str(int(value)), "") if value is not None else ""
+
+    def option_codes(self) -> list[str]:
+        return [str(o.get("code", "")) for o in (self.options or []) if o.get("code")]
+
+    def option_label(self, code: str) -> str:
+        for option in self.options or []:
+            if str(option.get("code", "")) == str(code):
+                return str(option.get("label", code))
+        return str(code)
+
+    @property
+    def has_states(self) -> bool:
+        return self.allow_unknown or self.allow_na

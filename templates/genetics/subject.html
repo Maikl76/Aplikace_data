@@ -31,6 +31,27 @@
 
 <div class="grid lg:grid-cols-5 gap-4">
   <section class="lg:col-span-3 space-y-4">
+    <div class="card p-4">
+      <div class="flex flex-wrap items-center gap-2 mb-1">
+        <h2 class="card-title flex-1">Dotazník ke genetickému vyšetření</h2>
+        {% if questionnaire %}<a href="{% url 'genetics_questionnaire' subject.pk %}" class="btn btn-sm">{% icon "edit" %}{% if response %}Vyplnit znovu{% else %}Vyplnit{% endif %}</a>{% endif %}
+      </div>
+      {% if response %}
+        <p class="text-xs text-muted mb-2">Vyplněno {{ response.created_at|date:"d.m.Y" }} · {{ response.get_source_display|lower }}</p>
+        <details class="text-sm"><summary class="cursor-pointer link">odpovědi</summary>
+          <div class="mt-2 space-y-2">
+            {% for section in answers %}
+              <div>{% if section.name %}<div class="text-xs text-muted">{{ section.name }}</div>{% endif %}
+                {% for item in section.questions %}<div class="flex gap-2"><span class="flex-1 text-2">{{ item.question.text }}</span><span class="font-medium text-right">{% if item.answer %}{{ item.answer.display|default:"—" }}{% else %}—{% endif %}</span></div>{% endfor %}
+              </div>
+            {% endfor %}
+          </div>
+        </details>
+      {% else %}
+        <p class="text-sm text-muted">Zatím nevyplněn. Sportovec ho vyplní v portálu, nebo ho zapište tady.</p>
+      {% endif %}
+    </div>
+
     {% for s in samples %}
       <div class="card p-4">
         <div class="flex flex-wrap items-center gap-2 mb-2">

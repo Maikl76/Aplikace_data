@@ -8,4 +8,5 @@ urlpatterns = [
     path("karta/<int:pk>/akce/", views.card_action, name="genetics_card_action"),
     path("sportovec/<int:pk>/", views.subject, name="genetics_subject"),
     path("sportovec/<int:pk>/akce/", views.subject_action, name="genetics_subject_action"),
+    path("sportovec/<int:pk>/dotaznik/", views.questionnaire, name="genetics_questionnaire"),
 ]

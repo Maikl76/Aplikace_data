@@ -228,16 +228,20 @@ class RawFile(TimeStampedModel):
 
 class QuestionnaireResponse(TimeStampedModel):
     """
-    Vyplněný dotazník (např. RPE) k testovacímu dni, případně ke konkrétnímu
-    testu. Vyplnit ho může operátor, nebo sportovec sám přes QR kód.
+    Vyplněný dotazník. Buď k testovacímu dni (RPE, případně po konkrétním
+    testu), nebo samostatně ke sportovci (dotazník ke genetickému vyšetření).
+    Vyplnit ho může operátor, nebo sportovec sám (QR kód, portál).
     """
 
     class Source(models.TextChoices):
         OPERATOR = "operator", "Zadal operátor"
         SUBJECT = "sportovec", "Vyplnil sportovec"
 
+    subject = models.ForeignKey("subjects.Subject", verbose_name="sportovec",
+                                on_delete=models.CASCADE, related_name="questionnaire_responses")
     session = models.ForeignKey(TestSession, verbose_name="testovací den",
-                                on_delete=models.CASCADE, related_name="responses")
+                                on_delete=models.CASCADE, related_name="responses",
+                                null=True, blank=True)
     protocol_run = models.ForeignKey(ProtocolRun, verbose_name="po testu",
                                      on_delete=models.CASCADE, null=True, blank=True,
                                      related_name="responses")
@@ -252,15 +256,33 @@ class QuestionnaireResponse(TimeStampedModel):
         ordering = ["created_at"]
 
     def __str__(self):
-        return f"{self.session} / {self.questionnaire.code}"
+        return f"{self.session or self.subject} / {self.questionnaire.code}"
+
+    def answers_by_code(self) -> dict:
+        return {a.question.code: a for a in self.answers.select_related("question")}
 
 
 class Answer(models.Model):
+    """
+    Odpověď na otázku. Stav „nevím“ a „netýká se“ je plnohodnotná odpověď
+    bez hodnoty – ve zprávě se nikdy nepřekládá na „ne“.
+    """
+
+    class State(models.TextChoices):
+        ANSWERED = "answered", "Odpovězeno"
+        UNKNOWN = "unknown", "Nevím"
+        NA = "na", "Netýká se"
+        MISSING = "missing", "Bez odpovědi"
+
     response = models.ForeignKey(QuestionnaireResponse, verbose_name="vyplněný dotazník",
                                  on_delete=models.CASCADE, related_name="answers")
     question = models.ForeignKey("catalog.Question", verbose_name="otázka",
                                  on_delete=models.PROTECT, related_name="answers")
     value = models.FloatField("hodnota", null=True, blank=True)
+    text = models.TextField("text", blank=True)
+    choices = models.JSONField("zvolené možnosti", default=list, blank=True)
+    state = models.CharField("stav", max_length=8, choices=State.choices,
+                             default=State.ANSWERED)
 
     class Meta:
         verbose_name = "odpověď"
@@ -270,4 +292,30 @@ class Answer(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.question.code} = {self.value}"
+        return f"{self.question.code} = {self.display()}"
+
+    @property
+    def is_answered(self) -> bool:
+        return self.state == self.State.ANSWERED
+
+    def display(self) -> str:
+        """Odpověď slovy – pro obrazovku i zprávu."""
+        if not self.is_answered:
+            return self.get_state_display().lower()
+        question = self.question
+        kind = question.kind
+        Kind = type(question).Kind
+        if kind == Kind.SCALE:
+            if self.value is None:
+                return ""
+            label = question.label(self.value)
+            return f"{self.value:g}" + (f" – {label}" if label else "")
+        if kind == Kind.NUMBER:
+            if self.value is None:
+                return ""
+            return f"{self.value:g}" + (f" {question.unit}" if question.unit else "")
+        if kind == Kind.YESNO:
+            return "" if self.value is None else ("ano" if self.value else "ne")
+        if kind in (Kind.CHOICE, Kind.MULTI):
+            return ", ".join(question.option_label(c) for c in (self.choices or []))
+        return self.text

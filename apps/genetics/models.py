@@ -316,6 +316,11 @@ class Recommendation(models.Model):
     merge_key = models.SlugField("klíč pro slučování", max_length=64, blank=True,
                                  help_text="Stejný klíč napříč kartami = ve zprávě se doporučení "
                                            "sloučí (důvody zůstanou).")
+    protocol = models.ForeignKey("catalog.Protocol", verbose_name="test k posouzení",
+                                 on_delete=models.SET_NULL, null=True, blank=True,
+                                 related_name="gene_recommendations",
+                                 help_text="U důvodu „budoucí měření“: kterým testem se znak "
+                                           "posoudí. Zpráva pak řekne, zda už výsledek je.")
     order = models.PositiveSmallIntegerField("pořadí", default=0)
 
     class Meta:
@@ -411,6 +416,14 @@ class ContextScenario(models.Model):
     title = models.CharField("název", max_length=200, blank=True)
     statement = models.TextField("odpověď / výsledek",
                                  help_text="Např. „Lépe zvládám delší souvislou zátěž…“")
+    question = models.ForeignKey("catalog.Question", verbose_name="otázka dotazníku",
+                                 on_delete=models.SET_NULL, null=True, blank=True,
+                                 related_name="gene_scenarios",
+                                 help_text="Která odpověď scénář spouští, říká „shoda odpovědi“.")
+    answer_match = models.JSONField(
+        "shoda odpovědi", default=dict, blank=True,
+        help_text='Např. {"choices": ["vytrvalost"]} (zvolená možnost), {"value": 1} (ano/ne), '
+                  '{"min": 7} nebo {"max": 3} (škála, číslo).')
     condition = models.JSONField("podmínka nad měřením", default=dict, blank=True,
                                  help_text='Stejný zápis jako u pravidel, např. '
                                            '{"z": "wingate_pmax_th", "op": ">", "value": 1}.')
@@ -425,6 +438,22 @@ class ContextScenario(models.Model):
 
     def __str__(self):
         return f"{self.get_kind_display()}: {self.statement[:60]}"
+
+    def matches(self, answer) -> bool:
+        """Spouští scénář tahle odpověď? Jen odpovězená otázka; „nevím“ nikdy."""
+        if answer is None or not answer.is_answered or not self.answer_match:
+            return False
+        rule = self.answer_match
+        if "choices" in rule:
+            return bool(set(rule["choices"]) & set(answer.choices or []))
+        if "value" in rule:
+            return answer.value is not None and float(answer.value) == float(rule["value"])
+        if "min" in rule or "max" in rule:
+            if answer.value is None:
+                return False
+            return (("min" not in rule or answer.value >= rule["min"])
+                    and ("max" not in rule or answer.value <= rule["max"]))
+        return False
 
 
 class ScenarioText(models.Model):

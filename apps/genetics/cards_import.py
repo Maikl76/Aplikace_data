@@ -476,6 +476,7 @@ def import_cards(path, *, organization=None, user=None) -> ImportResult:
             defaults={"order": order, "lab_label": data.notation[:120],
                       "genotype_map": {alias: g for g, alias in data.aliases.items()}})
         result.created.append(data.label)
+    seed.link_scenarios()
     return result
 
 

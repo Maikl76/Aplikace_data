@@ -1,0 +1,50 @@
+{# Jedna otázka dotazníku: podle druhu + stav „nevím“ / „netýká se“. Čeká question a answer (nebo None). #}
+{% with q=item.question a=item.answer %}
+<fieldset class="py-3 border-t" style="border-color: var(--border)">
+  <legend class="font-medium text-sm">{{ q.text }}{% if not q.required %} <span class="text-xs text-muted font-normal">(nepovinné)</span>{% endif %}</legend>
+  {% if q.help_text %}<p class="text-xs text-muted mb-1">{{ q.help_text }}</p>{% endif %}
+  <div class="mt-1">
+    {% if q.kind == "scale" %}
+      <div class="flex flex-wrap gap-1">
+        {% for value, label in q.points %}
+          <label class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-sm" style="background: var(--surface-2)" title="{{ label }}">
+            <input type="radio" name="q_{{ q.code }}" value="{{ value }}" {% if a and a.is_answered and a.value == value %}checked{% endif %}>
+            <span class="tabular-nums">{{ value }}</span>{% if label %}<span class="text-xs text-muted">{{ label }}</span>{% endif %}
+          </label>
+        {% endfor %}
+      </div>
+    {% elif q.kind == "number" %}
+      <div class="flex items-center gap-2">
+        <input type="number" step="any" name="q_{{ q.code }}" class="input w-32 text-sm py-1.5" value="{% if a and a.is_answered and a.value is not None %}{{ a.value|floatformat:"-2" }}{% endif %}">
+        {% if q.unit %}<span class="text-sm text-muted">{{ q.unit }}</span>{% endif %}
+      </div>
+    {% elif q.kind == "yesno" %}
+      <div class="flex flex-wrap gap-3 text-sm">
+        <label class="inline-flex items-center gap-1"><input type="radio" name="q_{{ q.code }}" value="1" {% if a and a.is_answered and a.value %}checked{% endif %}> ano</label>
+        <label class="inline-flex items-center gap-1"><input type="radio" name="q_{{ q.code }}" value="0" {% if a and a.is_answered and a.value is not None and not a.value %}checked{% endif %}> ne</label>
+      </div>
+    {% elif q.kind == "choice" %}
+      <div class="space-y-1 text-sm">
+        {% for o in q.options %}
+          <label class="flex items-start gap-2"><input type="radio" name="q_{{ q.code }}" value="{{ o.code }}" class="mt-1" {% if a and a.is_answered and o.code in a.choices %}checked{% endif %}> <span>{{ o.label }}</span></label>
+        {% endfor %}
+      </div>
+    {% elif q.kind == "multi" %}
+      <div class="space-y-1 text-sm">
+        {% for o in q.options %}
+          <label class="flex items-start gap-2"><input type="checkbox" name="q_{{ q.code }}" value="{{ o.code }}" class="mt-1" {% if a and a.is_answered and o.code in a.choices %}checked{% endif %}> <span>{{ o.label }}</span></label>
+        {% endfor %}
+      </div>
+    {% else %}
+      <textarea name="q_{{ q.code }}" rows="2" class="input text-sm" maxlength="2000">{% if a and a.is_answered %}{{ a.text }}{% endif %}</textarea>
+    {% endif %}
+    {% if q.has_states %}
+      <div class="flex flex-wrap gap-3 mt-1 text-xs text-muted">
+        <label class="inline-flex items-center gap-1"><input type="radio" name="q_{{ q.code }}__stav" value="" {% if not a or a.is_answered %}checked{% endif %}> odpovídám</label>
+        {% if q.allow_unknown %}<label class="inline-flex items-center gap-1"><input type="radio" name="q_{{ q.code }}__stav" value="unknown" {% if a and a.state == "unknown" %}checked{% endif %}> nevím</label>{% endif %}
+        {% if q.allow_na %}<label class="inline-flex items-center gap-1"><input type="radio" name="q_{{ q.code }}__stav" value="na" {% if a and a.state == "na" %}checked{% endif %}> netýká se</label>{% endif %}
+      </div>
+    {% endif %}
+  </div>
+</fieldset>
+{% endwith %}

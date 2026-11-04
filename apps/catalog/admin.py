@@ -127,6 +127,9 @@ class TestBatteryAdmin(admin.ModelAdmin):
 class QuestionInline(admin.StackedInline):
     model = Question
     extra = 0
+    fields = (("code", "order", "kind"), "section", "text", "help_text",
+              ("required", "allow_unknown", "allow_na"), "options", "unit",
+              ("scale_min", "scale_max"), "anchors")
 
 
 @admin.register(Questionnaire)
