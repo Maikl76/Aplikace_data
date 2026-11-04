@@ -82,10 +82,9 @@ def test_mereni_mluvi_prvni(laborator):
                              {"datum": older.date.strftime("%d.%m.%Y"), "unava": 4, "rpe": []}]
     assert content["mereni_poznamka"].startswith("Měření popisuje")
     facts = genetics_report.facts(content)
-    assert facts["oblasti"][0]["mereni"] == ["VO2max: 52,3 ml/kg/min (%s), nad normou (příznivě), "
-                                             "zlepšení (minule 48,0 ml/kg/min, %s)"
-                                             % (latest.date.strftime("%d.%m.%Y"),
-                                                older.date.strftime("%d.%m.%Y"))]
+    assert facts["oblasti"][0]["mereni"] == [
+        f"VO2max: 52,3 ml/kg/min ({latest.date.strftime('%d.%m.%Y')}), nad normou (příznivě), "
+        f"zlepšení (minule 48,0 ml/kg/min, {older.date.strftime('%d.%m.%Y')})"]
     assert facts["poznamka_k_mereni"] == genetics_report.MEASUREMENT_NOTE
     # Čísla z měření smí model použít; cizí ne.
     assert genetics_report.verify_summary("VO2max 52,3 je nad normou.", content) == []
