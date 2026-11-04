@@ -27,6 +27,7 @@ urlpatterns = [
     path("mereni/", include("apps.measurements.urls")),
     path("zpravy/", include("apps.reports.urls")),
     path("clanky/", include("apps.evidence.urls")),
+    path("genetika/", include("apps.genetics.urls")),
     path("import/", include("apps.ingest.urls")),
     path("objednavky/", include("apps.booking.urls")),
     # Veřejný objednávkový formulář pro klienty – bez přihlášení.

@@ -116,6 +116,7 @@ identita žije šifrovaně v odděleném trezoru s vlastním oprávněním.
 | `apps/rules` | pravidla jako data + nálezy |
 | `apps/reports` | generování a předávání zpráv |
 | `apps/external` | šev pro AKESO (jen omezení zátěže, žádné nálezy) |
+| `apps/genetics` | genové karty s revizí a schválením garantem, panel variant, souhlas 18+, šifrované genotypy – `docs/genetika.md` |
 
 Technologie: Django 5 + PostgreSQL (lokálně SQLite) + HTMX + Plotly,
 WeasyPrint na PDF. Souhrn píše jazykový model ve vlákně aplikace; fronta
@@ -365,3 +366,5 @@ Před nasazením s reálnými daty je potřeba vyřešit s pověřencem FTVS:
 posouzení vlivu (DPIA), členěné souhlasy, retenční politika, role
 a auditní přístupy. Model je na to připravený (`Consent`, `AuditLog`,
 oddělená identita), ale technika nenahrazuje rozhodnutí.
+Genetické údaje (modul genetiky) mají vlastní souhlas jen pro dospělé,
+vlastní šifrovací klíč a odvolání souhlasu je maže – viz `docs/genetika.md`.

@@ -51,7 +51,9 @@ kódem.
   seznam měření,
 - vydané zprávy **pro sportovce** (zprávy pro trenéra a lékaře ne),
 - dotazník RPE k dnešnímu měření (stejný formulář jako přes QR kód),
-- souhlasy, které laboratoř eviduje,
+- souhlasy, které laboratoř eviduje; souhlas s **genetickými daty** si dospělý
+  sportovec uděluje a odvolává sám (odvolání smaže uložené genotypy) –
+  viz `docs/genetika.md`,
 - **kdo se díval**: posledních 40 záznamů auditu k jeho datům.
 
 Účty portálu nemají přístup do obrazovek laboratoře ani do administrace;

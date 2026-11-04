@@ -14,7 +14,7 @@ from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    help = "Doplní do .env šifrovací klíč jmen a tajný klíč Djanga, pokud chybí."
+    help = "Doplní do .env šifrovací klíče (jména, genotypy) a tajný klíč Djanga, pokud chybí."
 
     # Ukázkové hodnoty z .env.example – chovají se jako chybějící klíč.
     PLACEHOLDERS = {"zmente-me-na-nahodny-retezec", "VLOZTE_VYGENEROVANY_KLIC", "__SECRET__",
@@ -40,6 +40,13 @@ class Command(BaseCommand):
                 "Do .env byl doplněn šifrovací klíč. Zálohujte ho spolu s databází."))
         else:
             self.stdout.write("Šifrovací klíč už je nastavený.")
+        text, added = self._ensure(
+            text, "GENETICS_ENCRYPTION_KEY", lambda: Fernet.generate_key().decode(),
+            "# Klíč k šifrovaným genotypům (genetika). Jiný než klíč jmen – NEMĚŇTE ho\n"
+            "# a zálohujte ho spolu s databází.")
+        if added:
+            self.stdout.write(self.style.SUCCESS(
+                "Do .env byl doplněn klíč pro genotypy. Zálohujte ho spolu s databází."))
         text, added = self._ensure(
             text, "DJANGO_SECRET_KEY", lambda: secrets.token_urlsafe(50),
             "# Tajný klíč Djanga (podpis přihlášení). Neměňte ho.")

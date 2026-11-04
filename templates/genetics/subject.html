@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Genetika – {{ display_name }} – FTVS{% endblock %}
+{% block content %}
+<div class="card p-5 mb-5 flex flex-wrap items-center gap-4">
+  <span class="avatar w-14 h-14 text-lg">{{ display_name|initials }}</span>
+  <div class="min-w-0 flex-1">
+    <a href="{% url 'subject_detail' subject.pk %}" class="text-sm link">← karta sportovce</a>
+    <h1 class="text-2xl font-semibold leading-tight">Genetika · {{ display_name }}</h1>
+    <div class="mt-1 flex flex-wrap gap-1.5 text-sm">
+      <span class="badge">{{ subject.code }}</span>
+      {% if state.age is not None %}<span class="badge">{{ state.age }} let</span>{% endif %}
+      {% if state.valid %}<span class="badge badge-good">souhlas platí od {{ state.consent.granted_on|date:"d.m.Y" }}</span>{% else %}<span class="badge badge-warn">bez souhlasu</span>{% endif %}
+    </div>
+  </div>
+  <form method="post" action="{% url 'genetics_subject_action' subject.pk %}" class="flex flex-wrap gap-2">{% csrf_token %}
+    {% if state.valid %}
+      <button name="akce" value="souhlas_odvolat" class="btn" onclick="return confirm('Odvolat souhlas? Všechny uložené genotypy sportovce se smažou. Vydané zprávy zůstanou.')">Odvolat souhlas</button>
+    {% elif not state.blocked_reason %}
+      <button name="akce" value="souhlas_udelit" class="btn btn-primary" title="Zapište až po převzetí podepsaného souhlasu">{% icon "check" %}Zapsat souhlas</button>
+    {% endif %}
+  </form>
+</div>
+
+{% if state.blocked_reason %}
+  <div class="card px-4 py-3 mb-5 text-sm border-l-4 flex gap-3 items-start" style="border-left-color: var(--warn)">
+    <span style="color: var(--warn)">{% icon "alert" "w-5 h-5" %}</span>
+    <div>{{ state.blocked_reason }}</div>
+  </div>
+{% endif %}
+
+<div class="grid lg:grid-cols-5 gap-4">
+  <section class="lg:col-span-3 space-y-4">
+    {% for s in samples %}
+      <div class="card p-4">
+        <div class="flex flex-wrap items-center gap-2 mb-2">
+          <h2 class="card-title flex-1">{{ s.panel }}</h2>
+          <span class="badge {% if s.status == 'verified' %}badge-good{% elif s.status == 'received' %}badge-warn{% endif %}">{{ s.get_status_display }}</span>
+        </div>
+        <p class="text-xs text-muted mb-3">{% if s.provider %}{{ s.provider }} · {% endif %}{% if s.sampled_on %}odběr {{ s.sampled_on|date:"d.m.Y" }} · {% endif %}{% if s.reported_on %}výsledek {{ s.reported_on|date:"d.m.Y" }} · {% endif %}{% if s.external_reference %}ref. {{ s.external_reference }} · {% endif %}zadal {{ s.entered_by.get_username|default:"—" }}{% if s.verified_by %} · ověřil {{ s.verified_by.get_username }} {{ s.verified_at|date:"d.m.Y" }}{% endif %}{% if s.invalid_reason %} · {{ s.invalid_reason }}{% endif %}</p>
+        {% if s.rows %}
+          <table class="table text-sm">
+            <thead><tr><th>Varianta</th><th>Genotyp</th><th>Zápis laboratoře</th><th>Kvalita</th></tr></thead>
+            <tbody>
+              {% for r in s.rows %}
+                <tr><td>{{ r.variant.label }}</td><td class="font-medium">{{ r.label|default:"—" }}</td><td class="text-muted">{{ r.raw|default:"—" }}</td><td>{% if r.ok %}<span class="badge badge-good">{{ r.quality }}</span>{% else %}<span class="badge badge-warn">{{ r.quality }}</span>{% endif %}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% elif s.status == 'withdrawn' %}<p class="text-sm text-muted">Genotypy byly smazány po odvolání souhlasu.</p>{% endif %}
+        {% if s.status == 'received' %}
+          <form method="post" action="{% url 'genetics_subject_action' subject.pk %}" class="mt-3 flex flex-wrap items-center gap-2">{% csrf_token %}<input type="hidden" name="vzorek" value="{{ s.pk }}">
+            <button name="akce" value="overit" class="btn btn-sm btn-primary" title="Potvrzuji, že výsledek patří tomuto sportovci (jméno a reference souhlasí)">{% icon "check" %}Ověřit příslušnost</button>
+            <input name="duvod" class="input w-auto text-sm py-1.5" placeholder="důvod nevalidity">
+            <button name="akce" value="nevalidni" class="btn btn-sm">Nevalidní vstup</button>
+          </form>
+        {% endif %}
+      </div>
+    {% empty %}
+      <div class="card p-6 text-sm text-muted">Zatím žádný vzorek.</div>
+    {% endfor %}
+  </section>
+
+  <section class="lg:col-span-2 card p-4">
+    <h2 class="card-title mb-1">Nový vzorek a výsledek</h2>
+    {% if entry_blocked %}
+      <p class="text-sm text-muted">{{ entry_blocked }}</p>
+    {% else %}
+      <p class="text-xs text-muted mb-3">Opište genotypy z výsledku laboratoře. Zápis se převede na kanonický podle panelu; co nejde převést, se označí jako nejasné.</p>
+      {% if panels|length > 1 %}
+        <form method="get" class="mb-3"><label class="text-xs text-2">Panel</label>
+          <select name="panel" class="input mt-1" onchange="this.form.submit()">{% for p in panels %}<option value="{{ p.pk }}" {% if p.pk == panel.pk %}selected{% endif %}>{{ p }}</option>{% endfor %}</select></form>
+      {% endif %}
+      <form method="post" class="space-y-3">{% csrf_token %}<input type="hidden" name="akce" value="vzorek"><input type="hidden" name="panel" value="{{ panel.pk }}">
+        {% if form.non_field_errors %}<p class="text-sm" style="color: var(--bad)">{{ form.non_field_errors }}</p>{% endif %}
+        <div class="grid sm:grid-cols-2 gap-3">
+          <label class="block"><span class="text-xs text-2">{{ form.provider.label }}</span>{{ form.provider }}</label>
+          <label class="block"><span class="text-xs text-2">{{ form.external_reference.label }}</span>{{ form.external_reference }}</label>
+          <label class="block"><span class="text-xs text-2">{{ form.sampled_on.label }}</span>{{ form.sampled_on }}</label>
+          <label class="block"><span class="text-xs text-2">{{ form.reported_on.label }}</span>{{ form.reported_on }}</label>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-3">
+          {% for item, field in form.genotype_fields %}
+            <label class="block"><span class="text-xs text-2">{{ field.label }}</span>{{ field }}<span class="block text-xs text-muted">{{ field.help_text }}{% if item.lab_label %} · u laboratoře „{{ item.lab_label }}“{% endif %}</span>{% if field.errors %}<span class="text-xs" style="color: var(--bad)">{{ field.errors|join:" " }}</span>{% endif %}</label>
+          {% endfor %}
+        </div>
+        <label class="block"><span class="text-xs text-2">{{ form.note.label }}</span>{{ form.note }}</label>
+        <button class="btn btn-primary">{% icon "plus" %}Uložit vzorek</button>
+      </form>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

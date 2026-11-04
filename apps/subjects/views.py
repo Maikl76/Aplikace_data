@@ -7,6 +7,7 @@ from apps.analytics import charts, overview, queries
 from apps.core.audit import record
 from apps.core.models import AuditLog
 from apps.external.models import ExternalExam
+from apps.genetics import services as genetics
 from apps.measurements.models import TestSession
 
 from . import accounts, search
@@ -90,6 +91,7 @@ def subject_detail(request, pk):
         "sharings": [_with_coach_label(sh) for sh in subject.sharings.select_related("coach")],
         "coaches": [_with_coach_label(c) for c in accounts.coaches(subject.organization)],
         "reports": subject.reports.order_by("-created_at")[:10],
+        "genetika": genetics.summary_for(subject, request.user),
         "trends": trends,
         "asymetrie_chart": (_both_themes(lambda theme: charts.asymmetry_chart(asymetrie, theme=theme))
                             if asymetrie else None),

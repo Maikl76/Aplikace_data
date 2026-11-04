@@ -45,6 +45,7 @@ LOCAL_APPS = [
     "apps.external",      # šev pro AKESO
     "apps.booking",       # objednávky testování od klientů
     "apps.portal",        # portál sportovce a trenéra
+    "apps.genetics",      # genové karty, panel variant, souhlas a genotypy
 ]
 
 THIRD_PARTY_APPS = [
@@ -212,6 +213,8 @@ BOOKING_VERIFY_EMAIL = env.bool("BOOKING_VERIFY_EMAIL", default=False)
 # Klíč pro šifrování jména a kontaktu v subjects.SubjectIdentity.
 # Prázdná hodnota = identita se neuloží (vývoj na syntetických datech).
 IDENTITY_ENCRYPTION_KEY = env("IDENTITY_ENCRYPTION_KEY", default="")
+# Genotypy mají vlastní klíč: kdo získá klíč k identitě, nepřečte genetiku a naopak.
+GENETICS_ENCRYPTION_KEY = env("GENETICS_ENCRYPTION_KEY", default="")
 
 LOGGING = {
     "version": 1,

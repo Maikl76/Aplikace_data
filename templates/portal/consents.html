@@ -54,6 +54,23 @@
 </div>
 
 <section class="card p-4 mt-4">
+  <h2 class="card-title mb-1">Genetika</h2>
+  <p class="text-sm text-muted mb-3">Genetický test (panel variant) je dobrovolný a jen pro dospělé. Výsledek vidíte vy a laboratoř; trenér ho nevidí nikdy. Souhlas můžete kdykoli odvolat – uložené genotypy se smažou, už vydané zprávy zůstávají.</p>
+  <div class="flex flex-wrap items-center gap-3 text-sm">
+    {% if genetika.valid %}
+      <span class="badge badge-good">souhlas platí od {{ genetika.consent.granted_on|date:"d.m.Y" }}</span>
+      {% if genetika.samples %}<span class="text-muted">vzorky: {{ genetika.samples }}</span>{% else %}<span class="text-muted">zatím žádný vzorek</span>{% endif %}
+      <form method="post">{% csrf_token %}<button name="akce" value="genetika_odvolat" class="btn btn-sm" onclick="return confirm('Odvolat souhlas s genetickými daty? Uložené genotypy se smažou.')">Odvolat souhlas</button></form>
+    {% elif genetika.blocked_reason %}
+      <span class="text-muted">{{ genetika.blocked_reason }}</span>
+    {% else %}
+      <span class="badge">bez souhlasu</span>
+      <form method="post">{% csrf_token %}<button name="akce" value="genetika_udelit" class="btn btn-sm btn-primary">Udělit souhlas s genetickými daty</button></form>
+    {% endif %}
+  </div>
+</section>
+
+<section class="card p-4 mt-4">
   <h2 class="card-title mb-1">Kdo se díval na vaše data</h2>
   <p class="text-sm text-muted mb-3">Každé zobrazení, stažení a změna se zapisuje. Tady je posledních {{ audit|length }} záznamů (bez vašich vlastních).</p>
   <table class="table text-sm">

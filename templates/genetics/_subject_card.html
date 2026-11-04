@@ -1,0 +1,15 @@
+{% load ui %}
+<section class="card min-w-0" id="genetika">
+  <div class="px-4 pt-4 pb-2 flex items-center justify-between"><h2 class="card-title">Genetika</h2>{% if genetika.may_view %}<a href="{% url 'genetics_subject' subject.pk %}" class="btn btn-sm">Otevřít</a>{% endif %}</div>
+  <div class="px-4 pb-4 text-sm space-y-2">
+    <div>
+      <span class="text-muted">Souhlas:</span>
+      {% if genetika.state.valid %}<span class="badge badge-good">platí od {{ genetika.state.consent.granted_on|date:"d.m.Y" }}</span>{% elif genetika.state.blocked_reason %}<span class="badge">{{ genetika.state.blocked_reason }}</span>{% else %}<span class="badge badge-warn">neudělen</span>{% endif %}
+    </div>
+    <div>
+      <span class="text-muted">Vzorky:</span>
+      {% for s in genetika.samples %}<span class="badge {% if s.status == 'verified' %}badge-good{% elif s.status == 'received' %}badge-warn{% endif %}">{{ s.panel.name }} · {{ s.get_status_display|lower }}</span>{% empty %}<span class="text-muted">žádný</span>{% endfor %}
+    </div>
+    <p class="text-xs text-muted">Genotypy vidí jen správce a laborant; trenér ani výzkumník ne. Odvolání souhlasu genotypy smaže.</p>
+  </div>
+</section>

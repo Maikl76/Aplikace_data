@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Genetika – FTVS{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <h1 class="text-2xl font-semibold">Genetika</h1>
+    <p class="text-sm text-muted mt-1">Genové karty, panel variant a garanti oblastí. Do zprávy smí jen schválená verze karty; schvaluje ji garant oblasti.</p>
+  </div>
+  <a href="/admin/genetics/" class="btn">{% icon "settings" %}Administrace genetiky</a>
+</div>
+
+{% if key_missing %}
+  <div class="card px-4 py-3 mb-5 text-sm border-l-4 flex gap-3 items-start" style="border-left-color: var(--warn)">
+    <span style="color: var(--warn)">{% icon "alert" "w-5 h-5" %}</span>
+    <div><strong>Šifrovací klíč pro genotypy není nastaven.</strong> Karty jdou revidovat, ale genotypy sportovců se neuloží. Klíč doplní <code>python manage.py zajisti_klic</code> (spustit.bat ho volá sám).</div>
+  </div>
+{% endif %}
+
+{% if review %}
+  <section class="card p-4 mb-5">
+    <h2 class="card-title mb-2">Čeká na schválení garantem</h2>
+    <ul class="space-y-1 text-sm">
+      {% for v in review %}
+        <li class="flex flex-wrap items-center gap-2">
+          <a class="link font-medium" href="{% url 'genetics_card' v.working.pk %}">{{ v.working }}</a>
+          <span class="badge">{{ v.domain }}</span>
+          {% if v.garant %}<span class="badge badge-warn">schvalujete vy</span>{% else %}<span class="text-muted text-xs">garant: {% for g in v.domain.guarantors.all %}{{ g.get_full_name|default:g.get_username }}{% if not forloop.last %}, {% endif %}{% empty %}nikdo není nastaven{% endfor %}</span>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+{% endif %}
+
+<div class="grid lg:grid-cols-3 gap-4 mb-5">
+  <section class="card lg:col-span-2 overflow-x-auto">
+    <div class="px-4 pt-4 pb-2 flex items-center justify-between"><h2 class="card-title">Varianty a karty</h2><span class="text-xs text-muted">{{ approved_count }} z {{ variants|length }} schváleno</span></div>
+    <table class="table text-sm">
+      <thead><tr><th>Varianta</th><th>Oblast</th><th>Genotypy</th><th>Schválená</th><th>Rozpracovaná</th></tr></thead>
+      <tbody>
+        {% for v in variants %}
+          <tr{% if not v.is_active %} class="text-muted"{% endif %}>
+            <td><span class="font-medium">{{ v.gene }}</span> <span class="text-muted">{{ v.rsid }}</span>{% if v.subtitle %}<span class="block text-xs text-muted">{{ v.subtitle }}</span>{% endif %}{% if not v.is_active %}<span class="badge ml-1" title="Vypnutá varianta se nezobrazuje ve zprávách">vypnuto</span>{% endif %}</td>
+            <td>{{ v.domain }}</td>
+            <td class="whitespace-nowrap">{% for g in v.genotypes %}{{ v.genotype_label|default:"" }}{{ g }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+            <td>{% if v.approved %}<a class="link" href="{% url 'genetics_card' v.approved.pk %}">v{{ v.approved.version }}</a>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+            <td>{% if v.working %}<a class="link" href="{% url 'genetics_card' v.working.pk %}">v{{ v.working.version }}</a> <span class="badge {% if v.working.status == 'review' %}badge-warn{% endif %}">{{ v.working.get_status_display }}</span>{% elif v.latest %}<a class="link text-muted" href="{% url 'genetics_card' v.latest.pk %}">v{{ v.latest.version }} · {{ v.latest.get_status_display|lower }}</a>{% else %}<span class="text-muted">bez karty</span>{% endif %}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="text-muted py-6">Zatím žádné varianty. Karty z podkladů načte <code>python manage.py nacist_genove_karty soubor.docx</code>; ručně je založíte v administraci.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <div class="space-y-4">
+    <section class="card p-4">
+      <h2 class="card-title mb-2">Garanti oblastí</h2>
+      <ul class="space-y-1 text-sm">
+        {% for d in domains %}
+          <li><span class="font-medium">{{ d.name }}</span>: {% for g in d.guarantors.all %}{{ g.get_full_name|default:g.get_username }}{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">bez garanta – karty nejdou schválit</span>{% endfor %}</li>
+        {% empty %}<li class="text-muted">Žádné oblasti.</li>{% endfor %}
+      </ul>
+      <p class="text-xs text-muted mt-2">Garanty nastavuje správce v administraci (Genetika → Oblasti).</p>
+    </section>
+    <section class="card p-4">
+      <h2 class="card-title mb-2">Panely</h2>
+      <ul class="space-y-1 text-sm">
+        {% for p in panels %}<li><span class="font-medium">{{ p }}</span> · {{ p.items.count }} variant{% if p.provider %} · {{ p.provider }}{% endif %}</li>{% empty %}<li class="text-muted">Žádný aktivní panel.</li>{% endfor %}
+      </ul>
+    </section>
+    {% if samples %}
+      <section class="card p-4">
+        <h2 class="card-title mb-2">Vzorky</h2>
+        <p class="text-sm">{{ samples.celkem }} celkem{% if samples.neovereno %}, <span class="badge badge-warn">{{ samples.neovereno }} neověřeno</span>{% endif %}</p>
+        <p class="text-xs text-muted mt-1">Vzorky se zadávají na kartě sportovce (Genetika).</p>
+      </section>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

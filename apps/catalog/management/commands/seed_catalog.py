@@ -42,6 +42,9 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         only_missing = options.get("only_missing")
+        from apps.genetics.seed import seed_domains
+
+        seed_domains()
         # Při doplňování se existující záznamy nemění (get_or_create),
         # při zakládání databáze se srovnají s výchozí sadou (update_or_create).
         save = "get_or_create" if only_missing else "update_or_create"

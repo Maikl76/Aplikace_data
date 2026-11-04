@@ -131,6 +131,7 @@ def export_catalog() -> dict:
             for a in Article.objects.order_by("year", "title")
             .prefetch_related("metrics", "protocols")
         ],
+        "genetika": _genetics_export(),
         "pravidla": [
             {
                 "organizace": _org(r), "sport": _sport(r.applies_to_sport), **_plain(r),
@@ -142,6 +143,12 @@ def export_catalog() -> dict:
             for r in Rule.objects.order_by("code", "version")
         ],
     }
+
+
+def _genetics_export() -> dict:
+    from apps.genetics.transfer import export_genetics
+
+    return export_genetics()
 
 
 def _report_styles() -> list[dict]:
@@ -334,5 +341,13 @@ def import_catalog(data: dict, *, default_org: Organization | None = None) -> di
             imp.upsert("vazby pravidel na články", RuleArticle,
                        {"rule": rule, "article": article},
                        {"relevance_note": link["relevance_note"]})
+
+    if data.get("genetika"):
+        from apps.genetics.transfer import import_genetics
+
+        try:
+            import_genetics(data["genetika"], imp)
+        except ValueError as exc:
+            raise ImportError_(str(exc)) from exc
 
     return imp.counts

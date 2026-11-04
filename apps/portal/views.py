@@ -172,8 +172,11 @@ def consents(request, pk):
     audit = (AuditLog.objects.filter(subject_code=subject.code)
              .exclude(user=request.user).select_related("user")
              .order_by("-timestamp")[:40])
+    from apps.genetics import services as genetics
+
     return render(request, "portal/consents.html", {
         "subject": subject,
+        "genetika": genetics.consent_state(subject),
         "consents": subject.consents.order_by("-granted_on"),
         "sharings": sharings,
         "coaches": available,
@@ -184,6 +187,9 @@ def consents(request, pk):
 
 def _consent_action(request, subject):
     action = request.POST.get("akce")
+    if action in ("genetika_udelit", "genetika_odvolat"):
+        _genetics_consent(request, subject, action)
+        return
     if action == "sdilet":
         coach = accounts.coaches(subject.organization).filter(pk=request.POST.get("trener")).first()
         if coach is None:
@@ -213,6 +219,26 @@ def _consent_action(request, subject):
         return
     record(request, AuditLog.Action.UPDATE, subject, subject_code=subject.code,
            sdileni=action, trener=sharing.coach.get_username())
+
+
+def _genetics_consent(request, subject, action):
+    """Souhlas s genetikou dává a odvolává sportovec sám – jen dospělý."""
+    from apps.genetics import services as genetics
+
+    try:
+        if action == "genetika_udelit":
+            genetics.grant_consent(subject, by=request.user, note="uděleno v účtu sportovce")
+            messages.success(request, "Souhlas s genetickými daty je udělený. Kdykoli ho tady "
+                                      "můžete odvolat – uložené genotypy se pak smažou.")
+        else:
+            genetics.revoke_consent(subject, by=request.user)
+            messages.info(request, "Souhlas je odvolaný a uložené genotypy jsou smazané. "
+                                   "Už vydané zprávy zůstávají.")
+    except ValueError as exc:
+        messages.error(request, str(exc))
+        return
+    record(request, AuditLog.Action.UPDATE, subject, subject_code=subject.code,
+           souhlas="genetika", akce=action)
 
 
 class AccountView(PasswordChangeView):

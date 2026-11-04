@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}{{ card }} – FTVS{% endblock %}
+{% block content %}
+<div class="card p-5 mb-5">
+  <div class="flex flex-wrap items-start gap-4">
+    <div class="min-w-0 flex-1">
+      <a href="{% url 'genetics_home' %}" class="text-sm link">← Genetika</a>
+      <h1 class="text-2xl font-semibold leading-tight">{{ variant.gene }} <span class="text-muted font-normal">/ {{ variant.rsid }}</span> <span class="text-base font-normal text-muted">verze {{ card.version }}</span></h1>
+      <div class="mt-1 flex flex-wrap gap-1.5 text-sm">
+        <span class="badge {% if card.status == 'approved' %}badge-good{% elif card.status == 'review' %}badge-warn{% endif %}">{{ card.get_status_display }}</span>
+        <span class="badge">{{ variant.domain }}</span>
+        {% if variant.subtitle %}<span class="badge">{{ variant.subtitle }}</span>{% endif %}
+        {% if not variant.is_active %}<span class="badge badge-warn">varianta vypnuta</span>{% endif %}
+        {% if card.approved_by %}<span class="badge badge-good">schválil {{ card.approved_by.get_full_name|default:card.approved_by.get_username }} · {{ card.approved_at|date:"d.m.Y" }}</span>{% endif %}
+      </div>
+      {% if versions|length > 1 %}
+        <p class="text-xs text-muted mt-2">Verze: {% for v in versions %}{% if v.pk == card.pk %}<strong>v{{ v.version }}</strong>{% else %}<a class="link" href="{% url 'genetics_card' v.pk %}">v{{ v.version }}</a>{% endif %} ({{ v.get_status_display|lower }}){% if not forloop.last %} · {% endif %}{% endfor %}</p>
+      {% endif %}
+    </div>
+    <div class="flex flex-wrap gap-2">
+      {% if card.is_editable and may_edit %}<a href="/admin/genetics/genecard/{{ card.pk }}/change/" class="btn btn-primary">{% icon "edit" %}Upravit v administraci</a>{% endif %}
+      {% if may_edit %}
+        <form method="post" action="{% url 'genetics_card_action' card.pk %}" class="flex flex-wrap gap-2">{% csrf_token %}
+          {% if card.status == 'draft' %}<button name="akce" value="k_revizi" class="btn">{% icon "check" %}Poslat k revizi garantovi</button>{% endif %}
+          {% if card.status == 'review' %}
+            <button name="akce" value="vratit" class="btn">Vrátit k úpravě</button>
+            {% if may_approve %}<button name="akce" value="schvalit" class="btn btn-primary" {% if not checklist.ok %}disabled title="Nejdřív odstraňte blokující nedostatky"{% endif %} onclick="return confirm('Schválit kartu? Schválené znění je neměnné; další změna je nová verze.')">{% icon "check" %}Schválit</button>{% else %}<span class="btn" style="opacity:.6" title="Schvaluje jen garant oblasti">Schvaluje garant oblasti</span>{% endif %}
+          {% endif %}
+          {% if card.status == 'approved' or card.status == 'original' or card.status == 'superseded' %}{% if not has_working %}<button name="akce" value="nova_verze" class="btn">{% icon "plus" %}Nová verze k revizi</button>{% endif %}{% endif %}
+          {% if may_retire and card.status != 'retired' and card.status != 'original' %}<button name="akce" value="vyradit" class="btn" onclick="return confirm('Vyřadit tuto verzi karty?')">Vyřadit</button>{% endif %}
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if checklist %}
+  <section class="card p-4 mb-5 border-l-4" style="border-left-color: {% if checklist.ok %}var(--good){% else %}var(--warn){% endif %}">
+    <h2 class="card-title mb-1">Kontrola před schválením</h2>
+    {% if checklist.blocking %}
+      <p class="text-sm mb-1"><strong>Blokuje schválení:</strong></p>
+      <ul class="text-sm list-disc pl-5 space-y-0.5">{% for i in checklist.blocking %}<li>{{ i.text }}</li>{% endfor %}</ul>
+    {% else %}<p class="text-sm">Bez blokujících nedostatků.</p>{% endif %}
+    {% if checklist.warnings %}
+      <p class="text-sm mt-2 mb-1 text-muted">K doplnění (neblokuje):</p>
+      <ul class="text-sm list-disc pl-5 space-y-0.5 text-2">{% for i in checklist.warnings %}<li>{{ i.text }}</li>{% endfor %}</ul>
+    {% endif %}
+  </section>
+{% endif %}
+
+<div class="grid lg:grid-cols-3 gap-4">
+  <div class="lg:col-span-2 space-y-4">
+    {% if card.review_priorities %}<section class="card p-4"><h2 class="card-title mb-1">Revizní priority</h2><p class="text-sm whitespace-pre-line">{{ card.review_priorities }}</p></section>{% endif %}
+    <section class="card p-4">
+      <h2 class="card-title mb-2">Biologická funkce</h2>
+      {% if card.biology_client %}<p class="text-xs text-muted">Pro klienta</p><p class="text-sm mb-3 whitespace-pre-line">{{ card.biology_client }}</p>{% endif %}
+      {% if card.biology_expert %}<p class="text-xs text-muted">Odborně</p><p class="text-sm mb-3 whitespace-pre-line">{{ card.biology_expert }}</p>{% endif %}
+      {% if card.effect %}<p class="text-xs text-muted">Účinek varianty</p><p class="text-sm whitespace-pre-line">{{ card.effect }}</p>{% endif %}
+      {% if card.limitations %}<p class="text-xs text-muted mt-3">Omezení interpretace</p><p class="text-sm whitespace-pre-line">{{ card.limitations }}</p>{% endif %}
+      {% if variant.notation %}<p class="text-xs text-muted mt-3">Varianta: {{ variant.notation }}{% if variant.strand_note %} · {{ variant.strand_note }}{% endif %}</p>{% endif %}
+    </section>
+
+    <section class="card p-4">
+      <h2 class="card-title mb-2">Genotypy</h2>
+      {% if card.frequency_note %}<p class="text-xs text-muted mb-3 whitespace-pre-line">{{ card.frequency_note }}</p>{% endif %}
+      <div class="space-y-4">
+        {% for g in genotypes %}
+          <div class="p-3 rounded-lg" style="background: var(--surface-2)">
+            <div class="flex flex-wrap items-center gap-2 mb-1"><span class="badge badge-accent">{{ g.label }}</span>{% if g.text.frequency %}<span class="text-xs text-muted">frekvence: {{ g.text.frequency }}</span>{% endif %}</div>
+            {% if g.text.client_text %}<p class="text-sm whitespace-pre-line">{{ g.text.client_text }}</p>{% else %}<p class="text-sm text-muted">Bez interpretace pro klienta.</p>{% endif %}
+            {% if g.text.expert_text %}<p class="text-xs text-muted mt-2">Odborně</p><p class="text-sm whitespace-pre-line">{{ g.text.expert_text }}</p>{% endif %}
+            {% for r in g.recommendations %}
+              <p class="text-sm mt-2"><span class="text-xs text-muted">{{ r.get_kind_display }}{% if r.basis %} · {{ r.get_basis_display|lower }}{% else %} · <span style="color: var(--warn)">bez důvodu</span>{% endif %}</span><br>{{ r.text }}</p>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+      {% for r in general %}<p class="text-sm mt-3"><span class="text-xs text-muted">Pro všechny genotypy · {{ r.get_kind_display }}{% if r.basis %} · {{ r.get_basis_display|lower }}{% endif %}</span><br>{{ r.text }}</p>{% endfor %}
+    </section>
+
+    {% if scenarios %}
+      <section class="card p-4">
+        <h2 class="card-title mb-1">Kontext dotazníku a měření</h2>
+        <p class="text-xs text-muted mb-3">Odpověď ani měření genotyp nepotvrzují. Ve zprávě se použije jen aktivní scénář; scénáře s měřením jsou v první verzi vypnuté.</p>
+        <div class="space-y-3">
+          {% for s in scenarios %}
+            <div class="p-3 rounded-lg" style="background: var(--surface-2)">
+              <div class="flex flex-wrap items-center gap-2 mb-1"><span class="badge">{{ s.get_kind_display }}</span>{% if s.is_active %}<span class="badge badge-good">aktivní</span>{% else %}<span class="badge">neaktivní</span>{% endif %}<span class="text-xs text-muted">{{ s.title }}</span></div>
+              <p class="text-sm font-medium">„{{ s.statement }}“</p>
+              {% for t in s.texts.all %}<p class="text-sm mt-1"><span class="badge badge-accent mr-1">{{ t.genotype }}</span>{{ t.text }}</p>{% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+    {% if interactions %}
+      <section class="card p-4">
+        <h2 class="card-title mb-1">Navržené interakce a kombinace</h2>
+        <p class="text-xs text-muted mb-3">Hypotézy k odbornému posouzení. Kombinaci s variantou mimo panel nejde z testu vyhodnotit.</p>
+        {% for i in interactions %}
+          <div class="mb-3 text-sm"><span class="badge">{{ i.get_status_display }}</span> <span class="font-medium">{{ i.title }}</span><br><span class="text-muted">{{ i.assumption }}</span><br>{{ i.text }}<br><span class="text-xs text-muted">varianty: {{ i.variants|join:", " }}</span></div>
+        {% endfor %}
+      </section>
+    {% endif %}
+  </div>
+
+  <div class="space-y-4">
+    {% if evidence %}
+      <section class="card p-4">
+        <h2 class="card-title mb-2">Důkazy a přípustné závěry</h2>
+        {% for e in evidence %}
+          <div class="text-sm mb-3"><span class="font-medium">{{ e.code }} {{ e.trait }}</span><br><span class="text-2">{{ e.basis_text }}</span>{% if e.usage %}<br><span class="text-xs text-muted">Použití: {{ e.usage }}</span>{% endif %}{% if e.article %}<br><span class="text-xs">článek: {{ e.article }}</span>{% endif %}</div>
+        {% endfor %}
+      </section>
+    {% endif %}
+    {% if forbidden %}
+      <section class="card p-4">
+        <h2 class="card-title mb-2">Nepřípustné výroky</h2>
+        <ul class="text-sm list-disc pl-5 space-y-0.5">{% for f in forbidden %}<li>„{{ f.text }}“</li>{% endfor %}</ul>
+      </section>
+    {% endif %}
+    <section class="card p-4">
+      <h2 class="card-title mb-2">Zdroje</h2>
+      {% for s in sources %}<p class="text-sm mb-2">{% if s.label %}<span class="badge mr-1">{{ s.label }}</span>{% endif %}{% if s.title %}<span class="font-medium">{{ s.title }}</span><br>{% endif %}<span class="text-2 whitespace-pre-line">{{ s.citation }}</span>{% if s.url %}<br><a class="link text-xs break-all" href="{{ s.url }}" rel="noopener" target="_blank">{{ s.url }}</a>{% endif %}</p>{% empty %}<p class="text-sm text-muted">Bez zdrojů.</p>{% endfor %}
+      {% if variant.frequency_source %}<p class="text-xs text-muted break-all">Zdroj frekvencí: {{ variant.frequency_source }}</p>{% endif %}
+    </section>
+    {% if revisions %}
+      <section class="card p-4">
+        <h2 class="card-title mb-2">Revizní záznamy</h2>
+        {% for r in revisions %}
+          <div class="text-sm mb-3 pb-3 border-b" style="border-color: var(--border)">
+            <div class="flex items-center gap-2"><span class="font-medium">{{ r.part }}</span><span class="badge {% if r.decision == 'accepted' %}badge-good{% elif r.decision == 'open' %}badge-warn{% endif %}">{{ r.get_decision_display }}</span></div>
+            {% if r.original %}<p class="text-xs text-muted mt-1">Původní znění</p><p class="text-2">{{ r.original }}</p>{% endif %}
+            {% if r.proposal %}<p class="text-xs text-muted mt-1">Návrh</p><p>{{ r.proposal }}</p>{% endif %}
+            {% if r.reason %}<p class="text-xs text-muted mt-1">Důvod: {{ r.reason }}</p>{% endif %}
+            {% if r.source %}<p class="text-xs text-muted">Zdroj: {{ r.source }}</p>{% endif %}
+          </div>
+        {% endfor %}
+      </section>
+    {% endif %}
+    {% if card.change_summary %}<section class="card p-4"><h2 class="card-title mb-1">Přehled změn</h2><p class="text-sm whitespace-pre-line">{{ card.change_summary }}</p></section>{% endif %}
+    {% if card.import_note %}<section class="card p-4"><h2 class="card-title mb-1">Poznámka z podkladů</h2><p class="text-xs text-muted whitespace-pre-line">{{ card.import_note }}</p></section>{% endif %}
+  </div>
+</div>
+{% endblock %}
