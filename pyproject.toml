@@ -7,6 +7,10 @@ exclude = ["migrations", "legacy"]
 select = ["E", "F", "I", "UP", "B", "DJ"]
 ignore = ["E501"]
 
+[tool.ruff.lint.per-file-ignores]
+# Fixtury importované z jiného testovacího modulu: parametr testu není redefinice.
+"tests/test_genetika_propojeni.py" = ["F811"]
+
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 python_files = ["test_*.py", "*_test.py"]

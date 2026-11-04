@@ -7,7 +7,6 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from apps.catalog.models import Direction, MetricDef, Norm, Protocol, ProtocolMetric, TestFamily
-from apps.core.models import Role
 from apps.genetics import report as genetics_report
 from apps.genetics import seed, services
 from apps.genetics.models import ContextScenario, Domain, ScenarioText
@@ -16,7 +15,7 @@ from apps.measurements.models import Measurement, ProtocolRun, TestSession, Tria
 from apps.reports import services as report_services
 from apps.reports.models import Audience, Report
 from apps.reports.results import _conditions_text
-from tests.test_genetika_zprava import _user, laborator, org  # noqa: F401
+from tests.test_genetika_zprava import laborator, org  # noqa: F401
 
 
 def _session(subject, days_ago, protocol, metric, value, *, conditions=None, fatigue=None):
@@ -208,4 +207,3 @@ def test_geneticky_kontext_ve_zprave_z_mereni(laborator):
     fresh = report_services.build_draft(session, user=L["lab"], audience=Audience.ATHLETE)
     assert report_services.report_context(fresh)["genetic_context"] is None
     assert Report.objects.filter(kind=Report.Kind.TESTING).count() == 4
-    assert _user is not None and Role.LAB  # fixtures importované z testu zprávy
