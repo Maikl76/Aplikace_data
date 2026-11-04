@@ -38,6 +38,10 @@ AUDIENCE_FOR = {Audience.ATHLETE: "pro sportovce", Audience.COACH: "pro trenéra
 
 
 class Report(OrgScopedModel):
+    class Kind(models.TextChoices):
+        TESTING = "testovani", "Z funkčního testování"
+        GENETICS = "genetika", "Z genetického vyšetření"
+
     class Status(models.TextChoices):
         DRAFT = "draft", "Koncept"
         RELEASED = "released", "Vydáno"
@@ -53,6 +57,14 @@ class Report(OrgScopedModel):
     session = models.ForeignKey("measurements.TestSession", verbose_name="testovací den",
                                 on_delete=models.PROTECT, related_name="reports",
                                 null=True, blank=True)
+    kind = models.CharField("druh", max_length=10, choices=Kind.choices, default=Kind.TESTING)
+    # Genetická zpráva: z ověřeného vzorku a (nejnovějšího) dotazníku genetiky.
+    genetic_sample = models.ForeignKey("genetics.GeneticSample", verbose_name="genetický vzorek",
+                                       on_delete=models.SET_NULL, null=True, blank=True,
+                                       related_name="reports")
+    questionnaire_response = models.ForeignKey(
+        "measurements.QuestionnaireResponse", verbose_name="vyplněný dotazník",
+        on_delete=models.SET_NULL, null=True, blank=True, related_name="reports")
     report_number = models.CharField("číslo zprávy", max_length=40, unique=True)
     version = models.PositiveSmallIntegerField("verze", default=1)
     supersedes = models.ForeignKey("self", verbose_name="nahrazuje", on_delete=models.SET_NULL,
@@ -145,6 +157,10 @@ class Report(OrgScopedModel):
     @property
     def is_editable(self) -> bool:
         return self.status == self.Status.DRAFT
+
+    @property
+    def is_genetic(self) -> bool:
+        return self.kind == self.Kind.GENETICS
 
     @property
     def is_writing(self) -> bool:

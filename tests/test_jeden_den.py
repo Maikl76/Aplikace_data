@@ -75,12 +75,11 @@ def test_migrace_slije_duplicitni_dny():
     cmj, sls = Protocol.objects.get(code="cmj").pk, Protocol.objects.get(code="sls").pk
 
     executor = MigrationExecutor(connection)
-    executor.migrate([("measurements", "0003_prostredi_a_dotazniky")])
+    # Stav databáze po návratu: měření před touto migrací a s nimi i vše,
+    # co na novějších migracích měření závisí (zprávy odkazují na dotazník).
+    state = executor.migrate([("measurements", "0003_prostredi_a_dotazniky")])
     try:
-        # Ostatní aplikace v aktuálním stavu, jen měření před touto migrací.
-        nodes = [n for n in executor.loader.graph.leaf_nodes() if n[0] != "measurements"]
-        old_apps = executor.loader.project_state(
-            nodes + [("measurements", "0003_prostredi_a_dotazniky")]).apps
+        old_apps = state.apps
         OldSession = old_apps.get_model("measurements", "TestSession")
         OldRun = old_apps.get_model("measurements", "ProtocolRun")
         OldReport = old_apps.get_model("reports", "Report")

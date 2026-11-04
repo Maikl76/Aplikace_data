@@ -9,4 +9,5 @@ urlpatterns = [
     path("sportovec/<int:pk>/", views.subject, name="genetics_subject"),
     path("sportovec/<int:pk>/akce/", views.subject_action, name="genetics_subject_action"),
     path("sportovec/<int:pk>/dotaznik/", views.questionnaire, name="genetics_questionnaire"),
+    path("sportovec/<int:pk>/zprava/", views.report_create, name="genetics_report_create"),
 ]

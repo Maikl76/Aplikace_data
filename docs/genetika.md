@@ -35,8 +35,8 @@ fáze (viz konec).
 |---|---|
 | menu **Genetika** | přehled variant, schválených a rozpracovaných karet, fronta „čeká na garanta“, garanti, panely, počet vzorků |
 | **Genetika → karta** | čitelná verze karty, kontrola před schválením, tlačítka *Poslat k revizi*, *Schválit*, *Vrátit k úpravě*, *Nová verze*, *Vyřadit*; odkaz na úpravu v administraci |
-| **karta sportovce → Genetika** | souhlas (zápis podepsaného souhlasu / odvolání), vzorky, genotypy, *Ověřit příslušnost* výsledku, nový vzorek |
-| **portál sportovce → Souhlasy a sdílení → Genetika** | sportovec souhlas uděluje a odvolává sám |
+| **karta sportovce → Genetika** | souhlas (zápis podepsaného souhlasu / odvolání), dotazník, vzorky, genotypy, *Ověřit příslušnost* výsledku, nový vzorek, sestavení genetické zprávy |
+| **portál sportovce → Souhlasy a sdílení → Genetika** | sportovec souhlas uděluje a odvolává sám, vyplňuje dotazník; vydanou zprávu pro sportovce vidí v Mých výsledcích |
 | **administrace → Genetika** | oblasti a garanti, varianty, panely, karty (texty, doporučení, důkazy, zdroje, nepřípustné výroky, scénáře, revizní záznamy), interakce, vzorky (jen ke čtení) |
 
 ## Postup
@@ -83,12 +83,74 @@ Garanti jsou účty a nepřenáší se; vzorky a genotypy do katalogu nepatří
 nikdy. Načtení nahradí obsah karty se stejnou variantou a verzí obsahem ze
 souboru.
 
+## Dotazník ke genetickému vyšetření
+
+Sdílený dotazník `genetika` (Katalog → Dotazníky) vzniká ze seedu podle osnovy
+podkladů: osm oddílů (profil a cíle, trénink a výkon, pohybový aparát,
+regenerace, kofein, laktóza a výživa, hmotnost a metabolický kontext,
+dostupnost dalších informací). Není to validovaný formulář – laboratoř ho
+dokončí v administraci; seed existující otázky nepřepisuje.
+
+- Otázky mají druh (škála, číslo, ano/ne, jedna nebo více možností, text)
+  a mohou nabízet **nevím** a **netýká se**. Tyto stavy jsou plnohodnotné
+  odpovědi a nikdy se nepřekládají na „ne“.
+- Vyplňuje ho sportovec v portálu (Souhlasy a sdílení → Genetika, až po
+  udělení souhlasu), nebo laboratoř na kartě sportovce → Genetika →
+  Dotazník (s volbou, zda odpovědi dával sportovec sám). Každé vyplnění je
+  nový záznam; zpráva bere nejnovější.
+- **Scénáře karet** („Výstup odpovědi: …“) se napojují na otázku a odpověď
+  (u scénáře v administraci pole *otázka* a *shoda odpovědi*, např.
+  `{"choices": ["vytrvalost"]}`). Převod z Wordu napojí ty, jejichž znění
+  je známé; zapnout je (*aktivní*) může až garant po revizi. Scénáře
+  s měřením zůstávají vypnuté – měření genotyp nepotvrzuje.
+
+## Genetická zpráva
+
+Sestavuje se na kartě sportovce → Genetika → *Sestavit koncept*, jen
+z **ověřeného vzorku** a jen **pro sportovce nebo pro lékaře** (trenér
+genetickou zprávu nedostává nikdy). Číslo zprávy má řadu `FTG-rok-číslo`.
+Dál se chová jako ostatní zprávy: koncept → vydání (nevratné, PDF a strojová
+příloha) → nová verze.
+
+Obsah je deterministický a v pořadí podle podkladů:
+
+1. **Cíl klienta a dostupné podklady** – z dotazníku (sport, zaměření, cíl),
+   panel, vzorek, zda je dotazník vyplněn.
+2. **Přehled zjištěných genotypů** – gen, oblast, genotyp, kvalita zápisu,
+   verze karty. Vypnuté varianty se neuvádějí.
+3. **Výsledky podle oblastí** – u každé varianty text pro zjištěný genotyp
+   **doslova ze schválené verze karty** (pro lékaře odborné znění a důkazy),
+   kontext z dotazníku jen z aktivních scénářů, které odpověď skutečně
+   spouští, a doporučení s důvodem.
+4. **Praktická doporučení a jejich důvody** – sloučená napříč kartami podle
+   *klíče pro slučování*: stejný text = jedno doporučení s více důvody;
+   různé texty pod jedním klíčem = **k odbornému posouzení** (zpráva nic
+   nevybírá). Komentář diagnostika patří sem.
+5. **Co by bylo vhodné doplnit nebo změřit** – doporučení s důvodem
+   „budoucí měření“; když má doporučení přiřazený test, zpráva řekne, zda
+   sportovec má výsledek z posledního roku (uvede hodnoty klíčových
+   ukazatelů bez výkladu), nebo že chybí.
+6. **Omezení interpretace a zdroje** – varianty bez interpretace s důvodem
+   (chybějící nebo nejasný výsledek, neschválená karta, karta bez textu pro
+   genotyp), pevná omezení, omezení karet, zdroje karet číslované [n], verze
+   karet a dotazníku.
+
+Souhrn na začátku je **spojovací**: bez modelu ho složí šablona; se
+zapnutým modelem ho napíše model z faktů, které obsahují jen schválené
+texty, sloučená doporučení a cíl klienta. Text se kontroluje proti
+nepřípustným výrokům (globálním i z karet) a proti číslům – co neprojde,
+se nahradí šablonou a důvod je v Doložitelnosti. Totéž hlídá text
+diagnostika: souhrn ani komentář s nepřípustným výrokem zprávu nepustí
+k vydání. Návrh doporučení modelem genetická zpráva nenabízí.
+
+Při vydání se obsah zmrazí do snímku (verze karet jsou v Doložitelnosti);
+pozdější změna karty vydanou zprávu nemění, nová verze zprávy bere nové
+znění. Vydaná zpráva zůstává i po odvolání souhlasu; nový koncept bez
+souhlasu nejde.
+
 ## Co je další fáze
 
-- dotazník genetiky (typy otázek, stavy *nevím / netýká se / chybí*),
-- genetická zpráva: text pro genotyp jen doslova ze schválené karty, sloučení
-  doporučení, „co doplnit nebo změřit“ podle historie sportovce, snímek verzí
-  karet; jazykový model píše nanejvýš spojovací souhrn,
-- propojení s měřením (měření mluví první, genotyp je kontext), pokus
-  s kofeinem přes podmínky testu, kombinovaná zpráva,
+- propojení s měřením (měření mluví první, genotyp je kontext): scénáře
+  s měřením po schválení v katalogu, pokus s kofeinem přes podmínky testu,
+  kombinovaná zpráva,
 - výzkumný export (anonymizovaně, se souhlasem s výzkumem).

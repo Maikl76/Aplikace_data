@@ -82,7 +82,32 @@
     {% endfor %}
   </section>
 
-  <section class="lg:col-span-2 card p-4">
+  <section class="lg:col-span-2 space-y-4">
+  <div class="card p-4">
+    <h2 class="card-title mb-1">Genetická zpráva</h2>
+    <ul class="text-sm mb-3">
+      {% for r in reports %}
+        <li class="flex items-center gap-2 py-1 border-t" style="border-color: var(--border)">
+          <a href="{% url 'report_detail' r.pk %}" class="link font-medium">{{ r.report_number }}</a>
+          <span class="text-xs text-muted flex-1">{{ r.audience_for }} · {{ r.created_at|date:"d.m.Y" }}</span>
+          <span class="badge {% if r.status == 'released' %}badge-good{% elif r.status == 'draft' %}{% else %}badge-warn{% endif %}">{{ r.get_status_display }}</span>
+        </li>
+      {% empty %}<li class="text-muted">Zatím žádná.</li>{% endfor %}
+    </ul>
+    {% if usable_samples %}
+      <form method="post" action="{% url 'genetics_report_create' subject.pk %}" class="flex flex-wrap items-center gap-2">{% csrf_token %}
+        {% if usable_samples|length > 1 %}<select name="vzorek" class="input w-auto text-sm py-1.5">{% for s in usable_samples %}<option value="{{ s.pk }}">{{ s.panel }} · {{ s.reported_on|date:"d.m.Y"|default:s.created_at|date:"d.m.Y" }}</option>{% endfor %}</select>{% else %}<input type="hidden" name="vzorek" value="{{ usable_samples.0.pk }}">{% endif %}
+        <select name="pro" class="input w-auto text-sm py-1.5">{% for value, label in audiences %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+        {% if model_choices|length > 1 %}<select name="model" class="input w-auto text-sm py-1.5" title="Který model napíše souhrn">{% for value, label in model_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>{% endif %}
+        <button class="btn btn-primary btn-sm">{% icon "file" %}Sestavit koncept</button>
+      </form>
+      <p class="text-xs text-muted mt-2">Text pro genotyp je doslova ze schválené karty; bez schválené karty zůstane varianta bez interpretace. Trenér genetickou zprávu nedostává.</p>
+    {% else %}
+      <p class="text-sm text-muted">Zprávu lze sestavit až z ověřeného vzorku.</p>
+    {% endif %}
+  </div>
+
+  <div class="card p-4">
     <h2 class="card-title mb-1">Nový vzorek a výsledek</h2>
     {% if entry_blocked %}
       <p class="text-sm text-muted">{{ entry_blocked }}</p>
@@ -109,6 +134,7 @@
         <button class="btn btn-primary">{% icon "plus" %}Uložit vzorek</button>
       </form>
     {% endif %}
+  </div>
   </section>
 </div>
 {% endblock %}

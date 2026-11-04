@@ -73,19 +73,37 @@ def report_detail(request, pk):
                                   "jak byl. Můžete ho nechat napsat znovu.")
     label([report], request.user)
     record(request, AuditLog.Action.VIEW, report, subject_code=report.subject.code)
-    context = services.report_context(report)
+    try:
+        context = services.report_context(report)
+    except Exception as exc:  # genetická zpráva bez klíče nebo vzorku – stránka musí říct proč
+        from apps.genetics.report import GeneticsReportError
+
+        if not isinstance(exc, GeneticsReportError):
+            raise
+        messages.error(request, str(exc))
+        return redirect("genetics_subject", pk=report.subject_id)
+    if report.is_genetic:
+        from apps.genetics.report import AUDIENCES, text_problems
+
+        if problems := text_problems(report):
+            messages.warning(request, "Text zprávy obsahuje nepřípustný výrok: „"
+                             + "“, „".join(problems) + "“. Zpráva se nevydá, dokud ho neodstraníte.")
     context.update({
         "may_open": services.may_open(report, request.user),
         # Zaškrtávátko „jméno ve zprávě“ jen tomu, kdo jméno vidí a kdo ho má kde vzít.
         "may_show_name": request.user.sees_identity and report.jmeno != report.subject.code,
-        "audiences": Audience.choices,
+        "audiences": ([(a, Audience(a).label) for a in AUDIENCES] if report.is_genetic
+                      else Audience.choices),
         "model_choices": ai_models.choices() if llm.is_enabled() else [],
         "writing_label": ai_models.label_for(report.writing_model),
         "history": report.model_trials.order_by("-created_at")[:6],
         "ratings": Report.Rating.choices,
         "variants": (Report.objects.filter(session=report.session)
                      .exclude(pk=report.pk).exclude(status=Report.Status.SUPERSEDED)
-                     .order_by("audience") if report.session else []),
+                     .order_by("audience") if report.session else
+                     Report.objects.filter(genetic_sample=report.genetic_sample)
+                     .exclude(pk=report.pk).exclude(status=Report.Status.SUPERSEDED)
+                     .order_by("audience") if report.genetic_sample_id else []),
         "can_manage_ai": can_manage_ai(request.user),
         "llm_enabled": llm.is_enabled(),
         "ma_souhlas": Consent.has(report.subject, Consent.Scope.REPORT_HANDOVER),

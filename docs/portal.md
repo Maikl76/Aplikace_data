@@ -49,7 +49,8 @@ kódem.
 
 - klíčové ukazatele s posouzením proti pásmu chyby měření, trendy,
   seznam měření,
-- vydané zprávy **pro sportovce** (zprávy pro trenéra a lékaře ne),
+- vydané zprávy **pro sportovce** (zprávy pro trenéra a lékaře ne), včetně
+  zprávy z genetického vyšetření,
 - dotazník RPE k dnešnímu měření (stejný formulář jako přes QR kód),
 - souhlasy, které laboratoř eviduje; souhlas s **genetickými daty** si dospělý
   sportovec uděluje a odvolává sám (odvolání smaže uložené genotypy) –

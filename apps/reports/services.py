@@ -34,9 +34,9 @@ class ReportError(Exception):
     """Zprávu nelze vydat nebo předat – uživatel se musí dozvědět proč."""
 
 
-def next_report_number(organization) -> str:
+def next_report_number(organization, series: str = "FT") -> str:
     year = timezone.localdate().year
-    prefix = f"FT-{year}-"
+    prefix = f"{series}-{year}-"
     last = (Report.objects.filter(organization=organization,
                                   report_number__startswith=prefix)
             .order_by("-report_number").values_list("report_number", flat=True).first())
@@ -159,11 +159,16 @@ def write_summary(report_pk, model, *, rewrite: bool) -> Report:
     jinak zůstane, jak byl, a do poznámky se zapíše proč.
     """
     report = Report.objects.select_related("session", "subject").get(pk=report_pk)
-    session = report.session
-    findings = list(session.findings.select_related("rule"))
-    citations = evidence.report_citations(session, findings, frozen=report.literature)
-    composition = narrative.compose_report(session, findings, citations,
-                                           audience=report.audience, model=model)
+    if report.is_genetic:
+        from apps.genetics import report as genetics_report
+
+        composition = genetics_report.compose_summary(report, model=model)
+    else:
+        session = report.session
+        findings = list(session.findings.select_related("rule"))
+        citations = evidence.report_citations(session, findings, frozen=report.literature)
+        composition = narrative.compose_report(session, findings, citations,
+                                               audience=report.audience, model=model)
     report.refresh_from_db()
     if not report.is_editable:
         return report
@@ -199,7 +204,7 @@ def rewrite_summary(report, *, model: str | None) -> None:
         raise ReportError("Jazykový model není zapnutý (LLM_ENABLED).")
     if report.is_writing:
         raise ReportError("Model už souhrn píše – počkejte, až dopíše.")
-    if report.session is None:
+    if report.session is None and not report.is_genetic:
         raise ReportError("Zpráva nemá testovací den.")
     _mark_writing(report, model)
     report.save(update_fields=["writing", "writing_model", "writing_started_at"])
@@ -247,6 +252,10 @@ def report_context(report) -> dict:
     Vydaná zpráva bere nálezy, doporučení a citace ze snímku pořízeného
     při vydání; koncept je počítá živě podle dnešních pravidel a knihovny.
     """
+    if report.is_genetic:
+        from apps.genetics import report as genetics_report
+
+        return genetics_report.context(report)
     session = report.session
     if report.snapshot:
         findings, suppressed, recommendations, citations, warnings = _from_snapshot(
@@ -369,7 +378,11 @@ def render_html(report) -> str:
     """
     if report.rendered_html:
         return report.rendered_html
-    return render_to_string("reports/report.html", report_context(report))
+    return render_to_string(template_for(report), report_context(report))
+
+
+def template_for(report) -> str:
+    return "genetics/report.html" if report.is_genetic else "reports/report.html"
 
 
 def render_pdf(report) -> bytes | None:
@@ -404,12 +417,21 @@ def release(report, *, user) -> Report:
             "Projděte ho, opravte a uložte – teprve pak lze zprávu vydat."
         )
 
+    if report.is_genetic:
+        from apps.genetics import report as genetics_report
+
+        genetics_report.check_release(report)
+
     report.status = Report.Status.RELEASED
     report.released_at = timezone.now()
     report.released_by = user
     context = report_context(report)
-    report.rendered_html = render_to_string("reports/report.html", context)
-    report.snapshot = _snapshot(context)
+    report.rendered_html = render_to_string(template_for(report), context)
+    if report.is_genetic:
+        report.snapshot = {"genetika": context["content"]}
+        report.rules_version = context["content"]["versions"]["karty_text"]
+    else:
+        report.snapshot = _snapshot(context)
 
     if pdf := render_pdf(report):
         report.pdf.save(f"{report.report_number}.pdf", ContentFile(pdf), save=False)
@@ -435,6 +457,10 @@ def _machine_readable(report, context: dict | None = None) -> dict:
     """
     if context is None:
         context = report_context(report)
+    if report.is_genetic:
+        from apps.genetics import report as genetics_report
+
+        return genetics_report.machine_readable(report, context)
 
     def cite(c):
         article = c["article"]
@@ -530,6 +556,9 @@ def suggest_recommendations(report) -> narrative.RecommendationDraft:
 
     if not report.is_editable:
         raise ReportError("Vydanou zprávu nelze upravit – vytvořte novou verzi.")
+    if report.is_genetic:
+        raise ReportError("Doporučení v genetické zprávě jsou jen ze schválených karet; "
+                          "vlastní komentář napište ručně.")
     if not llm.is_enabled():
         raise ReportError("Jazykový model není zapnutý (LLM_ENABLED).")
     try:
@@ -547,6 +576,13 @@ def suggest_recommendations(report) -> narrative.RecommendationDraft:
 
 def supersede(report, *, user) -> Report:
     """Oprava vydané zprávy = nová verze, ne přepis té staré."""
+    if report.is_genetic:
+        from apps.genetics import report as genetics_report
+
+        if report.genetic_sample is None:
+            raise ReportError("Zpráva už nemá genetický vzorek – novou verzi nelze sestavit.")
+        return genetics_report.build_draft(report.genetic_sample, user=user,
+                                           audience=report.audience, supersedes=report)
     if report.session is None:
         raise ReportError("Zprávu bez testovacího dne nelze přegenerovat.")
     return build_draft(report.session, user=user, supersedes=report)

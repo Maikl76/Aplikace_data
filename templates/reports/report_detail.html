@@ -13,6 +13,7 @@
       <p class="text-sm text-muted flex flex-wrap items-center gap-x-2">
         <span class="badge badge-accent">{{ report.audience_for }}</span>
         {% if session %}<a class="link" href="{% url 'session_detail' session.pk %}">testovací den {{ session.date|date:"j. n. Y" }}</a>{% endif %}
+        {% if report.is_genetic %}<span class="badge">genetické vyšetření</span> <a class="link" href="{% url 'genetics_subject' subject.pk %}">vzorek a genotypy</a>{% endif %}
         {% if report.is_example %}<span class="badge badge-good">vzorová zpráva</span>{% endif %}
         {% if report.in_test_set %}<span class="badge">ve zkušební sadě</span>{% endif %}
       </p>
@@ -95,6 +96,9 @@
     </section>
     {% endif %}
 
+    {% if report.is_genetic %}
+      {% include "genetics/_report_sections.html" %}
+    {% else %}
     {% if report.snapshot %}
       <p class="text-xs text-muted">Nálezy, doporučení a citace jsou tak, jak byly při vydání
         ({{ report.released_at|date:"d.m.Y H:i" }}) – pozdější změna pravidel ani knihovny je nemění.</p>
@@ -158,6 +162,8 @@
       </section>
     {% endif %}
 
+    {% endif %}
+
     {% if report.is_editable and not report.is_writing %}
       <section class="card p-4" {% if report.note_pending_review %}style="border-color: var(--warn)"{% endif %}>
         <label class="block">
@@ -188,7 +194,7 @@
           <button type="submit" form="upravy" class="btn btn-primary">
             {% icon "check" %}Uložit úpravy
           </button>
-          {% if llm_enabled %}
+          {% if llm_enabled and not report.is_genetic %}
             <button type="submit" form="upravy" formaction="{% url 'report_suggest' report.pk %}"
                     onclick="this.textContent='Model píše návrh… může to trvat i minutu'"
                     class="btn">
@@ -196,7 +202,9 @@
             </button>
           {% endif %}
         </div>
-        {% if llm_enabled %}
+        {% if report.is_genetic %}
+          <p class="text-xs text-muted mt-2">Komentář jde do části Doporučení. Nesmí obsahovat nepřípustné výroky (karty je vyjmenovávají); zpráva se jinak nevydá.</p>
+        {% elif llm_enabled %}
           <p class="text-xs text-muted mt-2">
             Návrh se připojí na konec komentáře. Vychází z výsledků, nálezů a pravidel;
             dávkování a další čísla, která model doplní, aplikace vypíše k ověření.
@@ -295,6 +303,30 @@
       </form>
     {% endif %}
 
+    {% if report.is_genetic and report.genetic_sample %}
+      <section class="card p-4">
+        <h2 class="card-title mb-1">Další varianty</h2>
+        <p class="text-xs text-muted mb-2">Ze stejného vzorku pro jiného čtenáře – vznikne nový koncept. Trenér genetickou zprávu nedostává.</p>
+        {% for v in variants %}
+          <a class="block text-sm link" href="{% url 'report_detail' v.pk %}">{{ v.report_number }} – {{ v.audience_for }}
+            <span class="text-xs text-muted">({{ v.get_status_display|lower }})</span></a>
+        {% endfor %}
+        <form method="post" action="{% url 'genetics_report_create' subject.pk %}" class="flex flex-wrap gap-2 mt-2">
+          {% csrf_token %}
+          <input type="hidden" name="vzorek" value="{{ report.genetic_sample.pk }}">
+          <select name="pro" class="input text-sm py-1.5">
+            {% for value, label in audiences %}{% if value != report.audience %}<option value="{{ value }}">{{ label }}</option>{% endif %}{% endfor %}
+          </select>
+          {% if model_choices|length > 1 %}
+            <select name="model" class="input text-sm py-1.5" title="Který model napíše souhrn">
+              {% for value, label in model_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+            </select>
+          {% endif %}
+          <button type="submit" class="btn btn-sm">Vytvořit</button>
+        </form>
+      </section>
+    {% endif %}
+
     {% if session %}
       <section class="card p-4">
         <h2 class="card-title mb-1">Další varianty</h2>
@@ -362,7 +394,7 @@
       {% endif %}
       {% if report.summary_edited %}<div>Souhrn upraven diagnostikem.</div>{% endif %}
       {% if report.note_ai_model %}<div>Návrh doporučení: {{ report.note_ai_model }}{% if report.note_pending_review %} (čeká na kontrolu){% else %} (zkontrolováno){% endif %}</div>{% endif %}
-      <div>Sada pravidel: {{ report.rules_version|default:"—" }}</div>
+      <div>{% if report.is_genetic %}Verze karet{% else %}Sada pravidel{% endif %}: {{ report.rules_version|default:"—" }}</div>
       <div>Otisk vstupů: {{ report.input_fingerprint|slice:":16"|default:"—" }}</div>
       {% if report.released_by %}<div>Vydal: {{ report.released_by }}</div>{% endif %}
     </section>

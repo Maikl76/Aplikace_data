@@ -90,12 +90,17 @@ def test_zdravotni_endpoint_hlasi_databazi(client, db):
     assert odpoved.json() == {"stav": "ok", "databaze": "ok"}
 
 
+def _generovani(Subject):
+    """Vygenerovaní sportovci – bez „sportovců“ založených jen pro ukázkové zprávy od AI."""
+    return Subject.objects.exclude(code__endswith="-AI")
+
+
 def test_bootstrap_naplni_prazdnou_instanci(db, settings):
     from apps.subjects.models import Subject
 
     settings.DEMO_MODE = True
     call_command("bootstrap_demo", subjects=2, sessions=1, verbosity=0)
-    assert Subject.objects.count() == 2
+    assert _generovani(Subject).count() == 2
 
 
 def test_bootstrap_uz_naplnenou_instanci_nechá_být(db, settings):
@@ -108,7 +113,7 @@ def test_bootstrap_uz_naplnenou_instanci_nechá_být(db, settings):
 
     call_command("bootstrap_demo", subjects=9, sessions=3, verbosity=0)
 
-    assert Subject.objects.count() == 2
+    assert _generovani(Subject).count() == 2
     assert Subject.objects.get(code="FTVS-0001").note == "ruční zásah"
 
 

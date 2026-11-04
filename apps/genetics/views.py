@@ -20,6 +20,7 @@ from apps.core.audit import record
 from apps.core.models import AuditLog, Role
 from apps.measurements import questionnaires
 from apps.measurements.models import QuestionnaireResponse
+from apps.reports.models import Audience
 from apps.subjects.models import Subject
 
 from . import crypto, seed, services
@@ -214,7 +215,18 @@ def subject(request, pk):
     for s in samples:
         s.rows = [_genotype_row(g) for g in s.genotypes.all() if g.variant.is_active]
     response = questionnaires.latest(subject, seed.QUESTIONNAIRE_CODE)
+    from apps.reports import llm
+    from apps.reports.ai_models import choices as model_choices
+    from apps.reports.models import Report
+
+    from .report import AUDIENCES
+
     return render(request, "genetics/subject.html", {
+        "reports": Report.objects.filter(subject=subject, kind=Report.Kind.GENETICS)
+                                 .order_by("-created_at"),
+        "usable_samples": [s for s in samples if s.is_usable],
+        "audiences": [(a, Audience(a).label) for a in AUDIENCES],
+        "model_choices": model_choices() if llm.is_enabled() else [],
         "subject": subject, "display_name": subject.display_for(request.user),
         "state": state, "samples": samples, "panels": panels, "panel": panel, "form": form,
         "entry_blocked": entry_blocked, "demo": settings.DEMO_MODE,
@@ -223,6 +235,31 @@ def subject(request, pk):
         "response": response,
         "answers": questionnaires.sections(response.questionnaire, response) if response else [],
     })
+
+
+@login_required
+@require_POST
+def report_create(request, pk):
+    """Koncept genetické zprávy z ověřeného vzorku – pro sportovce nebo pro lékaře."""
+    from apps.reports import llm
+    from apps.reports.ai_models import is_offered
+
+    from . import report as genetics_report
+
+    if not services.may_view_genotypes(request.user):
+        return _denied(request, "Genetickou zprávu smí sestavit jen správce nebo laborant.")
+    subject = _subject(request, pk)
+    sample = get_object_or_404(subject.genetic_samples, pk=request.POST.get("vzorek"))
+    model = request.POST.get("model", "").strip()
+    try:
+        report = genetics_report.build_draft(
+            sample, user=request.user, audience=request.POST.get("pro"),
+            model=model if model and llm.is_enabled() and is_offered(model) else None)
+    except genetics_report.GeneticsReportError as exc:
+        messages.error(request, str(exc))
+        return redirect("genetics_subject", pk=pk)
+    record(request, AuditLog.Action.CREATE, report, subject_code=subject.code, genetika=True)
+    return redirect("report_detail", pk=report.pk)
 
 
 @login_required

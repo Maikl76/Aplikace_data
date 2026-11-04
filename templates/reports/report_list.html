@@ -31,7 +31,7 @@
           </td>
           <td class="tabular-nums whitespace-nowrap">{{ r.report_number }}{% if r.version > 1 %} <span class="text-muted">v{{ r.version }}</span>{% endif %}</td>
           <td class="text-2 text-sm max-md:hidden">{{ r.get_audience_display }}</td>
-          <td class="tabular-nums">{{ r.session.date|date:"d.m.Y"|default:"—" }}</td>
+          <td class="tabular-nums">{% if r.is_genetic %}<span class="badge">genetika</span>{% else %}{{ r.session.date|date:"d.m.Y"|default:"—" }}{% endif %}</td>
           <td>{% include "reports/_status.html" %}</td>
           <td class="tabular-nums text-2 max-md:hidden">{{ r.released_at|date:"d.m.Y H:i"|default:"—" }}</td>
         </tr>

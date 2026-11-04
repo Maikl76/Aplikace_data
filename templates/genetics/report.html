@@ -1,0 +1,115 @@
+{% load static %}<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <title>{{ report.report_number }} — {{ report.title }}</title>
+  {% include "reports/_style.html" %}
+  <style>
+    .genotypy td.gen { font-weight: 600; }
+    .polozka { margin: 3mm 0 4mm; padding-left: 4mm; border-left: 3px solid #c3c2b7; break-inside: avoid; }
+    .polozka .hlava { font-weight: 600; }
+    .polozka .hlava span { font-weight: normal; color: #52514e; font-size: 9.5pt; }
+    .stitek { display: inline-block; font-size: 8.5pt; color: #52514e; border: 1px solid #c3c2b7; border-radius: 2mm; padding: 0 1.5mm; margin-right: 1mm; }
+    .kontext { margin: 1.5mm 0; padding: 2mm 2.5mm; background: #f0efec; font-size: 9.5pt; }
+    .duvod { color: #52514e; font-size: 9pt; }
+    .posouzeni-box { border: 1px solid #d03b3b; padding: 3mm; margin: 2mm 0; }
+    .doporuceni li { margin-bottom: 2mm; }
+  </style>
+</head>
+<body>
+{% with c=content %}
+<div class="hlavicka">
+  <h1>{{ report.title }}</h1>
+  <div class="meta">
+    {{ report.report_number }}{% if report.version > 1 %}, verze {{ report.version }}{% endif %}
+    {% if report.supersedes %} — nahrazuje {{ report.supersedes.report_number }}{% endif %}
+    · {{ report.audience_for }} · Fakulta tělesné výchovy a sportu UK
+  </div>
+</div>
+
+<table>
+  <tr><th style="width:35%">Sportovec</th><td>{% if display_name %}{{ display_name }} ({{ subject.code }}){% else %}{{ subject.code }}{% endif %}</td></tr>
+  <tr><th>Sport</th><td>{{ subject.sport|default:"—" }}</td></tr>
+  <tr><th>Pohlaví / věk</th><td>{{ subject.get_sex_display }}{% if age %} · {{ age }} let{% endif %}</td></tr>
+  <tr><th>Panel</th><td>{{ c.panel.nazev }} (v{{ c.panel.verze }}){% if c.panel.laborator %} · {{ c.panel.laborator }}{% endif %}</td></tr>
+  <tr><th>Vzorek</th><td>{% if c.vzorek.odber_txt %}odběr {{ c.vzorek.odber_txt }} · {% endif %}{% if c.vzorek.vysledek_txt %}výsledek {{ c.vzorek.vysledek_txt }} · {% endif %}{% if c.vzorek.reference %}ref. {{ c.vzorek.reference }} · {% endif %}příslušnost výsledku ověřena{% if c.vzorek.overil %} ({{ c.vzorek.overil }}){% endif %}</td></tr>
+  <tr><th>Dotazník</th><td>{% if c.dotaznik %}{{ c.dotaznik.nazev }} · vyplněno {{ c.dotaznik.vyplneno_txt }} ({{ c.dotaznik.zdroj|lower }}){% else %}nevyplněn – zpráva vychází jen z genotypů{% endif %}</td></tr>
+</table>
+
+<h2>Souhrn</h2>
+<div>{{ report.summary|linebreaks }}</div>
+
+<h2>1. Cíl klienta a dostupné podklady</h2>
+{% if c.cil %}
+  <table>
+    {% if c.cil.sport %}<tr><th style="width:35%">Hlavní sport</th><td>{{ c.cil.sport }}</td></tr>{% endif %}
+    {% if c.cil.zamereni %}<tr><th>Zaměření</th><td>{{ c.cil.zamereni }}</td></tr>{% endif %}
+    {% if c.cil.cil %}<tr><th>Hlavní cíl</th><td>{{ c.cil.cil }}{% if c.cil.upresneni %} – {{ c.cil.upresneni }}{% endif %}</td></tr>{% endif %}
+  </table>
+{% else %}<p class="prazdne">Cíl klienta není v dotazníku uveden.</p>{% endif %}
+<p class="vysvetlivka">Podklady: laboratorní výsledek genotypů (panel {{ c.panel.nazev }}), {% if c.dotaznik %}odpovědi klienta v dotazníku{% else %}bez dotazníku{% endif %}, schválené genové karty laboratoře. Fenotypová měření se v této zprávě neinterpretují.</p>
+
+<h2>2. Přehled zjištěných genotypů</h2>
+<table class="vysledky genotypy">
+  <thead><tr><th>Gen</th><th>Varianta</th><th>Oblast</th><th>Genotyp</th><th>Kvalita</th><th>Karta</th></tr></thead>
+  <tbody>
+    {% for g in c.genotypy %}<tr><td class="gen">{{ g.gen }}</td><td>{{ g.rsid }}</td><td>{{ g.oblast }}</td><td>{{ g.genotyp_txt }}</td><td>{{ g.kvalita }}</td><td>{{ g.karta }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+
+<h2>3. Výsledky podle oblastí</h2>
+{% for area in c.oblasti %}
+  <div class="protokol">{{ area.nazev }}{% if area.popis %} <span class="protokol-meta">· {{ area.popis }}</span>{% endif %}</div>
+  {% for e in area.polozky %}
+    <div class="polozka">
+      <div class="hlava">{{ e.gen }} {{ e.genotyp_txt }} <span>· {{ e.rsid }} · karta {{ e.karta }}{% if e.frekvence %} · frekvence {{ e.frekvence }}{% endif %}</span></div>
+      {% if e.biologie %}<p class="duvod">{{ e.biologie }}</p>{% endif %}
+      <p>{{ e.text }}</p>
+      {% if e.ucinek %}<p class="duvod">Účinek varianty: {{ e.ucinek }}</p>{% endif %}
+      {% for k in e.kontext %}<div class="kontext"><span class="stitek">z dotazníku</span> {{ k.otazka }}: „{{ k.odpoved }}“ — {{ k.text }}</div>{% endfor %}
+      {% for r in e.doporuceni %}<p><span class="stitek">{{ r.druh }}</span>{{ r.text }} <span class="duvod">(důvod: {{ r.duvod|lower }})</span></p>{% endfor %}
+      {% if e.dukazy %}<table class="vysledky"><thead><tr><th>Důkaz</th><th>Podklad a omezení</th><th>Použití</th></tr></thead><tbody>{% for d in e.dukazy %}<tr><td>{{ d.kod }} {{ d.znak }}</td><td>{{ d.podklad }}</td><td>{{ d.pouziti }}</td></tr>{% endfor %}</tbody></table>{% endif %}
+    </div>
+  {% endfor %}
+{% empty %}
+  <p class="prazdne">Žádná varianta nemá interpretaci (viz část 6).</p>
+{% endfor %}
+
+<h2>4. Praktická doporučení a jejich důvody</h2>
+{% if c.doporuceni %}
+  <ul class="doporuceni">
+    {% for r in c.doporuceni %}<li><span class="stitek">{{ r.druh }}</span>{{ r.text }}<br><span class="duvod">důvod: {{ r.duvody|join:"; " }}</span></li>{% endfor %}
+  </ul>
+{% else %}<p class="prazdne">Žádné doporučení.</p>{% endif %}
+{% if c.k_posouzeni %}
+  <div class="posouzeni-box">
+    <strong>K odbornému posouzení</strong> – karty dávají k témuž tématu různá doporučení; zpráva žádné nevybírá.
+    {% for k in c.k_posouzeni %}<ul>{% for m in k.moznosti %}<li>{{ m.varianta }} {{ m.genotyp }}: {{ m.text }} <span class="duvod">({{ m.duvod|lower }})</span></li>{% endfor %}</ul>{% endfor %}
+  </div>
+{% endif %}
+{% if report.custom_note %}<h3 style="font-size:11pt; margin:4mm 0 1mm">Komentář diagnostika</h3><div>{{ report.custom_note|linebreaks }}</div>{% endif %}
+
+<h2>5. Co by bylo vhodné doplnit nebo změřit</h2>
+{% if c.co_doplnit %}
+  <ul class="doporuceni">
+    {% for m in c.co_doplnit %}<li>{{ m.text }}{% if m.test %} <span class="stitek">{{ m.test }}</span>{% endif %}
+      {% if m.k_dispozici %}<br><span class="duvod">Výsledek z {{ m.k_dispozici.date_txt }} je k dispozici{% if m.k_dispozici.values %}: {{ m.k_dispozici.values|join:", " }}{% endif %} – v této zprávě se neinterpretuje.</span>{% elif m.test %}<br><span class="duvod">Výsledek za poslední rok není k dispozici.</span>{% endif %}</li>{% endfor %}
+  </ul>
+{% else %}<p class="prazdne">Karty v této verzi žádné měření nenavrhují.</p>{% endif %}
+
+<h2>6. Omezení interpretace a použité zdroje</h2>
+{% if c.neinterpretovano %}
+  <p><strong>Bez interpretace:</strong></p>
+  <ul>{% for n in c.neinterpretovano %}<li>{{ n.varianta }} – {{ n.duvod }}</li>{% endfor %}</ul>
+{% endif %}
+<ul>{% for o in c.omezeni %}<li>{{ o }}</li>{% endfor %}</ul>
+{% if c.zdroje %}
+  <ol class="citace">{% for z in c.zdroje %}<li value="{{ z.cislo }}">[{{ z.cislo }}] {{ z.citace }}{% if z.odkaz %} {{ z.odkaz }}{% endif %} <span class="duvod">({{ z.varianty|join:", " }})</span></li>{% endfor %}</ol>
+{% endif %}
+<p class="vysvetlivka">Verze karet: {{ c.versions.karty_text|default:"—" }} · panel {{ c.versions.panel }}{% if c.versions.dotaznik %} · dotazník č. {{ c.versions.dotaznik }}{% endif %}.</p>
+
+<div class="dolozka">{{ report.disclaimer }}</div>
+<footer>Zpráva {{ report.report_number }} · vygenerováno {{ generated_at|date:"d.m.Y H:i" }}{% if report.released_at %} · vydáno {{ report.released_at|date:"d.m.Y H:i" }}{% endif %}</footer>
+{% endwith %}
+</body>
+</html>
