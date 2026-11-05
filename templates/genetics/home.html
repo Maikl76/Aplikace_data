@@ -10,21 +10,7 @@
   <a href="{% url 'genetics_guide' %}" class="btn">{% icon "info" %}Jak to funguje</a>
 </div>
 
-<section class="card p-4 mb-5" id="pruvodce">
-  <div class="flex flex-wrap items-center gap-2 mb-3">
-    <h2 class="card-title flex-1">Průvodce nastavením</h2>
-    {% if not next_step %}<span class="badge badge-good">vše nastaveno</span>{% elif next_step.admin_only and not is_admin %}<span class="badge badge-warn">Další krok: {{ next_step.title }} – nastavuje správce</span>{% else %}<a href="{{ next_step.url }}" class="btn btn-primary btn-sm">{% icon "chevron-right" %}Další krok: {{ next_step.title }}</a>{% endif %}
-  </div>
-  <ol class="grid md:grid-cols-2 xl:grid-cols-4 gap-3">
-    {% for s in steps %}
-      <li class="p-3 rounded-lg flex flex-col gap-1" style="background: var(--surface-2)">
-        <div class="flex items-center gap-2"><span class="avatar w-7 h-7 text-xs {% if s.done %}badge-good{% endif %}">{% if s.done %}✓{% else %}{{ s.n }}{% endif %}</span><span class="font-medium">{{ s.title }}</span></div>
-        <p class="text-xs text-2 flex-1">{{ s.text }}</p>
-        {% if s.admin_only and not is_admin %}<span class="text-xs text-muted">nastavuje správce</span>{% elif may_edit %}<a href="{{ s.url }}" class="btn btn-sm self-start {% if not s.done and s == next_step %}btn-primary{% endif %}">{{ s.button }}</a>{% endif %}
-      </li>
-    {% endfor %}
-  </ol>
-</section>
+{% steps steps heading="Průvodce nastavením" may_act=may_edit done_label="vše nastaveno" %}
 
 {% if key_missing %}
   <div class="card px-4 py-3 mb-5 text-sm border-l-4 flex gap-3 items-start" style="border-left-color: var(--warn)">

@@ -341,7 +341,11 @@ make logs
 **Zkušební provoz pro kolegy** — smyšlená data, zapnutý `DEMO_MODE`
 (varovný pruh na každé stránce, naplnění ukázkovými daty, reset na jeden
 příkaz). Jinak funguje všechno stejně jako v laboratoři, aby si kolegové
-mohli vyzkoušet celý postup včetně nahrávání souborů:
+mohli vyzkoušet celý postup včetně nahrávání souborů. Co jim nesedí, napíšou
+tlačítkem *Připomínka* (dole v menu i u každého postupu); správce připomínky
+vyřizuje v menu *Připomínky*. Postupy vedou kroky: *Přehled* dnem, *Stav
+pracoviště* nastavením, *Genetika* kartami i sportovcem (viz
+[docs/pruvodci.md](docs/pruvodci.md)):
 
 - **PythonAnywhere** — zdarma, bez platební karty, server v EU. Postup
   v [`deploy/pythonanywhere.md`](deploy/pythonanywhere.md).

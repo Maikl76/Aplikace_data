@@ -85,13 +85,15 @@
       {% nav_link "import_list" "Import" "upload" %}
       {% nav_link "sport_list" "Sporty a testy" "list" %}
       <div class="pt-3 mt-3 border-t" style="border-color: var(--border)">
-        {% if user.is_superuser or user.role == "admin" %}{% nav_link "colleagues" "Kolegové" "users" %}{% endif %}
+        {% nav_link "workplace" "Stav pracoviště" "check" %}
+        {% if user.is_superuser or user.role == "admin" %}{% nav_link "colleagues" "Kolegové" "users" %}{% nav_link "remarks" "Připomínky" "inbox" "/pripominky/" nove_pripominky %}{% endif %}
         {% nav_link "/admin/" "Katalog a nastavení" "settings" "/admin/" %}
         {% nav_link "about" "O aplikaci" "info" %}
       </div>
       {% endif %}
     </nav>
     <div class="p-3 border-t space-y-1" style="border-color: var(--border)">
+      <a href="{% url 'remark_new' %}?stranka={{ request.get_full_path|urlencode }}" class="nav-link" title="Co vám na téhle stránce nesedí? Správce připomínky sbírá.">{% icon "edit" %}<span>Připomínka</span></a>
       <button type="button" class="nav-link w-full" onclick="prepnoutRezim()">
         <span class="rezim-tmavy contents">{% icon "moon" %}<span>Tmavý režim</span></span>
         <span class="rezim-svetly contents">{% icon "sun" %}<span>Světlý režim</span></span>

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Připomínky – FTVS{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <h1 class="text-2xl font-semibold">Připomínky</h1>
+    <p class="text-sm text-muted mt-1">Co kolegům na postupech nesedí. Vyřízená připomínka zůstává s odpovědí, aby bylo vidět, co se změnilo a proč.</p>
+  </div>
+  <div class="flex gap-1 text-sm">
+    <a href="?stav=open" class="btn btn-sm {% if show == 'open' %}btn-primary{% endif %}">Nové{% if open_count %} ({{ open_count }}){% endif %}</a>
+    <a href="?stav=done" class="btn btn-sm {% if show == 'done' %}btn-primary{% endif %}">Vyřízené</a>
+    <a href="?stav=vse" class="btn btn-sm {% if show == 'vse' %}btn-primary{% endif %}">Vše</a>
+  </div>
+</div>
+<div class="space-y-3">
+  {% for r in rows %}
+    <section class="card p-4">
+      <div class="flex flex-wrap items-center gap-2 text-sm">
+        <span class="font-medium">{{ r.user.get_full_name|default:r.user.get_username|default:"—" }}</span>
+        <span class="text-muted">{{ r.created_at|date:"d.m.Y H:i" }}</span>
+        {% if r.context %}<span class="badge">{{ r.context }}</span>{% endif %}
+        {% if r.page %}<a href="{{ r.page }}" class="link text-xs">otevřít stránku</a>{% endif %}
+        {% if r.status == "done" %}<span class="badge badge-good ml-auto">vyřízená{% if r.resolved_by %} · {{ r.resolved_by.get_username }}{% endif %}</span>{% else %}<span class="badge badge-warn ml-auto">nová</span>{% endif %}
+      </div>
+      <p class="text-sm mt-2 whitespace-pre-line">{{ r.text }}</p>
+      <form method="post" class="mt-3 flex flex-wrap items-end gap-2">{% csrf_token %}
+        <input type="hidden" name="pripominka" value="{{ r.pk }}"><input type="hidden" name="stav" value="{{ show }}">
+        <label class="block flex-1 min-w-[16rem]"><span class="text-xs text-2">Odpověď</span>
+          <textarea name="odpoved" rows="2" class="input text-sm" placeholder="Co se změnilo, nebo proč ne">{{ r.answer }}</textarea></label>
+        {% if r.status == "open" %}<button name="akce" value="vyridit" class="btn btn-sm btn-primary">{% icon "check" %}Vyřízeno</button>{% else %}<button name="akce" value="vyridit" class="btn btn-sm">Uložit odpověď</button><button name="akce" value="otevrit" class="btn btn-sm">Znovu otevřít</button>{% endif %}
+      </form>
+    </section>
+  {% empty %}
+    <div class="card p-6 text-sm text-muted">{% if show == 'open' %}Žádná nová připomínka.{% else %}Zatím nic.{% endif %} Tlačítko <em>Připomínka</em> je u každého postupu a dole v menu.</div>
+  {% endfor %}
+</div>
+{% endblock %}

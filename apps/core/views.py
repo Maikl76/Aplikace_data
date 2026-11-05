@@ -52,7 +52,18 @@ def dashboard(request):
                           .filter(status=BookingRequest.Status.NEW)
                           .select_related("slot").order_by("slot__start")[:5])
 
+    from apps.core.daily import daily_steps
+    from apps.core.middleware import READ_ONLY
+
+    nastaveni_ceka = 0
+    if _is_admin(request.user):
+        from apps.core.workplace import pending_count
+
+        nastaveni_ceka = pending_count(request.user)
     context = {
+        "dnes": daily_steps(request.user),
+        "may_act": request.user.is_superuser or request.user.role not in READ_ONLY,
+        "nastaveni_ceka": nastaveni_ceka,
         "objednavky": objednavky,
         "tiles": [
             ("Aktivní sportovci", Subject.objects.for_user(request.user)
@@ -67,7 +78,7 @@ def dashboard(request):
             trial__protocol_run__session__in=sessions).count(),
         "posledni_session": recent,
         "koncepty": draft_list,
-        "dnes": today,
+        "dnes_datum": today,
     }
     return render(request, "core/dashboard.html", context)
 
@@ -202,3 +213,86 @@ def password_setup(request, token):
         messages.success(request, "Heslo je nastavené. Vítejte.")
         return redirect("dashboard")
     return render(request, "registration/nastavit_heslo.html", {"form": form, "account": account})
+
+
+# --- stav pracoviště a připomínky ------------------------------------------------
+
+@login_required
+def workplace(request):
+    """Nastavovací kroky všech částí na jednom místě; tlačítka podle role."""
+    from apps.core.middleware import READ_ONLY
+    from apps.core.workplace import workplace_steps
+
+    user = request.user
+    return render(request, "core/workplace.html", {
+        "steps": workplace_steps(user),
+        "may_act": user.is_superuser or user.role not in READ_ONLY,
+    })
+
+
+@login_required
+def remark_new(request):
+    """Připomínka k postupu – vzniká tam, kde ji kolega napadne."""
+    from django.contrib import messages
+    from django.shortcuts import redirect
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    from apps.core.models import Remark
+
+    source = request.POST if request.method == "POST" else request.GET
+    page = (source.get("stranka") or "").strip()[:300]
+    if not url_has_allowed_host_and_scheme(page, allowed_hosts={request.get_host()}) \
+            or not page.startswith("/"):
+        page = ""
+    context_text = (source.get("oddil") or "").strip()
+    if krok := (source.get("krok") or "").strip():
+        context_text = f"{context_text} · {krok}" if context_text else krok
+    context_text = context_text[:200]
+    if request.method == "POST":
+        text = (request.POST.get("text") or "").strip()
+        if not text:
+            messages.error(request, "Napište, co vám nesedí – prázdná připomínka se neuloží.")
+        else:
+            Remark.objects.create(organization=request.user.organization, user=request.user,
+                                  page=page, context=context_text, text=text[:4000])
+            messages.success(request, "Díky, připomínka je uložená. Správce ji uvidí "
+                                      "v Připomínkách.")
+            return redirect(page or "dashboard")
+    return render(request, "core/remark_form.html", {"page": page, "context_text": context_text})
+
+
+@login_required
+def remarks(request):
+    """Seznam připomínek pro správce: vyřídit s odpovědí, nebo znovu otevřít."""
+    from django.contrib import messages
+    from django.shortcuts import get_object_or_404, redirect
+
+    from apps.core.audit import record
+    from apps.core.models import AuditLog, Remark, default_organization
+
+    if not _is_admin(request.user):
+        return render(request, "core/odepreno.html", {"duvod": "Připomínky vyřizuje správce."},
+                      status=403)
+    org = request.user.organization or default_organization()
+    rows = Remark.objects.filter(organization=org).select_related("user", "resolved_by")
+    if request.method == "POST":
+        remark = get_object_or_404(rows, pk=request.POST.get("pripominka"))
+        action = request.POST.get("akce")
+        remark.answer = (request.POST.get("odpoved") or "").strip()[:4000]
+        if action == "vyridit":
+            remark.status = Remark.Status.DONE
+            remark.resolved_by, remark.resolved_at = request.user, timezone.now()
+            messages.success(request, "Připomínka je vyřízená.")
+        elif action == "otevrit":
+            remark.status = Remark.Status.OPEN
+            remark.resolved_by = remark.resolved_at = None
+        remark.save()
+        record(request, AuditLog.Action.UPDATE, remark, pripominka=remark.pk, akce=action)
+        return redirect(f"{reverse('remarks')}?stav={request.POST.get('stav', 'open')}")
+    show = request.GET.get("stav", "open")
+    if show in ("open", "done"):
+        rows = rows.filter(status=show)
+    return render(request, "core/remarks.html", {
+        "rows": rows.order_by("-created_at"), "show": show,
+        "open_count": Remark.objects.filter(organization=org, status=Remark.Status.OPEN).count(),
+    })

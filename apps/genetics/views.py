@@ -342,20 +342,22 @@ def questionnaire(request, pk):
 
 def _subject_steps(state, samples, usable, response, reports) -> list[dict]:
     """Pět kroků u sportovce: souhlas → vzorek → ověření → dotazník → zpráva."""
+    from apps.core.steps import step
+
     received = [s for s in samples if s.status == GeneticSample.Status.RECEIVED]
     return [
-        {"n": 1, "title": "Souhlas", "done": state.valid, "anchor": "souhlas",
-         "hint": state.blocked_reason or ("platí" if state.valid else "zapište převzatý podepsaný "
-                                                                   "souhlas, nebo ho dá sportovec v portálu")},
-        {"n": 2, "title": "Vzorek a výsledek", "done": bool(usable or received), "anchor": "vzorek",
-         "hint": "opište genotypy z výsledku laboratoře"},
-        {"n": 3, "title": "Ověření", "done": bool(usable), "anchor": "overeni",
-         "hint": ("potvrďte, že výsledek patří tomuto sportovci" if received
-                  else "po založení vzorku")},
-        {"n": 4, "title": "Dotazník", "done": response is not None, "anchor": "dotaznik",
-         "hint": "cíl, trénink, zkušenost, kofein, laktóza – v portálu nebo tady"},
-        {"n": 5, "title": "Zpráva", "done": bool(reports), "anchor": "zprava",
-         "hint": "sestavte koncept, zkontrolujte a vydejte"},
+        step(1, "Souhlas", state.valid,
+             state.blocked_reason or ("platí" if state.valid else "zapište převzatý podepsaný "
+                                                               "souhlas, nebo ho dá sportovec v portálu"),
+             url="#souhlas"),
+        step(2, "Vzorek a výsledek", bool(usable or received),
+             "opište genotypy z výsledku laboratoře", url="#vzorek"),
+        step(3, "Ověření", bool(usable),
+             ("potvrďte, že výsledek patří tomuto sportovci" if received else "po založení vzorku"),
+             url="#overeni"),
+        step(4, "Dotazník", response is not None,
+             "cíl, trénink, zkušenost, kofein, laktóza – v portálu nebo tady", url="#dotaznik"),
+        step(5, "Zpráva", bool(reports), "sestavte koncept, zkontrolujte a vydejte", url="#zprava"),
     ]
 
 

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import AuditLog, Organization, User, default_organization
+from .models import AuditLog, Organization, Remark, User, default_organization
 
 # Skupina, do které role uživatele patří, je v roles.py – stejné párování používá
 # administrace i stránka Kolegové. ROLE_GROUPS odtud importují jiné části.
@@ -75,3 +75,11 @@ class AuditLogAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(Remark)
+class RemarkAdmin(admin.ModelAdmin):
+    list_display = ("created_at", "user", "context", "status")
+    list_filter = ("status",)
+    search_fields = ("text", "context", "page")
+    readonly_fields = ("user", "page", "context", "text", "created_at")

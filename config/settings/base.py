@@ -98,6 +98,7 @@ TEMPLATES = [
                 "apps.core.context_processors.demo_mode",
                 "apps.core.context_processors.read_only",
                 "apps.core.context_processors.booking_counts",
+                "apps.core.context_processors.remark_counts",
             ],
         },
     },

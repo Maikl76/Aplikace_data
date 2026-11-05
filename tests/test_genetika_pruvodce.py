@@ -281,12 +281,12 @@ def test_u_sportovce_vede_postup_peti_kroky(org):
     assert page.status_code == 200
     assert [s["title"] for s in page.context["steps"]] == [
         "Souhlas", "Vzorek a výsledek", "Ověření", "Dotazník", "Zpráva"]
-    assert page.context["next_step"]["anchor"] == "souhlas"
+    assert page.context["next_step"]["url"] == "#souhlas"
     assert "Další krok: Souhlas" in page.content.decode()
 
     services.grant_consent(subject, by=lab)
     page = client.get(url)
-    assert page.context["steps"][0]["done"] and page.context["next_step"]["anchor"] == "vzorek"
+    assert page.context["steps"][0]["done"] and page.context["next_step"]["url"] == "#vzorek"
     text = page.content.decode()
     assert "Další krok: Vzorek a výsledek" in text and 'id="vzorek"' in text and 'id="zprava"' in text
 

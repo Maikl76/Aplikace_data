@@ -1,0 +1,108 @@
+"""
+Stav pracoviště: nastavovací kroky všech částí na jednom místě. Odpovědný
+člověk tu vidí, co ještě chybí, a každý krok ho vede přímo tam.
+"""
+
+from django.conf import settings
+from django.db.models import Q
+from django.urls import reverse
+from django.utils import timezone
+
+from .steps import step
+
+
+def workplace_steps(user) -> list[dict]:
+    from apps.booking.models import Offer, Slot
+    from apps.catalog.models import DeviceFormat, Norm, TestBattery
+    from apps.genetics import crypto as genetics_crypto
+    from apps.genetics.setup_views import setup_steps as genetics_steps
+    from apps.ingest.models import ImportBatch
+    from apps.rules.models import Rule
+    from apps.subjects.models import Sport
+
+    from .models import User
+    from .roles import COLLEAGUE_ROLES
+
+    org = user.organization
+    shared = Q(organization__isnull=True) | Q(organization=org)
+
+    colleagues = (User.objects.filter(organization=org, role__in=COLLEAGUE_ROLES, is_active=True)
+                  .exclude(pk=user.pk).count())
+
+    sports = list(Sport.objects.for_user(user))
+    batteries = list(TestBattery.objects.for_user(user)
+                     .prefetch_related("items__protocol__protocol_metrics__metric"))
+    with_battery = {b.sport_id for b in batteries if b.items.all()}
+    sports_without = [s for s in sports if s.pk not in with_battery]
+
+    protocols = {item.protocol.pk: item.protocol for b in batteries for item in b.items.all()}
+    no_metrics = [p for p in protocols.values() if not p.protocol_metrics.all()]
+    no_key = [p for p in protocols.values()
+              if p.protocol_metrics.all() and not any(pm.is_primary for pm in p.protocol_metrics.all())]
+    key_metrics = {pm.metric.pk: pm.metric for p in protocols.values()
+                   for pm in p.protocol_metrics.all() if pm.is_primary}
+    no_mdc = [m for m in key_metrics.values() if m.mdc is None]
+
+    devices = DeviceFormat.objects.filter(shared, is_active=True).count()
+    imported = ImportBatch.objects.for_user(user).filter(status=ImportBatch.Status.COMMITTED).exists()
+    norms = Norm.objects.filter(shared).count()
+    rules = Rule.objects.filter(shared, is_active=True).count()
+    offers = Offer.objects.for_user(user).filter(is_active=True).exists()
+    slots = Slot.objects.for_user(user).filter(is_active=True, start__gte=timezone.now()).exists()
+    genetics = genetics_steps(user)
+    genetics_done = sum(1 for g in genetics if g["done"])
+    keys_ok = bool(settings.IDENTITY_ENCRYPTION_KEY) and genetics_crypto.configured()
+
+    return [
+        step(1, "Kolegové", colleagues > 0,
+             (f"{colleagues} účtů kolegů." if colleagues else
+              "Zatím jen vy. Každý kolega má mít vlastní účet s rolí."),
+             url=reverse("colleagues"), button="Kolegové", admin_only=True),
+        step(2, "Sporty a baterie", bool(sports) and not sports_without,
+             (f"{len(sports) - len(sports_without)} z {len(sports)} sportů má baterii testů."
+              + (" Bez baterie se testovací den nepředvyplní." if sports_without else "")
+              if sports else "Založte sport a jeho baterii: které testy se měří a v jakém pořadí."),
+             url=reverse("sport_list"), button="Sporty a testy"),
+        step(3, "Testy a klíčové ukazatele", bool(protocols) and not no_metrics and not no_key,
+             (" ".join(filter(None, [
+                 f"{len(no_metrics)} testů bez ukazatelů." if no_metrics else "",
+                 f"{len(no_key)} testů bez klíčového ukazatele – ten jde na kartu sportovce "
+                 "a do týmového přehledu." if no_key else ""]))
+              or (f"{len(protocols)} testů v bateriích, každý má klíčový ukazatel."
+                  if protocols else "Testy přibudou s bateriemi.")),
+             url=reverse("test_list"), button="Testy"),
+        step(4, "MDC u klíčových ukazatelů", bool(key_metrics) and not no_mdc,
+             (f"{len(no_mdc)} z {len(key_metrics)} klíčových ukazatelů nemá MDC – bez něj zpráva "
+              "neřekne „zlepšení“, jen že změnu nelze odlišit od chyby měření."
+              if no_mdc else (f"Všech {len(key_metrics)} klíčových ukazatelů má MDC."
+                              if key_metrics else "Nejdřív klíčové ukazatele.")),
+             url="/admin/catalog/metricdef/", button="Doplnit MDC", admin_only=True),
+        step(5, "Přístroje a import", devices > 0 or imported,
+             (f"{devices} přístrojů s profilem" + (", import už proběhl." if imported else ".")
+              if devices or imported else
+              "Exporty z VALD aplikace pozná sama; další přístroj přidáte průvodcem v Importu."),
+             url=reverse("import_list"), button="Import", optional=True),
+        step(6, "Normy a pravidla", norms > 0 or rules > 0,
+             (f"{norms} norem, {rules} aktivních pravidel." if norms or rules else
+              "Bez norem zpráva neukáže postavení vůči referenci; pravidla dávají nálezy "
+              "a doporučení. Zapíná je ten, kdo za práh ručí."),
+             url="/admin/catalog/norm/", button="Normy a pravidla", optional=True,
+             admin_only=True),
+        step(7, "Objednávky", offers and slots,
+             ("Nabídka i volné termíny jsou vypsané." if offers and slots else
+              "Klienti se objednávají sami, když je nabídka a volné termíny."),
+             url=reverse("booking_offers"), button="Nabídka a termíny", optional=True),
+        step(8, "Genetika", genetics_done == len(genetics),
+             f"{genetics_done} z {len(genetics)} kroků nastavení hotových.",
+             url=reverse("genetics_home"), button="Genetika", optional=True),
+        step(9, "Klíče a model", keys_ok,
+             (("Šifrovací klíče jsou nastavené. " if keys_ok else
+               "Chybí šifrovací klíč – jména nebo genotypy se neuloží. ")
+              + ("Jazykový model je zapnutý." if settings.LLM_ENABLED
+                 else "Jazykový model je vypnutý, souhrny píše šablona.")),
+             url=reverse("about") + "#technika", button="Jak nastavit", admin_only=True),
+    ]
+
+
+def pending_count(user) -> int:
+    return sum(1 for s in workplace_steps(user) if not s["done"] and not s["optional"])

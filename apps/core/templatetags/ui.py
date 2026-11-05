@@ -130,3 +130,29 @@ def _digest(file_path: str, mtime: float) -> str:
     """Otisk obsahu; počítá se znovu jen po změně souboru (mtime je v klíči)."""
     with open(file_path, "rb") as fh:
         return hashlib.md5(fh.read(), usedforsecurity=False).hexdigest()[:10]
+
+
+@register.inclusion_tag("core/_steps.html", takes_context=True)
+def steps(context, steps, heading, may_act=True, compact=False, done_label="vše hotovo",
+          intro="", remark=True):
+    """
+    Kroky průvodce – stejná součástka pro celou aplikaci (apps/core/steps.py).
+    ``may_act``: smí uživatel klikat na tlačítka; ``compact``: menší karty
+    s názvem jako odkazem (kotvy na stránce); ``remark``: odkaz Připomínka.
+    """
+    from django.urls import reverse
+    from django.utils.http import urlencode
+
+    from apps.core.models import Role
+    from apps.core.steps import grid_class, next_step
+
+    request = context.get("request")
+    user = getattr(request, "user", None)
+    is_admin = bool(user is not None and (user.is_superuser or user.role == Role.ADMIN))
+    remark_url = ""
+    if remark and request is not None:
+        remark_url = reverse("remark_new") + "?" + urlencode(
+            {"stranka": request.get_full_path(), "oddil": heading})
+    return {"steps": steps, "next_step": next_step(steps), "heading": heading,
+            "may_act": may_act, "compact": compact, "done_label": done_label, "intro": intro,
+            "is_admin": is_admin, "grid": grid_class(len(steps)), "remark_url": remark_url}

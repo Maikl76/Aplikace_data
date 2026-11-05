@@ -154,3 +154,39 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"{self.timestamp:%Y-%m-%d %H:%M} {self.user} {self.action} {self.object_type}"
+
+
+class Remark(TimeStampedModel):
+    """
+    Připomínka kolegy k postupu. Vzniká tam, kde ji napadne (tlačítko u kroků
+    nebo dole v menu), správce ji má v seznamu a vyřídí ji s odpovědí.
+    Ve zkušebním provozu je to hlavní kanál, kudy se dozvíme, co změnit.
+    """
+
+    class Status(models.TextChoices):
+        OPEN = "open", "Nová"
+        DONE = "done", "Vyřízená"
+
+    organization = models.ForeignKey(Organization, verbose_name="organizace",
+                                     on_delete=models.CASCADE, null=True, blank=True,
+                                     related_name="remarks")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="kdo", on_delete=models.SET_NULL,
+                             null=True, blank=True, related_name="remarks")
+    page = models.CharField("stránka", max_length=300, blank=True)
+    context = models.CharField("k čemu", max_length=200, blank=True,
+                               help_text="Oddíl a krok, kterého se připomínka týká.")
+    text = models.TextField("připomínka")
+    status = models.CharField("stav", max_length=8, choices=Status.choices, default=Status.OPEN)
+    answer = models.TextField("odpověď správce", blank=True)
+    resolved_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="vyřídil",
+                                    on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name="+")
+    resolved_at = models.DateTimeField("vyřízeno", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "připomínka"
+        verbose_name_plural = "připomínky"
+        ordering = ["status", "-created_at"]
+
+    def __str__(self):
+        return f"{self.context or self.page}: {self.text[:50]}"

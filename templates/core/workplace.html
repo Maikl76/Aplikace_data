@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Stav pracoviště – FTVS{% endblock %}
+{% block content %}
+<div class="mb-5">
+  <h1 class="text-2xl font-semibold">Stav pracoviště</h1>
+  <p class="text-sm text-muted mt-1">Nastavení všech částí na jednom místě. Každý krok říká, co chybí, a vede přímo tam. Nic se neodškrtává ručně, stav plyne z dat. Volitelné kroky nebrání provozu.</p>
+</div>
+{% steps steps heading="Nastavení pracoviště" may_act=may_act done_label="vše nastaveno" %}
+<p class="text-xs text-muted">Denní práci vede <a class="link" href="{% url 'dashboard' %}">Přehled</a>; jak co funguje, říká <a class="link" href="{% url 'about' %}">O aplikaci</a>. Co vám na postupu nesedí, napište jako připomínku, správce je sbírá.</p>
+{% endblock %}

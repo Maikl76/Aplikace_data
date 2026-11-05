@@ -27,3 +27,14 @@ def booking_counts(request):
 
     return {"nove_objednavky": BookingRequest.objects.for_user(user)
             .filter(status=BookingRequest.Status.NEW).count()}
+
+
+def remark_counts(request):
+    """Počet nových připomínek do menu – jen správci, který je vyřizuje."""
+    from .models import Remark, Role
+
+    user = getattr(request, "user", None)
+    if not user or not user.is_authenticated or not (user.is_superuser or user.role == Role.ADMIN):
+        return {}
+    return {"nove_pripominky": Remark.objects.filter(organization=user.organization,
+                                                     status=Remark.Status.OPEN).count()}

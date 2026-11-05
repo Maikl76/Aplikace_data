@@ -1,0 +1,27 @@
+{% load ui %}
+<section class="card p-4 mb-5" id="pruvodce">
+  <div class="flex flex-wrap items-center gap-2 mb-3">
+    <h2 class="card-title flex-1">{{ heading }}</h2>
+    {% if not next_step %}<span class="badge badge-good">{{ done_label }}</span>
+    {% elif next_step.admin_only and not is_admin %}<span class="badge badge-warn">Další krok: {{ next_step.title }} – nastavuje správce</span>
+    {% elif next_step.url and may_act %}<a href="{{ next_step.url }}" class="btn btn-primary btn-sm">{% icon "chevron-right" %}Další krok: {{ next_step.title }}</a>
+    {% else %}<span class="badge badge-warn">Další krok: {{ next_step.title }}</span>{% endif %}
+    {% if remark_url %}<a href="{{ remark_url }}" class="text-xs text-muted" title="Co vám na tomhle postupu nesedí? Správce připomínky sbírá.">Připomínka</a>{% endif %}
+  </div>
+  {% if intro %}<p class="text-sm text-2 mb-3">{{ intro }}</p>{% endif %}
+  <ol class="grid {{ grid }} gap-3">
+    {% for s in steps %}
+      <li class="{% if compact %}p-2{% else %}p-3{% endif %} rounded-lg flex flex-col gap-1" style="background: var(--surface-2)">
+        <div class="flex items-center gap-2">
+          <span class="avatar {% if compact %}w-6 h-6{% else %}w-7 h-7{% endif %} text-xs {% if s.done %}badge-good{% endif %}">{% if s.done %}✓{% else %}{{ s.n }}{% endif %}</span>
+          {% if compact and s.url %}<a href="{{ s.url }}" class="font-medium">{{ s.title }}</a>{% else %}<span class="font-medium">{{ s.title }}</span>{% endif %}
+          {% if s.optional %}<span class="badge">volitelné</span>{% endif %}
+          {% if s.count %}<span class="badge badge-warn" title="čeká">{{ s.count }}</span>{% endif %}
+        </div>
+        <p class="text-xs text-2 flex-1">{{ s.text }}</p>
+        {% if s.admin_only and not is_admin %}<span class="text-xs text-muted">nastavuje správce</span>
+        {% elif may_act and s.url and s.button %}<a href="{{ s.url }}" class="btn btn-sm self-start {% if s == next_step %}btn-primary{% endif %}">{{ s.button }}</a>{% endif %}
+      </li>
+    {% endfor %}
+  </ol>
+</section>

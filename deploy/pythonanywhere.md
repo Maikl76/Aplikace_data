@@ -161,6 +161,19 @@ Role: *správce* (vše, účty, katalog), *diagnostik* (měření, zprávy, revi
 genových karet), *výzkumník* (jen čtení, bez jmen), *trenér* (vlastní
 portál). Sportovci účet nezakládejte tady – vzniká z pozvánky na jeho kartě.
 
+## Připomínky kolegů
+
+Každý má dole v menu tlačítko **Připomínka** a u každého postupu odkaz
+*Připomínka*: napíše, co mu nesedí, a připomínka se uloží i s tím, na které
+stránce a u kterého kroku vznikla. Správce je má v menu **Připomínky**
+(s počtem nových), vyřídí je s odpovědí a vyřízené zůstanou k nahlédnutí.
+Tohle je hlavní kanál pro zkušební provoz: podle připomínek se aplikace mění.
+
+**Stav pracoviště** v menu ukazuje nastavení všech částí na jednom místě
+(kolegové, sporty a baterie, testy a klíčové ukazatele, MDC, přístroje,
+normy a pravidla, objednávky, genetika, klíče a model); **Přehled** vede
+dnem: kdo přijde, hodnoty, kontrola, zprávy, předání.
+
 ---
 
 ## Aktualizace po změnách

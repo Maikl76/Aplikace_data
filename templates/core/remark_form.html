@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Připomínka – FTVS{% endblock %}
+{% block content %}
+<div class="max-w-xl">
+  <h1 class="text-2xl font-semibold">Připomínka</h1>
+  <p class="text-sm text-muted mt-1 mb-4">Co vám na tomhle postupu nesedí, co chybí, co by mělo být jinak. Správce připomínky sbírá a vyřizuje; podle nich se aplikace mění.</p>
+  <form method="post" class="card p-4 space-y-3">{% csrf_token %}
+    <input type="hidden" name="stranka" value="{{ page }}">
+    <label class="block"><span class="text-xs text-2">K čemu</span>
+      <input name="oddil" value="{{ context_text }}" maxlength="200" class="input text-sm py-1.5" placeholder="např. Testovací den · krok 3 Hodnoty"></label>
+    {% if page %}<p class="text-xs text-muted">Stránka: <code>{{ page }}</code></p>{% endif %}
+    <label class="block"><span class="text-xs text-2">Připomínka</span>
+      <textarea name="text" rows="5" required autofocus class="input text-sm" placeholder="Co nesedí a jak by to mělo být"></textarea></label>
+    <div class="flex flex-wrap gap-2">
+      <button class="btn btn-primary">{% icon "check" %}Uložit připomínku</button>
+      {% if page %}<a href="{{ page }}" class="btn">Zpět</a>{% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -29,20 +29,7 @@
   </div>
 {% endif %}
 
-<section class="card p-4 mb-5">
-  <div class="flex flex-wrap items-center gap-2 mb-3">
-    <h2 class="card-title flex-1">Postup</h2>
-    {% if next_step %}<a href="#{{ next_step.anchor }}" class="btn btn-primary btn-sm">{% icon "chevron-right" %}Další krok: {{ next_step.title }}</a>{% else %}<span class="badge badge-good">vše hotovo</span>{% endif %}
-  </div>
-  <ol class="grid sm:grid-cols-2 lg:grid-cols-5 gap-2 text-sm">
-    {% for s in steps %}
-      <li class="p-2 rounded-lg" style="background: var(--surface-2)">
-        <a href="#{{ s.anchor }}" class="flex items-center gap-2 font-medium"><span class="avatar w-6 h-6 text-xs {% if s.done %}badge-good{% endif %}">{% if s.done %}✓{% else %}{{ s.n }}{% endif %}</span>{{ s.title }}</a>
-        <p class="text-xs text-muted mt-1">{{ s.hint }}</p>
-      </li>
-    {% endfor %}
-  </ol>
-</section>
+{% steps steps heading="Postup" compact=True %}
 
 <div class="grid lg:grid-cols-5 gap-4">
   <section class="lg:col-span-3 space-y-4">

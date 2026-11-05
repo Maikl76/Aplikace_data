@@ -24,8 +24,10 @@ WRITE_ALLOWED_PREFIXES = ("/ucet/", "/admin/")
 # jsou pro ně neviditelné (jinak by scoping ukázal celé pracoviště).
 PORTAL_HOME = {Role.ATHLETE: "portal_home", Role.COACH: "coach_home"}
 PORTAL_PREFIXES = {
-    Role.ATHLETE: ("/muj/", "/ucet/", "/d/", "/objednavka/", "/o-aplikaci/", "/zdravi/"),
-    Role.COACH: ("/trener/", "/muj/ucet/", "/ucet/", "/objednavka/", "/o-aplikaci/", "/zdravi/"),
+    Role.ATHLETE: ("/muj/", "/ucet/", "/d/", "/objednavka/", "/o-aplikaci/", "/zdravi/",
+                   "/pripominky/nova/"),
+    Role.COACH: ("/trener/", "/muj/ucet/", "/ucet/", "/objednavka/", "/o-aplikaci/", "/zdravi/",
+                 "/pripominky/nova/"),
 }
 
 NOT_READY_MESSAGE = ("Tento typ účtu zatím není v provozu. Přihlaste se účtem laboranta, "
