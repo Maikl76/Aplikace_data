@@ -18,6 +18,7 @@ def workplace_steps(user) -> list[dict]:
     from apps.genetics import crypto as genetics_crypto
     from apps.genetics.setup_views import setup_steps as genetics_steps
     from apps.ingest.models import ImportBatch
+    from apps.reports import llm
 
     from .models import User
     from .roles import COLLEAGUE_ROLES
@@ -41,6 +42,12 @@ def workplace_steps(user) -> list[dict]:
     genetics = genetics_steps(user)
     genetics_done = sum(1 for g in genetics if g["done"])
     keys_ok = bool(settings.IDENTITY_ENCRYPTION_KEY) and genetics_crypto.configured()
+    model = llm.describe()
+    model_text = (model["blocked"] if model["blocked"] else
+                  f"Jazykový model: cloudový ({model['host']}), jen pro zkušební provoz "
+                  "se smyšlenými daty." if model["remote"] and model["enabled"] else
+                  "Jazykový model je zapnutý (lokální)." if model["enabled"] else
+                  "Jazykový model je vypnutý, souhrny píše šablona.")
 
     return [
         step(1, "Kolegové", colleagues > 0,
@@ -84,11 +91,9 @@ def workplace_steps(user) -> list[dict]:
         step(8, "Genetika", genetics_done == len(genetics),
              f"{genetics_done} z {len(genetics)} kroků nastavení hotových.",
              url=reverse("genetics_home"), button="Genetika", optional=True),
-        step(9, "Klíče a model", keys_ok,
+        step(9, "Klíče a model", keys_ok and not model["blocked"],
              (("Šifrovací klíče jsou nastavené. " if keys_ok else
-               "Chybí šifrovací klíč – jména nebo genotypy se neuloží. ")
-              + ("Jazykový model je zapnutý." if settings.LLM_ENABLED
-                 else "Jazykový model je vypnutý, souhrny píše šablona.")),
+               "Chybí šifrovací klíč – jména nebo genotypy se neuloží. ") + model_text),
              url=reverse("about") + "#technika", button="Jak nastavit", admin_only=True),
     ]
 

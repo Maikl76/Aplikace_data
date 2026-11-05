@@ -66,15 +66,24 @@ def report_steps(report, *, has_consent: bool, number_problems=(), text_problems
 
 
 def ai_steps(*, llm_enabled: bool, models_available, server_error: str, styles, examples,
-             stats: dict, test_set) -> list[dict]:
+             stats: dict, test_set, info: dict | None = None) -> list[dict]:
     custom = sum(1 for s in styles for part in s["parts"] if part["custom"])
     examples, test_set = list(examples), list(test_set)
+    info = info or {}
+    if info.get("blocked"):
+        model_text = info["blocked"]
+    elif not llm_enabled:
+        model_text = "Jazykový model je vypnutý (LLM_ENABLED); souhrny píše šablona."
+    elif server_error:
+        model_text = server_error
+    else:
+        model_text = f"{len(models_available)} modelů na serveru."
+        if info.get("remote"):
+            model_text = (f"Cloudový model ({info.get('host')}), jen zkušební provoz se "
+                          f"smyšlenými daty; " + model_text)
     return [
-        step(1, "Model běží", llm_enabled and bool(models_available),
-             ("Jazykový model je vypnutý (LLM_ENABLED); souhrny píše šablona."
-              if not llm_enabled else server_error or
-              f"{len(models_available)} modelů na serveru."),
-             url="?tab=modely", button="Modely"),
+        step(1, "Model běží", llm_enabled and bool(models_available) and not info.get("blocked"),
+             model_text, url="?tab=modely", button="Modely"),
         step(2, "Pokyny pro model", custom > 0,
              (f"{custom} vlastních pokynů; ostatní výchozí." if custom else
               "Tón, struktura a délka souhrnu pro každého čtenáře; zatím výchozí pokyny."),

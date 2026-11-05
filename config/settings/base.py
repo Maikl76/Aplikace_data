@@ -187,6 +187,7 @@ LLM_BASE_URL = env("LLM_BASE_URL", default="http://localhost:11434/v1")
 # („LLM_MODEL=LLM_MODEL=…“) nebo název v uvozovkách. Model se pak nenajde.
 LLM_MODEL = (env("LLM_MODEL", default="gemma3:4b").strip().strip("\"'")
              .removeprefix("LLM_MODEL=").strip())
+LLM_API_KEY = env("LLM_API_KEY", default="").strip()  # jen cloudový model ve zkušebním provozu
 LLM_TIMEOUT = env.int("LLM_TIMEOUT", default=300)
 # Souhrn zprávy píše model na pozadí – stránka nečeká a velký model smí
 # psát déle, než by vydržel webový požadavek.

@@ -1,13 +1,20 @@
 """
-Klient pro lokální jazykový model.
+Klient pro jazykový model.
 
 Mluví protokolem kompatibilním s OpenAI (``/v1/chat/completions``), který
-umí Ollama, LM Studio, vLLM i llama.cpp server. Aplikace tak není vázaná
-na jeden nástroj a model se dá vyměnit nastavením, bez změny kódu.
+umí Ollama, LM Studio, vLLM i llama.cpp server – a také cloudové služby
+(Gemini přes svůj koncový bod kompatibilní s OpenAI). Aplikace tak není
+vázaná na jeden nástroj a model se dá vyměnit nastavením, bez změny kódu.
+
+Cloudový model (veřejná adresa mimo počítač a síť pracoviště) se smí použít
+jen ve zkušebním provozu (DEMO_MODE) se smyšlenými daty: souhrny by jinak
+opouštěly pracoviště. Mimo zkušební provoz se takový model nepoužije a
+aplikace řekne proč.
 
 Záměrně bez další knihovny – stačí standardní ``urllib``.
 """
 
+import ipaddress
 import json
 import logging
 import re
@@ -15,6 +22,7 @@ import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
+from urllib.parse import urlsplit
 
 from django.conf import settings
 
@@ -36,14 +44,76 @@ class LLMReply:
     seconds: float
 
 
+LOCAL_SUFFIXES = (".local", ".lan", ".internal", ".home", ".localdomain", ".intranet")
+
+
+def host_of(url: str | None = None) -> str:
+    return (urlsplit(url or settings.LLM_BASE_URL).hostname or "").lower()
+
+
+def is_remote(url: str | None = None) -> bool:
+    """Veřejná adresa mimo počítač a síť pracoviště – tedy cloudový model."""
+    host = host_of(url)
+    if not host or host in ("localhost", "0.0.0.0"):
+        return False
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        return "." in host and not host.endswith(LOCAL_SUFFIXES)
+    return not (address.is_private or address.is_loopback or address.is_link_local)
+
+
+def blocked_reason() -> str:
+    """Proč se nastavený model nepoužije; prázdné = v pořádku."""
+    if settings.LLM_ENABLED and is_remote() and not settings.DEMO_MODE:
+        return (f"Jazykový model na veřejné adrese {host_of()} se mimo zkušební provoz nepoužije: "
+                "souhrny by opouštěly pracoviště. Nastavte lokální model (LM Studio, Ollama) "
+                "nebo model v síti pracoviště; cloudový model patří jen do zkušebního provozu "
+                "se smyšlenými daty.")
+    return ""
+
+
 def is_enabled() -> bool:
-    return bool(settings.LLM_ENABLED)
+    return bool(settings.LLM_ENABLED) and not blocked_reason()
+
+
+def describe() -> dict:
+    """Stav modelu pro stránky: zapnutý, kde běží, zda je cloudový, proč je blokovaný."""
+    from .ai_models import default_model
+
+    return {"configured": bool(settings.LLM_ENABLED), "enabled": is_enabled(),
+            "remote": is_remote(), "host": host_of(), "blocked": blocked_reason(),
+            "model": default_model(), "has_key": bool(settings.LLM_API_KEY)}
+
+
+def _headers() -> dict:
+    headers = {"Content-Type": "application/json"}
+    if settings.LLM_API_KEY:
+        headers["Authorization"] = f"Bearer {settings.LLM_API_KEY}"
+    return headers
+
+
+def _auth_reason(code: int) -> str:
+    if code in (401, 403) and (settings.LLM_API_KEY or is_remote()):
+        return f"Model odmítl přístup (chyba {code}): klíč LLM_API_KEY chybí nebo neplatí."
+    if code == 429:
+        return "Model odmítl požadavek (429): vyčerpaný limit požadavků; zkuste to za chvíli."
+    return ""
+
+
+def _unreachable_hint() -> str:
+    if is_remote():
+        return ("Je adresa povolená ven (na PythonAnywhere musí být na seznamu povolených "
+                "adres) a klíč správně?")
+    return "Běží Ollama, nebo LM Studio se zapnutým serverem?"
 
 
 def chat(messages: list[dict], *, model: str | None = None,
          temperature: float | None = None, timeout: int | None = None) -> LLMReply:
     from .ai_models import default_model, timeout_for
 
+    if reason := blocked_reason():
+        raise LLMError(reason)
     model = model or default_model()
     timeout = timeout or timeout_for(model)
     url = settings.LLM_BASE_URL.rstrip("/") + "/chat/completions"
@@ -54,8 +124,7 @@ def chat(messages: list[dict], *, model: str | None = None,
         "stream": False,
     }
     request = urllib.request.Request(
-        url, data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"}, method="POST",
+        url, data=json.dumps(payload).encode("utf-8"), headers=_headers(), method="POST",
     )
 
     started = time.monotonic()
@@ -64,12 +133,12 @@ def chat(messages: list[dict], *, model: str | None = None,
             body = json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
-        raise LLMError(_context_reason(detail, model)
+        raise LLMError(_auth_reason(exc.code) or _context_reason(detail, model)
                        or f"Model odpověděl chybou {exc.code}: {detail[:300]}") from exc
     except urllib.error.URLError as exc:
         raise LLMError(
             f"Model není dostupný na {settings.LLM_BASE_URL} ({exc.reason}). "
-            f"Běží Ollama, nebo LM Studio se zapnutým serverem?"
+            + _unreachable_hint()
         ) from exc
     except TimeoutError as exc:
         raise LLMError(f"Model {model} neodpověděl do {timeout} s.") from exc
@@ -150,10 +219,23 @@ def list_models(*, timeout: int = 10) -> list[str]:
     Hlavně kvůli LM Studiu: název modelu v aplikaci musí přesně sedět
     s identifikátorem na serveru a ten se od názvu v nabídce často liší.
     """
+    if reason := blocked_reason():
+        raise LLMError(reason)
     url = settings.LLM_BASE_URL.rstrip("/") + "/models"
+    request = urllib.request.Request(url, headers=_headers())
     try:
-        with urllib.request.urlopen(url, timeout=timeout) as resp:
+        with urllib.request.urlopen(request, timeout=timeout) as resp:
             body = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        raise LLMError(_auth_reason(exc.code)
+                       or f"Seznam modelů se nepodařilo načíst: {exc}") from exc
     except (urllib.error.URLError, TimeoutError, ValueError) as exc:
         raise LLMError(f"Seznam modelů se nepodařilo načíst: {exc}") from exc
-    return [item.get("id", "") for item in body.get("data", []) if item.get("id")]
+    # Gemini uvádí modely jako „models/gemini-…“ a vedle chatovacích i vkládání,
+    # obrázky a řeč – ty do výběru pro zprávy nepatří.
+    names = [str(item.get("id", "")).removeprefix("models/")
+             for item in body.get("data", []) if item.get("id")]
+    return [n for n in names if not any(x in n.lower() for x in NOT_CHAT)]
+
+
+NOT_CHAT = ("embedding", "imagen", "veo", "tts", "aqa", "image-generation")

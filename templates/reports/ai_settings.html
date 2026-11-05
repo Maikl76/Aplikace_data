@@ -18,6 +18,11 @@
 {% steps steps heading="Postup AI zpráv" may_act=can_manage_ai %}
 
 {% if tab == "modely" %}
+  {% if llm_info.blocked %}
+    <div class="card px-4 py-3 mb-4 text-sm border-l-4" style="border-left-color: var(--bad)">{{ llm_info.blocked }}</div>
+  {% elif llm_info.remote and llm_info.enabled %}
+    <div class="card px-4 py-3 mb-4 text-sm border-l-4" style="border-left-color: var(--warn)"><strong>Cloudový model</strong> ({{ llm_info.host }}): souhrny píše služba mimo pracoviště. Dostává jen kódy a čísla, přesto sem patří jen smyšlená data. Na počítači v laboratoři a na serveru fakulty zůstává model lokální.</div>
+  {% endif %}
   <p class="text-sm text-2 mb-4 max-w-3xl">Které modely aplikace nabízí. <strong>Výchozí</strong> píše nové zprávy;
     ostatní nabízené jde zvolit při vytváření zprávy a u rozpracované zprávy (<em>Napsat souhrn znovu</em>).
     Model musí běžet v LM Studiu (na serveru v Ollamě) – načte se sám, když o něj aplikace požádá,

@@ -20,7 +20,14 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(f"Adresa:  {settings.LLM_BASE_URL}")
         self.stdout.write(f"Model:   {settings.LLM_MODEL}")
-        self.stdout.write(f"Zapnuto: {'ano' if settings.LLM_ENABLED else 'NE (LLM_ENABLED)'}\n")
+        self.stdout.write(f"Zapnuto: {'ano' if settings.LLM_ENABLED else 'NE (LLM_ENABLED)'}")
+        if llm.is_remote():
+            self.stdout.write(f"Cloudový model ({llm.host_of()}), klíč: "
+                              f"{'nastaven' if settings.LLM_API_KEY else 'CHYBÍ (LLM_API_KEY)'}")
+        self.stdout.write("")
+        if reason := llm.blocked_reason():
+            self.stdout.write(self.style.ERROR(reason))
+            return
 
         try:
             dostupne = llm.list_models()

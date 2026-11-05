@@ -366,11 +366,12 @@ def ai_settings(request):
     stats = services.quality_stats(organization)
     examples = (Report.objects.for_user(request.user).filter(is_example=True)
                 .select_related("subject").order_by("-released_at")[:30])
+    llm_info = llm.describe()
     steps = ai_steps(llm_enabled=llm.is_enabled(), models_available=models_available,
                      server_error=server_error, styles=styles, examples=examples, stats=stats,
-                     test_set=test_set)
+                     test_set=test_set, info=llm_info)
     return render(request, "reports/ai_settings.html", {
-        "steps": steps, "tab": tab, "styles": styles,
+        "steps": steps, "tab": tab, "styles": styles, "llm_info": llm_info,
         "tabs": [("modely", "Modely"), ("pokyny", "Pokyny pro model"),
                  ("kvalita", "Kvalita textů"), ("sada", "Zkušební sada")],
         "model_rows": model_rows, "server_error": server_error,

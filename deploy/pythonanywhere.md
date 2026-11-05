@@ -238,9 +238,48 @@ disk nefunguje a může ztratit data, proto je v `.env` `SQLITE_WAL=False`
 přepnula, aktualizace vrátí do klasického režimu – vypíše
 „Režim databáze: delete“.
 
+## Jazykový model ve zkušebním provozu (Gemini)
+
+Lokální model na PythonAnywhere neběží. Aby si kolegové mohli vyzkoušet
+i souhrny a návrhy doporučení od modelu, jde použít cloudový **Gemini**
+s klíčem z Google AI Studia. Souhrny tím opouštějí pracoviště – aplikace
+posílá jen kódy a čísla, nikdy jména, a ve zkušebním provozu jsou jen
+smyšlená data. Mimo zkušební provoz (na fakultě je `DEMO_MODE` vypnutý)
+aplikace cloudový model odmítne; tam zůstává model lokální.
+
+1. V [Google AI Studiu](https://aistudio.google.com/) vytvořte API klíč.
+   Placení nezapínejte: bezplatná úroveň stačí, jen má denní a minutový
+   limit požadavků. Při jeho překročení aplikace ukáže chybu modelu
+   a souhrn zůstane ze šablony. U bezplatné úrovně může Google data
+   z požadavků používat ke zlepšování svých služeb – další důvod, proč sem
+   patří jen smyšlená data.
+2. V konzoli ověřte, že PythonAnywhere adresu pustí ven (bezplatný účet
+   pouští jen vyjmenované adresy; `KLIC` nahraďte svým klíčem):
+
+   ```
+   curl -s -o /dev/null -w "%{http_code}\n" -H "Authorization: Bearer KLIC" https://generativelanguage.googleapis.com/v1beta/openai/models
+   ```
+
+   `200` = v pořádku. `403` od proxy znamená, že adresa na seznamu není;
+   PythonAnywhere ji na požádání doplní (formulář *Request a whitelist
+   addition* na stránce nápovědy k přístupu na internet).
+3. Do `.env` doplňte řádky ze šablony `deploy/pythonanywhere.env.example`
+   (oddíl o jazykovém modelu): `LLM_ENABLED=True`, `LLM_BASE_URL`,
+   `LLM_API_KEY`, `LLM_MODEL`, `LLM_BACKGROUND=False`, `LLM_TIMEOUT=90`.
+   Klíč do gitu nepatří, `.env` v něm není.
+4. Na záložce **Web** aplikaci restartujte (*Reload*). V aplikaci otevřete
+   *Zprávy → AI zprávy → Modely*: seznam modelů přijde z Gemini, vyberte
+   výchozí (např. `gemini-2.5-flash`). Oranžový pruh *Cloudový model* tam
+   připomíná, že souhrny opouštějí pracoviště.
+5. Zkouška: v konzoli `~/.virtualenvs/ftvs/bin/python manage.py llm_check`
+   pošle modelu dvě čísla a ukáže odpověď.
+
+Zpět na lokální model nebo úplné vypnutí: řádky v `.env` smažte nebo
+nastavte `LLM_ENABLED=False` a aplikaci restartujte.
+
 ## Ukázková zpráva od AI
 
-Na PythonAnywhere jazykový model neběží. Skutečný výstup modelu se sem dostane
+Když cloudový model nastavený není, skutečný výstup modelu se sem dostane
 takto: na laboratorním PC (se zapnutým LM Studiem) vytvořte u **ukázkového**
 sportovce (FTVS-00xx, bez jména) zprávu, vydejte ji a spusťte
 `ulozit-ukazku-zpravy.bat`. Po aktualizaci ukázky (`git pull`, `pa-update.sh`)
@@ -275,8 +314,9 @@ Nejčastější příčiny:
 
 - **PDF zpráv** — chybí systémové knihovny pro WeasyPrint. Aplikace zprávu
   ukáže v HTML a řekne to.
-- **Jazykový model** — LM Studio tu neběží; souhrny zpráv píše šablona,
-  ukázky od modelu se nahrávají z laboratorního PC (viz výše).
+- **Lokální jazykový model** — LM Studio tu neběží; buď souhrny píše šablona
+  a ukázky od modelu se nahrávají z laboratorního PC, nebo se pro zkušební
+  provoz nastaví cloudový Gemini (viz výše).
 
 A hlavně: **reálná data sportovců sem nepatří.** Zkušební provoz je pro
 smyšlená data. Provoz s reálnými daty patří na fakultní server.

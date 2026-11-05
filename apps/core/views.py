@@ -95,6 +95,7 @@ def about(request):
         "roles": Role,
         "llm_enabled": llm.is_enabled(),
         "llm_model": getattr(settings, "LLM_MODEL", ""),
+        "llm_info": llm.describe(),
     })
 
 

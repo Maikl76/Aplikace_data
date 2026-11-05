@@ -352,10 +352,19 @@ generování přesune na pozadí.
 | `LLM_TIMEOUT` | `300` | kolik sekund čekat na odpověď |
 | `LLM_TEMPERATURE` | `0.2` | nízká = střídmější, méně vymýšlí |
 | `LLM_BACKGROUND` | `True` | souhrn zprávy píše model na pozadí |
+| `LLM_API_KEY` | prázdné | klíč pro cloudový model; LM Studio ani Ollama ho nepotřebují |
 
 `LLM_MODEL` a `LLM_TIMEOUT` platí, dokud v *AI zprávy → Modely* není nastaveno jinak.
 
-## Ukázka na PythonAnywhere
+## Zkušební provoz na PythonAnywhere a cloudový model
 
-Tam model **není** a nebude: bezplatný účet ho neutáhne a na váš
-počítač nedosáhne. Zprávy tam vznikají ze šablon.
+Lokální model tam neběží: bezplatný účet ho neutáhne a na váš počítač
+nedosáhne. Aby si kolegové mohli vyzkoušet i text od modelu, jde ve
+zkušebním provozu nastavit **cloudový model Gemini** přes jeho rozhraní
+kompatibilní s OpenAI (postup v `deploy/pythonanywhere.md`). Platí
+přitom pojistka: cloudový model, tedy veřejná adresa mimo počítač a síť
+pracoviště, se použije **jen při zapnutém `DEMO_MODE`**. Na serveru
+fakulty, kde je `DEMO_MODE` vypnutý, aplikace takový model odmítne, řekne
+to při startu (`manage.py check`) i ve *Stavu pracoviště*, a souhrny píše
+šablona. Model na jiném počítači v síti laboratoře (soukromá adresa nebo
+název bez tečky) pojistka nezastaví.

@@ -41,7 +41,8 @@ class FakeModel:
         class Handler(BaseHTTPRequestHandler):
             def do_POST(self):
                 body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
-                fake.requests.append({"path": self.path, "body": body})
+                fake.requests.append({"path": self.path, "body": body,
+                                      "auth": self.headers.get("Authorization")})
                 text = fake.replies.pop(0) if fake.replies else fake.reply
                 answer = {"choices": [{"message": {"content": text}}]}
                 if fake.answered_by:
@@ -58,8 +59,9 @@ class FakeModel:
                 self.wfile.write(payload.encode())
 
             def do_GET(self):
+                fake.requests.append({"path": self.path, "auth": self.headers.get("Authorization")})
                 payload = json.dumps({"data": [{"id": m} for m in fake.models]})
-                self.send_response(200)
+                self.send_response(fake.status)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
                 self.wfile.write(payload.encode())
@@ -243,7 +245,7 @@ def test_llm_check_upozorni_na_spatny_nazev(model, settings, capsys):
     vystup = capsys.readouterr().out
     assert "google/gemma-3-4b" in vystup
     assert "v nabídce není" in vystup
-    assert model.requests == []          # model se vůbec nevolal
+    assert all(r["path"].endswith("/models") for r in model.requests)  # model se nevolal
 
 
 def test_model_dostane_druhou_sanci(mereni, model):
@@ -376,3 +378,107 @@ def test_tlacitko_navrhu_neztrati_neulozene_upravy(mereni, model, client):
 def test_zprava_uvede_model_ktery_skutecne_odpovedel(model):
     model.answered_by = "muse-glimmer-30b"
     assert llm.chat([{"role": "user", "content": "x"}]).model == "muse-glimmer-30b"
+
+
+# --- cloudový model ve zkušebním provozu ------------------------------------------
+
+def test_klic_se_posila_jen_kdyz_je_nastaveny(model, settings):
+    settings.LLM_API_KEY = ""
+    llm.chat([{"role": "user", "content": "Ahoj"}])
+    assert model.requests[-1]["auth"] is None
+    settings.LLM_API_KEY = "tajny-klic"
+    llm.chat([{"role": "user", "content": "Ahoj"}])
+    assert model.requests[-1]["auth"] == "Bearer tajny-klic"
+    llm.list_models()
+    assert model.requests[-1]["path"].endswith("/models")
+    assert model.requests[-1]["auth"] == "Bearer tajny-klic"
+
+
+def test_seznam_modelu_z_gemini_bez_predpony_a_bez_nechatovych(model):
+    model.models = ["models/gemini-2.5-flash", "models/text-embedding-004", "models/imagen-3.0",
+                    "models/gemini-2.5-flash-preview-tts", "models/gemini-2.0-flash"]
+    assert llm.list_models() == ["gemini-2.5-flash", "gemini-2.0-flash"]
+
+
+def test_odmitnuty_klic_rekne_proc(model, settings):
+    settings.LLM_API_KEY = "spatny"
+    model.status = 401
+    with pytest.raises(llm.LLMError) as exc:
+        llm.chat([{"role": "user", "content": "Ahoj"}])
+    assert "LLM_API_KEY" in str(exc.value)
+
+
+@pytest.mark.parametrize("url,remote", [
+    ("http://localhost:1234/v1", False),
+    ("http://127.0.0.1:11434/v1", False),
+    ("http://10.0.0.5:1234/v1", False),
+    ("http://192.168.1.20:11434/v1", False),
+    ("http://ai-server:1234/v1", False),
+    ("http://lmstudio.local/v1", False),
+    ("https://generativelanguage.googleapis.com/v1beta/openai", True),
+    ("https://api.openai.com/v1", True),
+    ("http://8.8.8.8/v1", True),
+])
+def test_rozpozna_cloudovy_model(url, remote):
+    assert llm.is_remote(url) is remote
+
+
+def test_cloudovy_model_jen_ve_zkusebnim_provozu(settings, db):
+    settings.LLM_ENABLED = True
+    settings.LLM_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
+    settings.DEMO_MODE = False
+    assert not llm.is_enabled()
+    assert "generativelanguage.googleapis.com" in llm.blocked_reason()
+    with pytest.raises(llm.LLMError):
+        llm.list_models()
+    with pytest.raises(llm.LLMError):
+        llm.chat([{"role": "user", "content": "Ahoj"}])
+    # kontrola při startu to řekne
+    from django.core.checks import run_checks
+
+    assert any(m.id == "reports.W001" for m in run_checks())
+
+    settings.DEMO_MODE = True
+    assert llm.is_enabled() and not llm.blocked_reason()
+    assert not any(m.id == "reports.W001" for m in run_checks())
+    info = llm.describe()
+    assert info["remote"] and info["host"] == "generativelanguage.googleapis.com"
+
+    # lokální model mimo zkušební provoz nic neblokuje
+    settings.DEMO_MODE = False
+    settings.LLM_BASE_URL = "http://localhost:1234/v1"
+    assert llm.is_enabled() and not llm.describe()["remote"]
+
+
+def test_llm_check_rekne_ze_cloud_je_mimo_zkusebni_provoz_blokovany(settings, db, capsys):
+    from django.core.management import call_command
+
+    settings.LLM_ENABLED = True
+    settings.LLM_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
+    settings.LLM_API_KEY = ""
+    settings.DEMO_MODE = False
+    call_command("llm_check")
+    out = capsys.readouterr().out
+    assert "Cloudový model" in out and "CHYBÍ" in out and "nepoužije" in out
+
+
+def test_o_aplikaci_a_stav_pracoviste_rikaji_pravdu_o_modelu(settings, db):
+    from django.test import Client
+
+    org = Organization.objects.create(name="FTVS", short_name="ftvs")
+    client = Client()
+    client.force_login(User.objects.create(username="spravce", organization=org, role=Role.ADMIN))
+    settings.LLM_ENABLED = True
+    settings.LLM_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
+
+    settings.DEMO_MODE = True
+    html = client.get("/o-aplikaci/").content.decode()
+    assert "cloudový model" in html and "AI běží lokálně" not in html
+    steps = {s["title"]: s for s in client.get("/stav/").context["steps"]}
+    assert "cloudový" in steps["Klíče a model"]["text"]
+
+    settings.DEMO_MODE = False
+    html = client.get("/o-aplikaci/").content.decode()
+    assert "AI běží lokálně" in html and "nepoužije" in html
+    steps = {s["title"]: s for s in client.get("/stav/").context["steps"]}
+    assert not steps["Klíče a model"]["done"] and "nepoužije" in steps["Klíče a model"]["text"]

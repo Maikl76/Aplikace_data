@@ -472,7 +472,7 @@
       <ul>
         <li>Jméno a datum narození jsou oddělené od výsledků a <strong>šifrované</strong>. Výsledky jsou vedené pod kódem.</li>
         <li>Jména vidí jen správce a diagnostik; ostatní role jen kódy.</li>
-        <li><strong>AI běží lokálně</strong> (LM Studio na tomto počítači / serveru fakulty) a dostává jen kódy a čísla. Nic se neposílá do cizích služeb.</li>
+        {% if llm_info.remote and llm_info.enabled %}<li><strong>V tomhle zkušebním provozu píše souhrny cloudový model</strong> ({{ llm_info.host }}). Dostává jen kódy a čísla, ale opouštějí pracoviště, proto sem patří jen smyšlená data. V laboratoři a na serveru fakulty běží model lokálně a cloudový model tam aplikace mimo zkušební provoz odmítne.</li>{% else %}<li><strong>AI běží lokálně</strong> (LM Studio na tomto počítači / serveru fakulty) a dostává jen kódy a čísla. Nic se neposílá do cizích služeb; cloudový model aplikace mimo zkušební provoz odmítne.</li>{% endif %}
         <li>Kdo si koho prohlížel a co měnil, se zapisuje do auditního záznamu.</li>
         <li>Vydaná zpráva je neměnná; předání jen se souhlasem.</li>
         <li>Po uložení importu se osobní údaje z mezikroku smažou.</li>
@@ -496,7 +496,7 @@
         </table>
       </div>
       <ul class="mt-3">
-        <li><strong>AI:</strong> {% if llm_enabled %}zapnutá{% if llm_model %}, model {{ llm_model }}{% endif %}{% else %}vypnutá – souhrn skládá šablona{% endif %}. Nastavení v souboru <code>.env</code> (LLM_ENABLED, LLM_MODEL); v LM Studiu musí být model načtený a server spuštěný.</li>
+        <li><strong>AI:</strong> {% if llm_enabled %}zapnutá{% if llm_model %}, model {{ llm_model }}{% endif %}{% else %}vypnutá – souhrn skládá šablona{% endif %}.{% if llm_info.remote and llm_info.enabled %} Cloudový model ({{ llm_info.host }}), jen zkušební provoz se smyšlenými daty.{% endif %}{% if llm_info.blocked %} <strong>{{ llm_info.blocked }}</strong>{% endif %} Nastavení v souboru <code>.env</code> (LLM_ENABLED, LLM_MODEL); v LM Studiu musí být model načtený a server spuštěný.</li>
         <li><strong>Na serveru:</strong> nová verze se nasazuje příkazem <code>bash deploy/server-update.sh</code> (záloha, úprava databáze, restart, kontrola; <code>--zpet</code> vrátí předchozí verzi). Postup od úpravy po nasazení je v <code>docs/aktualizace-serveru.md</code>.</li>
         <li><strong>Server bez internetu:</strong> nová verze se přenese jako jeden soubor na flash disku (stáhne se z vydání na GitHubu) a na serveru se nainstaluje příkazem <code>sudo bash /opt/ftvs/aktualni/nainstalovat-vydani.sh &lt;balíček&gt;</code> – se zálohou, kontrolou a možností <code>--zpet</code>. Návod v <code>docs/offline-server.md</code>.</li>
         <li><strong>Po aktualizaci vypadá stránka rozházeně?</strong> Stiskněte <kbd>Ctrl</kbd>+<kbd>F5</kbd>.</li>
