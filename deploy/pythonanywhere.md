@@ -1,9 +1,11 @@
-# Ukázka na PythonAnywhere
+# Zkušební provoz na PythonAnywhere
 
 Bezplatný hosting **bez platební karty** na evropském serveru. Slouží
-k tomu, aby se kolegové mohli na aplikaci podívat. Běží v ní jen
-vygenerovaná data a má zapnutý ukázkový režim (varovný pruh, vypnuté
-nahrávání souborů).
+k tomu, aby si kolegové mohli aplikaci vyzkoušet celou a spolupracovat na
+ní: každý s vlastním účtem, včetně nahrávání souborů, genetiky a přístrojů.
+Běží v ní jen smyšlená data a má zapnutý režim `DEMO_MODE` (varovný pruh,
+ukázková data, reset na jeden příkaz); jinak funguje stejně jako program
+v laboratoři.
 
 Výsledná adresa: `https://JMENO.eu.pythonanywhere.com`
 
@@ -141,7 +143,23 @@ Nahoře zelené tlačítko **Reload**.
 ## 8. Hotovo
 
 Otevřete `https://JMENO.eu.pythonanywhere.com`, přihlašte se jako
-`admin` heslem z kroku 5. Nahoře musí být oranžový pruh **UKÁZKA**.
+`admin` heslem z kroku 5. Nahoře musí být oranžový pruh **ZKUŠEBNÍ PROVOZ**.
+
+## Účty pro kolegy
+
+Každý kolega má vlastní účet s rolí, žádné sdílené heslo. V menu
+**Kolegové** (vidí jen správce) vyplňte jméno, příjmení a roli a klikněte
+*Založit a vytvořit odkaz*. Aplikace ukáže jednorázový odkaz: pošlete ho
+kolegovi zprávou nebo e‑mailem (tlačítko *Kopírovat*). Odkaz platí 7 dní,
+kolega si jím nastaví heslo a je přihlášený; pak odkaz přestane fungovat.
+Poštovní server k tomu není potřeba.
+
+Zapomenuté heslo: u účtu klikněte *Odkaz na heslo* a pošlete nový odkaz.
+Odchod z týmu: *Vypnout* – účet se nepřihlásí, data zůstanou.
+
+Role: *správce* (vše, účty, katalog), *diagnostik* (měření, zprávy, revize
+genových karet), *výzkumník* (jen čtení, bez jmen), *trenér* (vlastní
+portál). Sportovci účet nezakládejte tady – vzniká z pozvánky na jeho kartě.
 
 ---
 
@@ -234,7 +252,7 @@ Nejčastější příčiny:
 | *Something went wrong* | chyba v `.env` nebo ve WSGI souboru — viz Error log |
 | *DisallowedHost* | v `.env` nesedí `DJANGO_ALLOWED_HOSTS` s adresou |
 | stránka bez stylů | neproběhl `collectstatic` (krok 6) |
-| nejde se přihlásit | heslo se bere z `.env` jen při prvním `bootstrap_demo`; změna pak v administraci nebo `python manage.py changepassword admin` |
+| nejde se přihlásit | heslo `admin` se bere z `.env` jen při prvním `bootstrap_demo`; změna pak `python manage.py changepassword admin`. Kolegovi pošle správce nový odkaz na stránce *Kolegové* |
 | *Disk quota exceeded* | instalace bez `--no-cache-dir`; smažte `~/.cache/pip`; zálohy v `~/Zalohy-FTVS` (nechává se jich 10) |
 | po aktualizaci chybí data | `bash deploy/pa-update.sh --obnovit` vrátí stav před poslední aktualizací |
 | aplikace je prázdná a přidání sportu či sportovce skončí chybou | účet nemá vyplněnou organizaci; aktualizace ji doplní sama, jinak v administraci u uživatele vyberte organizaci |
@@ -244,7 +262,8 @@ Nejčastější příčiny:
 
 - **PDF zpráv** — chybí systémové knihovny pro WeasyPrint. Aplikace zprávu
   ukáže v HTML a řekne to.
-- **Nahrávání souborů** — vypnuté záměrně (ukázkový režim).
+- **Jazykový model** — LM Studio tu neběží; souhrny zpráv píše šablona,
+  ukázky od modelu se nahrávají z laboratorního PC (viz výše).
 
-A hlavně: **reálná data sportovců sem nepatří.** Ukázka je pro
-vygenerovaná data. Provoz s reálnými daty patří na fakultní server.
+A hlavně: **reálná data sportovců sem nepatří.** Zkušební provoz je pro
+smyšlená data. Provoz s reálnými daty patří na fakultní server.

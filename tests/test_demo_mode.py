@@ -1,8 +1,9 @@
 """
-Testy ukázkového režimu.
+Testy zkušebního provozu (DEMO_MODE).
 
-Ukázka běží na veřejné adrese, takže tyhle dvě pojistky musí držet:
-nesmí tam vzniknout účet se známým heslem a nesmí tam jít nahrát soubor.
+Zkušební provoz běží na veřejné adrese se smyšlenými daty. Nesmí tam
+vzniknout účet se známým heslem; jinak se chová přesně jako program
+v laboratoři – nahrávání souborů i zadávání jde, jen s varovným pruhem.
 """
 
 import pytest
@@ -49,20 +50,10 @@ def test_zadane_heslo_se_pouzije(db, settings):
     assert not spravce.check_password("demo-heslo-1234")
 
 
-def test_v_ukazce_nelze_nahrat_soubor(client, uzivatel, settings):
-    settings.DEMO_MODE = True
-    client.force_login(uzivatel)
-
-    client.post("/import/nahrat/", {
-        "file": SimpleUploadedFile("data.xlsx", b"PK\x03\x04"),
-        "adapter": "legacy_excel",
-    })
-    assert ImportBatch.objects.count() == 0
-
-
-def test_mimo_ukazku_se_soubor_zpracuje(client, uzivatel, settings):
-    """Kontrola, že pojistka nevypíná import i tam, kde má fungovat."""
-    settings.DEMO_MODE = False
+@pytest.mark.parametrize("demo", [True, False])
+def test_soubor_se_zpracuje_i_ve_zkusebnim_provozu(client, uzivatel, settings, demo):
+    """Zkušební provoz má fungovat stejně jako laboratoř – kolegové si zkoušejí i import."""
+    settings.DEMO_MODE = demo
     client.force_login(uzivatel)
 
     client.post("/import/nahrat/", {
@@ -78,7 +69,8 @@ def test_varovny_pruh_jen_v_ukazce(client, uzivatel, settings):
     client.force_login(uzivatel)
 
     settings.DEMO_MODE = True
-    assert "Nevkládejte sem reálná data" in client.get("/sportovci/").content.decode()
+    html = client.get("/sportovci/").content.decode()
+    assert "Nevkládejte sem reálná data" in html and "ZKUŠEBNÍ PROVOZ" in html
 
     settings.DEMO_MODE = False
     assert "Nevkládejte sem reálná data" not in client.get("/sportovci/").content.decode()

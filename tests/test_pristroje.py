@@ -176,13 +176,14 @@ def test_pristroj_se_prenese_s_katalogem(lab):
     assert (arm.side, arm.segment) == ("L", "paze")
 
 
-def test_ukazka_ma_pristroj_ale_nenahrava(lab, settings):
+def test_ukazka_ma_pristroj_a_zkusebni_provoz_nahrava(lab, settings):
+    """Zkušební provoz (DEMO_MODE) má ukázkový přístroj a nový přístroj jde založit jako v laboratoři."""
     _, _, client = lab
     settings.DEMO_MODE = True
     call_command("ukazkovy_pristroj", verbosity=0)
     device = DeviceFormat.objects.get(code="dexa")
     assert device.is_active and device.profile().columns.count() == 9
     assert client.get(f"/import/pristroje/{device.pk}/").status_code == 200
-    client.post("/import/pristroje/novy/", {
+    response = client.post("/import/pristroje/novy/", {
         "name": "Jiný", "protocol": device.protocol_id, "file": _upload()})
-    assert DeviceFormat.objects.count() == 1
+    assert response.status_code == 302 and DeviceFormat.objects.count() == 2

@@ -8,7 +8,6 @@ Obrazovky genetiky v aplikaci laboratoře.
 """
 
 from django import forms
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -233,8 +232,7 @@ def subject(request, pk):
     if panels:
         wanted = request.GET.get("panel") or request.POST.get("panel")
         panel = next((p for p in panels if str(p.pk) == str(wanted)), panels[0])
-    entry_blocked = ("V ukázce se genotypy nezadávají." if settings.DEMO_MODE
-                     else crypto.CHYBI if not crypto.configured()
+    entry_blocked = (crypto.CHYBI if not crypto.configured()
                      else state.blocked_reason or ("Sportovec nemá platný souhlas s genetickými daty."
                                                    if not state.valid else "")
                      if panels else "Není žádný aktivní panel variant (Genetika → krok 3 Panel a laboratoř).")
@@ -276,7 +274,7 @@ def subject(request, pk):
         "model_choices": model_choices() if llm.is_enabled() else [],
         "subject": subject, "display_name": subject.display_for(request.user),
         "state": state, "samples": samples, "panels": panels, "panel": panel, "form": form,
-        "entry_blocked": entry_blocked, "demo": settings.DEMO_MODE,
+        "entry_blocked": entry_blocked,
         "questionnaire": questionnaires.questionnaire(seed.QUESTIONNAIRE_CODE,
                                                      request.user.organization),
         "response": response,

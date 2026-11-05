@@ -24,8 +24,7 @@ fáze (viz konec).
   zůstávají.
 - **Genotypy leží šifrovaně vlastním klíčem** (`GENETICS_ENCRYPTION_KEY`,
   jiný než klíč identity). Vidí je jen správce a laborant. Trenér genetiku
-  nevidí nikdy, výzkumník vidí karty, ne genotypy. V ukázce (DEMO_MODE) se
-  genotypy nezadávají.
+  nevidí nikdy, výzkumník vidí karty, ne genotypy.
 - **Vypnutí.** Varianta jde vypnout (nikde se neukáže, genotypy zůstanou),
   z panelu jde vyřadit, karta jde vyřadit. Nic se nemaže.
 
@@ -62,7 +61,7 @@ ni potřebuje „Stav týmu“ (is_staff) a skupiny oprávnění srovná `seed_r
    v revizních záznamech. Karty bez původního obsahu (SLC16A1, FTO, TCF7L2)
    vzniknou jako návrh s úkoly k doplnění. Zároveň vznikne panel „Panel
    variant z podkladů“. Varianty, které v katalogu už jsou, se nepřepíší.
-   Ve veřejné ukázce (DEMO_MODE) je nahrávání vypnuté. Totéž umí příkaz:
+   Totéž umí příkaz:
 
        python manage.py nacist_genove_karty "C:\cesta\01_Genove_karty_plne_zneni_v02.docx"
 

@@ -1,8 +1,9 @@
 # Nasazení ukázky na Fly.io
 
-Veřejná instance, na kterou se podívají kolegové. **Běží v ní jen
-vygenerovaná data**, má zapnutý `DEMO_MODE` a nahrávání souborů odmítá.
-Ostrý provoz s reálnými daty patří na fakultní server, ne sem.
+Veřejná instance pro zkušební provoz s kolegy. **Běží v ní jen smyšlená
+data** a má zapnutý `DEMO_MODE` (varovný pruh, ukázková data, reset);
+jinak funguje stejně jako v laboratoři. Ostrý provoz s reálnými daty patří
+na fakultní server, ne sem.
 
 ## Jednou: příprava
 

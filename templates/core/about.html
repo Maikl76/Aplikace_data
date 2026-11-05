@@ -135,7 +135,7 @@
                 Vlastní portál (<code>/trener/</code>): jen sportovci, kteří mu sdílení potvrdili
                 ve svém účtu – jménem, s klíčovými ukazateli, trendy, stranovými rozdíly, přehledem
                 skupiny a vydanými zprávami pro trenéra. O sdílení žádá kódem sportovce; dokud
-                sportovec nepotvrdí, nevidí nic. Účet trenéra zakládá správce v administraci.
+                sportovec nepotvrdí, nevidí nic. Účet trenéra zakládá správce na stránce <em>Kolegové</em>.
               </td>
               <td>jen sdílení sportovci, jen čtení</td>
             </tr>
@@ -154,12 +154,12 @@
           </tbody>
         </table>
       </div>
-      <h3>Jak založit uživatele (správce)</h3>
+      <h3>Jak založit účet kolegovi (správce)</h3>
       <ol>
-        <li><a class="link" href="/admin/">Katalog a nastavení</a> → <em>Uživatelé</em> → <em>Přidat</em>.</li>
-        <li>Zadejte přihlašovací jméno a heslo, pak vyplňte <em>organizaci</em> a <em>roli</em>.</li>
-        <li>Do katalogu a nastavení se dostane jen ten, kdo má zaškrtnuté <em>Stav týmu</em>. Diagnostikovi ho zaškrtněte, pokud má opravovat měření v administraci.</li>
-        <li>Skupina oprávnění podle role se přiřadí sama.</li>
+        <li>Menu {% if user.is_superuser or user.role == "admin" %}<a class="link" href="{% url 'colleagues' %}">Kolegové</a>{% else %}<em>Kolegové</em> (vidí jen správce){% endif %} → <em>Nový účet kolegy</em>: jméno, příjmení, role → <em>Založit a vytvořit odkaz</em>.</li>
+        <li>Aplikace ukáže jednorázový odkaz. Pošlete ho kolegovi zprávou nebo e‑mailem; platí 7 dní. Kolega si jím nastaví heslo a je přihlášený, pak odkaz přestane platit.</li>
+        <li>Zapomenuté heslo = <em>Odkaz na heslo</em> u účtu. Odchod z týmu = <em>Vypnout</em>; data zůstanou.</li>
+        <li>Skupina oprávnění podle role se přiřadí sama; správce a diagnostik se dostanou i do <em>Katalogu a nastavení</em> (pro pokročilé). Sportovci se účet zakládá pozvánkou na jeho kartě.</li>
       </ol>
       <p class="text-sm text-muted">Sportovec vyplňující RPE přes QR kód žádný účet nepotřebuje – viz <a class="link" href="#rpe">RPE a QR kódy</a>.</p>
     </section>

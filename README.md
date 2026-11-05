@@ -182,8 +182,12 @@ Zadávací obrazovka pro ten test vznikne sama — nic se neprogramuje.
 
 ### Lidé a přístup
 
-**Uživatelé → Přidat.** Role se nastavuje rovnou při zakládání a skupina
-oprávnění se přiřadí sama:
+Účty kolegů zakládá správce v aplikaci na stránce **Kolegové**: jméno,
+příjmení, role → vznikne účet bez hesla a jednorázový odkaz (platí 7 dní),
+kterým si kolega heslo nastaví sám. Odkaz mu správce předá jakkoli,
+poštovní server není potřeba; *Odkaz na heslo* u účtu slouží i jako
+„zapomenuté heslo“. Skupina oprávnění se přiřadí podle role sama
+(administrace → *Uživatelé* je pro pokročilé):
 
 | Role | Co smí |
 |---|---|
@@ -199,8 +203,8 @@ Do administrace se dostane jen uživatel s příznakem **„Stav týmu"**
 **Trenéři a sportovci do administrace nepatří.** Administrace Djanga umí
 oprávnění na úrovni modelu, ne řádku — trenér by v ní viděl všechny týmy.
 Pracují v portálu (`/muj/`, `/trener/`), který hlídá, na čí data vidí
-(`apps/subjects/access.py`); účet trenéra zakládá správce v administraci,
-účet sportovce vzniká z pozvánky.
+(`apps/subjects/access.py`); účet trenéra zakládá správce na stránce
+Kolegové, účet sportovce vzniká z pozvánky.
 
 **Hádání hesla.** Po pěti špatných pokusech se dvojice účet + adresa na
 čtvrt hodiny zamkne (django-axes, bez internetu, záznam v databázi).
@@ -334,8 +338,10 @@ make logs
 
 ## Nasazení
 
-**Ukázka pro kolegy** — jen vygenerovaná data, zapnutý `DEMO_MODE`
-(varovný pruh na každé stránce, vypnuté nahrávání souborů):
+**Zkušební provoz pro kolegy** — smyšlená data, zapnutý `DEMO_MODE`
+(varovný pruh na každé stránce, naplnění ukázkovými daty, reset na jeden
+příkaz). Jinak funguje všechno stejně jako v laboratoři, aby si kolegové
+mohli vyzkoušet celý postup včetně nahrávání souborů:
 
 - **PythonAnywhere** — zdarma, bez platební karty, server v EU. Postup
   v [`deploy/pythonanywhere.md`](deploy/pythonanywhere.md).

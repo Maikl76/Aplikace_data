@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
 
+from apps.core import views as core_views
 from apps.core.forms import LoginForm
 from apps.measurements import views as measurement_views
 from apps.portal import views as portal_views
@@ -15,6 +16,8 @@ urlpatterns = [
     path("ucet/pozvanka/<str:token>/", portal_views.register, name="portal_register"),
     path("ucet/odkaz/", portal_views.email_link_request, name="email_link_request"),
     path("ucet/odkaz/<str:token>/", portal_views.email_link, name="email_link"),
+    # Nastavení hesla kolegy z jednorázového odkazu od správce (bez e‑mailu).
+    path("ucet/nastavit-heslo/<str:token>/", core_views.password_setup, name="password_setup"),
     path("muj/", include("apps.portal.urls")),
     path("trener/", include("apps.portal.coach_urls")),
     path("", include("apps.core.urls")),

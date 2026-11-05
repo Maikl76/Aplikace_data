@@ -1,20 +1,15 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.models import Group
 
-from .models import AuditLog, Organization, Role, User, default_organization
+from .models import AuditLog, Organization, User, default_organization
+
+# Skupina, do které role uživatele patří, je v roles.py – stejné párování používá
+# administrace i stránka Kolegové. ROLE_GROUPS odtud importují jiné části.
+from .roles import ROLE_GROUPS, sync_groups  # noqa: F401
 
 admin.site.site_header = "Funkční testování — administrace"
 admin.site.site_title = "Funkční testování"
 admin.site.index_title = "Správa aplikace"
-
-# Skupina, do které role uživatele patří. Role sama o sobě nic nepovoluje –
-# oprávnění nese skupina, a tohle je jediné místo, kde se to páruje.
-ROLE_GROUPS = {
-    Role.ADMIN: "Správce",
-    Role.LAB: "Diagnostik",
-    Role.RESEARCHER: "Výzkumník",
-}
 
 
 @admin.register(Organization)
@@ -62,16 +57,7 @@ class UserAdmin(BaseUserAdmin):
     def save_model(self, request, obj, form, change):
         """Role není jen popisek – po uložení se srovnají skupiny."""
         super().save_model(request, obj, form, change)
-        self._sync_groups(obj)
-
-    def _sync_groups(self, user):
-        wanted = ROLE_GROUPS.get(user.role)
-        managed = Group.objects.filter(name__in=ROLE_GROUPS.values())
-        user.groups.remove(*managed.exclude(name=wanted))
-        if wanted:
-            group = Group.objects.filter(name=wanted).first()
-            if group:
-                user.groups.add(group)
+        sync_groups(obj)
 
 
 @admin.register(AuditLog)

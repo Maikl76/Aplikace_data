@@ -40,16 +40,6 @@ def import_upload(request):
     if request.method != "POST" or not files:
         return redirect("import_list")
 
-    # V ukázce se soubory nenahrávají. Je to jediné místo, kudy by se do
-    # veřejně dostupné instance dostala reálná data, a stačilo by jedno
-    # omylem přetažené xlsx.
-    if settings.DEMO_MODE:
-        messages.error(request, (
-            "Toto je veřejná ukázka, nahrávání souborů je v ní vypnuté. "
-            "Obrazovka kontroly importu je k vidění na již nahraném souboru."
-        ))
-        return redirect("import_list")
-
     protocol = None
     if protocol_id := request.POST.get("protocol"):
         protocol = Protocol.objects.filter(pk=protocol_id).first()

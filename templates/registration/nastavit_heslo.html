@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{# Odkaz otevře nepřihlášený kolega; přihlášený (třeba správce, který si odkaz zkouší) ho vidí v aplikaci. #}
+{% block content_anon %}{% include "registration/_nastavit_heslo.html" %}{% endblock %}
+{% block content %}<div class="max-w-md">{% include "registration/_nastavit_heslo.html" %}</div>{% endblock %}

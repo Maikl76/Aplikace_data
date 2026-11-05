@@ -475,7 +475,7 @@ def test_souhlas_jen_dospely_a_genotypy_sifrovane(org, settings):
     assert sample.status == GeneticSample.Status.WITHDRAWN
     assert not Consent.has(adult, Consent.Scope.GENETICS)
 
-    # Bez klíče a v ukázce se genotypy nezadávají.
+    # Bez klíče se genotypy nezadávají; zkušební provoz (DEMO_MODE) nic neblokuje.
     services.grant_consent(adult, by=lab)
     settings.GENETICS_ENCRYPTION_KEY = ""
     page = lab_client.get(f"/genetika/sportovec/{adult.pk}/").content.decode()
@@ -483,8 +483,8 @@ def test_souhlas_jen_dospely_a_genotypy_sifrovane(org, settings):
     settings.GENETICS_ENCRYPTION_KEY = Fernet.generate_key().decode()
     settings.DEMO_MODE = True
     response = lab_client.post(f"/genetika/sportovec/{adult.pk}/", data, follow=True)
-    assert "V ukázce se genotypy nezadávají" in response.content.decode()
-    assert GeneticSample.objects.filter(subject=adult).count() == 1
+    assert "Vzorek je uložený" in response.content.decode()
+    assert GeneticSample.objects.filter(subject=adult).count() == 2
 
 
 def test_sportovec_dava_souhlas_v_portalu_trener_a_vyzkumnik_genetiku_nevidi(org):

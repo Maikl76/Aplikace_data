@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Kolegové – FTVS{% endblock %}
+{% block content %}
+<div class="mb-5">
+  <h1 class="text-2xl font-semibold">Kolegové</h1>
+  <p class="text-sm text-muted mt-1">Každý kolega má vlastní účet s rolí. Heslo si nastaví sám z jednorázového odkazu, který mu předáte – poštovní server není potřeba.</p>
+</div>
+
+{% if link %}
+  <section class="card p-4 mb-5 border-l-4" style="border-left-color: var(--good)" x-data="{ ok: false }">
+    <h2 class="card-title mb-1">Odkaz pro {{ link_for.get_full_name|default:link_for.get_username }}</h2>
+    <p class="text-sm text-2 mb-2">Pošlete ho kolegovi zprávou nebo e‑mailem, nebo ho nechte otevřít rovnou tady. Platí {{ link_days }} dní a jen jednou: po nastavení hesla přestane fungovat. Přihlašovací jméno je <strong>{{ link_for.get_username }}</strong>.</p>
+    <div class="flex flex-wrap items-center gap-2">
+      <input id="odkaz" readonly value="{{ link }}" class="input text-sm py-1.5 flex-1 min-w-[16rem]" onfocus="this.select()">
+      <button type="button" class="btn btn-sm" @click="navigator.clipboard.writeText(document.getElementById('odkaz').value).then(() => ok = true)"><span x-show="!ok">Kopírovat</span><span x-show="ok" x-cloak>Zkopírováno</span></button>
+    </div>
+  </section>
+{% endif %}
+
+<div class="grid lg:grid-cols-3 gap-4">
+  <section class="card lg:col-span-2 overflow-x-auto">
+    <div class="px-4 pt-4 pb-2"><h2 class="card-title">Účty</h2></div>
+    <table class="table text-sm">
+      <thead><tr><th>Kdo</th><th>Přihlašovací jméno</th><th>Role</th><th>Stav</th><th></th></tr></thead>
+      <tbody>
+        {% for u in people %}
+          <tr{% if not u.is_active %} class="text-muted"{% endif %}>
+            <td><span class="font-medium">{{ u.get_full_name|default:"—" }}</span>{% if u.email %}<span class="block text-xs text-muted">{{ u.email }}</span>{% endif %}</td>
+            <td>{{ u.get_username }}</td>
+            <td>{{ u.get_role_display }}{% if u.is_superuser %} <span class="badge">superuživatel</span>{% endif %}</td>
+            <td>{% if not u.is_active %}<span class="badge">vypnutý</span>{% elif not u.has_usable_password %}<span class="badge badge-warn">čeká na heslo</span>{% elif u.last_login %}<span class="text-xs text-muted">naposledy {{ u.last_login|date:"d.m.Y" }}</span>{% else %}<span class="text-xs text-muted">zatím nepřihlášen</span>{% endif %}</td>
+            <td class="text-right whitespace-nowrap">
+              {% if u.pk != user.pk %}
+                <form method="post" class="inline-flex gap-1">{% csrf_token %}<input type="hidden" name="ucet" value="{{ u.pk }}">
+                  {% if u.is_active %}
+                    <button name="akce" value="odkaz" class="btn btn-sm" title="Nový jednorázový odkaz pro nastavení hesla – i když kolega heslo zapomněl">Odkaz</button>
+                    <button name="akce" value="vypnout" class="btn btn-sm" onclick="return confirm('Vypnout účet {{ u.get_username|escapejs }}? Data zůstanou, jen se nepřihlásí.')">Vypnout</button>
+                  {% else %}
+                    <button name="akce" value="zapnout" class="btn btn-sm">Zapnout</button>
+                  {% endif %}
+                </form>
+              {% else %}<span class="text-xs text-muted">vy</span>{% endif %}
+            </td>
+          </tr>
+        {% empty %}<tr><td colspan="5" class="text-muted py-6">Zatím žádný účet.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card p-4">
+    <h2 class="card-title mb-1">Nový účet kolegy</h2>
+    <p class="text-xs text-muted mb-3">Po uložení dostanete odkaz, kterým si kolega nastaví heslo.</p>
+    <form method="post" class="space-y-3">{% csrf_token %}<input type="hidden" name="akce" value="novy">
+      {% for error in form.non_field_errors %}<p class="text-sm" style="color: var(--bad)">{{ error }}</p>{% endfor %}
+      {% for field in form %}
+        <label class="block"><span class="text-xs text-2">{{ field.label }}</span>{{ field }}{% if field.help_text %}<span class="block text-xs text-muted">{{ field.help_text }}</span>{% endif %}{% for error in field.errors %}<span class="block text-xs" style="color: var(--bad)">{{ error }}</span>{% endfor %}</label>
+      {% endfor %}
+      <button class="btn btn-primary">{% icon "plus" %}Založit a vytvořit odkaz</button>
+    </form>
+    <div class="text-xs text-muted mt-4 space-y-1">
+      <p><strong>Správce</strong> dělá vše, zakládá účty a mění katalog. <strong>Diagnostik</strong> zadává měření, vydává zprávy, reviduje genové karty. <strong>Výzkumník</strong> jen čte, bez jmen. <strong>Trenér</strong> má vlastní portál jen pro sportovce, kteří mu sdílení potvrdí.</p>
+      <p>Správce a diagnostik se dostanou i do <em>Katalogu a nastavení</em> (pro pokročilé). Účet sportovce se tu nezakládá: vzniká z pozvánky na jeho kartě.</p>
+    </div>
+  </section>
+</div>
+{% endblock %}

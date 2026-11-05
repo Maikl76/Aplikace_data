@@ -1,0 +1,17 @@
+<div class="card p-6">
+  {% if invalid %}
+    <h1 class="text-lg font-semibold mb-1">Odkaz neplatí</h1>
+    <p class="text-sm text-2">Odkaz už byl použitý, vypršel (platí 7 dní), nebo je účet vypnutý. Požádejte správce o nový.</p>
+    <a href="{% url 'login' %}" class="btn mt-4">Přihlášení</a>
+  {% else %}
+    <h1 class="text-lg font-semibold mb-1">Nastavení hesla</h1>
+    <p class="text-sm text-muted mb-4">Účet <strong>{{ account.get_username }}</strong>{% if account.get_full_name %} ({{ account.get_full_name }}){% endif %}, role {{ account.get_role_display }}. Heslo má aspoň 12 znaků.</p>
+    <form method="post" class="space-y-4">{% csrf_token %}
+      {% for field in form %}
+        <label class="block"><span class="text-sm text-2">{{ field.label }}</span>{{ field }}
+          {% for error in field.errors %}<span class="block text-xs" style="color: var(--bad)">{{ error }}</span>{% endfor %}</label>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary w-full">Nastavit heslo a přihlásit</button>
+    </form>
+  {% endif %}
+</div>

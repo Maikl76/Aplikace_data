@@ -10,7 +10,6 @@ Ukázkové řádky (jsou v nich jména) se drží jen v session pro náhled
 a po uložení se zahodí. Přístroj si pamatuje jen názvy sloupců.
 """
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -68,9 +67,7 @@ def device_new(request):
         upload = request.FILES.get("file")
         protocol = protocols.filter(pk=form["protocol"]).first()
         error = None
-        if settings.DEMO_MODE:
-            error = "V ukázce se soubory nenahrávají. Prohlédněte si ukázkový přístroj DEXA."
-        elif not form["name"]:
+        if not form["name"]:
             error = "Napište název přístroje."
         elif protocol is None:
             error = "Vyberte, který test přístroj měří."
@@ -155,7 +152,6 @@ def device_edit(request, pk):
         "directions": Direction.choices,
         "segments": SEGMENTS,
         "has_sample": bool(rows),
-        "demo_mode": settings.DEMO_MODE,
     })
 
 
@@ -248,9 +244,8 @@ def device_sample(request, pk):
         return _denied(request)
     device = get_object_or_404(_devices(request.user), pk=pk)
     upload = request.FILES.get("file")
-    if settings.DEMO_MODE or upload is None:
-        messages.error(request, "V ukázce se soubory nenahrávají." if settings.DEMO_MODE
-                       else "Vyberte soubor.")
+    if upload is None:
+        messages.error(request, "Vyberte soubor.")
         return redirect("device_edit", pk=pk)
     try:
         sample = setup.read_sample(upload)

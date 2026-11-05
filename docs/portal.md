@@ -62,8 +62,8 @@ každý pokus je přesměruje zpět do portálu.
 
 ## Portál trenéra
 
-Účet trenéra zakládá správce v administraci (role Trenér, jméno
-a příjmení). Trenér v portálu (`/trener/`) vidí:
+Účet trenéra zakládá správce na stránce Kolegové (role Trenér, jméno
+a příjmení; trenér si heslo nastaví z jednorázového odkazu). Trenér v portálu (`/trener/`) vidí:
 
 - jen sportovce, kteří mu sdílení potvrdili – jménem, s klíčovými
   ukazateli, trendy, stranovými rozdíly a seznamem měření,

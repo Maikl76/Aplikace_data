@@ -55,11 +55,6 @@
       Do databáze se z ukázky nic nezapíše.</p>
   </div>
 
-  {% if demo_mode %}
-    <p class="text-sm px-3 py-2 rounded-lg" style="background: var(--warn-soft); color: var(--warn)">
-      V ukázce je nahrávání souborů vypnuté. Jak průvodce vypadá, uvidíte u ukázkového
-      přístroje <strong>DEXA</strong> v Importu → Přístroje.</p>
-  {% endif %}
-  <button type="submit" class="btn btn-primary" {% if demo_mode %}disabled{% endif %}>Pokračovat {% icon "chevron-right" %}</button>
+  <button type="submit" class="btn btn-primary">Pokračovat {% icon "chevron-right" %}</button>
 </form>
 {% endblock %}

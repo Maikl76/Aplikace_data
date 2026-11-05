@@ -35,7 +35,7 @@
 <body class="overflow-x-hidden" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 {% if demo_mode %}
   <div class="bg-amber-500 text-black text-sm font-medium px-4 py-2 text-center">
-    UKÁZKA — data jsou vygenerovaná. Nevkládejte sem reálná data sportovců.
+    ZKUŠEBNÍ PROVOZ — data jsou smyšlená. Nevkládejte sem reálná data sportovců.
   </div>
 {% endif %}
 {% if read_only %}
@@ -85,6 +85,7 @@
       {% nav_link "import_list" "Import" "upload" %}
       {% nav_link "sport_list" "Sporty a testy" "list" %}
       <div class="pt-3 mt-3 border-t" style="border-color: var(--border)">
+        {% if user.is_superuser or user.role == "admin" %}{% nav_link "colleagues" "Kolegové" "users" %}{% endif %}
         {% nav_link "/admin/" "Katalog a nastavení" "settings" "/admin/" %}
         {% nav_link "about" "O aplikaci" "info" %}
       </div>

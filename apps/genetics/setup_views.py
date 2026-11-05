@@ -8,7 +8,6 @@ jedním tlačítkem a s vysvětlením, co se po člověku chce.
 import tempfile
 from pathlib import Path
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -105,9 +104,6 @@ def setup_cards(request):
     variants = _catalog(GeneVariant, request.user).count()
     if request.method == "POST":
         upload = request.FILES.get("soubor")
-        if settings.DEMO_MODE:
-            messages.error(request, "Toto je veřejná ukázka, nahrávání souborů je v ní vypnuté.")
-            return redirect("genetics_setup_cards")
         if upload is None or not upload.name.lower().endswith(".docx"):
             messages.error(request, "Vyberte soubor Word (.docx) s genovými kartami.")
             return redirect("genetics_setup_cards")
@@ -133,8 +129,7 @@ def setup_cards(request):
         if not result.created and not result.skipped:
             messages.warning(request, "V souboru nebyla žádná karta (nadpis 1 ve tvaru „GEN / rsID“).")
         return redirect("genetics_home")
-    return render(request, "genetics/setup_cards.html", {"variants": variants,
-                                                          "demo": settings.DEMO_MODE})
+    return render(request, "genetics/setup_cards.html", {"variants": variants})
 
 
 # --- 3. panel a laboratoř -------------------------------------------------------------

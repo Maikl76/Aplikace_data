@@ -153,7 +153,7 @@
         <div class="text-muted" x-show="!id.date_column">Chybí datum měření (krok 2).</div>
       </div>
     </div>
-    <button type="submit" class="btn btn-primary" {% if demo_mode %}disabled title="V ukázce se nastavení neukládá"{% endif %}>{% icon "check" %}Uložit přístroj</button>
+    <button type="submit" class="btn btn-primary">{% icon "check" %}Uložit přístroj</button>
   </div>
 </form>
 
@@ -165,7 +165,7 @@
       Přiřazení, které platí dál, zůstane.</p>
     <div class="flex flex-wrap gap-2">
       <input type="file" name="file" accept=".xlsx,.csv" required class="text-sm">
-      <button type="submit" class="btn btn-sm" {% if demo_mode %}disabled{% endif %}>{% icon "upload" %}Načíst</button>
+      <button type="submit" class="btn btn-sm">{% icon "upload" %}Načíst</button>
     </div>
   </form>
   <form method="post" action="{% url 'device_delete' device.pk %}" class="card p-4"
@@ -174,7 +174,7 @@
     <h2 class="card-title">Smazat přístroj</h2>
     <p class="text-sm text-muted mb-3">Soubory z něj se přestanou rozpoznávat. Data, která se z něj
       už importovala, zůstanou.</p>
-    <button type="submit" class="btn btn-sm" style="color: var(--bad)" {% if demo_mode %}disabled{% endif %}>Smazat</button>
+    <button type="submit" class="btn btn-sm" style="color: var(--bad)">Smazat</button>
   </form>
 </div>
 

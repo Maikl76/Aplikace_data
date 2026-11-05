@@ -30,18 +30,11 @@
         {% for d in ready_devices %}<option value="{{ d.adapter_code }}">{{ d.name }}</option>{% endfor %}
       </select>
     </label>
-    <button type="submit" class="btn btn-primary" {% if demo_mode %}disabled{% endif %}>Načíst a zkontrolovat</button>
+    <button type="submit" class="btn btn-primary">Načíst a zkontrolovat</button>
   </div>
-  {% if demo_mode %}
-    <p class="text-sm mt-3 px-3 py-2 rounded-lg" style="background: var(--warn-soft); color: var(--warn)">
-      V ukázce je nahrávání vypnuté. Jak kontrola importu vypadá, je vidět
-      na dříve nahraném souboru v historii níže.
-    </p>
-  {% else %}
-    <p class="text-xs text-muted mt-3">
-      Soubor se nejdřív jen ukáže ke kontrole – do databáze se nic nezapíše, dokud náhled nepotvrdíte.
-    </p>
-  {% endif %}
+  <p class="text-xs text-muted mt-3">
+    Soubor se nejdřív jen ukáže ke kontrole – do databáze se nic nezapíše, dokud náhled nepotvrdíte.
+  </p>
 </form>
 
 <section class="card p-4 mb-6">
@@ -103,7 +96,7 @@
           <td class="text-right whitespace-nowrap">
             {% if b.status == 'parsed' %}
               <a class="btn btn-sm btn-primary" href="{% url 'import_detail' b.pk %}">zkontrolovat</a>
-            {% elif b.status == 'committed' and not demo_mode %}
+            {% elif b.status == 'committed' %}
               <form method="post" action="{% url 'import_restage' b.pk %}" class="inline">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-sm"

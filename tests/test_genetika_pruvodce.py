@@ -113,15 +113,15 @@ def test_karty_se_nahraji_z_wordu_v_aplikaci(org, tmp_path):
     assert "Soubor nejde načíst" in text
 
 
-def test_v_ukazce_se_karty_nenahravaji(org, tmp_path, settings):
+def test_zkusebni_provoz_nahrava_karty_stejne_jako_laborator(org, tmp_path, settings):
     settings.DEMO_MODE = True
     _, client = _user(org, Role.LAB, "laborant")
     url = reverse("genetics_setup_cards")
-    assert "nenahrávají" in client.get(url).content.decode()
+    assert 'name="soubor"' in client.get(url).content.decode()
     path = _docx(tmp_path / "karty.docx", KARTY)
     with path.open("rb") as handle:
         text = client.post(url, {"soubor": handle}, follow=True).content.decode()
-    assert "veřejná ukázka" in text and not GeneVariant.objects.exists()
+    assert "Načteno" in text and GeneVariant.objects.filter(rsid="rs1799752").exists()
 
 
 def test_karty_nahrava_jen_spravce_nebo_laborant(org):
