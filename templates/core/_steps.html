@@ -12,7 +12,7 @@
   <ol class="grid {{ grid }} gap-3">
     {% for s in steps %}
       <li class="{% if compact %}p-2{% else %}p-3{% endif %} rounded-lg flex flex-col gap-1" style="background: var(--surface-2)">
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <span class="avatar {% if compact %}w-6 h-6{% else %}w-7 h-7{% endif %} text-xs {% if s.done %}badge-good{% endif %}">{% if s.done %}✓{% else %}{{ s.n }}{% endif %}</span>
           {% if compact and s.url %}<a href="{{ s.url }}" class="font-medium">{{ s.title }}</a>{% else %}<span class="font-medium">{{ s.title }}</span>{% endif %}
           {% if s.optional %}<span class="badge">volitelné</span>{% endif %}

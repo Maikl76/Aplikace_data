@@ -8,7 +8,7 @@ from apps.core.models import AuditLog
 from apps.measurements.models import TestSession
 from apps.subjects.models import Consent
 
-from . import llm, services
+from . import llm, narrative, services
 from .models import Audience, Report, ReportDelivery
 
 
@@ -82,13 +82,27 @@ def report_detail(request, pk):
             raise
         messages.error(request, str(exc))
         return redirect("genetics_subject", pk=report.subject_id)
+    genetic_problems = []
     if report.is_genetic:
         from apps.genetics.report import AUDIENCES, text_problems
 
-        if problems := text_problems(report):
+        if genetic_problems := text_problems(report):
             messages.warning(request, "Text zprávy obsahuje nepřípustný výrok: „"
-                             + "“, „".join(problems) + "“. Zpráva se nevydá, dokud ho neodstraníte.")
+                             + "“, „".join(genetic_problems)
+                             + "“. Zpráva se nevydá, dokud ho neodstraníte.")
+    from apps.core.steps import next_step
+
+    from .steps import report_steps
+
+    has_consent = Consent.has(report.subject, Consent.Scope.REPORT_HANDOVER)
+    number_problems = (narrative.unsupported_numbers(report, report.summary)
+                       if report.is_editable and not report.is_genetic else [])
+    steps = report_steps(
+        report, has_consent=has_consent, number_problems=number_problems,
+        text_problems=genetic_problems,
+        recommendations=len(context.get("recommendations") or []))
     context.update({
+        "steps": steps, "next_step": next_step(steps),
         "may_open": services.may_open(report, request.user),
         # Zaškrtávátko „jméno ve zprávě“ jen tomu, kdo jméno vidí a kdo ho má kde vzít.
         "may_show_name": request.user.sees_identity and report.jmeno != report.subject.code,

@@ -29,7 +29,9 @@
   {% endif %}
 </div>
 
-<div class="grid lg:grid-cols-3 gap-6">
+{% steps steps heading="Postup zprávy" compact=True may_act=read_only|yesno:"False,True" %}
+
+<div class="grid lg:grid-cols-3 gap-6" id="koncept">
   <div class="lg:col-span-2 space-y-4">
     {% if report.is_writing %}
     <section class="card p-5" style="border-color: var(--accent)">
@@ -50,7 +52,7 @@
     {% elif report.is_editable %}
     <form method="post" id="upravy" class="space-y-4">
       {% csrf_token %}
-      <section class="card p-4">
+      <section class="card p-4" id="souhrn">
         <div class="flex flex-wrap items-baseline gap-2 mb-2">
           <h2 class="card-title">Souhrn</h2>
           <span class="text-xs text-muted">
@@ -90,7 +92,7 @@
       </section>
     </form>
     {% else %}
-    <section class="card p-4">
+    <section class="card p-4" id="souhrn">
       <h2 class="card-title mb-2">Souhrn</h2>
       <div class="text-sm whitespace-pre-line">{{ report.summary }}</div>
     </section>
@@ -165,7 +167,7 @@
     {% endif %}
 
     {% if report.is_editable and not report.is_writing %}
-      <section class="card p-4" {% if report.note_pending_review %}style="border-color: var(--warn)"{% endif %}>
+      <section class="card p-4" id="doporuceni" {% if report.note_pending_review %}style="border-color: var(--warn)"{% endif %}>
         <label class="block">
           <span class="card-title">Komentář a doporučení diagnostika</span>
           <span class="block text-xs text-muted">ve zprávě v části Doporučení</span>
@@ -231,7 +233,7 @@
       <section class="card p-4 text-sm text-muted">Vydat půjde, až model dopíše souhrn a zkontrolujete ho.</section>
     {% elif report.is_editable %}
       <form method="post" action="{% url 'report_release' report.pk %}"
-            class="card p-4">
+            class="card p-4" id="vydat">
         {% csrf_token %}
         <h2 class="card-title mb-2">Vydat zprávu</h2>
         <p class="text-sm text-2 mb-3">
@@ -256,7 +258,7 @@
         {% endif %}
       </form>
     {% else %}
-      <section class="card p-4">
+      <section class="card p-4" id="predani">
         <h2 class="card-title mb-2">Předání</h2>
         {% if ma_souhlas %}
           <form method="post" action="{% url 'report_deliver' report.pk %}" class="space-y-2">
@@ -290,7 +292,7 @@
       </section>
 
       <form method="post" action="{% url 'report_supersede' report.pk %}"
-            class="card p-4">
+            class="card p-4" id="oprava">
         {% csrf_token %}
         <h2 class="card-title mb-2">Oprava</h2>
         <p class="text-sm text-2 mb-3">

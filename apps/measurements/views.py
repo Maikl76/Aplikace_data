@@ -205,11 +205,18 @@ def session_detail(request, pk):
     runs = _in_battery_order(session, session.protocol_runs.select_related("protocol").annotate(
         hodnot=Count("trials__measurements"), pokusu=Count("trials", distinct=True)))
     rpe = questionnaires.questionnaire(questionnaires.RPE, session.organization)
+    from apps.core.steps import next_step
+
+    from .steps import session_steps
+
+    reports = list(session.reports.order_by("-created_at"))
+    steps = session_steps(session, runs, unstable, reports)
     return render(request, "measurements/session_detail.html", {
         "session": session,
         "unstable": unstable,
         "runs": runs,
-        "reports": session.reports.order_by("-created_at"),
+        "reports": reports,
+        "steps": steps, "next_step": next_step(steps),
         "add_form": AddProtocolForm(),
         "rpe": rpe,
         "rpe_question": rpe.questions.first() if rpe else None,
