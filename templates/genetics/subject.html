@@ -2,7 +2,7 @@
 {% load ui %}
 {% block title %}Genetika – {{ display_name }} – FTVS{% endblock %}
 {% block content %}
-<div class="card p-5 mb-5 flex flex-wrap items-center gap-4">
+<div class="card p-5 mb-5 flex flex-wrap items-center gap-4" id="souhlas">
   <span class="avatar w-14 h-14 text-lg">{{ display_name|initials }}</span>
   <div class="min-w-0 flex-1">
     <a href="{% url 'subject_detail' subject.pk %}" class="text-sm link">← karta sportovce</a>
@@ -29,33 +29,28 @@
   </div>
 {% endif %}
 
+<section class="card p-4 mb-5">
+  <div class="flex flex-wrap items-center gap-2 mb-3">
+    <h2 class="card-title flex-1">Postup</h2>
+    {% if next_step %}<a href="#{{ next_step.anchor }}" class="btn btn-primary btn-sm">{% icon "chevron-right" %}Další krok: {{ next_step.title }}</a>{% else %}<span class="badge badge-good">vše hotovo</span>{% endif %}
+  </div>
+  <ol class="grid sm:grid-cols-2 lg:grid-cols-5 gap-2 text-sm">
+    {% for s in steps %}
+      <li class="p-2 rounded-lg" style="background: var(--surface-2)">
+        <a href="#{{ s.anchor }}" class="flex items-center gap-2 font-medium"><span class="avatar w-6 h-6 text-xs {% if s.done %}badge-good{% endif %}">{% if s.done %}✓{% else %}{{ s.n }}{% endif %}</span>{{ s.title }}</a>
+        <p class="text-xs text-muted mt-1">{{ s.hint }}</p>
+      </li>
+    {% endfor %}
+  </ol>
+</section>
+
 <div class="grid lg:grid-cols-5 gap-4">
   <section class="lg:col-span-3 space-y-4">
-    <div class="card p-4">
-      <div class="flex flex-wrap items-center gap-2 mb-1">
-        <h2 class="card-title flex-1">Dotazník ke genetickému vyšetření</h2>
-        {% if questionnaire %}<a href="{% url 'genetics_questionnaire' subject.pk %}" class="btn btn-sm">{% icon "edit" %}{% if response %}Vyplnit znovu{% else %}Vyplnit{% endif %}</a>{% endif %}
-      </div>
-      {% if response %}
-        <p class="text-xs text-muted mb-2">Vyplněno {{ response.created_at|date:"d.m.Y" }} · {{ response.get_source_display|lower }}</p>
-        <details class="text-sm"><summary class="cursor-pointer link">odpovědi</summary>
-          <div class="mt-2 space-y-2">
-            {% for section in answers %}
-              <div>{% if section.name %}<div class="text-xs text-muted">{{ section.name }}</div>{% endif %}
-                {% for item in section.questions %}<div class="flex gap-2"><span class="flex-1 text-2">{{ item.question.text }}</span><span class="font-medium text-right">{% if item.answer %}{{ item.answer.display|default:"—" }}{% else %}—{% endif %}</span></div>{% endfor %}
-              </div>
-            {% endfor %}
-          </div>
-        </details>
-      {% else %}
-        <p class="text-sm text-muted">Zatím nevyplněn. Sportovec ho vyplní v portálu, nebo ho zapište tady.</p>
-      {% endif %}
-    </div>
-
+    <div id="overeni"></div>
     {% for s in samples %}
       <div class="card p-4">
         <div class="flex flex-wrap items-center gap-2 mb-2">
-          <h2 class="card-title flex-1">{{ s.panel }}</h2>
+          <h2 class="card-title flex-1">{% if forloop.first %}③ {% endif %}{{ s.panel }}</h2>
           <span class="badge {% if s.status == 'verified' %}badge-good{% elif s.status == 'received' %}badge-warn{% endif %}">{{ s.get_status_display }}</span>
         </div>
         <p class="text-xs text-muted mb-3">{% if s.provider %}{{ s.provider }} · {% endif %}{% if s.sampled_on %}odběr {{ s.sampled_on|date:"d.m.Y" }} · {% endif %}{% if s.reported_on %}výsledek {{ s.reported_on|date:"d.m.Y" }} · {% endif %}{% if s.external_reference %}ref. {{ s.external_reference }} · {% endif %}zadal {{ s.entered_by.get_username|default:"—" }}{% if s.verified_by %} · ověřil {{ s.verified_by.get_username }} {{ s.verified_at|date:"d.m.Y" }}{% endif %}{% if s.invalid_reason %} · {{ s.invalid_reason }}{% endif %}</p>
@@ -78,37 +73,35 @@
         {% endif %}
       </div>
     {% empty %}
-      <div class="card p-6 text-sm text-muted">Zatím žádný vzorek.</div>
+      <div class="card p-6 text-sm text-muted">③ Zatím žádný vzorek. Po jeho založení tady potvrdíte, že výsledek patří tomuto sportovci.</div>
     {% endfor %}
+
+    <div class="card p-4" id="dotaznik">
+      <div class="flex flex-wrap items-center gap-2 mb-1">
+        <h2 class="card-title flex-1">④ Dotazník ke genetickému vyšetření</h2>
+        {% if questionnaire %}<a href="{% url 'genetics_questionnaire' subject.pk %}" class="btn btn-sm">{% icon "edit" %}{% if response %}Vyplnit znovu{% else %}Vyplnit{% endif %}</a>{% endif %}
+      </div>
+      {% if response %}
+        <p class="text-xs text-muted mb-2">Vyplněno {{ response.created_at|date:"d.m.Y" }} · {{ response.get_source_display|lower }}</p>
+        <details class="text-sm"><summary class="cursor-pointer link">odpovědi</summary>
+          <div class="mt-2 space-y-2">
+            {% for section in answers %}
+              <div>{% if section.name %}<div class="text-xs text-muted">{{ section.name }}</div>{% endif %}
+                {% for item in section.questions %}<div class="flex gap-2"><span class="flex-1 text-2">{{ item.question.text }}</span><span class="font-medium text-right">{% if item.answer %}{{ item.answer.display|default:"—" }}{% else %}—{% endif %}</span></div>{% endfor %}
+              </div>
+            {% endfor %}
+          </div>
+        </details>
+      {% else %}
+        <p class="text-sm text-muted">Zatím nevyplněn. Sportovec ho vyplní v portálu, nebo ho zapište tady.</p>
+      {% endif %}
+    </div>
+
   </section>
 
   <section class="lg:col-span-2 space-y-4">
-  <div class="card p-4">
-    <h2 class="card-title mb-1">Genetická zpráva</h2>
-    <ul class="text-sm mb-3">
-      {% for r in reports %}
-        <li class="flex items-center gap-2 py-1 border-t" style="border-color: var(--border)">
-          <a href="{% url 'report_detail' r.pk %}" class="link font-medium">{{ r.report_number }}</a>
-          <span class="text-xs text-muted flex-1">{{ r.audience_for }} · {{ r.created_at|date:"d.m.Y" }}</span>
-          <span class="badge {% if r.status == 'released' %}badge-good{% elif r.status == 'draft' %}{% else %}badge-warn{% endif %}">{{ r.get_status_display }}</span>
-        </li>
-      {% empty %}<li class="text-muted">Zatím žádná.</li>{% endfor %}
-    </ul>
-    {% if usable_samples %}
-      <form method="post" action="{% url 'genetics_report_create' subject.pk %}" class="flex flex-wrap items-center gap-2">{% csrf_token %}
-        {% if usable_samples|length > 1 %}<select name="vzorek" class="input w-auto text-sm py-1.5">{% for s in usable_samples %}<option value="{{ s.pk }}">{{ s.panel }} · {{ s.reported_on|date:"d.m.Y"|default:s.created_at|date:"d.m.Y" }}</option>{% endfor %}</select>{% else %}<input type="hidden" name="vzorek" value="{{ usable_samples.0.pk }}">{% endif %}
-        <select name="pro" class="input w-auto text-sm py-1.5">{% for value, label in audiences %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
-        {% if model_choices|length > 1 %}<select name="model" class="input w-auto text-sm py-1.5" title="Který model napíše souhrn">{% for value, label in model_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>{% endif %}
-        <button class="btn btn-primary btn-sm">{% icon "file" %}Sestavit koncept</button>
-      </form>
-      <p class="text-xs text-muted mt-2">Text pro genotyp je doslova ze schválené karty; bez schválené karty zůstane varianta bez interpretace. Trenér genetickou zprávu nedostává.</p>
-    {% else %}
-      <p class="text-sm text-muted">Zprávu lze sestavit až z ověřeného vzorku.</p>
-    {% endif %}
-  </div>
-
-  <div class="card p-4">
-    <h2 class="card-title mb-1">Nový vzorek a výsledek</h2>
+  <div class="card p-4" id="vzorek">
+    <h2 class="card-title mb-1">② Nový vzorek a výsledek</h2>
     {% if entry_blocked %}
       <p class="text-sm text-muted">{{ entry_blocked }}</p>
     {% else %}
@@ -135,6 +128,31 @@
       </form>
     {% endif %}
   </div>
+
+  <div class="card p-4" id="zprava">
+    <h2 class="card-title mb-1">⑤ Genetická zpráva</h2>
+    <ul class="text-sm mb-3">
+      {% for r in reports %}
+        <li class="flex items-center gap-2 py-1 border-t" style="border-color: var(--border)">
+          <a href="{% url 'report_detail' r.pk %}" class="link font-medium">{{ r.report_number }}</a>
+          <span class="text-xs text-muted flex-1">{{ r.audience_for }} · {{ r.created_at|date:"d.m.Y" }}</span>
+          <span class="badge {% if r.status == 'released' %}badge-good{% elif r.status == 'draft' %}{% else %}badge-warn{% endif %}">{{ r.get_status_display }}</span>
+        </li>
+      {% empty %}<li class="text-muted">Zatím žádná.</li>{% endfor %}
+    </ul>
+    {% if usable_samples %}
+      <form method="post" action="{% url 'genetics_report_create' subject.pk %}" class="flex flex-wrap items-center gap-2">{% csrf_token %}
+        {% if usable_samples|length > 1 %}<select name="vzorek" class="input w-auto text-sm py-1.5">{% for s in usable_samples %}<option value="{{ s.pk }}">{{ s.panel }} · {{ s.reported_on|date:"d.m.Y"|default:s.created_at|date:"d.m.Y" }}</option>{% endfor %}</select>{% else %}<input type="hidden" name="vzorek" value="{{ usable_samples.0.pk }}">{% endif %}
+        <select name="pro" class="input w-auto text-sm py-1.5">{% for value, label in audiences %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+        {% if model_choices|length > 1 %}<select name="model" class="input w-auto text-sm py-1.5" title="Který model napíše souhrn">{% for value, label in model_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>{% endif %}
+        <button class="btn btn-primary btn-sm">{% icon "file" %}Sestavit koncept</button>
+      </form>
+      <p class="text-xs text-muted mt-2">Text pro genotyp je doslova ze schválené karty; bez schválené karty zůstane varianta bez interpretace. Trenér genetickou zprávu nedostává.</p>
+    {% else %}
+      <p class="text-sm text-muted">Zprávu lze sestavit až z ověřeného vzorku.</p>
+    {% endif %}
+  </div>
+
   </section>
 </div>
 {% endblock %}

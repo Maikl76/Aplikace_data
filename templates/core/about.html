@@ -36,6 +36,7 @@
       <li><a href="#tym">Týmový přehled</a></li>
       <li><a href="#zpravy">Zprávy a AI</a></li>
       <li><a href="#objednavky">Objednávky od klientů</a></li>
+      <li><a href="#genetika">Genetika</a></li>
       <li><a href="#katalog">Katalog a nastavení</a></li>
       <li><a href="#vyhodnoceni">Jak aplikace vyhodnocuje</a></li>
       <li><a href="#data">Ochrana dat</a></li>
@@ -372,6 +373,18 @@
         <li><strong>Zamítnout</strong> – termín se uvolní; klient dostane zprávu.</li>
       </ul>
       <p class="text-sm text-muted">Termín drží i žádost, která čeká na schválení, takže se na jedno místo nemohou objednat dva. Klientovi chodí e-maily (přijato, potvrzeno, zamítnuto) a má odkaz, kde vidí stav objednávky. E-maily fungují, až bude nastavený poštovní server – do té doby se jen zapíší do záznamu serveru a laborant klienta kontaktuje sám.</p>
+    </section>
+
+    {# ================================================================== #}
+    <section id="genetika" class="card p-5" data-kapitola>
+      <h2>Genetika</h2>
+      <p>Genové karty (co o variantě smíme říkat), souhlas a vzorek sportovce a genetická zpráva. Hlavní riziko genetiky ve sportu je říct víc, než víme – proto jde do zprávy jen <strong>schválená karta</strong> (schvaluje garant oblasti) a každá věta má dohledatelný původ.</p>
+      <ol>
+        <li><strong>Nastavení</strong> ve čtyřech krocích na stránce <a class="link" href="{% url 'genetics_home' %}">Genetika</a>: garanti oblastí → karty z Wordu → panel a laboratoř → revize a schválení. Každý krok má tlačítko a říká, co chybí.</li>
+        <li><strong>U sportovce</strong> (karta sportovce → Genetika) vede postup pěti kroky: souhlas → vzorek a výsledek → ověření → dotazník → zpráva. Trenér genetiku nevidí nikdy.</li>
+        <li><strong>Zpráva</strong> se sestaví sama ze schválených karet, dotazníku a měření; model píše jen spojovací souhrn a i ten se kontroluje.</li>
+      </ol>
+      <p class="text-sm text-muted">Podrobněji: <a class="link" href="{% url 'genetics_guide' %}">Genetika → Jak to funguje</a>. Administrace Djanga je tu jen pro pokročilé (důkazy, zdroje, interakce).</p>
     </section>
 
     {# ================================================================== #}

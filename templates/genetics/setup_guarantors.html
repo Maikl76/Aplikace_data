@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Garanti oblastí – FTVS{% endblock %}
+{% block content %}
+<div class="max-w-3xl">
+  <a href="{% url 'genetics_home' %}" class="text-sm link">← Genetika</a>
+  <h1 class="text-2xl font-semibold leading-tight">Krok 1 · Garanti oblastí</h1>
+  <p class="text-sm text-2 mt-1 mb-4">Za každou oblast odpovídá metodik. Jen garant smí schválit genovou kartu své oblasti – a schválená karta je jediné znění, které jde do zpráv. Vyberte u každé oblasti aspoň jednoho člověka (správce nebo diagnostika).</p>
+  <form method="post" class="space-y-3">{% csrf_token %}
+    {% for row in rows %}
+      <section class="card p-4">
+        <h2 class="card-title">{{ row.domain.name }}</h2>
+        {% if row.domain.description %}<p class="text-xs text-muted mb-2">{{ row.domain.description }}</p>{% endif %}
+        <div class="flex flex-wrap gap-3 text-sm">
+          {% for p in people %}
+            <label class="inline-flex items-center gap-1"><input type="checkbox" name="garant_{{ row.domain.pk }}" value="{{ p.pk }}" {% if p.pk in row.chosen %}checked{% endif %}> {{ p.get_full_name|default:p.get_username }}</label>
+          {% empty %}<span class="text-muted">Žádný účet správce ani diagnostika v pracovišti.</span>{% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+    <button class="btn btn-primary">{% icon "check" %}Uložit garanty</button>
+  </form>
+</div>
+{% endblock %}

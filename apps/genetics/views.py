@@ -76,11 +76,17 @@ def home(request):
                       if crypto.configured() else []}
         except Exception:  # bez klíče nebo s jiným klíčem genotypy nejdou číst
             vyzkum = {"osob": 0, "minimum": research.MIN_SUBJECTS, "frekvence": []}
+    from .setup_views import setup_steps
+
+    steps = setup_steps(user)
     return render(request, "genetics/home.html", {
         "variants": variants, "review": review, "domains": domains, "panels": panels,
         "samples": samples, "key_missing": not crypto.configured(),
         "approved_count": sum(1 for v in variants if v.approved),
-        "vyzkum": vyzkum,
+        "vyzkum": vyzkum, "steps": steps,
+        "next_step": next((s for s in steps if not s["done"]), None),
+        "may_edit": user.is_superuser or user.role in (Role.ADMIN, Role.LAB),
+        "is_admin": _is_admin(user),
     })
 
 
@@ -162,9 +168,9 @@ def card_action(request, pk):
                                       "které smí do zpráv.")
         elif action == "nova_verze":
             new = services.new_version(card, by=user)
-            messages.success(request, f"Vznikla verze {new.version} jako návrh; upravte ji "
-                                      "v administraci.")
-            return redirect("genetics_card", pk=new.pk)
+            messages.success(request, f"Vznikla verze {new.version} jako návrh – upravte ji "
+                                      "a pošlete k revizi.")
+            return redirect("genetics_card_edit", pk=new.pk)
         elif action == "vyradit":
             if not _is_admin(user):
                 return _denied(request, "Vyřadit kartu smí jen správce.")
@@ -231,7 +237,7 @@ def subject(request, pk):
                      else crypto.CHYBI if not crypto.configured()
                      else state.blocked_reason or ("Sportovec nemá platný souhlas s genetickými daty."
                                                    if not state.valid else "")
-                     if panels else "Není žádný aktivní panel variant (administrace → Genetika).")
+                     if panels else "Není žádný aktivní panel variant (Genetika → krok 3 Panel a laboratoř).")
     form = SampleForm(panel) if panel else None
     if request.method == "POST" and request.POST.get("akce") == "vzorek":
         if entry_blocked:
@@ -259,10 +265,13 @@ def subject(request, pk):
 
     from .report import AUDIENCES
 
+    reports = list(Report.objects.filter(subject=subject, kind=Report.Kind.GENETICS)
+                   .order_by("-created_at"))
+    usable = [s for s in samples if s.is_usable]
+    steps = _subject_steps(state, samples, usable, response, reports)
     return render(request, "genetics/subject.html", {
-        "reports": Report.objects.filter(subject=subject, kind=Report.Kind.GENETICS)
-                                 .order_by("-created_at"),
-        "usable_samples": [s for s in samples if s.is_usable],
+        "reports": reports, "usable_samples": usable, "steps": steps,
+        "next_step": next((s for s in steps if not s["done"]), None),
         "audiences": [(a, Audience(a).label) for a in AUDIENCES],
         "model_choices": model_choices() if llm.is_enabled() else [],
         "subject": subject, "display_name": subject.display_for(request.user),
@@ -331,6 +340,25 @@ def questionnaire(request, pk):
         "back_label": f"Genetika · {subject.display_for(request.user)}",
         "who": True,
     })
+
+
+def _subject_steps(state, samples, usable, response, reports) -> list[dict]:
+    """Pět kroků u sportovce: souhlas → vzorek → ověření → dotazník → zpráva."""
+    received = [s for s in samples if s.status == GeneticSample.Status.RECEIVED]
+    return [
+        {"n": 1, "title": "Souhlas", "done": state.valid, "anchor": "souhlas",
+         "hint": state.blocked_reason or ("platí" if state.valid else "zapište převzatý podepsaný "
+                                                                   "souhlas, nebo ho dá sportovec v portálu")},
+        {"n": 2, "title": "Vzorek a výsledek", "done": bool(usable or received), "anchor": "vzorek",
+         "hint": "opište genotypy z výsledku laboratoře"},
+        {"n": 3, "title": "Ověření", "done": bool(usable), "anchor": "overeni",
+         "hint": ("potvrďte, že výsledek patří tomuto sportovci" if received
+                  else "po založení vzorku")},
+        {"n": 4, "title": "Dotazník", "done": response is not None, "anchor": "dotaznik",
+         "hint": "cíl, trénink, zkušenost, kofein, laktóza – v portálu nebo tady"},
+        {"n": 5, "title": "Zpráva", "done": bool(reports), "anchor": "zprava",
+         "hint": "sestavte koncept, zkontrolujte a vydejte"},
+    ]
 
 
 def _genotype_row(genotype) -> dict:

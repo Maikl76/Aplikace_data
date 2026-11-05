@@ -5,10 +5,26 @@
 <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
   <div>
     <h1 class="text-2xl font-semibold">Genetika</h1>
-    <p class="text-sm text-muted mt-1">Genové karty, panel variant a garanti oblastí. Do zprávy smí jen schválená verze karty; schvaluje ji garant oblasti.</p>
+    <p class="text-sm text-muted mt-1">Nastavení ve čtyřech krocích, pak práce u sportovce (karta sportovce → Genetika). Do zprávy smí jen schválená karta; schvaluje ji garant oblasti.</p>
   </div>
-  {% if user.is_staff %}<a href="/admin/genetics/" class="btn">{% icon "settings" %}Administrace genetiky</a>{% else %}<span class="text-xs text-muted">Karty, panel a garanty upravuje účet s přístupem do administrace (zapíná správce: „Stav týmu“).</span>{% endif %}
+  <a href="{% url 'genetics_guide' %}" class="btn">{% icon "info" %}Jak to funguje</a>
 </div>
+
+<section class="card p-4 mb-5" id="pruvodce">
+  <div class="flex flex-wrap items-center gap-2 mb-3">
+    <h2 class="card-title flex-1">Průvodce nastavením</h2>
+    {% if not next_step %}<span class="badge badge-good">vše nastaveno</span>{% elif next_step.admin_only and not is_admin %}<span class="badge badge-warn">Další krok: {{ next_step.title }} – nastavuje správce</span>{% else %}<a href="{{ next_step.url }}" class="btn btn-primary btn-sm">{% icon "chevron-right" %}Další krok: {{ next_step.title }}</a>{% endif %}
+  </div>
+  <ol class="grid md:grid-cols-2 xl:grid-cols-4 gap-3">
+    {% for s in steps %}
+      <li class="p-3 rounded-lg flex flex-col gap-1" style="background: var(--surface-2)">
+        <div class="flex items-center gap-2"><span class="avatar w-7 h-7 text-xs {% if s.done %}badge-good{% endif %}">{% if s.done %}✓{% else %}{{ s.n }}{% endif %}</span><span class="font-medium">{{ s.title }}</span></div>
+        <p class="text-xs text-2 flex-1">{{ s.text }}</p>
+        {% if s.admin_only and not is_admin %}<span class="text-xs text-muted">nastavuje správce</span>{% elif may_edit %}<a href="{{ s.url }}" class="btn btn-sm self-start {% if not s.done and s == next_step %}btn-primary{% endif %}">{{ s.button }}</a>{% endif %}
+      </li>
+    {% endfor %}
+  </ol>
+</section>
 
 {% if key_missing %}
   <div class="card px-4 py-3 mb-5 text-sm border-l-4 flex gap-3 items-start" style="border-left-color: var(--warn)">
@@ -33,10 +49,10 @@
 {% endif %}
 
 <div class="grid lg:grid-cols-3 gap-4 mb-5">
-  <section class="card lg:col-span-2 overflow-x-auto">
+  <section class="card lg:col-span-2 overflow-x-auto" id="karty">
     <div class="px-4 pt-4 pb-2 flex items-center justify-between"><h2 class="card-title">Varianty a karty</h2><span class="text-xs text-muted">{{ approved_count }} z {{ variants|length }} schváleno</span></div>
     <table class="table text-sm">
-      <thead><tr><th>Varianta</th><th>Oblast</th><th>Genotypy</th><th>Schválená</th><th>Rozpracovaná</th></tr></thead>
+      <thead><tr><th>Varianta</th><th>Oblast</th><th>Genotypy</th><th>Schválená</th><th>Rozpracovaná</th><th></th></tr></thead>
       <tbody>
         {% for v in variants %}
           <tr{% if not v.is_active %} class="text-muted"{% endif %}>
@@ -45,9 +61,10 @@
             <td class="whitespace-nowrap">{% for g in v.genotypes %}{{ v.genotype_label|default:"" }}{{ g }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
             <td>{% if v.approved %}<a class="link" href="{% url 'genetics_card' v.approved.pk %}">v{{ v.approved.version }}</a>{% else %}<span class="text-muted">—</span>{% endif %}</td>
             <td>{% if v.working %}<a class="link" href="{% url 'genetics_card' v.working.pk %}">v{{ v.working.version }}</a> <span class="badge {% if v.working.status == 'review' %}badge-warn{% endif %}">{{ v.working.get_status_display }}</span>{% elif v.latest %}<a class="link text-muted" href="{% url 'genetics_card' v.latest.pk %}">v{{ v.latest.version }} · {{ v.latest.get_status_display|lower }}</a>{% else %}<span class="text-muted">bez karty</span>{% endif %}</td>
+            <td class="whitespace-nowrap text-right">{% if v.working and may_edit %}<a class="btn btn-sm {% if v.working.status == 'review' and v.garant %}btn-primary{% endif %}" href="{% if v.working.status == 'review' and v.garant %}{% url 'genetics_card' v.working.pk %}{% else %}{% url 'genetics_card_edit' v.working.pk %}{% endif %}">{% if v.working.status == 'review' and v.garant %}Schválit{% else %}{% icon "edit" %}Upravit{% endif %}</a>{% elif v.approved %}<a class="btn btn-sm" href="{% url 'genetics_card' v.approved.pk %}">Zobrazit</a>{% elif v.latest %}<a class="btn btn-sm" href="{% url 'genetics_card' v.latest.pk %}">Zobrazit</a>{% endif %}</td>
           </tr>
         {% empty %}
-          <tr><td colspan="5" class="text-muted py-6">Zatím žádné varianty. Karty z podkladů načte <code>python manage.py nacist_genove_karty soubor.docx</code>; ručně je založíte v administraci.</td></tr>
+          <tr><td colspan="6" class="text-muted py-6">Zatím žádné varianty. Načtěte je z Wordu v kroku 2 průvodce.</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -61,13 +78,14 @@
           <li><span class="font-medium">{{ d.name }}</span>: {% for g in d.guarantors.all %}{{ g.get_full_name|default:g.get_username }}{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">bez garanta – karty nejdou schválit</span>{% endfor %}</li>
         {% empty %}<li class="text-muted">Žádné oblasti.</li>{% endfor %}
       </ul>
-      <p class="text-xs text-muted mt-2">Garanty nastavuje správce v administraci (Genetika → Oblasti).</p>
+      <p class="text-xs text-muted mt-2">Garanty mění správce v kroku 1 průvodce.</p>
     </section>
     <section class="card p-4">
       <h2 class="card-title mb-2">Panely</h2>
       <ul class="space-y-1 text-sm">
         {% for p in panels %}<li><span class="font-medium">{{ p }}</span> · {{ p.items.count }} variant{% if p.provider %} · {{ p.provider }}{% endif %}</li>{% empty %}<li class="text-muted">Žádný aktivní panel.</li>{% endfor %}
       </ul>
+      <p class="text-xs text-muted mt-2">Laboratoř a její zápis genotypů: krok 3 průvodce.</p>
     </section>
     {% if samples %}
       <section class="card p-4">
@@ -90,6 +108,8 @@
     {% endif %}
   </div>
 </div>
+
+{% if user.is_staff %}<p class="text-xs text-muted mb-4">Pro pokročilé: <a class="link" href="/admin/genetics/">administrace genetiky</a> (důkazy, zdroje, interakce, podmínky scénářů nad měřením). Běžná práce administraci nepotřebuje.</p>{% endif %}
 
 {% if vyzkum.frekvence %}
   <section class="card p-4 mt-4">

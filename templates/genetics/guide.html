@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Genetika – jak to funguje – FTVS{% endblock %}
+{% block content %}
+<div class="max-w-3xl space-y-4">
+  <div>
+    <a href="{% url 'genetics_home' %}" class="text-sm link">← Genetika</a>
+    <h1 class="text-2xl font-semibold leading-tight">Jak genetika v aplikaci funguje</h1>
+    <p class="text-sm text-2 mt-1">Tři oddělené věci: <strong>obsah</strong> (co o genech smíme říkat), <strong>lidé</strong> (souhlas, vzorek, dotazník) a <strong>zpráva</strong>. Hlavní riziko genetiky ve sportu je říct víc, než víme – proto má každá věta ve zprávě dohledatelný původ a měření má vždy přednost před genem.</p>
+  </div>
+
+  <section class="card p-4">
+    <h2 class="card-title mb-2">1 · Obsah: genové karty</h2>
+    <p class="text-sm">Karta je oficiální stanovisko laboratoře k jedné variantě (např. ACTN3): co gen dělá, co znamená každý genotyp pro klienta, jaká doporučení z toho plynou a <em>proč</em>, co se říkat nesmí, odkud to víme.</p>
+    <p class="text-sm mt-2">Karta má životní cyklus jako dokument: <span class="badge">původní znění</span> (z Wordu, jen ke čtení) → <span class="badge">návrh</span> → <span class="badge badge-warn">v revizi</span> → <span class="badge badge-good">schváleno</span>. Schválené znění už nikdo nepřepíše – další změna je nová verze. <strong>Do zprávy jde jen schválená karta</strong>; dokud není, je varianta ve zprávě „bez interpretace“.</p>
+    <p class="text-sm mt-2">Schvaluje <strong>garant oblasti</strong> (metodik), a jen když kartě nic nechybí – text pro každý genotyp, důvod u každého doporučení, žádný nepřípustný výrok. Kontrolní seznam je na stránce karty.</p>
+  </section>
+
+  <section class="card p-4">
+    <h2 class="card-title mb-2">2 · Lidé: souhlas, vzorek, dotazník</h2>
+    <ul class="text-sm list-disc pl-5 space-y-1">
+      <li>Sportovec (jen dospělý) dá <strong>souhlas s genetickými daty</strong> – sám v portálu, nebo laboratoř zapíše podepsaný. Bez souhlasu nejde nic uložit; odvolání souhlasu genotypy smaže. Trenér genetiku nevidí nikdy.</li>
+      <li>Laboratoř na kartě sportovce → <em>Genetika</em> založí <strong>vzorek</strong> a opíše genotypy z výsledku. Diagnostik klikne <strong>Ověřit příslušnost</strong> – potvrzuji, že výsledek patří tomuto člověku.</li>
+      <li>Sportovec vyplní <strong>dotazník</strong> (cíl, trénink, zkušenost, kofein, laktóza…) – v portálu nebo s laborantem. „Nevím“ je plnohodnotná odpověď.</li>
+    </ul>
+  </section>
+
+  <section class="card p-4">
+    <h2 class="card-title mb-2">3 · Zpráva</h2>
+    <p class="text-sm">Na kartě sportovce → Genetika → <em>Sestavit koncept</em> (pro sportovce, nebo pro lékaře). Aplikace ji složí sama a nic nevymýšlí: cíl klienta → genotypy → oblasti (nejdřív co se <strong>naměřilo</strong>, pak genotyp s textem <strong>doslova ze schválené karty</strong>) → doporučení s důvody (rozpor karet = „k odbornému posouzení“) → co změřit → omezení a zdroje. Souhrn nahoře je jediné místo pro jazykový model – a i ten se kontroluje. Diagnostik zprávu zkontroluje a vydá; sportovec ji vidí v portálu.</p>
+  </section>
+
+  <section class="card p-4">
+    <h2 class="card-title mb-2">Kdo co dělá</h2>
+    <table class="table text-sm">
+      <thead><tr><th>Kdo</th><th>Co</th><th>Kde</th></tr></thead>
+      <tbody>
+        <tr><td>Správce</td><td>nastaví garanty, načte karty, panel a laboratoř</td><td>Genetika → kroky 1–3</td></tr>
+        <tr><td>Garant (metodik)</td><td>upraví a schválí karty své oblasti</td><td>Genetika → karta → Upravit / Schválit</td></tr>
+        <tr><td>Laborant / diagnostik</td><td>souhlas, vzorek, ověření, dotazník, zpráva</td><td>karta sportovce → Genetika</td></tr>
+        <tr><td>Sportovec</td><td>souhlas, dotazník, čte vydanou zprávu</td><td>portál → Souhlasy a sdílení</td></tr>
+        <tr><td>Výzkumník</td><td>anonymizovaný export, frekvence</td><td>Genetika → Výzkum</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card p-4">
+    <h2 class="card-title mb-2">Stav nastavení</h2>
+    <ol class="text-sm space-y-1">
+      {% for s in steps %}<li class="flex items-center gap-2">{% if s.done %}<span class="badge badge-good">hotovo</span>{% else %}<span class="badge badge-warn">čeká</span>{% endif %}<span>{{ s.n }}. {{ s.title }} – {{ s.text }}</span></li>{% endfor %}
+    </ol>
+    <a href="{% url 'genetics_home' %}" class="btn btn-sm mt-3">Zpět na kroky</a>
+  </section>
+</div>
+{% endblock %}

@@ -374,7 +374,7 @@ def test_schvaluje_jen_garant_a_jen_bez_blokujicich_nedostatku(org):
     # Nová verze ze schválené; její schválení nahradí předchozí.
     response = lab_client.post(f"/genetika/karta/{draft.pk}/akce/", {"akce": "nova_verze"})
     v3 = variant.cards.get(version=3)
-    assert response.url.endswith(f"/genetika/karta/{v3.pk}/") and v3.supersedes == draft
+    assert response.url.endswith(f"/genetika/karta/{v3.pk}/upravit/") and v3.supersedes == draft
     services.submit_for_review(v3)
     g_client.post(f"/genetika/karta/{v3.pk}/akce/", {"akce": "schvalit"})
     draft.refresh_from_db()
@@ -627,14 +627,14 @@ def test_skupiny_roli_dosahnou_na_genetiku(org):
     assert admin_client.get("/admin/genetics/").status_code == 200
     assert admin_client.get("/admin/genetics/genecard/").status_code == 200
     page = admin_client.get("/genetika/").content.decode()
-    assert "Administrace genetiky" in page
+    assert "administrace genetiky" in page  # jen jako „pro pokročilé“
     researcher, r_client = _user(org, Role.RESEARCHER, "vyzkum-staff")
     researcher.is_staff = True
     researcher.save()
     researcher.groups.add(vyzkumnik)
     assert r_client.get("/admin/genetics/genecard/").status_code == 200
     assert r_client.get("/admin/genetics/geneticsample/").status_code == 403
-    # Bez přístupu do administrace se tlačítko nenabízí.
+    # Bez přístupu do administrace se odkaz nenabízí; průvodce ale ano.
     lab, lab_client = _user(org, Role.LAB, "laborant-bez-admin")
     page = lab_client.get("/genetika/").content.decode()
-    assert "Administrace genetiky" not in page and "Stav týmu" in page
+    assert "/admin/genetics/" not in page and "Průvodce nastavením" in page

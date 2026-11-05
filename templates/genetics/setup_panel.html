@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Panel a laboratoř – FTVS{% endblock %}
+{% block content %}
+<div class="max-w-4xl">
+  <a href="{% url 'genetics_home' %}" class="text-sm link">← Genetika</a>
+  <h1 class="text-2xl font-semibold leading-tight">Krok 3 · Panel a laboratoř</h1>
+  <p class="text-sm text-2 mt-1 mb-4">Která laboratoř genotypizuje a jak zapisuje genotypy. Aplikace zápis nikdy nehádá – co nepozná, uloží jako „nejasný zápis“. Variantu, kterou nechcete používat (např. zatím bez schválené karty nebo mimo zájem laboratoře), vypněte: zmizí ze zpráv, uložené výsledky zůstanou.</p>
+  <form method="post" class="space-y-3">{% csrf_token %}
+    <section class="card p-4">
+      <label class="block max-w-md"><span class="text-xs text-2">Laboratoř (kdo genotypizaci provádí)</span>
+        <input name="laborator" value="{{ panel.provider }}" maxlength="200" class="input text-sm py-1.5" placeholder="např. Genetická laboratoř XY"></label>
+      <p class="text-xs text-muted mt-1">Panel: {{ panel.name }} (v{{ panel.version }})</p>
+    </section>
+    <section class="card overflow-x-auto">
+      <table class="table text-sm">
+        <thead><tr><th>Použít</th><th>Varianta</th><th>Genotypy v aplikaci</th><th>Jak je píše laboratoř</th><th>Označení u laboratoře</th></tr></thead>
+        <tbody>
+          {% for r in rows %}
+            <tr>
+              <td><input type="checkbox" name="aktivni_{{ r.variant.pk }}" {% if r.variant.is_active %}checked{% endif %}></td>
+              <td><span class="font-medium">{{ r.variant.gene }}</span> <span class="text-muted">{{ r.variant.rsid }}</span><br><span class="text-xs text-muted">{{ r.variant.domain }}</span></td>
+              <td class="whitespace-nowrap">{% for g in r.variant.genotypes %}{{ r.variant.genotype_label|default:"" }}{{ g }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+              <td><input name="zapis_{{ r.variant.pk }}" value="{{ r.zapis }}" class="input text-sm py-1.5" placeholder="např. RR=CC, RX=CT, XX=TT"></td>
+              <td><input name="oznaceni_{{ r.variant.pk }}" value="{{ r.item.lab_label }}" class="input text-sm py-1.5" placeholder="např. ACTN3 R577X"></td>
+            </tr>
+          {% empty %}<tr><td colspan="5" class="text-muted py-6">Nejdřív načtěte karty (krok 2).</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </section>
+    <p class="text-xs text-muted">Zápis laboratoře: dvojice <em>jak píše laboratoř = genotyp v aplikaci</em>, oddělené čárkou. Prázdné = laboratoř píše stejně jako aplikace (přehozené pořadí písmen a lomítko aplikace zvládne sama).</p>
+    <button class="btn btn-primary">{% icon "check" %}Uložit panel</button>
+  </form>
+</div>
+{% endblock %}

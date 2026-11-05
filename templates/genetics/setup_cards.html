@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Karty z podkladů – FTVS{% endblock %}
+{% block content %}
+<div class="max-w-3xl">
+  <a href="{% url 'genetics_home' %}" class="text-sm link">← Genetika</a>
+  <h1 class="text-2xl font-semibold leading-tight">Krok 2 · Karty z podkladů</h1>
+  <p class="text-sm text-2 mt-1 mb-4">Nahrajte Word s genovými kartami (dokument „Genové karty – úplné podklady k odborné revizi“). Z každé karty vznikne <strong>původní znění</strong> (jen ke čtení, aby šlo vždy dohledat, co se změnilo) a <strong>návrh</strong>, který garant upraví a schválí. Varianty, které v katalogu už jsou, se nepřepíší.</p>
+  <section class="card p-4">
+    <p class="text-sm mb-3">V katalogu je teď <strong>{{ variants }}</strong> variant.</p>
+    {% if demo %}
+      <p class="text-sm text-muted">V ukázce se soubory nenahrávají. Na laboratorním počítači stačí tady vybrat soubor.</p>
+    {% else %}
+      <form method="post" enctype="multipart/form-data" class="flex flex-wrap items-end gap-2">{% csrf_token %}
+        <label class="block flex-1 min-w-[16rem]"><span class="text-xs text-2">Soubor .docx</span><input type="file" name="soubor" accept=".docx" required class="input text-sm py-1.5"></label>
+        <button class="btn btn-primary">{% icon "upload" %}Načíst karty</button>
+      </form>
+    {% endif %}
+  </section>
+  <p class="text-xs text-muted mt-3">Totéž udělá příkaz <code>python manage.py nacist_genove_karty soubor.docx</code>.</p>
+</div>
+{% endblock %}
