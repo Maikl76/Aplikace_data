@@ -7,12 +7,14 @@
     <h1 class="text-2xl font-semibold">Moji sportovci</h1>
     <p class="text-sm text-muted">Vidíte jen sportovce, kteří vám sdílení potvrdili ve svém účtu. Sdílení mohou kdykoli odvolat.</p>
   </div>
-  <form method="post" class="flex flex-wrap items-end gap-2">{% csrf_token %}
+  <form method="post" class="flex flex-wrap items-end gap-2" id="zadost">{% csrf_token %}
     <label class="block"><span class="text-xs text-2">Kód sportovce</span>
       <input name="kod" class="input mt-1 w-40 uppercase" placeholder="FTVS-0001" required></label>
     <button class="btn btn-primary" title="Sportovec žádost uvidí ve svém účtu; výsledky uvidíte, až ji potvrdí">{% icon "plus" %}Požádat o sdílení</button>
   </form>
 </div>
+
+{% steps steps heading="Co je na řadě" compact=True %}
 
 {% if pending %}
   <div class="card px-4 py-3 mb-5 text-sm">
@@ -40,7 +42,7 @@
 
 {% for t in tables %}
   <div class="flex items-baseline justify-between mb-2">
-    <h2 class="eyebrow">Přehled: {{ t.battery.label }}</h2>
+    <h2 class="eyebrow" {% if forloop.first %}id="prehled"{% endif %}>Přehled: {{ t.battery.label }}</h2>
     <span class="text-xs text-muted">klíčové ukazatele baterie testů, poslední hodnota a změna proti minule</span>
   </div>
   <div class="card overflow-x-auto mb-8">

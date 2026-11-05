@@ -26,6 +26,7 @@
       <li><a href="#umi">Co aplikace umí</a></li>
       <li><a href="#role">Role a oprávnění</a></li>
       <li><a href="#start">Rychlý start</a></li>
+      <li><a href="#pruvodci">Průvodci a připomínky</a></li>
       <li><a href="#sportovci">Sportovci</a></li>
       <li><a href="#baterie">Sporty a baterie testů</a></li>
       <li><a href="#den">Testovací den</a></li>
@@ -176,6 +177,34 @@
         <li><strong>Zpráva:</strong> v testovacím dni <em>Vytvořit zprávu</em> → projděte souhrn (případně nechte AI navrhnout doporučení) → opravte → <em>Uložit</em> → <em>Vydat</em>.</li>
         <li><strong>Předání:</strong> u vydané zprávy zaznamenejte, komu a jak byla předána (např. AKESO).</li>
       </ol>
+      <p class="text-sm text-muted">Tenhle den vede i <a class="link" href="{% url 'dashboard' %}">Přehled</a>: blok <em>Dnes</em> ukazuje, kdo přijde, které testy čekají na hodnoty, co zkontrolovat, které zprávy vydat a co předat.</p>
+    </section>
+
+    {# ================================================================== #}
+    <section id="pruvodci" class="card p-5" data-kapitola>
+      <h2>Průvodci a připomínky</h2>
+      <p>Každá část aplikace vás vede <strong>kroky</strong>: číslo nebo fajfka, název, jedna věta co chybí, tlačítko, a vpravo nahoře <em>Další krok</em>. Kroky se <strong>nikdy neodškrtávají ručně</strong> – stav plyne z dat. Volitelný krok je označený a nebrání tomu, aby postup hlásil „vše hotovo“; krok, který nastavuje správce, ostatním jen říká, že čeká na něj.</p>
+      <div class="overflow-x-auto mt-3">
+        <table class="table napoveda-tabulka">
+          <thead><tr><th>Kde</th><th>Kroky</th></tr></thead>
+          <tbody>
+            <tr><td class="font-medium whitespace-nowrap"><a class="link" href="{% url 'dashboard' %}">Přehled</a></td><td>dnes: kdo přijde, hodnoty, kontrola, zprávy, předání</td></tr>
+            <tr><td class="font-medium whitespace-nowrap"><a class="link" href="{% url 'workplace' %}">Stav pracoviště</a></td><td>nastavení všech částí: kolegové, sporty a baterie, testy a klíčové ukazatele, MDC, přístroje, normy a pravidla, objednávky, genetika, klíče a model</td></tr>
+            <tr><td class="font-medium whitespace-nowrap">Karta sportovce</td><td>údaje a souhlasy, účet v portálu, měření, zpráva, předání nebo sdílení</td></tr>
+            <tr><td class="font-medium whitespace-nowrap">Testovací den</td><td>testy podle baterie, prostředí a únava, hodnoty, RPE, kontrola, zpráva</td></tr>
+            <tr><td class="font-medium whitespace-nowrap">Zpráva</td><td>koncept, souhrn, doporučení, kontrola, vydání, předání</td></tr>
+            <tr><td class="font-medium whitespace-nowrap">Import</td><td>přístroje, nahrát, zkontrolovat a uložit, výsledky v testovacích dnech; u souboru nahráno, sportovci rozpoznáni, vyžaduje pozornost, uložit, kam se zapsalo</td></tr>
+            <tr><td class="font-medium whitespace-nowrap">Sporty a testy</td><td>sporty, baterie, klíčové ukazatele, MDC, normy a pravidla</td></tr>
+            <tr><td class="font-medium whitespace-nowrap">Objednávky</td><td>nabídka a ceny, volné termíny, odkaz pro klienty, žádosti, po schválení</td></tr>
+            <tr><td class="font-medium whitespace-nowrap">Články</td><td>přidat článek, co dostane model, témata, zařazení; u článku identifikace, co dostane model, populace a témata, zařazení</td></tr>
+            <tr><td class="font-medium whitespace-nowrap">AI zprávy</td><td>model běží, pokyny, vzorové zprávy, hodnocení textů, zkušební sada</td></tr>
+            <tr><td class="font-medium whitespace-nowrap">Genetika</td><td>garanti, karty z Wordu, panel a laboratoř, revize a schválení; u sportovce souhlas, vzorek, ověření, dotazník, zpráva</td></tr>
+            <tr><td class="font-medium whitespace-nowrap">Portál</td><td>sportovec: účet, souhlasy, sdílení s trenérem, dotazník, výsledky; trenér: žádost o sdílení, potvrzení, přehled týmu</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Připomínky</h3>
+      <p>Co vám na postupu nesedí, napište tlačítkem <strong>Připomínka</strong> – je dole v menu a u každého postupu. Uloží se i s tím, na které stránce a u kterého kroku vznikla. Správce připomínky vyřizuje v menu <em>Připomínky</em> a odpovídá; vyřízené zůstávají, aby bylo vidět, co se změnilo a proč. Ve zkušebním provozu je to hlavní cesta, jak se aplikace mění.</p>
     </section>
 
     {# ================================================================== #}

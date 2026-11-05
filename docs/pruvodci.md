@@ -36,13 +36,20 @@ Kdo se naučí jednu část, umí všechny.
 | Objednávky | nabídka a ceny, volné termíny, odkaz pro klienty, žádosti ke schválení, po schválení (volitelné) – na všech třech stránkách objednávek | `apps/booking/steps.py` |
 | Články | knihovna: přidat článek, co dostane model, témata, zařazení (správce); jeden článek: identifikace, co dostane model, populace a témata, zařazení | `apps/evidence/steps.py` |
 | AI zprávy | model běží, pokyny pro model (volitelné), vzorové zprávy (volitelné), hodnocení textů, zkušební sada (volitelné) | `apps/reports/steps.py` (`ai_steps`) |
+| Portál sportovce | účet, souhlasy (souhlas s testováním), sdílení s trenérem (čekající žádosti), dotazník (RPE v den měření), výsledky | `apps/portal/steps.py` |
+| Portál trenéra | žádost o sdílení, potvrzení sportovcem, přehled týmu | `apps/portal/steps.py` |
 
-Portál sportovce a trenéra dostane kroky jako poslední; návrh je
-v tabulce níže.
+Kapitola *Průvodci a připomínky* v *O aplikaci* říká totéž uživatelům.
 
-## Návrh pro další části
+## Jak přidat kroky do nové části
 
-| Část | Kroky | Z čeho aplikace pozná „hotovo“ |
-|---|---|---|
-| Portál sportovce | účet, souhlasy, sdílení s trenérem, dotazník, výsledky | žádost trenéra; dotazník k dnešnímu měření; nová zpráva |
-| Portál trenéra | žádost o sdílení kódem, potvrzení sportovcem, přehled týmu | čekající žádosti; potvrzená sdílení |
+1. Napište funkci `*_steps(...)`, která z dat složí seznam `step(...)`
+   (`apps/core/steps.py`). Text kroku je jedna věta: co chybí, nebo co je
+   hotové. Tlačítko vede přímo tam, kde se to řeší; kotva `#…` skáče na
+   místo na stránce.
+2. V pohledu dejte do kontextu `steps` (a `next_step`, když ho potřebují
+   testy).
+3. V šabloně vložte `{% steps steps heading="…" %}`; `compact=True` pro
+   užší karty, `may_act=…` pro role jen ke čtení.
+4. Napište test: pro každý krok stav „čeká“ i „hotovo“ a správný
+   *Další krok*.

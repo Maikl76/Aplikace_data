@@ -103,15 +103,24 @@ def subject(request, pk):
                                      audience=Audience.ATHLETE)
                .select_related("session").order_by("-released_at"))
     today = timezone.localdate()
+    from apps.core.steps import next_step
+
+    from .steps import athlete_steps
+
+    today_session = TestSession.objects.filter(subject=subject, date=today).first()
+    pending = (subject.sharings.filter(status=Sharing.Status.REQUESTED)
+               .select_related("coach"))
+    steps = athlete_steps(subject, pending=pending, today_session=today_session,
+                          reports=reports, sessions=sessions)
     return render(request, "portal/subject.html", {
+        "steps": steps, "next_step": next_step(steps),
         "subject": subject,
         "tiles": overview.kpi_tiles(subject),
         "trends": trends,
         "sessions": sessions,
         "reports": reports,
-        "today_session": TestSession.objects.filter(subject=subject, date=today).first(),
-        "pending": subject.sharings.filter(status=Sharing.Status.REQUESTED)
-                                   .select_related("coach"),
+        "today_session": today_session,
+        "pending": pending,
         "subjects_count": subjects_for(request.user).count(),
     })
 
@@ -337,8 +346,14 @@ def coach_home(request):
             table = team_table(members, columns, today=timezone.localdate())
             tables.append({"battery": battery, "columns": columns, "rows": table["rows"],
                            "summary": list(zip(columns, table["summary"], strict=True))})
+    from apps.core.steps import next_step
+
+    from .steps import coach_steps
+
+    steps = coach_steps(rows, pending, tables)
     return render(request, "portal/coach_home.html", {
         "subjects": rows, "pending": pending, "tables": tables,
+        "steps": steps, "next_step": next_step(steps),
     })
 
 
