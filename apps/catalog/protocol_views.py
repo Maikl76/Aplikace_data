@@ -19,8 +19,11 @@ def test_list(request):
                  .prefetch_related("battery_items__battery__sport").order_by("-is_active", "name"))
     for p in protocols:
         p.baterie = sorted({item.battery.label for item in p.battery_items.all()})
+    from .steps import catalog_steps
+
     return render(request, "catalog/tests.html", {
-        "protocols": protocols, "can_edit": setup.can_edit(request.user)})
+        "protocols": protocols, "can_edit": setup.can_edit(request.user),
+        "steps": catalog_steps(request.user)})
 
 
 def _form(request, protocol, *, data, rows, battery_ids):

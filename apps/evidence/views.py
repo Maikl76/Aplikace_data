@@ -100,7 +100,10 @@ def article_list(request):
     without_status.pop("stav", None)
     active = [k for k in ("sport", "test", "ukazatel", "dukaz", "pohlavi", "vek", "chybi", "q")
               if f[k]]
+    from .steps import library_steps
+
     return render(request, "evidence/articles.html", {
+        "steps": library_steps(),
         "page": page, "articles": page.object_list, "f": f, "sort": sort,
         "query_string": keep.urlencode(), "active_filters": len(active),
         "status_qs": without_status.urlencode(),
@@ -119,7 +122,10 @@ def article_list(request):
 def _form_page(request, form, article=None, found=None, filled=None):
     from apps.reports import ai_models, llm
 
+    from .steps import article_steps
+
     return render(request, "evidence/article_form.html", {
+        "steps": article_steps(article) if article is not None and article.pk else None,
         "form": form, "article": article, "found": found, "filled": filled or [],
         "evidence_levels": form.fields["evidence_level"].choices,
         "llm_enabled": llm.is_enabled(),

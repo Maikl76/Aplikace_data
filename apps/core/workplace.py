@@ -13,12 +13,11 @@ from .steps import step
 
 def workplace_steps(user) -> list[dict]:
     from apps.booking.models import Offer, Slot
-    from apps.catalog.models import DeviceFormat, Norm, TestBattery
+    from apps.catalog.models import DeviceFormat
+    from apps.catalog.steps import catalog_status
     from apps.genetics import crypto as genetics_crypto
     from apps.genetics.setup_views import setup_steps as genetics_steps
     from apps.ingest.models import ImportBatch
-    from apps.rules.models import Rule
-    from apps.subjects.models import Sport
 
     from .models import User
     from .roles import COLLEAGUE_ROLES
@@ -29,24 +28,14 @@ def workplace_steps(user) -> list[dict]:
     colleagues = (User.objects.filter(organization=org, role__in=COLLEAGUE_ROLES, is_active=True)
                   .exclude(pk=user.pk).count())
 
-    sports = list(Sport.objects.for_user(user))
-    batteries = list(TestBattery.objects.for_user(user)
-                     .prefetch_related("items__protocol__protocol_metrics__metric"))
-    with_battery = {b.sport_id for b in batteries if b.items.all()}
-    sports_without = [s for s in sports if s.pk not in with_battery]
-
-    protocols = {item.protocol.pk: item.protocol for b in batteries for item in b.items.all()}
-    no_metrics = [p for p in protocols.values() if not p.protocol_metrics.all()]
-    no_key = [p for p in protocols.values()
-              if p.protocol_metrics.all() and not any(pm.is_primary for pm in p.protocol_metrics.all())]
-    key_metrics = {pm.metric.pk: pm.metric for p in protocols.values()
-                   for pm in p.protocol_metrics.all() if pm.is_primary}
-    no_mdc = [m for m in key_metrics.values() if m.mdc is None]
+    c = catalog_status(user)
+    sports, sports_without = c["sports"], c["sports_without"]
+    protocols, no_metrics, no_key = c["protocols"], c["no_metrics"], c["no_key"]
+    key_metrics, no_mdc = c["key_metrics"], c["no_mdc"]
 
     devices = DeviceFormat.objects.filter(shared, is_active=True).count()
     imported = ImportBatch.objects.for_user(user).filter(status=ImportBatch.Status.COMMITTED).exists()
-    norms = Norm.objects.filter(shared).count()
-    rules = Rule.objects.filter(shared, is_active=True).count()
+    norms, rules = c["norms"], c["rules"]
     offers = Offer.objects.for_user(user).filter(is_active=True).exists()
     slots = Slot.objects.for_user(user).filter(is_active=True, start__gte=timezone.now()).exists()
     genetics = genetics_steps(user)

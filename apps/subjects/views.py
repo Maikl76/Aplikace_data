@@ -78,7 +78,17 @@ def subject_detail(request, pk):
     ]
     posledni, asymetrie = queries.latest_asymmetries(subject)
 
+    from apps.core.steps import next_step
+
+    from .steps import subject_steps
+
+    accounts_info = accounts.accounts_of(subject) if _may_edit(request.user) else None
+    sharings_list = [_with_coach_label(sh) for sh in subject.sharings.select_related("coach")]
+    steps = subject_steps(subject, sessions=sessions, accounts=accounts_info,
+                          sharings=sharings_list, may_edit=_may_edit(request.user))
+
     return render(request, "subjects/subject_detail.html", {
+        "steps": steps, "next_step": next_step(steps),
         "subject": subject,
         "display_name": subject.display_for(request.user),
         "sessions": sessions,
@@ -87,8 +97,8 @@ def subject_detail(request, pk):
         "external_exams": subject.external_exams.order_by("-date"),
         # Stejná logika jako v pravidlech: karta nesmí tvrdit něco jiného než zpráva.
         "restriction": ExternalExam.active_restriction_for(subject),
-        "accounts": accounts.accounts_of(subject) if _may_edit(request.user) else None,
-        "sharings": [_with_coach_label(sh) for sh in subject.sharings.select_related("coach")],
+        "accounts": accounts_info,
+        "sharings": sharings_list,
         "coaches": [_with_coach_label(c) for c in accounts.coaches(subject.organization)],
         "reports": subject.reports.order_by("-created_at")[:10],
         "genetika": genetics.summary_for(subject, request.user),

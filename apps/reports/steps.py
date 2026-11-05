@@ -63,3 +63,32 @@ def report_steps(report, *, has_consent: bool, number_problems=(), text_problems
              url="#predani", optional=not (clinician and has_consent),
              button="Zaznamenat předání" if released and has_consent and not deliveries else ""),
     ]
+
+
+def ai_steps(*, llm_enabled: bool, models_available, server_error: str, styles, examples,
+             stats: dict, test_set) -> list[dict]:
+    custom = sum(1 for s in styles for part in s["parts"] if part["custom"])
+    examples, test_set = list(examples), list(test_set)
+    return [
+        step(1, "Model běží", llm_enabled and bool(models_available),
+             ("Jazykový model je vypnutý (LLM_ENABLED); souhrny píše šablona."
+              if not llm_enabled else server_error or
+              f"{len(models_available)} modelů na serveru."),
+             url="?tab=modely", button="Modely"),
+        step(2, "Pokyny pro model", custom > 0,
+             (f"{custom} vlastních pokynů; ostatní výchozí." if custom else
+              "Tón, struktura a délka souhrnu pro každého čtenáře; zatím výchozí pokyny."),
+             url="?tab=pokyny", button="Pokyny", optional=True),
+        step(3, "Vzorové zprávy", bool(examples),
+             (f"{len(examples)} vzorových zpráv." if examples else
+              "U dobré vydané zprávy zvolte „Použít jako vzorovou“ – model dostane její styl."),
+             url="?tab=pokyny", button="Vzorové zprávy", optional=True),
+        step(4, "Hodnocení textů", stats.get("celkem", 0) > 0,
+             (f"{stats.get('celkem', 0)} hodnocených zpráv." if stats.get("celkem") else
+              "U textu od modelu označte, jak se povedl; podle toho se ladí pokyny."),
+             url="?tab=kvalita", button="Kvalita textů"),
+        step(5, "Zkušební sada", bool(test_set),
+             (f"{len(test_set)} zpráv ve zkušební sadě." if test_set else
+              "Vybrané vydané zprávy, na kterých se zkouší jiný model nebo nové pokyny."),
+             url="?tab=sada", button="Zkušební sada", optional=True),
+    ]

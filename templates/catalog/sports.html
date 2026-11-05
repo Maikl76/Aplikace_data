@@ -10,12 +10,14 @@
       sportu (a kategorie) předvyplní při novém testovacím dni. Úpravy nemění nic
       z toho, co už je naměřené.</p>
   </div>
-  <form method="post" class="flex gap-2">
+  <form method="post" class="flex gap-2" id="pridat-sport">
     {% csrf_token %}
     <input name="name" required placeholder="Nový sport, např. Lední hokej" class="input w-64">
     <button type="submit" class="btn btn-primary">{% icon "plus" %}Přidat sport</button>
   </form>
 </div>
+
+{% steps steps heading="Postup nastavení testování" may_act=read_only|yesno:"False,True" %}
 
 <div class="grid lg:grid-cols-2 gap-4">
   {% for sport in sports %}

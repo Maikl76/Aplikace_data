@@ -11,3 +11,4 @@
     <a href="{% url 'booking_form' %}" target="_blank" class="btn btn-sm" title="Jak formulář vidí klient">Formulář pro klienty ↗</a>
   </div>
 </div>
+{% if steps %}{% steps steps heading="Postup objednávek" may_act=read_only|yesno:"False,True" %}{% endif %}

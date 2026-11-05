@@ -6,7 +6,9 @@
   <h1 class="text-2xl font-semibold">Import</h1>
 </div>
 
-<form method="post" action="{% url 'import_upload' %}" enctype="multipart/form-data"
+{% steps steps heading="Postup importu" may_act=read_only|yesno:"False,True" %}
+
+<form method="post" action="{% url 'import_upload' %}" enctype="multipart/form-data" id="nahrat"
       class="card p-5 mb-6" x-data="{ soubory: [], tahne: false }">
   {% csrf_token %}
   <label class="flex flex-col items-center justify-center gap-2 text-center rounded-xl px-4 py-8 cursor-pointer"
@@ -37,7 +39,7 @@
   </p>
 </form>
 
-<section class="card p-4 mb-6">
+<section class="card p-4 mb-6" id="pristroje">
   <div class="flex flex-wrap items-center justify-between gap-3">
     <div>
       <h2 class="card-title">Přístroje</h2>
@@ -73,7 +75,7 @@
 </section>
 
 <div class="card overflow-x-auto">
-  <div class="px-4 pt-4 pb-2"><h2 class="card-title">Historie importů</h2></div>
+  <div class="px-4 pt-4 pb-2"><h2 class="card-title" id="historie">Historie importů</h2></div>
   <p class="text-xs text-muted mb-2">Nedokončené a zrušené importy se po 30 dnech smažou i se souborem – náhled drží jména tak, jak stála v souboru. Uložené importy zůstávají.</p>
   <table class="table">
     <thead>

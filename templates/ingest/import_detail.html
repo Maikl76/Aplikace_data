@@ -7,7 +7,9 @@
   <p class="text-sm text-muted break-all">{{ batch.raw_file.original_name }}</p>
 </div>
 
-<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-4">
+{% steps steps heading="Postup importu" compact=True may_act=read_only|yesno:"False,True" %}
+
+<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-4" id="nahled">
   {% for popisek, hodnota in dlazdice %}
     <div class="card p-4">
       <div class="kpi-value tabular-nums">{{ hodnota|default_if_none:"—" }}</div>
@@ -74,7 +76,7 @@
 {% endif %}
 
 {% if sportovci %}
-  <h2 class="card-title mb-2">Sportovci v souboru ({{ sportovci|length }})</h2>
+  <h2 class="card-title mb-2" id="sportovci">Sportovci v souboru ({{ sportovci|length }})</h2>
   <div class="card overflow-x-auto mb-2"><table class="table">
     <thead>
       <tr><th>Ve zdroji</th><th>Patří k</th><th class="text-right">Testů</th></tr>
@@ -114,7 +116,7 @@
 {% endif %}
 
 {% if problems %}
-  <h2 class="card-title mb-2">Vyžaduje pozornost ({{ problems|length }})</h2>
+  <h2 class="card-title mb-2" id="pozornost">Vyžaduje pozornost ({{ problems|length }})</h2>
   <div class="card overflow-x-auto mb-6"><table class="table">
     <thead>
       <tr>

@@ -43,6 +43,8 @@
   </div>
 {% endif %}
 
+{% steps steps heading="Postup" compact=True may_act=read_only|yesno:"False,True" %}
+
 {# --- hlavní čísla ---------------------------------------------------------- #}
 {% if tiles %}
   <div class="flex items-baseline justify-between mb-2">
@@ -117,7 +119,7 @@
 
 {# --- historie a zprávy -------------------------------------------------------- #}
 <div class="grid lg:grid-cols-3 gap-4">
-  <section class="lg:col-span-2 card min-w-0">
+  <section class="lg:col-span-2 card min-w-0" id="mereni">
     <div class="px-4 pt-4 pb-2 flex items-baseline justify-between">
       <h2 class="card-title">Testovací dny</h2>
       <span class="text-xs text-muted">{{ sessions|length }}</span>
@@ -179,7 +181,7 @@
 
   {% include "genetics/_subject_card.html" %}
 
-  <section class="card min-w-0">
+  <section class="card min-w-0" id="zpravy">
     <div class="px-4 pt-4 pb-2"><h2 class="card-title">Zprávy</h2></div>
     <ul>
       {% for r in reports %}

@@ -14,6 +14,8 @@
   {% if can_edit %}<a href="{% url 'article_new' %}" class="btn btn-primary">{% icon "plus" %}Přidat článek</a>{% endif %}
 </div>
 
+{% steps steps heading="Postup knihovny" may_act=can_edit %}
+
 <div class="flex flex-wrap items-center gap-2 mb-3">
   <a href="?{{ status_qs }}" class="btn btn-sm {% if not f.stav %}btn-primary{% endif %}">Vše</a>
   {% for value, label, count in statuses %}

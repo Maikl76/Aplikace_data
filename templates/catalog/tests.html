@@ -12,6 +12,8 @@
   {% if can_edit %}<a href="{% url 'test_new' %}" class="btn btn-primary">{% icon "plus" %}Nový test</a>{% endif %}
 </div>
 
+{% steps steps heading="Postup nastavení testování" may_act=read_only|yesno:"False,True" %}
+
 <div class="card overflow-x-auto">
   <table class="table">
     <thead><tr><th>Test</th><th class="max-md:hidden">Přístroj</th><th class="text-right">Metrik</th>

@@ -361,8 +361,16 @@ def ai_settings(request):
         row = saved.get(name) or AiModel(name=name, timeout=settings.LLM_TIMEOUT)
         model_rows.append({"m": row, "saved": name in saved, "default": name == default,
                            "on_server": name in models_available})
+    from .steps import ai_steps
+
+    stats = services.quality_stats(organization)
+    examples = (Report.objects.for_user(request.user).filter(is_example=True)
+                .select_related("subject").order_by("-released_at")[:30])
+    steps = ai_steps(llm_enabled=llm.is_enabled(), models_available=models_available,
+                     server_error=server_error, styles=styles, examples=examples, stats=stats,
+                     test_set=test_set)
     return render(request, "reports/ai_settings.html", {
-        "tab": tab, "styles": styles,
+        "steps": steps, "tab": tab, "styles": styles,
         "tabs": [("modely", "Modely"), ("pokyny", "Pokyny pro model"),
                  ("kvalita", "Kvalita textů"), ("sada", "Zkušební sada")],
         "model_rows": model_rows, "server_error": server_error,
@@ -370,9 +378,7 @@ def ai_settings(request):
         "ratings_short": [("dobry", "Dobrý"), ("pouzitelny", "Použitelný"),
                           ("prepsano", "Nepoužitelný")], "fixed_rules": prompts.FIXED_RULES,
         "recommendation_rules": prompts.RECOMMENDATION_RULES,
-        "stats": services.quality_stats(organization), "test_set": test_set,
-        "examples": (Report.objects.for_user(request.user).filter(is_example=True)
-                     .select_related("subject").order_by("-released_at")[:30]),
+        "stats": stats, "test_set": test_set, "examples": examples,
         "llm_enabled": llm.is_enabled(), "current_model": ai_models.default_model(),
         "models_available": models_available,
     })

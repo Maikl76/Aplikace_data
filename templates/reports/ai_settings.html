@@ -15,6 +15,8 @@
   {% endfor %}
 </nav>
 
+{% steps steps heading="Postup AI zpráv" may_act=can_manage_ai %}
+
 {% if tab == "modely" %}
   <p class="text-sm text-2 mb-4 max-w-3xl">Které modely aplikace nabízí. <strong>Výchozí</strong> píše nové zprávy;
     ostatní nabízené jde zvolit při vytváření zprávy a u rozpracované zprávy (<em>Napsat souhrn znovu</em>).

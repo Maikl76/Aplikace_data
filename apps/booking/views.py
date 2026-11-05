@@ -18,6 +18,7 @@ from apps.measurements.planning import DERIVED_PROTOCOLS
 
 from . import services
 from .models import BookingRequest, Offer, Slot
+from .steps import booking_steps
 
 
 def lab_only(view):
@@ -51,6 +52,7 @@ def request_list(request):
                     .annotate(osob=Count("participants", distinct=True))
                     .prefetch_related("offers")[:200])
     return render(request, "booking/list.html", {
+        "steps": booking_steps(request),
         "bookings": bookings, "status": status,
         "tabs": [(value, label, counts.get(value, 0)) for value, label in TABS],
         "public_url": request.build_absolute_uri("/objednavka/"),
@@ -142,7 +144,8 @@ class OfferForm(forms.ModelForm):
 def offer_list(request):
     offers = (Offer.objects.for_user(request.user).prefetch_related("protocols")
               .annotate(objednavek=Count("requests")))
-    return render(request, "booking/offers.html", {"offers": offers})
+    return render(request, "booking/offers.html", {
+        "steps": booking_steps(request),"offers": offers})
 
 
 @lab_only
@@ -247,4 +250,5 @@ def slot_list(request):
     for slot in slots:
         slot.obsazeno = slot.booked()
         by_day.setdefault(timezone.localtime(slot.start).date(), []).append(slot)
-    return render(request, "booking/slots.html", {"form": form, "by_day": by_day})
+    return render(request, "booking/slots.html", {
+        "steps": booking_steps(request),"form": form, "by_day": by_day})

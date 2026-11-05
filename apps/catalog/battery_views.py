@@ -62,7 +62,10 @@ def sport_list(request):
     for sport in sports:
         sport.baterie = by_sport.get(sport.pk, [])
         sport.ma_obecnou = any(not b.category for b in sport.baterie)
-    return render(request, "catalog/sports.html", {"sports": sports})
+    from .steps import catalog_steps
+
+    return render(request, "catalog/sports.html", {"sports": sports,
+                                                   "steps": catalog_steps(request.user)})
 
 
 @login_required

@@ -20,7 +20,10 @@ def import_list(request):
     batches = (ImportBatch.objects.for_user(request.user)
                .select_related("raw_file", "uploaded_by")[:50])
     devices = device_views.device_cards(request.user)
+    from .steps import import_list_steps
+
     return render(request, "ingest/import_list.html", {
+        "steps": import_list_steps(request.user, batches),
         "batches": batches,
         "adapters": sorted(registry.values(), key=lambda a: a.label),
         "devices": devices,
@@ -99,7 +102,11 @@ def import_detail(request, pk):
         StagedMeasurement.Flag.UNKNOWN_METRIC,
     ]
     sportovci = services.assignment_choices(batch, request.user)
+    problems = list(staged.filter(flag__in=problem_flags)[:100])
+    from .steps import import_detail_steps
+
     return render(request, "ingest/import_detail.html", {
+        "steps": import_detail_steps(batch, sportovci, problems),
         "batch": batch,
         "summary": summary,
         "dlazdice": [
@@ -115,7 +122,7 @@ def import_detail(request, pk):
         "datum_od": summary.get("datum_od"),
         "datum_do": summary.get("datum_do"),
         "bez_data": summary.get("novych_hodnot_bez_data") or 0,
-        "problems": staged.filter(flag__in=problem_flags)[:100],
+        "problems": problems,
         "sample": staged.exclude(flag__in=problem_flags)[:25],
         "dnes": timezone.localdate(),
     })

@@ -6,6 +6,7 @@
   <h1 class="text-2xl font-semibold mt-1">{% if article %}Článek{% else %}Přidat článek{% endif %}</h1>
   {% if article %}<p class="text-sm text-muted mt-1 max-w-3xl">{{ article.title }}</p>{% endif %}
 </div>
+{% if steps %}{% steps steps heading="Stav článku" compact=True may_act=False %}{% endif %}
 
 {% if not article %}
   <form method="get" class="card p-5 mb-5 max-w-4xl">

@@ -30,19 +30,19 @@ Kdo se naučí jednu část, umí všechny.
 | Genetika | nastavení: garanti, karty z Wordu, panel a laboratoř, revize a schválení; sportovec: souhlas, vzorek, ověření, dotazník, zpráva | `apps/genetics/setup_views.py`, `apps/genetics/views.py` |
 | Testovací den | testy podle baterie (chybějící testy z baterie sportu), prostředí a únava (volitelné), hodnoty (test bez hodnot vede rovnou do zadávání), RPE (jen u testů, které ho vyžadují), kontrola (nestabilní pokusy, hodnoty mimo rozsah), zpráva (koncept nebo vydání) | `apps/measurements/steps.py` |
 | Zpráva | koncept, souhrn (kdo ho napsal, zda je upravený), doporučení (návrh od modelu čeká na kontrolu), kontrola (čísla bez opory, nepřípustné výroky, souhlas u zprávy pro lékaře), vydání, předání (povinné jen u zprávy pro lékaře se souhlasem) | `apps/reports/steps.py` |
+| Sportovec | údaje a souhlasy (sport, datum narození, souhlas s testováním), účet v portálu (volitelné), měření (naplánovaný den vede do zadávání), zpráva (koncept nebo vytvoření z posledního měření), předání nebo sdílení (volitelné) | `apps/subjects/steps.py` |
+| Import | seznam: přístroje (volitelné), nahrát export, zkontrolovat a uložit (soubory čekající na kontrolu), výsledky v testovacích dnech; kontrola souboru: nahráno, sportovci rozpoznáni, vyžaduje pozornost, uložit, kam se zapsalo | `apps/ingest/steps.py` |
+| Sporty a testy | sporty, baterie testů, klíčové ukazatele, MDC (správce, zatím v administraci), normy a pravidla (volitelné, správce) – stejné výpočty jako Stav pracoviště | `apps/catalog/steps.py` |
+| Objednávky | nabídka a ceny, volné termíny, odkaz pro klienty, žádosti ke schválení, po schválení (volitelné) – na všech třech stránkách objednávek | `apps/booking/steps.py` |
+| Články | knihovna: přidat článek, co dostane model, témata, zařazení (správce); jeden článek: identifikace, co dostane model, populace a témata, zařazení | `apps/evidence/steps.py` |
+| AI zprávy | model běží, pokyny pro model (volitelné), vzorové zprávy (volitelné), hodnocení textů, zkušební sada (volitelné) | `apps/reports/steps.py` (`ai_steps`) |
 
-Další části (sportovec, import, sporty a testy, objednávky, články,
-AI zprávy, portály) dostanou kroky postupně; návrh pořadí a obsahu je
+Portál sportovce a trenéra dostane kroky jako poslední; návrh je
 v tabulce níže.
 
 ## Návrh pro další části
 
 | Část | Kroky | Z čeho aplikace pozná „hotovo“ |
 |---|---|---|
-| Sportovec | údaje a souhlasy, účet v portálu, měření, zpráva, předání nebo sdílení | chybějící datum narození, sport, souhlas; pozvánka přijatá; poslední den má hodnoty; zpráva vydaná; předáno nebo sdíleno |
-| Import | nahrát, kontrola, uložit, kam se zapsalo | nerozpoznaní sportovci; po uložení odkazy na testovací dny |
-| Sporty a testy | sport, baterie, klíčové ukazatele, MDC, normy | sport bez baterie; test bez ukazatelů; ukazatel bez MDC; norma bez citace |
-| Články | identifikace, co dostane model, témata, zařazení | kontrola před zařazením; článek bez tématu se nepoužije |
-| Objednávky | nabídka a ceny, volné termíny, odkaz pro klienty, schvalování | bez nabídky a termínů je formulář prázdný; nová žádost čeká |
-| AI zprávy | model běží, pokyny, vzorové zprávy, hodnocení, zkušební sada | model dostupný; pokyny pro varianty; vzorová zpráva; podíl přepsaných textů |
 | Portál sportovce | účet, souhlasy, sdílení s trenérem, dotazník, výsledky | žádost trenéra; dotazník k dnešnímu měření; nová zpráva |
+| Portál trenéra | žádost o sdílení kódem, potvrzení sportovcem, přehled týmu | čekající žádosti; potvrzená sdílení |
