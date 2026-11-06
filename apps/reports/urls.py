@@ -10,6 +10,7 @@ urlpatterns = [
     path("<int:pk>/pise/", views.report_writing, name="report_writing"),
     path("<int:pk>/napsat-znovu/", views.report_rewrite, name="report_rewrite"),
     path("z-mereni/<int:session_pk>/", views.report_create, name="report_create"),
+    path("za-obdobi/<int:subject_pk>/", views.report_period_create, name="report_period_create"),
     path("<int:pk>/", views.report_detail, name="report_detail"),
     path("<int:pk>/navrh-doporuceni/", views.report_suggest, name="report_suggest"),
     path("<int:pk>/nahled/", views.report_preview, name="report_preview"),

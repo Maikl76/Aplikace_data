@@ -13,7 +13,7 @@ from apps.analytics import queries
 from apps.analytics.services import NormIndex, find_norm
 from apps.catalog.models import ProtocolMetric
 
-from . import narrative
+from . import followup, narrative
 from .results import change_verdict
 
 MAX_METRICS = 20
@@ -47,6 +47,7 @@ def build(session, findings, citations, *, audience=None) -> dict:
         "doporuceni_z_pravidel": narrative.recommendations(findings),
         "klicove_metriky": _key_metrics(session),
         "cile": _goals(session),
+        "doporuceni_z_minula": followup.facts(session),
         "vyvoj": _trends(session),
         "asymetrie": _asymmetries(session),
         "cmj_ods": _ods(session),

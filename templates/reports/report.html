@@ -293,6 +293,21 @@
 {% if not recommendations and not report.custom_note %}
   <p class="prazdne">Z výsledků nevyplývá žádné doporučení podle pravidel laboratoře.</p>
 {% endif %}
+{% if previous_recommendations %}
+  <p style="margin:3mm 0 0"><strong>Plnění doporučení z minulé zprávy {{ previous_recommendations.report.report_number }}</strong>
+    <span class="zavaznost">({% if previous_recommendations.report.session %}měření {{ previous_recommendations.report.session.date|date:"d.m.Y" }}{% else %}za období {{ previous_recommendations.report.period_text }}{% endif %})</span></p>
+  <table class="vysledky">
+    <thead><tr><th style="width:70%">Doporučení</th><th>Plnění</th></tr></thead>
+    <tbody>
+    {% for r in previous_recommendations.rows %}
+      <tr>
+        <td>{{ r.text|linebreaksbr }}</td>
+        <td class="posouzeni {% if r.status == 'plnilo' %}better{% elif r.status == 'neplnilo' %}worse{% endif %}">{% if r.status %}{{ r.label }}{% if r.note %}<br><span class="pokusy">{{ r.note }}</span>{% endif %}{% else %}<span class="pokusy">neposouzeno</span>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
 
 {% if genetic_context %}
   <h2>7. Souvislost s genetickým vyšetřením</h2>

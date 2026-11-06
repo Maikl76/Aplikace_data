@@ -1,4 +1,4 @@
-"""Kroky testovacího dne: testy podle baterie, prostředí, hodnoty, RPE, kontrola, zpráva."""
+"""Kroky testovacího dne: testy podle baterie, prostředí, hodnoty, RPE, kontrola, zpráva, doporučení z minula."""
 
 from django.urls import reverse
 
@@ -9,7 +9,7 @@ from .models import Measurement
 from .questionnaires import RPE
 
 
-def session_steps(session, runs, unstable, reports) -> list[dict]:
+def session_steps(session, runs, unstable, reports, followup=None) -> list[dict]:
     """``runs`` jsou měřené testy dne s anotací ``hodnot`` (počet hodnot)."""
     from apps.reports.models import Report
 
@@ -74,4 +74,12 @@ def session_steps(session, runs, unstable, reports) -> list[dict]:
               "Vytvořte koncept pro sportovce, trenéra nebo lékaře; nic se tím nevydává."),
              url=reverse("report_detail", args=[drafts[0].pk]) if drafts else "#nova-zprava",
              button="Ke konceptu" if drafts else "Vytvořit zprávu"),
+        step(7, "Doporučení z minula", followup is None or followup["done"],
+             (f"{followup['report'].report_number}: {followup['reviewed']} z {followup['total']} "
+              "doporučení posouzeno – nová zpráva na ně naváže." if followup and followup["reviewed"]
+              else f"{followup['total']} doporučení z {followup['report'].report_number} – "
+                   "označte, zda se plnila; zpráva pak naváže." if followup
+              else "Před tímto dnem není vydaná zpráva s doporučením."),
+             url="#doporuceni-minule", button="Posoudit" if followup and not followup["done"] else "",
+             optional=True, count=(followup["total"] - followup["reviewed"]) if followup else None),
     ]

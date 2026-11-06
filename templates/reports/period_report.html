@@ -1,0 +1,163 @@
+{% load static %}<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <title>{{ report.report_number }} — {{ report.title }}</title>
+  {% include "reports/_style.html" %}
+</head>
+<body>
+
+<div class="hlavicka">
+  <h1>{{ report.title }}</h1>
+  <div class="meta">
+    {{ report.report_number }}{% if report.version > 1 %}, verze {{ report.version }}{% endif %}
+    {% if report.supersedes %} — nahrazuje {{ report.supersedes.report_number }}{% endif %}
+    · Fakulta tělesné výchovy a sportu UK
+  </div>
+</div>
+
+<table>
+  <tr><th style="width:35%">Sportovec</th><td>{% if display_name %}{{ display_name }} ({{ subject.code }}){% else %}{{ subject.code }}{% endif %}</td></tr>
+  <tr><th>Sport</th><td>{{ subject.sport|default:"—" }}</td></tr>
+  <tr><th>Pohlaví / věk</th><td>{{ subject.get_sex_display }}{% if age %} · {{ age }} let na konci období{% endif %}</td></tr>
+  <tr><th>Období</th><td>{{ period.from|date:"d.m.Y" }} – {{ period.to|date:"d.m.Y" }}</td></tr>
+  <tr><th>Měření v období</th><td>{{ period.sessions|length }}: {% for s in period.sessions %}{{ s.date|date:"d.m.Y" }}{% if not forloop.last %}, {% endif %}{% endfor %}</td></tr>
+  <tr><th>Testy</th><td>{{ period.protocols|join:", "|default:"—" }}</td></tr>
+</table>
+
+<h2>1. Souhrn</h2>
+<div>{{ report.summary|linebreaks }}</div>
+
+<h2>2. Klíčové ukazatele za období</h2>
+{% if overview %}
+  <table class="vysledky">
+    <thead>
+      <tr>
+        <th style="width:24%">Ukazatel</th>
+        <th class="cislo" style="text-align:right">První měření</th>
+        <th class="cislo" style="text-align:right">Poslední měření</th>
+        <th class="cislo" style="text-align:right">Změna</th>
+        <th>Posouzení</th>
+        <th class="cislo" style="text-align:right">Nejlepší v období</th>
+        <th>Cíl</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for r in overview %}
+      <tr>
+        <td><span class="klicova">{{ r.metric.name }}</span>{% if r.label %}<br><span class="upresneni">{{ r.label }}</span>{% endif %}<br><span class="pokusy">{{ r.count }} měření</span></td>
+        <td class="cislo">{{ r.first_txt }} {{ r.unit }}<br><span class="pokusy">{{ r.first_day|date:"d.m.y" }}</span></td>
+        <td class="cislo">{{ r.last_txt }} {{ r.unit }}<br><span class="pokusy">{{ r.last_day|date:"d.m.y" }}</span></td>
+        <td class="cislo">{{ r.delta_txt|default:"—" }}</td>
+        <td class="posouzeni {{ r.kind }}">{% if r.kind == "better" %}↑ {% elif r.kind == "worse" %}↓ {% elif r.kind == "noise" %}≈ {% endif %}{{ r.verdict|default:"jediné měření" }}</td>
+        <td class="cislo">{% if r.best_txt %}{{ r.best_txt }} {{ r.unit }}<br><span class="pokusy">{{ r.best_day|date:"d.m.y" }}</span>{% else %}—{% endif %}</td>
+        <td>{% if r.goal %}{{ r.goal.target_txt }}<br><span class="pokusy">{{ r.goal.verdict }}</span>{% else %}—{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p class="vysvetlivka">Změna = poslední měření v období proti prvnímu; posuzuje se proti nejmenší
+    detekovatelné změně (MDC) stejně jako ve zprávě z měření – změna menší než MDC je „v pásmu chyby
+    měření“. Nejlepší v období = nejlepší hodnota dne podle žádoucího směru ukazatele. Sezóna {{ season_phrase }}.</p>
+  {% if metric_texts %}
+    <p class="vysvetlivka"><strong>Co ukazatele znamenají:</strong>
+      {% for name, text in metric_texts %}<em>{{ name }}</em> – {{ text }}{% if not forloop.last %} {% endif %}{% endfor %}
+    </p>
+  {% endif %}
+{% else %}
+  <p class="prazdne">V období nejsou hodnoty klíčových ukazatelů.</p>
+{% endif %}
+
+<h2>3. Hodnoty po měřeních</h2>
+{% if matrix.rows %}
+  <table class="vysledky">
+    <thead>
+      <tr><th style="width:26%">Ukazatel</th>{% for d in matrix.dates %}<th class="cislo" style="text-align:right">{{ d|date:"d.m.y" }}</th>{% endfor %}</tr>
+    </thead>
+    <tbody>
+    {% for r in matrix.rows %}
+      <tr>
+        <td>{{ r.metric.name }}{% if r.label %}<br><span class="upresneni">{{ r.label }}</span>{% endif %}{% if r.unit %} <span class="pokusy">[{{ r.unit }}]</span>{% endif %}</td>
+        {% for c in r.cells %}<td class="cislo">{{ c|default:"—" }}</td>{% endfor %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p class="prazdne">Bez hodnot.</p>
+{% endif %}
+
+<h2>4. Vývoj v období</h2>
+{% if trends %}
+  <div class="grafy">
+    {% for t in trends %}
+      <figure>
+        <div class="graf-nazev">{{ t.title }}{% if t.label %} <span>· {{ t.label }}</span>{% endif %}{% if t.unit and t.unit != "-" %} <span>({{ t.unit }})</span>{% endif %}</div>
+        {{ t.svg }}
+        <figcaption>{{ t.caption }}{% if t.norm %}. Šedé pásmo: norma ± SD{% endif %}</figcaption>
+      </figure>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="prazdne">Žádný ukazatel nemá v období víc než jedno měření.</p>
+{% endif %}
+
+{% if goals %}
+  <h2>5. Cíle</h2>
+  <table class="vysledky">
+    <thead>
+      <tr>
+        <th style="width:30%">Ukazatel</th>
+        <th class="cislo" style="text-align:right">Cíl</th>
+        <th class="cislo" style="text-align:right">Aktuálně</th>
+        <th class="cislo" style="text-align:right">Zbývá</th>
+        <th>Posouzení</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for g in goals %}
+      <tr>
+        <td>{{ g.metric.name }}{% if g.goal.due_date %}<br><span class="pokusy">do {{ g.goal.due_date|date:"d.m.Y" }}</span>{% endif %}</td>
+        <td class="cislo">{{ g.target_txt }}</td>
+        <td class="cislo">{{ g.current_txt }}<br><span class="pokusy">{{ g.current_date|date:"d.m.y" }}</span></td>
+        <td class="cislo">{% if g.status == "reached" %}—{% else %}{{ g.remaining_txt }}{% endif %}</td>
+        <td class="posouzeni {% if g.status == 'reached' %}better{% elif g.status == 'near' %}noise{% endif %}">{% if g.status == "reached" %}✓ {% endif %}{{ g.verdict }}{% if g.reached_on and g.status == "reached" %} {{ g.reached_on|date:"d.m.Y" }}{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+
+<h2>{% if goals %}6{% else %}5{% endif %}. Doporučení v období a jejich plnění</h2>
+{% if period_recommendations %}
+  {% for block in period_recommendations %}
+    <div class="protokol">{{ block.report.report_number }} <span class="protokol-meta">· měření {{ block.date|date:"d.m.Y" }} · {{ block.report.audience_for }}</span></div>
+    <table class="vysledky">
+      <thead><tr><th style="width:70%">Doporučení</th><th>Plnění</th></tr></thead>
+      <tbody>
+      {% for r in block.rows %}
+        <tr>
+          <td>{{ r.text|linebreaksbr }}</td>
+          <td class="posouzeni {% if r.status == 'plnilo' %}better{% elif r.status == 'neplnilo' %}worse{% endif %}">{% if r.status %}{{ r.label }}{% if r.reviewed_on %}<br><span class="pokusy">posouzeno {{ r.reviewed_on|date:"d.m.y" }}</span>{% endif %}{% if r.note %}<br><span class="pokusy">{{ r.note }}</span>{% endif %}{% else %}<span class="pokusy">neposouzeno</span>{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% endfor %}
+{% else %}
+  <p class="prazdne">V období nebyla vydaná zpráva s doporučením.</p>
+{% endif %}
+{% if report.custom_note %}
+  <p style="margin-bottom:0"><strong>Komentář diagnostika</strong></p>
+  <div>{{ report.custom_note|linebreaks }}</div>
+{% endif %}
+
+<div class="dolozka">{{ report.disclaimer }}</div>
+
+<footer>
+  Zpracováno {{ generated_at|date:"d.m.Y H:i" }}
+  {% if report.released_by %} · vydal {{ report.released_by.get_full_name|default:report.released_by.get_username }}{% endif %}
+  · text sestavil: {{ report.llm_model|default:"šablona" }}
+</footer>
+</body>
+</html>

@@ -88,6 +88,11 @@ def compose(session, findings, citations, facts: dict | None = None) -> str:
         parts.append(f"{'Nový osobní rekord' if rekordy else 'Nové osobní maximum'}: {_names(nova)}.")
     if cile := facts.get("cile"):
         parts.append("Cíle:\n" + "\n".join(_goal_line(c) for c in cile))
+    if minule := facts.get("doporuceni_z_minula"):
+        parts.append(f"Doporučení z minulé zprávy {minule[0]['zprava']} ({minule[0]['vydano']}) "
+                     "a jejich plnění:\n" + "\n".join(
+                         f"• {m['text']} – {m['plneni']}"
+                         + (f" ({m['poznamka']})" if m.get("poznamka") else "") for m in minule))
 
     if over := [a for a in facts.get("asymetrie", []) if a["nad_prahem"]]:
         prah = over[0]["prah_procent"]
@@ -258,17 +263,19 @@ class Draft:
     attempts: int
 
 
-def generate(session, findings, facts, *, audience, model=None, exclude_report=None) -> Draft:
+def generate(session, findings, facts, *, audience, model=None, exclude_report=None,
+             system=None) -> Draft:
     """
     Text od modelu pro danou variantu zprávy. Když napíše číslo, které
     ve faktech není, dostane jednu šanci text opravit. Výjimku LLMError
-    nechává projít – co s ní, rozhodne volající.
+    nechává projít – co s ní, rozhodne volající. ``system`` nahradí pokyny
+    (souhrn za období nemá testovací den).
     """
     from . import llm, prompts
 
     messages = [
-        {"role": "system", "content": prompts.system_prompt(session, audience,
-                                                             exclude_report=exclude_report)},
+        {"role": "system", "content": system or prompts.system_prompt(
+            session, audience, exclude_report=exclude_report)},
         {"role": "user", "content":
             "Fakta z testování:\n\n" + json.dumps(facts, ensure_ascii=False, indent=2)},
     ]
@@ -355,11 +362,10 @@ def draft_recommendations(report) -> RecommendationDraft:
     """
     from . import llm, prompts
 
-    session = report.session
     findings, facts = report_facts(report)
     reply = llm.chat([
         {"role": "system", "content":
-            prompts.recommendation_prompt(session.organization, report.audience)},
+            prompts.recommendation_prompt(report.organization, report.audience)},
         {"role": "user", "content":
             "Fakta z testování:\n\n" + json.dumps(facts, ensure_ascii=False, indent=2)},
     ])
@@ -377,7 +383,7 @@ def unsupported_numbers(report, text: str) -> list[str]:
     return verify_numbers(text, findings, facts)
 
 
-def report_facts(report):
+def _session_report_facts(report):
     """Nálezy a fakta zprávy – s články v pořadí, jaké dostal model u konceptu."""
     from apps.rules import evidence
 
@@ -388,3 +394,12 @@ def report_facts(report):
     citations = evidence.report_citations(session, findings, frozen=report.literature)
     return findings, facts_module.build(session, findings, citations,
                                         audience=report.audience)
+
+
+def report_facts(report):
+    """Nálezy a fakta zprávy pro kontrolu čísel – u souhrnu za období fakta z období."""
+    if report.is_period:
+        from . import period
+
+        return [], period.facts(report)
+    return _session_report_facts(report)

@@ -210,16 +210,20 @@ def session_detail(request, pk):
         hodnot=Count("trials__measurements"), pokusu=Count("trials", distinct=True)))
     rpe = questionnaires.questionnaire(questionnaires.RPE, session.organization)
     from apps.core.steps import next_step
+    from apps.reports import followup
 
     from .steps import session_steps
 
     reports = list(session.reports.order_by("-created_at"))
-    steps = session_steps(session, runs, unstable, reports)
+    previous = followup.state(session)
+    steps = session_steps(session, runs, unstable, reports, followup=previous)
     return render(request, "measurements/session_detail.html", {
         "session": session,
         "unstable": unstable,
         "runs": runs,
         "device_url": device_url(runs),
+        "followup": previous,
+        "followup_statuses": followup.RecommendationReview.Status.choices,
         "reports": reports,
         "steps": steps, "next_step": next_step(steps),
         "add_form": AddProtocolForm(),
@@ -229,6 +233,29 @@ def session_detail(request, pk):
         "responses": questionnaires.summary(session),
         "other_questionnaires": questionnaires.available(session.organization),
     })
+
+
+@login_required
+def session_followup(request, pk):
+    """Plnění doporučení z minulé zprávy – jedním klikem u každého doporučení."""
+    from apps.reports import followup
+
+    session = get_object_or_404(TestSession.objects.for_user(request.user), pk=pk)
+    back = reverse("session_detail", args=[pk]) + "#doporuceni-minule"
+    if request.method != "POST":
+        return redirect(back)
+    report = followup.previous_report(session)
+    if report is None:
+        messages.error(request, "Před tímto dnem není vydaná zpráva s doporučením.")
+        return redirect(back)
+    saved = followup.save(session, report, request.POST, user=request.user)
+    record(request, AuditLog.Action.UPDATE, session, subject_code=session.subject.code,
+           plneni_doporuceni=saved, zprava=report.report_number)
+    state = followup.state(session, report=report)
+    messages.success(request, f"Plnění doporučení z {report.report_number} uloženo "
+                              f"({state['reviewed']} z {state['total']} posouzeno). "
+                              "Nová zpráva na ně naváže.")
+    return redirect(back)
 
 
 @login_required

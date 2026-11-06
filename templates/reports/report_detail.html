@@ -14,6 +14,7 @@
         <span class="badge badge-accent">{{ report.audience_for }}</span>
         {% if session %}<a class="link" href="{% url 'session_detail' session.pk %}">testovací den {{ session.date|date:"j. n. Y" }}</a>{% endif %}
         {% if report.is_genetic %}<span class="badge">genetické vyšetření</span> <a class="link" href="{% url 'genetics_subject' subject.pk %}">vzorek a genotypy</a>{% endif %}
+        {% if report.is_period %}<span class="badge" title="Souhrn přes víc testovacích dnů">souhrn za období {{ report.period_text }}</span>{% if period %} <span>· {{ period.sessions|length }} měření</span>{% endif %}{% endif %}
         {% if report.is_example %}<span class="badge badge-good">vzorová zpráva</span>{% endif %}
         {% if report.in_test_set %}<span class="badge">ve zkušební sadě</span>{% endif %}
         {% if report.auto_created %}<span class="badge" title="Koncept vznikl sám po dokončení testovacího dne">koncept vznikl sám</span>{% endif %}
@@ -129,6 +130,39 @@
       </section>
     {% endif %}
 
+    {% if report.is_period %}
+      <section class="card p-4" id="obdobi">
+        <h2 class="card-title mb-2">Klíčové ukazatele za období</h2>
+        {% if overview %}
+          <table class="table text-sm">
+            <thead><tr><th>Ukazatel</th><th class="text-right">První</th><th class="text-right">Poslední</th><th class="text-right">Změna</th><th>Posouzení</th><th class="text-right max-md:hidden">Nejlepší</th></tr></thead>
+            <tbody>
+              {% for r in overview %}
+                <tr>
+                  <td>{{ r.metric.name }}{% if r.label %} <span class="text-muted">· {{ r.label }}</span>{% endif %}<span class="block text-xs text-muted">{{ r.count }} měření</span></td>
+                  <td class="text-right tabular-nums">{{ r.first_txt }} {{ r.unit }}<span class="block text-xs text-muted">{{ r.first_day|date:"d.m.y" }}</span></td>
+                  <td class="text-right tabular-nums">{{ r.last_txt }} {{ r.unit }}<span class="block text-xs text-muted">{{ r.last_day|date:"d.m.y" }}</span></td>
+                  <td class="text-right tabular-nums">{{ r.delta_txt|default:"—" }}</td>
+                  <td>{% if r.kind == "better" %}<span class="badge badge-good">{{ r.verdict }}</span>{% elif r.kind == "worse" %}<span class="badge badge-warn">{{ r.verdict }}</span>{% elif r.verdict %}<span class="text-xs text-2">{{ r.verdict }}</span>{% else %}<span class="text-xs text-muted">jediné měření</span>{% endif %}</td>
+                  <td class="text-right tabular-nums max-md:hidden">{% if r.best_txt %}{{ r.best_txt }} {{ r.unit }}<span class="block text-xs text-muted">{{ r.best_day|date:"d.m.y" }}</span>{% else %}—{% endif %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}<p class="text-sm text-muted">V období nejsou hodnoty klíčových ukazatelů.</p>{% endif %}
+      </section>
+      <section class="card p-4">
+        <h2 class="card-title mb-2">Doporučení v období a jejich plnění</h2>
+        {% for block in period_recommendations %}
+          <p class="text-xs text-muted mt-2">{{ block.report.report_number }} · měření {{ block.date|date:"d.m.Y" }} · {{ block.report.audience_for }}</p>
+          <ul class="text-sm space-y-1 mt-1">
+            {% for r in block.rows %}<li class="flex flex-wrap items-start gap-2"><span class="flex-1 min-w-0 whitespace-pre-line">{{ r.text }}</span>{% if r.status %}<span class="badge {% if r.status == 'plnilo' %}badge-good{% elif r.status == 'neplnilo' %}badge-warn{% elif r.status == 'castecne' %}badge-accent{% endif %}">{{ r.label }}</span>{% else %}<span class="badge">neposouzeno</span>{% endif %}</li>{% endfor %}
+          </ul>
+        {% empty %}
+          <p class="text-sm text-2">V období nebyla vydaná zpráva s doporučením. Vlastní shrnutí a doporučení napište do komentáře níže.</p>
+        {% endfor %}
+      </section>
+    {% else %}
     <section class="card p-4">
       <h2 class="card-title mb-2">Doporučení z pravidel ({{ recommendations|length }})</h2>
       {% if recommendations %}
@@ -143,6 +177,17 @@
         </p>
       {% endif %}
     </section>
+
+    {% if previous_recommendations %}
+      <section class="card p-4" id="minule-doporuceni">
+        <h2 class="card-title mb-1">Plnění doporučení z minulé zprávy {{ previous_recommendations.report.report_number }}</h2>
+        <p class="text-xs text-muted mb-2">Posuzuje se v testovacím dni (Doporučení z minula); zpráva na ně naváže – ve faktech pro model i v části Doporučení.</p>
+        <ul class="text-sm space-y-1">
+          {% for r in previous_recommendations.rows %}<li class="flex flex-wrap items-start gap-2"><span class="flex-1 min-w-0 whitespace-pre-line">{{ r.text }}</span>{% if r.status %}<span class="badge {% if r.status == 'plnilo' %}badge-good{% elif r.status == 'neplnilo' %}badge-warn{% elif r.status == 'castecne' %}badge-accent{% endif %}">{{ r.label }}</span>{% else %}<a class="badge" href="{% url 'session_detail' session.pk %}#doporuceni-minule">neposouzeno</a>{% endif %}</li>{% endfor %}
+        </ul>
+      </section>
+    {% endif %}
+    {% endif %}
 
     {% if suppressed %}
       <section class="card p-4" style="background: var(--surface-2)">
@@ -333,6 +378,26 @@
               {% for value, label in model_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
             </select>
           {% endif %}
+          <button type="submit" class="btn btn-sm">Vytvořit</button>
+        </form>
+      </section>
+    {% endif %}
+
+    {% if report.is_period %}
+      <section class="card p-4">
+        <h2 class="card-title mb-1">Další varianty</h2>
+        <p class="text-xs text-muted mb-2">Za stejné období pro jiného čtenáře – vznikne nový koncept.</p>
+        {% for v in variants %}
+          <a class="block text-sm link" href="{% url 'report_detail' v.pk %}">{{ v.report_number }} – {{ v.audience_for }}
+            <span class="text-xs text-muted">({{ v.get_status_display|lower }})</span></a>
+        {% endfor %}
+        <form method="post" action="{% url 'report_period_create' subject.pk %}" class="flex flex-wrap gap-2 mt-2">
+          {% csrf_token %}
+          <input type="hidden" name="od" value="{{ report.period_from|date:'Y-m-d' }}">
+          <input type="hidden" name="do" value="{{ report.period_to|date:'Y-m-d' }}">
+          <select name="pro" class="input text-sm py-1.5">
+            {% for value, label in audiences %}{% if value != report.audience %}<option value="{{ value }}">{{ label }}</option>{% endif %}{% endfor %}
+          </select>
           <button type="submit" class="btn btn-sm">Vytvořit</button>
         </form>
       </section>

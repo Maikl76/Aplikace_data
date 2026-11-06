@@ -111,6 +111,30 @@
     </ul>
   </section>
 
+  {% if followup %}
+  <section class="card min-w-0" id="doporuceni-minule"{% if not followup.done %} style="border-color: var(--accent)"{% endif %}>
+    <div class="px-4 pt-4 pb-2">
+      <h2 class="card-title">Doporučení z minulé zprávy</h2>
+      <p class="text-xs text-muted">{{ followup.report.report_number }} · {% if followup.report.session %}měření {{ followup.report.session.date|date:"d.m.Y" }}{% else %}za období {{ followup.report.period_text }}{% endif %} · {{ followup.report.audience_for }}. Označte, zda se plnilo – nová zpráva na to naváže a trenér to uvidí v portálu.</p>
+    </div>
+    <form method="post" action="{% url 'session_followup' session.pk %}" class="px-4 pb-4 space-y-3 text-sm">{% csrf_token %}
+      {% for r in followup.rows %}
+        <div class="rounded-lg p-3" style="background: var(--surface-2)">
+          <div class="whitespace-pre-line">{{ r.text }}</div>
+          <div class="flex flex-wrap gap-1.5 mt-2">
+            {% for value, label in followup_statuses %}
+              <label class="btn btn-sm cursor-pointer{% if r.status == value %} btn-primary{% endif %}"><input type="radio" name="stav_{{ r.index }}" value="{{ value }}" class="sr-only" {% if r.status == value %}checked{% endif %} onchange="this.closest('div').querySelectorAll('label').forEach(l => l.classList.remove('btn-primary')); this.closest('label').classList.add('btn-primary')">{{ label }}</label>
+            {% endfor %}
+          </div>
+          <input name="pozn_{{ r.index }}" value="{{ r.note }}" maxlength="200" class="input text-xs py-1 mt-2" placeholder="poznámka (nepovinné)">
+        </div>
+      {% endfor %}
+      {% if not read_only %}<button class="btn btn-sm btn-primary">Uložit plnění</button>{% endif %}
+      <span class="text-xs text-muted">{{ followup.reviewed }} z {{ followup.total }} posouzeno</span>
+    </form>
+  </section>
+  {% endif %}
+
   {% if rpe_question %}
   <section class="card min-w-0" id="dotazniky" x-data="{ beh: '', qr: false }">
     <div class="px-4 pt-4 pb-2 flex items-baseline justify-between gap-2">

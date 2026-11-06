@@ -5,8 +5,9 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 
-from apps.analytics import charts, overview, queries
+from apps.analytics import charts, compare, overview, queries
 from apps.core.audit import record
 from apps.core.models import AuditLog
 from apps.external.models import ExternalExam
@@ -114,6 +115,11 @@ def subject_detail(request, pk):
         "sharings": sharings_list,
         "coaches": [_with_coach_label(c) for c in accounts.coaches(subject.organization)],
         "reports": subject.reports.order_by("-created_at")[:10],
+        # souhrn za období: výchozí od začátku sezóny (nebo rok zpět) do dneška
+        "period_from": (min(compare.season_start(timezone.localdate(), subject.sport),
+                            compare.months_before(timezone.localdate()))
+                        if measured else timezone.localdate()),
+        "period_to": timezone.localdate(),
         "genetika": genetics.summary_for(subject, request.user),
         "trends": trends,
         "asymetrie_chart": (_both_themes(lambda theme: charts.asymmetry_chart(asymetrie, theme=theme))

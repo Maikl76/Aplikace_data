@@ -87,7 +87,8 @@ def test_testovaci_den_vede_kroky(org, den):
     session, run = den["session"], den["run"]
 
     steps, nxt, page = _steps(client, session)
-    assert list(steps) == ["Testy podle baterie", "Prostředí a únava", "Hodnoty", "RPE", "Kontrola", "Zpráva"]
+    assert list(steps) == ["Testy podle baterie", "Prostředí a únava", "Hodnoty", "RPE", "Kontrola", "Zpráva",
+                           "Doporučení z minula"]
     assert nxt["title"] == "Testy podle baterie" and "chybí IMTP" in nxt["text"]
     assert "Postup dne" in page.content.decode() and 'id="nova-zprava"' in page.content.decode()
     assert steps["Prostředí a únava"]["optional"] and not steps["RPE"]["optional"]

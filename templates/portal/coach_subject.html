@@ -23,6 +23,7 @@
 {% endif %}
 
 {% include "portal/_cile.html" %}
+{% include "portal/_doporuceni.html" %}
 
 {% if trends %}
   <h2 class="eyebrow mb-2">Vývoj v čase</h2>
@@ -85,7 +86,7 @@
         <li class="border-t px-4 py-3 flex items-center gap-3" style="border-color: var(--border)">
           <span class="flex-1 min-w-0">
             <a href="{% url 'coach_report' subject.pk r.pk %}" target="_blank" class="block text-sm font-medium link">{{ r.report_number }}</a>
-            <span class="block text-xs text-muted">{% if r.session %}měření {{ r.session.date|date:"d.m.Y" }}{% endif %}</span>
+            <span class="block text-xs text-muted">{% if r.session %}měření {{ r.session.date|date:"d.m.Y" }}{% elif r.is_period %}souhrn za období {{ r.period_text }}{% endif %}</span>
           </span>
           {% if r.pdf %}<a href="{% url 'coach_report_pdf' subject.pk r.pk %}" class="btn btn-sm" title="Stáhnout PDF">{% icon "download" %}</a>{% endif %}
         </li>

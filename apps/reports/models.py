@@ -41,6 +41,7 @@ class Report(OrgScopedModel):
     class Kind(models.TextChoices):
         TESTING = "testovani", "Z funkčního testování"
         GENETICS = "genetika", "Z genetického vyšetření"
+        PERIOD = "obdobi", "Souhrn za období"
 
     class Status(models.TextChoices):
         DRAFT = "draft", "Koncept"
@@ -65,6 +66,9 @@ class Report(OrgScopedModel):
     questionnaire_response = models.ForeignKey(
         "measurements.QuestionnaireResponse", verbose_name="vyplněný dotazník",
         on_delete=models.SET_NULL, null=True, blank=True, related_name="reports")
+    # Souhrn za období: víc testovacích dnů sportovce mezi dvěma daty.
+    period_from = models.DateField("období od", null=True, blank=True)
+    period_to = models.DateField("období do", null=True, blank=True)
     report_number = models.CharField("číslo zprávy", max_length=40, unique=True)
     version = models.PositiveSmallIntegerField("verze", default=1)
     supersedes = models.ForeignKey("self", verbose_name="nahrazuje", on_delete=models.SET_NULL,
@@ -170,6 +174,16 @@ class Report(OrgScopedModel):
         return self.kind == self.Kind.GENETICS
 
     @property
+    def is_period(self) -> bool:
+        return self.kind == self.Kind.PERIOD
+
+    @property
+    def period_text(self) -> str:
+        if not self.is_period or not self.period_from:
+            return ""
+        return f"{self.period_from:%d.%m.%Y} – {self.period_to:%d.%m.%Y}"
+
+    @property
     def is_writing(self) -> bool:
         return self.writing == self.Writing.RUNNING and not self.writing_stalled
 
@@ -238,6 +252,44 @@ class ReportDelivery(TimeStampedModel):
 
     def __str__(self):
         return f"{self.report.report_number} -> {self.recipient}"
+
+
+class RecommendationReview(TimeStampedModel):
+    """
+    Plnění doporučení z minulé zprávy, posouzené při dalším testovacím dni.
+    Jedno posouzení na doporučení (index v seznamu z pravidel; −1 je komentář
+    diagnostika). Text se opisuje, aby posouzení dávalo smysl i po nové verzi.
+    """
+
+    class Status(models.TextChoices):
+        FOLLOWED = "plnilo", "plnilo se"
+        PARTLY = "castecne", "částečně"
+        NOT = "neplnilo", "neplnilo se"
+        UNKNOWN = "nelze", "nelze říct"
+
+    session = models.ForeignKey("measurements.TestSession", verbose_name="testovací den",
+                                on_delete=models.CASCADE, related_name="recommendation_reviews")
+    report = models.ForeignKey(Report, verbose_name="minulá zpráva", on_delete=models.CASCADE,
+                               related_name="follow_ups")
+    index = models.SmallIntegerField("pořadí doporučení")
+    text = models.TextField("doporučení")
+    status = models.CharField("plnění", max_length=10, choices=Status.choices)
+    note = models.CharField("poznámka", max_length=200, blank=True)
+    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="posoudil",
+                                    on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name="+")
+
+    class Meta:
+        verbose_name = "plnění doporučení"
+        verbose_name_plural = "plnění doporučení"
+        constraints = [
+            models.UniqueConstraint(fields=["session", "report", "index"],
+                                    name="uniq_recommendation_review"),
+        ]
+        ordering = ["report", "index"]
+
+    def __str__(self):
+        return f"{self.report.report_number} #{self.index}: {self.get_status_display()}"
 
 
 class ReportStyle(OrgScopedModel):

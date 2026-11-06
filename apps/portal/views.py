@@ -26,6 +26,7 @@ from apps.core.audit import record
 from apps.core.models import AuditLog, Role
 from apps.measurements import questionnaires
 from apps.measurements.models import QuestionnaireResponse, TestSession
+from apps.reports import followup
 from apps.reports import notify as report_notify
 from apps.reports.models import Audience, Report
 from apps.subjects import accounts, goals
@@ -125,6 +126,7 @@ def subject(request, pk):
         "booking_url": reverse("booking_form") if booking.enabled() else "",
         "tiles": overview.kpi_tiles(subject, goals=goals_by_metric),
         "goals": goal_progress, "tests": _tests_text(sessions),
+        "doporuceni": followup.latest_for_portal(subject, Audience.ATHLETE),
         "season_month": season_phrase(subject.sport, case="v") if subject.sport_id else "",
         "trends": trends,
         "sessions": sessions,
@@ -414,6 +416,7 @@ def coach_subject(request, pk):
     return render(request, "portal/coach_subject.html", {
         "subject": subject, "tiles": overview.kpi_tiles(subject, goals=goals_by_metric),
         "goals": goal_progress, "tests": _tests_text(sessions),
+        "doporuceni": followup.latest_for_portal(subject, Audience.COACH),
         "season_month": season_phrase(subject.sport, case="v") if subject.sport_id else "",
         "trends": trends,
         "sessions": sessions, "reports": reports, "asymetrie": asymetrie,

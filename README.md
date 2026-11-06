@@ -301,6 +301,13 @@ sportovec platné omezení zátěže z `external.ExternalExam`, doporučení se
 nevydá. Nález se ale nezahazuje: uloží se s důvodem, aby bylo doložitelné,
 že pravidlo sedělo a proč se nic nedoporučilo.
 
+**Souhrn za období a plnění doporučení.** Vedle zprávy z jednoho dne je
+souhrn za období (`apps/reports/period.py`): klíčové ukazatele od prvního
+k poslednímu měření, nejlepší v období, hodnoty po měřeních, grafy, cíle
+a doporučení z období. Doporučení z minulé zprávy posoudí diagnostik při
+dalším dni jedním klikem (`apps/reports/followup.py`) a nová zpráva na ně
+naváže. Viz `docs/souhrn-za-obdobi.md`.
+
 **Vydání je nevratné.** Koncept → vydání (vědomý krok) → předání. Vydanou
 zprávu nelze upravit; oprava se řeší novou verzí, která tu starou nahrazuje.
 Bez platného souhlasu (`Consent.Scope.REPORT_HANDOVER`) se zpráva nepředá.

@@ -49,7 +49,18 @@ zpráva uvádí ve zvláštní části; v souhrnu na ně můžeš jen odkázat.
 použij k tomu, na co se v textu zaměřit. Zranění nehodnoť a nic o něm nevyvozuj.
 12. Pole od_zacatku_sezony, osobni_maximum a za_12_mesicu u klíčových \
 ukazatelů a pole cile (cíle sportovce) přebírej i s jejich posouzením; o cíli \
-piš jen to, co říká jeho pole posouzeni, a nové osobní maximum zmiň."""
+piš jen to, co říká jeho pole posouzeni, a nové osobní maximum zmiň.
+13. Pole doporuceni_z_minula (doporučení z minulé zprávy a jak se plnila) uveď \
+a dej do souvislosti se změnou ukazatelů jen podle faktů; „neposouzeno“ nehodnoť."""
+
+PERIOD_NOTE = """Tohle je SOUHRN ZA OBDOBÍ přes víc testovacích dnů (pole obdobi: od, do, \
+dny měření, testy), ne zpráva z jednoho dne. Pole klicove_ukazatele má u každého \
+ukazatele první a poslední hodnotu v období, změnu s posouzením proti chybě měření, \
+nejlepší hodnotu v období a počet měření; pole cile cíle sportovce; pole \
+doporuceni_v_obdobi doporučení z vydaných zpráv v období a jak se plnila. Piš \
+o vývoji za období: co se skutečně změnilo (jen podle pole posouzeni), co zůstalo \
+v pásmu chyby měření, jak se plnila doporučení a jak to souvisí s vývojem. Místo \
+„dnešní měření“ mluv o období a o posledním měření."""
 
 DEFAULT_STYLES = {
     Audience.ATHLETE: """Čtenář: sportovec (může být i mladistvý), ne odborník.
@@ -109,6 +120,12 @@ def examples_for(session, audience: str, *, exclude=None) -> list[Report]:
         return (2 * bool(same_sport) + shared, report.released_at or report.created_at)
 
     return sorted(candidates, key=score, reverse=True)[:MAX_EXAMPLES]
+
+
+def period_system_prompt(organization, audience: str) -> str:
+    """Pokyny pro souhrn za období: pevná pravidla, styl čtenáře a poznámka k období."""
+    return "\n\n".join([FIXED_RULES, "Styl a struktura textu:\n" + style_for(organization, audience),
+                         PERIOD_NOTE])
 
 
 def system_prompt(session, audience: str, *, exclude_report=None) -> str:

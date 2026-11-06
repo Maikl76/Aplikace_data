@@ -1,0 +1,16 @@
+{# Doporučení z poslední zprávy pro čtenáře a jak se plnila (posuzuje laboratoř při dalším měření). #}
+{% if doporuceni %}
+  <h2 class="eyebrow mb-2">Doporučení z poslední zprávy</h2>
+  <div class="card p-4 mb-8 text-sm" id="doporuceni">
+    <p class="text-xs text-muted mb-2">{{ doporuceni.report.report_number }}{% if doporuceni.when %} · {% if doporuceni.report.is_period %}za období {{ doporuceni.report.period_text }}{% else %}měření {{ doporuceni.when|date:"d.m.Y" }}{% endif %}{% endif %}{% if doporuceni.reviewed %} · plnění posoudila laboratoř při dalším měření{% else %} · plnění posoudí laboratoř při dalším měření{% endif %}</p>
+    <ul class="space-y-2">
+      {% for r in doporuceni.rows %}
+        <li class="flex flex-wrap items-start gap-2">
+          <span class="flex-1 min-w-0 whitespace-pre-line">{{ r.text }}</span>
+          {% if r.status %}<span class="badge {% if r.status == 'plnilo' %}badge-good{% elif r.status == 'neplnilo' %}badge-warn{% elif r.status == 'castecne' %}badge-accent{% endif %}" title="{% if r.date %}posouzeno při měření {{ r.date|date:'d.m.Y' }}{% endif %}">{{ r.label }}</span>{% else %}<span class="badge">zatím neposouzeno</span>{% endif %}
+          {% if r.note %}<span class="w-full text-xs text-muted">{{ r.note }}</span>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}

@@ -163,6 +163,10 @@ def write_summary(report_pk, model, *, rewrite: bool) -> Report:
         from apps.genetics import report as genetics_report
 
         composition = genetics_report.compose_summary(report, model=model)
+    elif report.is_period:
+        from . import period
+
+        composition = period.compose_report(report, model=model)
     else:
         session = report.session
         findings = list(session.findings.select_related("rule"))
@@ -204,7 +208,7 @@ def rewrite_summary(report, *, model: str | None) -> None:
         raise ReportError("Jazykový model není zapnutý (LLM_ENABLED).")
     if report.is_writing:
         raise ReportError("Model už souhrn píše – počkejte, až dopíše.")
-    if report.session is None and not report.is_genetic:
+    if report.session is None and not report.is_genetic and not report.is_period:
         raise ReportError("Zpráva nemá testovací den.")
     _mark_writing(report, model)
     report.save(update_fields=["writing", "writing_model", "writing_started_at"])
@@ -256,6 +260,10 @@ def report_context(report) -> dict:
         from apps.genetics import report as genetics_report
 
         return genetics_report.context(report)
+    if report.is_period:
+        from . import period
+
+        return period.context(report)
     session = report.session
     if report.snapshot:
         findings, suppressed, recommendations, citations, warnings = _from_snapshot(
@@ -307,6 +315,9 @@ def report_context(report) -> dict:
     from apps.analytics import compare
     from apps.subjects import goals as goals_module
 
+    from . import followup
+
+    context["previous_recommendations"] = followup.state(session)
     norms = NormIndex()     # jednou pro celou zprávu
     context["results"] = results.protocol_results(session, norms=norms)
     context["conditions"] = results.session_conditions(session)
@@ -426,7 +437,9 @@ def render_html(report) -> str:
 
 
 def template_for(report) -> str:
-    return "genetics/report.html" if report.is_genetic else "reports/report.html"
+    if report.is_genetic:
+        return "genetics/report.html"
+    return "reports/period_report.html" if report.is_period else "reports/report.html"
 
 
 def render_pdf(report) -> bytes | None:
@@ -519,6 +532,8 @@ def _machine_readable(report, context: dict | None = None) -> dict:
         "vydano": report.released_at.isoformat() if report.released_at else None,
         "sportovec": {"kod": report.subject.code, "sport": str(report.subject.sport or "")},
         "mereni": {"datum": report.session.date.isoformat()} if report.session else None,
+        "obdobi": ({"od": report.period_from.isoformat(), "do": report.period_to.isoformat()}
+                   if report.is_period else None),
         "vysledky": results.machine_readable(context["results"]),
         "nalezy": [
             {"pravidlo": f.rule_code, "verze_pravidla": f.rule_version,
@@ -627,6 +642,12 @@ def supersede(report, *, user) -> Report:
             raise ReportError("Zpráva už nemá genetický vzorek – novou verzi nelze sestavit.")
         return genetics_report.build_draft(report.genetic_sample, user=user,
                                            audience=report.audience, supersedes=report)
+    if report.is_period:
+        from . import period
+
+        return period.build_draft(report.subject, date_from=report.period_from,
+                                  date_to=report.period_to, user=user,
+                                  audience=report.audience, supersedes=report)
     if report.session is None:
         raise ReportError("Zprávu bez testovacího dne nelze přegenerovat.")
     return build_draft(report.session, user=user, supersedes=report)

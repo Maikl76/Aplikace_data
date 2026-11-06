@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from apps.core.audit import record
 from apps.core.models import AuditLog
@@ -44,6 +45,39 @@ def report_create(request, session_pk):
         return redirect("session_detail", pk=session_pk)
 
     record(request, AuditLog.Action.CREATE, report, subject_code=session.subject.code)
+    return redirect("report_detail", pk=report.pk)
+
+
+@login_required
+def report_period_create(request, subject_pk):
+    """Souhrnná zpráva za období z karty sportovce: od, do, pro koho."""
+    from datetime import date
+
+    from apps.subjects.models import Subject
+
+    from . import period
+    from .ai_models import is_offered
+
+    subject = get_object_or_404(Subject.objects.for_user(request.user), pk=subject_pk)
+    back = reverse("subject_detail", args=[subject.pk]) + "#zpravy"
+    if request.method != "POST":
+        return redirect(back)
+    try:
+        date_from = date.fromisoformat(request.POST.get("od", "").strip())
+        date_to = date.fromisoformat(request.POST.get("do", "").strip())
+    except ValueError:
+        messages.error(request, "Zadejte období jako dvě data (od – do).")
+        return redirect(back)
+    model = request.POST.get("model", "").strip()
+    try:
+        report = period.build_draft(subject, date_from=date_from, date_to=date_to,
+                                    user=request.user, audience=request.POST.get("pro"),
+                                    model=model if model and is_offered(model) else None)
+    except services.ReportError as exc:
+        messages.error(request, str(exc))
+        return redirect(back)
+    record(request, AuditLog.Action.CREATE, report, subject_code=subject.code,
+           obdobi=f"{date_from}–{date_to}")
     return redirect("report_detail", pk=report.pk)
 
 
@@ -115,6 +149,11 @@ def report_detail(request, pk):
         "variants": (Report.objects.filter(session=report.session)
                      .exclude(pk=report.pk).exclude(status=Report.Status.SUPERSEDED)
                      .order_by("audience") if report.session else
+                     Report.objects.filter(subject=report.subject, kind=Report.Kind.PERIOD,
+                                           period_from=report.period_from,
+                                           period_to=report.period_to)
+                     .exclude(pk=report.pk).exclude(status=Report.Status.SUPERSEDED)
+                     .order_by("audience") if report.is_period else
                      Report.objects.filter(genetic_sample=report.genetic_sample)
                      .exclude(pk=report.pk).exclude(status=Report.Status.SUPERSEDED)
                      .order_by("audience") if report.genetic_sample_id else []),

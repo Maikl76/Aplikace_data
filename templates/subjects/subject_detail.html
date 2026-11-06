@@ -244,7 +244,7 @@
           <a href="{% url 'report_detail' r.pk %}" class="flex items-center gap-3 px-4 py-3">
             <span class="flex-1">
               <span class="block text-sm font-medium">{{ r.report_number }}</span>
-              <span class="block text-xs text-muted">{{ r.created_at|date:"d.m.Y" }}{% if r.session %} · měření {{ r.session.date|date:"d.m.Y" }}{% endif %}</span>
+              <span class="block text-xs text-muted">{{ r.created_at|date:"d.m.Y" }}{% if r.session %} · měření {{ r.session.date|date:"d.m.Y" }}{% elif r.is_period %} · souhrn za období {{ r.period_text }}{% endif %}</span>
             </span>
             <span class="badge {% if r.status == 'released' %}badge-good{% elif r.status == 'draft' %}{% else %}badge-warn{% endif %}">{{ r.get_status_display }}</span>
             {% if r.status == 'released' and r.audience != 'lekar' %}{% if r.opened_at %}<span class="badge badge-good" title="Otevřeno v portálu {{ r.opened_at|date:'d.m.Y H:i' }}">otevřeno</span>{% else %}<span class="badge" title="V portálu zatím neotevřeno">neotevřeno</span>{% endif %}{% endif %}
@@ -254,6 +254,20 @@
         <li class="px-4 py-6 text-sm text-muted border-t" style="border-color: var(--border)">Zatím žádné zprávy.</li>
       {% endfor %}
     </ul>
+    {% if may_edit and sessions|length >= 2 %}
+      <details class="px-4 pb-4 text-sm border-t" style="border-color: var(--border)" id="souhrn-obdobi">
+        <summary class="cursor-pointer link text-xs pt-3">Souhrnná zpráva za období</summary>
+        <form method="post" action="{% url 'report_period_create' subject.pk %}" class="mt-2 grid gap-2 p-3 rounded-lg" style="background: var(--surface-2)">{% csrf_token %}
+          <div class="flex flex-wrap gap-2">
+            <label class="text-xs">Od<input type="date" name="od" value="{{ period_from|date:'Y-m-d' }}" class="input text-sm py-1 mt-0.5" style="width: 11rem" required></label>
+            <label class="text-xs">Do<input type="date" name="do" value="{{ period_to|date:'Y-m-d' }}" class="input text-sm py-1 mt-0.5" style="width: 11rem" required></label>
+          </div>
+          <label class="text-xs">Pro koho<select name="pro" class="input text-sm py-1 mt-0.5"><option value="sportovec">pro sportovce</option><option value="trener" selected>pro trenéra</option><option value="lekar">pro lékaře</option></select></label>
+          <div><button class="btn btn-sm btn-primary">Vytvořit koncept</button></div>
+          <p class="text-xs text-muted">Víc testovacích dnů v jedné zprávě: první a poslední hodnota, nejlepší v období, hodnoty po měřeních, grafy, cíle a plnění doporučení. Nic se nevydává.</p>
+        </form>
+      </details>
+    {% endif %}
   </section>
 </div>
 {% endblock %}

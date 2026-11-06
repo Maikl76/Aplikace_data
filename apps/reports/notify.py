@@ -56,7 +56,8 @@ def _addresses(count: int) -> str:
 def message(report, link: str) -> tuple[str, str]:
     """Předmět a text upozornění – bez jména a bez výsledků."""
     reader = "pro sportovce" if report.audience == Audience.ATHLETE else "pro trenéra"
-    when = f" z měření {report.session.date:%d.%m.%Y}" if report.session_id else ""
+    when = (f" z měření {report.session.date:%d.%m.%Y}" if report.session_id else
+            f" – souhrn za období {report.period_text}" if report.is_period else "")
     parts = [f"Dobrý den,\n\nlaboratoř FTVS UK vydala novou zprávu {reader}{when}."]
     parts.append(f"Otevřete ji ve svém účtu:\n{link}" if link
                  else "Najdete ji ve svém účtu v portálu laboratoře.")

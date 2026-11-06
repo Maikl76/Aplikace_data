@@ -34,7 +34,9 @@ def report_steps(report, *, has_consent: bool, number_problems=(), text_problems
     return [
         step(1, "Koncept", True,
              report.audience_for + (f", testovací den {report.session.date:%d.%m.%Y}."
-                                    if report.session_id else ", z genetického vzorku."),
+                                    if report.session_id else
+                                    f", souhrn za období {report.period_text}."
+                                    if report.is_period else ", z genetického vzorku."),
              url="#koncept"),
         step(2, "Souhrn", bool(report.summary) and not writing, summary_text,
              url="#souhrn", button="Zkontrolovat" if editable and not writing else ""),

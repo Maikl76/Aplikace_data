@@ -68,6 +68,9 @@ jako dosud, se záznamem o předání a souhlasem.
   s čarou cíle, seznam měření a „Jak testy probíhají“,
 - cíle domluvené s laboratoří a trenérem: cílová hodnota, dokdy, postup
   a kolik zbývá (viz `docs/srovnani-a-cile.md`),
+- doporučení z poslední zprávy pro sportovce a jak se plnila (plnění
+  posuzuje laboratoř při dalším měření; viz `docs/souhrn-za-obdobi.md`),
+- souhrnné zprávy za období vedle zpráv z jednotlivých měření,
 - slovníček pojmů (MDC, zlepšení, sezóna, maximum, cíl, norma),
 - vydané zprávy **pro sportovce** (zprávy pro trenéra a lékaře ne), včetně
   zprávy z genetického vyšetření,
