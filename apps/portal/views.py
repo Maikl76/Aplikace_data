@@ -25,6 +25,7 @@ from apps.core.audit import record
 from apps.core.models import AuditLog, Role
 from apps.measurements import questionnaires
 from apps.measurements.models import QuestionnaireResponse, TestSession
+from apps.reports import notify as report_notify
 from apps.reports.models import Audience, Report
 from apps.subjects import accounts
 from apps.subjects.access import subjects_for
@@ -140,6 +141,7 @@ def report(request, pk, report_pk):
 
     subject = _subject(request, pk)
     report = _released_report(subject, report_pk)
+    report_notify.mark_opened(report, request.user)
     record(request, AuditLog.Action.VIEW, report, subject_code=subject.code)
     return HttpResponse(render_html(report))
 
@@ -148,6 +150,7 @@ def report(request, pk, report_pk):
 def report_pdf(request, pk, report_pk):
     subject = _subject(request, pk)
     report = _released_report(subject, report_pk)
+    report_notify.mark_opened(report, request.user)
     if not report.pdf:
         raise Http404("Zpráva nemá PDF.")
     record(request, AuditLog.Action.EXPORT, report, subject_code=subject.code)
@@ -425,6 +428,7 @@ def coach_report(request, pk, report_pk):
 
     subject = _coach_subject(request, pk)
     report = _coach_report(subject, report_pk)
+    report_notify.mark_opened(report, request.user)
     record(request, AuditLog.Action.VIEW, report, subject_code=subject.code)
     return HttpResponse(render_html(report))
 
@@ -433,6 +437,7 @@ def coach_report(request, pk, report_pk):
 def coach_report_pdf(request, pk, report_pk):
     subject = _coach_subject(request, pk)
     report = _coach_report(subject, report_pk)
+    report_notify.mark_opened(report, request.user)
     if not report.pdf:
         raise Http404("Zpráva nemá PDF.")
     record(request, AuditLog.Action.EXPORT, report, subject_code=subject.code)

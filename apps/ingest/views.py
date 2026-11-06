@@ -154,6 +154,8 @@ def import_commit(request, pk):
             f"{result['session']} nových testovacích dnů, {result['sportovci']} nových sportovců.")
     if result.get("aktualizovano"):
         text += f" Aktualizováno {result['aktualizovano']} hodnot, které VALD přepočítal."
+    if result.get("koncepty"):
+        text += (f" Koncepty zpráv ke kontrole: {', '.join(result['koncepty'])}.")
     messages.success(request, text)
     if result.get("jmena_neulozena"):
         messages.warning(request, (

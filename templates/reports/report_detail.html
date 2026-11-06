@@ -16,7 +16,16 @@
         {% if report.is_genetic %}<span class="badge">genetické vyšetření</span> <a class="link" href="{% url 'genetics_subject' subject.pk %}">vzorek a genotypy</a>{% endif %}
         {% if report.is_example %}<span class="badge badge-good">vzorová zpráva</span>{% endif %}
         {% if report.in_test_set %}<span class="badge">ve zkušební sadě</span>{% endif %}
+        {% if report.auto_created %}<span class="badge" title="Koncept vznikl sám po dokončení testovacího dne">koncept vznikl sám</span>{% endif %}
       </p>
+      {% if notice %}
+        <p class="text-xs text-muted mt-1 flex flex-wrap items-center gap-x-2" id="doruceni">
+          <span>{{ notice }}{% if report.audience != "lekar" %} {% if report.opened_at %}Otevřeno v portálu {{ report.opened_at|date:"d.m.Y H:i" }}.{% else %}V portálu zatím neotevřeno.{% endif %}{% endif %}</span>
+          {% if report.audience != "lekar" and not read_only %}
+            <form method="post" action="{% url 'report_notify' report.pk %}" class="inline">{% csrf_token %}<button class="link" title="Pošle upozornění e‑mailem znovu – účtům sportovce a zástupců, nebo trenérům se sdílením">upozornit e‑mailem{% if report.notified_at %} znovu{% endif %}</button></form>
+          {% endif %}
+        </p>
+      {% endif %}
     </div>
   </div>
   {% if may_open %}

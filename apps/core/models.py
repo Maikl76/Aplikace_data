@@ -29,6 +29,9 @@ class Organization(TimeStampedModel):
     reminders_checked_on = models.DateField(
         "připomínky měření naposledy zkontrolovány", null=True, blank=True,
         help_text="Přehled je kontroluje jednou denně sám.")
+    auto_draft = models.BooleanField(
+        "koncept zprávy po dokončení dne", default=True,
+        help_text="Jakmile mají všechny testy dne hodnoty, vznikne koncept zprávy ke kontrole.")
 
     class Meta:
         verbose_name = "organizace"

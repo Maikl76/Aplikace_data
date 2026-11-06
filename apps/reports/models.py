@@ -141,6 +141,13 @@ class Report(OrgScopedModel):
     data_json = models.FileField("strojově čitelná příloha", upload_to="reports/%Y/%m/",
                                  blank=True)
 
+    auto_created = models.BooleanField("koncept vznikl sám", default=False)
+    notified_at = models.DateTimeField("upozornění e-mailem odesláno", null=True, blank=True)
+    notified_count = models.PositiveSmallIntegerField("počet adres upozornění", default=0)
+    opened_at = models.DateTimeField("poprvé otevřeno v portálu", null=True, blank=True)
+    opened_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="otevřel",
+                                  on_delete=models.SET_NULL, null=True, blank=True,
+                                  related_name="+")
     released_at = models.DateTimeField("vydáno", null=True, blank=True)
     released_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="vydal",
                                     on_delete=models.PROTECT, null=True, blank=True,

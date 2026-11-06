@@ -68,6 +68,9 @@ def session_steps(session, runs, unstable, reports) -> list[dict]:
         step(6, "Zpráva", bool(released),
              (f"Vydáno: {', '.join(r.report_number for r in released)}." if released else
               f"{len(drafts)} konceptů čeká na kontrolu a vydání." if drafts else
+              "Koncept vznikne sám, jakmile mají všechny testy hodnoty; ručně ho založíte pro "
+              "sportovce, trenéra nebo lékaře. Nic se tím nevydává."
+              if getattr(session.organization, "auto_draft", False) else
               "Vytvořte koncept pro sportovce, trenéra nebo lékaře; nic se tím nevydává."),
              url=reverse("report_detail", args=[drafts[0].pk]) if drafts else "#nova-zprava",
              button="Ke konceptu" if drafts else "Vytvořit zprávu"),

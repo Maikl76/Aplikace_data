@@ -8,7 +8,7 @@ from apps.core.models import AuditLog
 from apps.measurements.models import TestSession
 from apps.subjects.models import Consent
 
-from . import llm, narrative, services
+from . import llm, narrative, notify, services
 from .models import Audience, Report, ReportDelivery
 
 
@@ -122,6 +122,7 @@ def report_detail(request, pk):
         "llm_enabled": llm.is_enabled(),
         "ma_souhlas": Consent.has(report.subject, Consent.Scope.REPORT_HANDOVER),
         "channels": ReportDelivery.Channel.choices,
+        "notice": notify.notice(report),
     })
     return render(request, "reports/report_detail.html", context)
 
@@ -194,11 +195,34 @@ def report_release(request, pk):
         return redirect("report_detail", pk=pk)
 
     record(request, AuditLog.Action.RELEASE, report, subject_code=report.subject.code)
+    sent = notify.notify_released(report, base_url=request.build_absolute_uri("/"))
+    tail = (f" Upozornění odešlo e‑mailem ({sent} {'adresa' if sent == 1 else 'adresy' if sent < 5 else 'adres'})."
+            if sent else " " + notify.notice(report))
     if not report.pdf:
         messages.warning(request, "Zpráva vydána, ale PDF se nevygenerovalo "
-                                  "(chybí WeasyPrint). Použijte náhled v HTML.")
+                                  "(chybí WeasyPrint). Použijte náhled v HTML." + tail)
     else:
-        messages.success(request, f"Zpráva {report.report_number} vydána.")
+        messages.success(request, f"Zpráva {report.report_number} vydána." + tail)
+    return redirect("report_detail", pk=pk)
+
+
+@login_required
+def report_notify(request, pk):
+    """Upozornění e‑mailem znovu – třeba až sportovec dostane účet, nebo trenér sdílení."""
+    report = get_object_or_404(Report.objects.for_user(request.user), pk=pk)
+    if request.method != "POST":
+        return redirect("report_detail", pk=pk)
+    if report.status != Report.Status.RELEASED or report.audience == Audience.CLINICIAN:
+        messages.error(request, "Upozornit jde jen u vydané zprávy pro sportovce nebo trenéra.")
+        return redirect("report_detail", pk=pk)
+    sent = notify.notify_released(report, base_url=request.build_absolute_uri("/"))
+    if sent:
+        record(request, AuditLog.Action.UPDATE, report, subject_code=report.subject.code,
+               upozorneni=sent)
+        messages.success(request, f"Upozornění odešlo ({sent} "
+                                  f"{'adresa' if sent == 1 else 'adresy' if sent < 5 else 'adres'}).")
+    else:
+        messages.error(request, notify.notice(report))
     return redirect("report_detail", pk=pk)
 
 

@@ -343,12 +343,14 @@
       <h2>Zprávy a AI</h2>
       <p>Zpráva vzniká z testovacího dne a obsahuje: souhrn, výsledky všech testů (hodnota, pokusy, minulá hodnota, změna, posouzení, norma), vývoj v čase, stranové rozdíly, nálezy a doporučení.</p>
       <ol>
+        <li><strong>Koncept vzniká sám:</strong> jakmile mají všechny testy dne hodnoty (u přístroje nebo z importu), vznikne koncept pro trenéra (při sdílení s trenérem), jinak pro sportovce, a čeká ve Zprávách ke kontrole. Vypíná se v Nastavení → Pracoviště a týmy.</li>
         <li>V testovacím dni vyberte, <strong>pro koho</strong> zpráva je (sportovec / trenér / lékař), a <em>Vytvořit zprávu</em> → vznikne <span class="badge badge-accent">koncept</span>. Pro sportovce píše model srozumitelně a motivačně, pro trenéra prakticky k tréninku, pro lékaře odborně a bez tréninkových rad. Další variantu ze stejného dne vytvoříte v detailu zprávy (<em>Další varianty</em>). Zprávu pro lékaře lze vydat jen se souhlasem s předáním zprávy.</li>
         <li><strong>Souhrn</strong> napíše {% if llm_enabled %}lokální model{% if llm_model %} ({{ llm_model }}){% endif %}{% else %}šablona (AI je vypnutá){% endif %}. Model dostává jen kódy a čísla, nikdy jméno. Text můžete libovolně opravit; číslo, které není ve výsledcích, aplikace po uložení ohlásí.</li>
         <li><strong>Doporučení z pravidel</strong> vznikají z aktivních pravidel laboratoře. Vlastní doporučení napište do <em>Komentáře diagnostika</em>{% if llm_enabled %}, nebo si nechte navrhnout koncept tlačítkem <em>Navrhnout doporučení (AI)</em>{% endif %}.</li>
         <li>Návrh od AI musíte projít a uložit – do té doby zprávu nejde vydat.</li>
         <li><em>Otevřít celou zprávu</em> ukáže podobu pro tisk a předání.</li>
         <li><strong>Vydat</strong> – vydání je <strong>nevratné</strong>. Vydaná zpráva se už nemění (je uložená přesně, jak byla vydána). Oprava = <em>Vytvořit novou verzi</em>, která ji nahradí.</li>
+        <li><strong>Vydání = doručení:</strong> po vydání zprávy pro sportovce nebo trenéra odejde upozornění e‑mailem účtům v portálu (sportovec, zákonní zástupci, trenér se sdílením) – bez výsledků, jen s odkazem. U zprávy je vidět, kdy upozornění odešlo a kdy ji příjemce v portálu poprvé otevřel; <em>upozornit e‑mailem znovu</em> pošle další (třeba až sportovec dostane účet). Zprávu pro lékaře předáváte jako dosud se záznamem o předání.</li>
         <li><strong>Předání</strong> (např. AKESO) jde zaznamenat jen u sportovce s platným souhlasem s předáním zprávy poskytovateli zdravotních služeb.</li>
       </ol>
       <p class="text-sm text-muted">Má-li sportovec platné omezení zátěže (z externího vyšetření), doporučení vyžadující zátěž se negenerují a karta sportovce na to upozorní.</p>

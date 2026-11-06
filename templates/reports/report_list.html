@@ -18,7 +18,7 @@
 <div class="card overflow-x-auto">
   <table class="table">
     <thead>
-      <tr><th>Sportovec</th><th>Číslo</th><th class="max-md:hidden">Pro koho</th><th>Měření</th><th>Stav</th><th class="max-md:hidden">Vydáno</th></tr>
+      <tr><th>Sportovec</th><th>Číslo</th><th class="max-md:hidden">Pro koho</th><th>Měření</th><th>Stav</th><th class="max-md:hidden">Vydáno</th><th class="max-md:hidden">Otevřeno</th></tr>
     </thead>
     <tbody>
       {% for r in reports %}
@@ -34,9 +34,10 @@
           <td class="tabular-nums">{% if r.is_genetic %}<span class="badge">genetika</span>{% else %}{{ r.session.date|date:"d.m.Y"|default:"—" }}{% endif %}</td>
           <td>{% include "reports/_status.html" %}</td>
           <td class="tabular-nums text-2 max-md:hidden">{{ r.released_at|date:"d.m.Y H:i"|default:"—" }}</td>
+          <td class="tabular-nums text-2 max-md:hidden">{% if r.status == "released" and r.audience != "lekar" %}{% if r.opened_at %}<span title="Poprvé otevřeno v portálu">{{ r.opened_at|date:"d.m.Y" }}</span>{% else %}<span class="text-muted" title="V portálu zatím neotevřeno">ne</span>{% endif %}{% else %}—{% endif %}</td>
         </tr>
       {% empty %}
-        <tr><td colspan="6" class="text-muted py-6 text-center">
+        <tr><td colspan="7" class="text-muted py-6 text-center">
           Zatím žádné zprávy. Zprávu založíte z <a class="link" href="{% url 'session_list' %}">testovacího dne</a>.
         </td></tr>
       {% endfor %}

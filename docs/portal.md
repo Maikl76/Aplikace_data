@@ -47,6 +47,19 @@ kódem.
   kdykoli jedním tlačítkem; trenér od té chvíle nevidí nic.
 - Při anonymizaci sportovce se sdílení odvolá a účty bez sportovce se vypnou.
 
+## Nová zpráva: upozornění a otevření
+
+Po vydání zprávy pro sportovce odejde e‑mail účtu sportovce a účtům
+zákonných zástupců; po vydání zprávy pro trenéra trenérům s aktivním
+sdílením. E‑mail nenese jméno ani výsledky, jen odkaz do portálu. Vyžaduje
+poštovní server (`EMAIL_HOST`); bez něj laboratoř u zprávy vidí, že
+upozornění neodešlo. Tlačítko *upozornit e‑mailem znovu* u vydané zprávy
+pošle další, třeba až sportovec dostane účet.
+
+Laboratoř u zprávy, v seznamu zpráv i na kartě sportovce vidí, kdy byla
+zpráva v portálu poprvé otevřena (a kým). Zpráva pro lékaře se předává
+jako dosud, se záznamem o předání a souhlasem.
+
 ## Co sportovec vidí
 
 - klíčové ukazatele s posouzením proti pásmu chyby měření, trendy,

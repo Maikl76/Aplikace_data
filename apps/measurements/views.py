@@ -385,6 +385,15 @@ def run_entry(request, pk):
     if request.method == "POST":
         saved, flagged, deleted, invalid = _save_grid(request, run)
         message = f"Uloženo {saved} hodnot."
+        if saved:
+            from apps.reports import auto as report_auto
+
+            draft = report_auto.ensure_draft(run.session, user=request.user)
+            if draft is not None:
+                record(request, AuditLog.Action.CREATE, draft,
+                       subject_code=run.session.subject.code, automaticky=True)
+                message += (f" Koncept zprávy {draft.report_number} je připravený ke kontrole "
+                            "(Zprávy).")
         if deleted:
             message += f" Smazáno {deleted} vymazaných hodnot."
         if invalid:

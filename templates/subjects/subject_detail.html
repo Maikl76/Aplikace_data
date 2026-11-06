@@ -232,6 +232,7 @@
               <span class="block text-xs text-muted">{{ r.created_at|date:"d.m.Y" }}{% if r.session %} · měření {{ r.session.date|date:"d.m.Y" }}{% endif %}</span>
             </span>
             <span class="badge {% if r.status == 'released' %}badge-good{% elif r.status == 'draft' %}{% else %}badge-warn{% endif %}">{{ r.get_status_display }}</span>
+            {% if r.status == 'released' and r.audience != 'lekar' %}{% if r.opened_at %}<span class="badge badge-good" title="Otevřeno v portálu {{ r.opened_at|date:'d.m.Y H:i' }}">otevřeno</span>{% else %}<span class="badge" title="V portálu zatím neotevřeno">neotevřeno</span>{% endif %}{% endif %}
           </a>
         </li>
       {% empty %}

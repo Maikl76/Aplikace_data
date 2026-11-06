@@ -15,6 +15,7 @@
         <label class="block"><span class="text-xs text-2">Zkratka (nemění se)</span>
           <input value="{{ org.short_name }}" readonly class="input text-sm py-1.5 text-muted"></label>
       </div>
+      <label class="flex items-start gap-2 text-sm mt-3"><input type="checkbox" name="auto_draft" class="mt-1" {% if org.auto_draft %}checked{% endif %}> <span><strong>Koncept zprávy vzniká sám</strong>, jakmile mají všechny testy dne hodnoty – pro trenéra, když sportovec sdílí výsledky s trenérem, jinak pro sportovce. Nic se nevydává; koncept zkontroluje a vydá diagnostik. Po vydání odejde upozornění e‑mailem účtům v portálu.</span></label>
     </section>
     <section class="card p-4">
       <h2 class="card-title mb-2">Týmy</h2>

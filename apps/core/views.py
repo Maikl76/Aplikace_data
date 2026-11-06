@@ -277,6 +277,10 @@ def organization_settings(request):
             if name and name != org.name:
                 org.name = name
                 org.save(update_fields=["name", "updated_at"])
+            auto_draft = bool(post.get("auto_draft"))
+            if auto_draft != org.auto_draft:
+                org.auto_draft = auto_draft
+                org.save(update_fields=["auto_draft", "updated_at"])
             sport_by_pk = {str(s.pk): s for s in sports}
             for team in teams:
                 if f"t{team.pk}_delete" in post:

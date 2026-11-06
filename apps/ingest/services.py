@@ -648,9 +648,15 @@ def commit_batch(batch, *, user, default_date=None, skip_out_of_range=False) -> 
     _mark_primary_runs(touched)
     # Odvozené ukazatele (DSI z CMJ a IMTP) podle nových hodnot.
     from apps.analytics.derived import recompute
+    from apps.reports import auto as report_auto
 
-    for session in TestSession.objects.filter(pk__in={s for s, _ in touched}):
+    result["koncepty"] = []
+    for session in (TestSession.objects.filter(pk__in={s for s, _ in touched})
+                    .select_related("subject", "organization")):
         recompute(session)
+        draft = report_auto.ensure_draft(session, user=user)
+        if draft is not None:
+            result["koncepty"].append(draft.report_number)
 
     batch.status = ImportBatch.Status.COMMITTED
     batch.summary = {**summary, "vysledek": result}
