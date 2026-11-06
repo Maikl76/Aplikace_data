@@ -41,4 +41,12 @@
     </select>
     <button type="submit" class="btn btn-sm">{% icon "plus" %}Přidat</button>
   </form>
+  <form class="mt-2 flex flex-wrap items-center gap-2 text-xs" hx-post="{% url 'battery_interval' battery.pk %}"
+        hx-target="#baterie-{{ battery.pk }}" hx-swap="outerHTML" title="Z intervalu plyne termín dalšího měření sportovců této baterie (Kdo je na řadě, připomínky).">
+    <span class="text-muted">Opakování po</span>
+    <input name="tydny" value="{{ battery.retest_weeks|default:'' }}" inputmode="numeric" class="input text-xs py-1" style="width: 4rem" placeholder="—">
+    <span class="text-muted">týdnech</span>
+    <button type="submit" class="btn btn-sm">Uložit</button>
+    <span class="text-muted">{% if battery.retest_weeks %}sportovci jsou na řadě {{ battery.retest_weeks }} týdnů po posledním měření{% else %}prázdné = bez plánu opakování{% endif %}</span>
+  </form>
 </div>

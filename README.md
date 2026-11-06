@@ -71,6 +71,7 @@ DSI, ODS a kontrola pokusů v [docs/diagnostika.md](docs/diagnostika.md),
 vědecké články ve zprávách a dohledání podle DOI/PMID v [docs/clanky.md](docs/clanky.md),
 baterie testů, Dnešní testování a týmový přehled v [docs/baterie.md](docs/baterie.md),
 stopky, RPE, QR karty a tablet v síti v [docs/terenni-testovani.md](docs/terenni-testovani.md),
+plán opakování, Kdo je na řadě a připomínky v [docs/opakovane-mereni.md](docs/opakovane-mereni.md),
 objednávky od klientů v [docs/objednavky.md](docs/objednavky.md),
 aktualizace aplikace na serveru v [docs/aktualizace-serveru.md](docs/aktualizace-serveru.md),
 server bez internetu (instalace a aktualizace z flash disku) v [docs/offline-server.md](docs/offline-server.md).

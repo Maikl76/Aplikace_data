@@ -84,6 +84,29 @@ def battery_add(request, sport_pk):
 
 @login_required
 @require_POST
+def battery_interval(request, pk):
+    """Doporučený odstup dalšího měření u baterie; z něj plyne, kdo je na řadě."""
+    battery = get_object_or_404(_batteries(request.user), pk=pk)
+    raw = request.POST.get("tydny", "").strip()
+    try:
+        weeks = int(raw) if raw else None
+        if weeks is not None and not 1 <= weeks <= 104:
+            raise ValueError
+    except ValueError:
+        messages.error(request, "Opakování zadejte v týdnech (1 až 104), nebo nechte prázdné.")
+        return _card(request, battery) if request.headers.get("HX-Request") else redirect("sport_list")
+    battery.retest_weeks = weeks
+    battery.save(update_fields=["retest_weeks", "updated_at"])
+    record(request, AuditLog.Action.UPDATE, battery, opakovani_tydnu=weeks)
+    if request.headers.get("HX-Request"):
+        return _card(request, battery)
+    messages.success(request, f"Baterie {battery.label}: opakování "
+                              + (f"po {weeks} týdnech." if weeks else "bez plánu."))
+    return redirect("sport_list")
+
+
+@login_required
+@require_POST
 def battery_delete(request, pk):
     battery = get_object_or_404(_batteries(request.user), pk=pk)
     label = battery.label

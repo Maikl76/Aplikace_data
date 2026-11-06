@@ -30,6 +30,7 @@
       <span class="min-w-0 flex-1">
         <span class="block font-medium truncate">{{ s.jmeno }}</span>
         <span class="block text-xs text-muted">{{ s.code }} · {{ s.sport|default:"bez sportu" }} · měření: {{ s.pocet_mereni }}{% if s.posledni %} · naposledy {{ s.posledni|date:"d.m.Y" }}{% endif %}</span>
+        {% if s.plan and s.plan.is_due %}{% with b=s.plan.badge %}<span class="badge {{ b.0 }} mt-1" title="Termín dalšího měření">{{ b.1 }}</span>{% endwith %}{% endif %}
       </span>
       <span class="text-muted">{% icon "chevron-right" "w-4 h-4" %}</span>
     </a>

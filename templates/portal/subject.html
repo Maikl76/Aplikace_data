@@ -17,6 +17,16 @@
     <span class="flex-1">Dnes máte měření. Po testu vyplňte, jak náročné vám přišlo.</span>
     <a href="{% url 'portal_questionnaire' subject.pk %}" class="btn btn-sm">Vyplnit RPE</a>
   </div>
+{% elif plan.status != "none" %}
+  <div class="card px-4 py-3 mb-5 text-sm flex flex-wrap gap-3 items-center{% if plan.status == 'overdue' %} border-l-4{% endif %}" id="pristi-mereni"{% if plan.status == 'overdue' %} style="border-left-color: var(--warn)"{% endif %}>
+    <span class="flex-1">
+      {% if plan.status == "planned" %}Příští měření máte naplánované na <strong>{{ plan.planned|date:"d.m.Y" }}</strong>.
+      {% elif plan.status == "booked" %}Vaše objednávka dalšího měření čeká na schválení laboratoří.
+      {% elif plan.status == "overdue" %}Termín dalšího měření (<strong>{{ plan.due|date:"d.m.Y" }}</strong>) už prošel – domluvte si nový termín.
+      {% else %}Příští měření: do <strong>{{ plan.due|date:"d.m.Y" }}</strong>{% if plan.weeks %} (opakování {{ plan.interval_text }}){% endif %}.{% endif %}
+    </span>
+    {% if booking_url and plan.status != "planned" and plan.status != "booked" %}<a href="{{ booking_url }}" class="btn btn-sm">Objednat se</a>{% endif %}
+  </div>
 {% endif %}
 
 {% if tiles %}

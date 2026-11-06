@@ -26,6 +26,9 @@ class Organization(TimeStampedModel):
     name = models.CharField("název", max_length=200)
     short_name = models.SlugField("zkratka", max_length=32, unique=True)
     is_active = models.BooleanField("aktivní", default=True)
+    reminders_checked_on = models.DateField(
+        "připomínky měření naposledy zkontrolovány", null=True, blank=True,
+        help_text="Přehled je kontroluje jednou denně sám.")
 
     class Meta:
         verbose_name = "organizace"

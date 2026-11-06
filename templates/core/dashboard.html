@@ -77,6 +77,27 @@
   </section>
 </div>
 
+<section class="card min-w-0 mt-4" id="na-rade">
+  <div class="px-4 pt-4 pb-2 flex flex-wrap items-baseline justify-between gap-2">
+    <h2 class="card-title">Kdo je na řadě</h2>
+    <a href="{% url 'subject_list' %}?na_rade=1" class="text-sm link">všichni ({{ na_rade_celkem }})</a>
+  </div>
+  <ul>
+    {% for p in na_rade %}
+      <li class="border-t px-4 py-2 text-sm flex flex-wrap items-center gap-2" style="border-color: var(--border)">
+        <a href="{% url 'subject_detail' p.subject.pk %}#plan" class="font-medium">{{ p.jmeno }}</a>
+        {% if p.subject.sport %}<span class="text-xs text-muted">{{ p.subject.sport }}</span>{% endif %}
+        {% with b=p.badge %}<span class="badge {{ b.0 }}">{{ b.1 }}</span>{% endwith %}
+        <span class="flex-1 min-w-0 text-xs text-2">{{ p.text }}</span>
+        {% if may_act %}<a href="{% url 'session_create' %}?sportovec={{ p.subject.pk }}" class="btn btn-sm">{% icon "plus" %}Nové měření</a>{% endif %}
+      </li>
+    {% empty %}
+      <li class="px-4 py-4 text-sm text-muted border-t" style="border-color: var(--border)">Nikdo není na řadě. Termín dalšího měření plyne z intervalu u baterie sportu (Sporty a testy) nebo z plánu na kartě sportovce.</li>
+    {% endfor %}
+  </ul>
+  <p class="px-4 pb-3 text-xs text-muted">{% if email_enabled %}Připomínky e‑mailem odcházejí samy 14 dní před termínem a při prošlém termínu; Přehled je kontroluje jednou denně.{% if pripominky_dnes %} Dnes odesláno: {{ pripominky_dnes.sent|length }}.{% endif %}{% else %}Poštovní server není nastavený – připomínky se neposílají, termín předejte sami.{% endif %}</p>
+</section>
+
 {% if user.sees_identity %}
 <section class="card min-w-0 mt-4">
   <div class="px-4 pt-4 pb-2 flex flex-wrap items-baseline justify-between gap-2">

@@ -124,6 +124,28 @@
       <h2 class="card-title">Testovací dny</h2>
       <span class="text-xs text-muted">{{ sessions|length }}</span>
     </div>
+    <div class="px-4 pb-3 text-sm" id="plan">
+      <div class="flex flex-wrap items-center gap-2">
+        {% with b=plan.badge %}{% if b.1 %}<span class="badge {{ b.0 }}">{{ b.1 }}</span>{% endif %}{% endwith %}
+        <span class="flex-1 min-w-0 text-2">{{ plan.text }}</span>
+        {% if may_edit and plan.due and plan.status != "planned" and plan.status != "booked" %}
+          <form method="post" action="{% url 'subject_retest' subject.pk %}" class="inline">{% csrf_token %}<input type="hidden" name="akce" value="pripomenout"><button class="btn btn-sm" title="E‑mail na uložený kontakt sportovce a účty zástupců">Připomenout e‑mailem</button></form>
+        {% endif %}
+      </div>
+      {% if may_edit %}
+        <details class="mt-1">
+          <summary class="cursor-pointer link text-xs">Plán opakování</summary>
+          <form method="post" action="{% url 'subject_retest' subject.pk %}" class="mt-2 p-3 rounded-lg space-y-2 text-sm" style="background: var(--surface-2)">{% csrf_token %}
+            <label class="flex items-center gap-2"><input type="radio" name="rezim" value="baterie" {% if not subject.retest_weeks and not subject.next_test_date %}checked{% endif %}> podle baterie sportu{% if plan.source == "baterie" %} ({{ plan.weeks }} týdnů){% elif not subject.retest_weeks %} (baterie zatím interval nemá – nastavíte ho v Sporty a testy){% endif %}</label>
+            <label class="flex flex-wrap items-center gap-2"><input type="radio" name="rezim" value="vlastni" {% if subject.retest_weeks and not subject.next_test_date %}checked{% endif %}> vlastní interval <input name="tydny" value="{{ subject.retest_weeks|default:'' }}" inputmode="numeric" class="input text-sm py-1" style="width: 5rem" placeholder="12"> týdnů</label>
+            <label class="flex flex-wrap items-center gap-2"><input type="radio" name="rezim" value="datum" {% if subject.next_test_date %}checked{% endif %}> konkrétní termín <input type="date" name="datum" value="{{ subject.next_test_date|date:'Y-m-d' }}" class="input text-sm py-1" style="width: 11rem"> <span class="text-xs text-muted">po měření přestane platit a dál se počítá interval</span></label>
+            <button class="btn btn-sm btn-primary">Uložit plán</button>
+          </form>
+        </details>
+      {% endif %}
+      {% if reminders %}<p class="text-xs text-muted mt-1">Připomínky odeslány: {% for r in reminders %}{{ r.created_at|date:"d.m.Y" }}{% if r.manual %} (ručně){% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}.</p>
+      {% elif may_edit and not email_enabled %}<p class="text-xs text-muted mt-1">Poštovní server není nastavený – připomínky se neposílají, termín předejte sami.</p>{% endif %}
+    </div>
     <ul>
       {% for s in sessions %}
         <li class="border-t" style="border-color: var(--border)">

@@ -22,6 +22,8 @@
     <option value="">Všechny sporty</option>
     {% for sp in sports %}<option value="{{ sp.pk }}" {% if sport_id == sp.pk|stringformat:"s" %}selected{% endif %}>{{ sp.name }}</option>{% endfor %}
   </select>
+  <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="na_rade" value="1" {% if show_due %}checked{% endif %}>
+    jen na řadě ({{ due_count }})</label>
   {% if inactive %}
     <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="neaktivni" value="1" {% if show_inactive %}checked{% endif %}>
       i neaktivní ({{ inactive }})</label>
@@ -33,7 +35,7 @@
     <thead>
       <tr>
         <th>Sportovec</th><th>Sport</th><th>Věk</th><th>Úroveň</th>
-        <th class="text-right">Měření</th><th>Naposledy</th>
+        <th class="text-right">Měření</th><th>Naposledy</th><th>Další měření</th>
       </tr>
     </thead>
     <tbody id="vysledky">{% include "subjects/_subject_rows.html" %}</tbody>

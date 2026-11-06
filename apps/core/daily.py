@@ -64,6 +64,10 @@ def daily_steps(user, today=None) -> list[dict]:
     if rpe_missing:
         checks.append(f"{len(rpe_missing)}× chybí RPE po zátěžovém testu")
     report_pending = len(drafts) + len(unreported)
+    from apps.subjects import retest
+
+    due = retest.due_plans(user, today=today)
+    overdue = [p for p in due if p.status == "overdue"]
     return [
         step(1, "Kdo dnes přijde", bool(sessions),
              (f"{len(sessions)} testovacích dnů." if sessions else
@@ -97,4 +101,10 @@ def daily_steps(user, today=None) -> list[dict]:
              url=(reverse("report_detail", args=[undelivered[0].pk]) if undelivered
                   else reverse("report_list")),
              button="Zaznamenat předání", count=len(undelivered) or None),
+        step(6, "Na řadě", not due,
+             (f"{len(due)} sportovců má termín dalšího měření do 30 dnů"
+              + (f", {len(overdue)} už prošel" if overdue else "") + "." if due
+              else "Nikdo nemá termín dalšího měření do 30 dnů."),
+             url=reverse("subject_list") + "?na_rade=1", button="Kdo je na řadě",
+             optional=True, count=len(due) or None),
     ]

@@ -213,6 +213,7 @@
       <ul>
         <li><strong>Hledání:</strong> pole nahoře (nebo klávesa <kbd>/</kbd>) hledá podle jména i kódu, bez ohledu na diakritiku. V <a class="link" href="{% url 'subject_list' %}">Sportovcích</a> jde filtrovat i podle sportu.</li>
         <li><strong>Karta sportovce:</strong> dlaždice s posledními hodnotami klíčových ukazatelů, šipka změny proti minulému měření, minigraf, grafy vývoje, stranové rozdíly a seznam testovacích dnů.</li>
+        <li><strong>Další měření:</strong> termín plyne z posledního měření a intervalu (u baterie sportu, nebo vlastní plán u sportovce; konkrétní termín má přednost). Přehled ukazuje <em>Kdo je na řadě</em>, seznam sportovců má filtr <em>jen na řadě</em>, portál sportovce <em>Příští měření</em>. Připomínky e‑mailem odcházejí samy 14 dní před termínem (Přehled je kontroluje jednou denně, nebo příkaz <code>pripomenout_mereni</code>), ručně tlačítkem na kartě sportovce. Podrobně v dokumentaci <em>opakovane-mereni.md</em>.</li>
         <li><strong>Tlačítka na kartě:</strong> <em>Nové měření</em> (testy předvyplní baterie), <em>Zpráva z posledního měření</em>, ikona QR (karta pro tablet) a tužka (úprava údajů).</li>
         <li><strong>Úprava údajů</strong> (jméno, datum narození, kontakt, sport, kategorie, úroveň, dominantní strana, souhlasy): tužka na kartě sportovce.</li>
         <li><strong>Deaktivace, smazání, anonymizace</strong> – dole na stránce úprav (<em>Další akce</em>):
@@ -232,6 +233,7 @@
         <li>V <a class="link" href="{% url 'sport_list' %}">Sporty a testy</a> přidáte sport, u něj testy přidáte, odeberete nebo posunete šipkami.</li>
         <li><strong>Nový test</strong> (správce): <a class="link" href="{% url 'test_list' %}">Sporty a testy → Testy</a> → <em>Nový test</em>. Na jedné stránce název, počet pokusů, pauza a RPE; metriky z katalogu nebo nové (<em>＋ Nová metrika</em>); strany a části těla zaškrtnutím; rovnou i zařazení do baterií. Zadávací formulář vznikne sám. Existující test upravíte tlačítkem <em>upravit</em> – naměřená data zůstávají.</li>
         <li><strong>Kategorie:</strong> sport může mít vedle obecné baterie i baterii pro kategorii (např. <em>Lední hokej – dorost</em>). Sportovec s vyplněnou kategorií dostane baterii své kategorie, ostatní obecnou.</li>
+        <li><strong>Opakování:</strong> u baterie nastavte <em>Opakování po N týdnech</em>; od posledního měření se počítá termín dalšího a sportovci se objeví v <em>Kdo je na řadě</em>.</li>
         <li>Baterie předvyplní nový testovací den, řídí <em>Dnešní testování</em>, pořadí testů při zadávání a sloupce <em>Týmového přehledu</em>.</li>
         <li>Odvozené ukazatele (DSI, EUR) se do baterie nepřidávají – dopočítají se samy z CMJ, IMTP a SJ.</li>
       </ul>

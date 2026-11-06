@@ -85,6 +85,12 @@ class Subject(OrgScopedModel):
     is_active = models.BooleanField("aktivní", default=True)
     note = models.TextField("poznámka", blank=True,
                             help_text="Provozní poznámka. Nikdy diagnózy ani zdravotní údaje.")
+    retest_weeks = models.PositiveSmallIntegerField(
+        "vlastní interval opakování (týdny)", null=True, blank=True,
+        help_text="Prázdné = podle baterie testů sportu.")
+    next_test_date = models.DateField(
+        "další měření naplánováno na", null=True, blank=True,
+        help_text="Konkrétní termín má přednost před intervalem; po měření přestane platit.")
 
     class Meta:
         verbose_name = "sportovec"
@@ -257,6 +263,30 @@ class Guardian(TimeStampedModel):
 
     def __str__(self):
         return f"zástupce {self.identity.subject.code}"
+
+
+class RetestReminder(TimeStampedModel):
+    """
+    Odeslaná připomínka dalšího měření: aby se neposílala dvakrát a bylo
+    vidět, kdy a kam odešla. Adresy se neukládají, jen jejich počet.
+    """
+
+    subject = models.ForeignKey(Subject, verbose_name="sportovec", on_delete=models.CASCADE,
+                                related_name="retest_reminders")
+    due_date = models.DateField("termín, ke kterému se připomínalo", null=True, blank=True)
+    sent_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="poslal",
+                                on_delete=models.SET_NULL, null=True, blank=True,
+                                related_name="+", help_text="Prázdné = automaticky.")
+    manual = models.BooleanField("ručně z karty sportovce", default=False)
+    recipients = models.PositiveSmallIntegerField("počet adres", default=1)
+
+    class Meta:
+        verbose_name = "připomínka měření"
+        verbose_name_plural = "připomínky měření"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"připomínka {self.subject.code} {self.created_at:%d.%m.%Y}"
 
 
 class AccountInvitation(TimeStampedModel):

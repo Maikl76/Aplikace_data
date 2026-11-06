@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import connection
 from django.http import JsonResponse
@@ -54,6 +55,16 @@ def dashboard(request):
 
     from apps.core.daily import daily_steps
     from apps.core.middleware import READ_ONLY
+    from apps.subjects import retest
+
+    pripominky = None
+    if request.user.sees_identity or request.user.is_superuser:
+        pripominky = retest.daily_check(request.user.organization,
+                                        booking_url=retest.booking_link(request.build_absolute_uri("/")))
+    na_rade = retest.due_plans(request.user)
+    na_rade_names = names_for([p.subject for p in na_rade[:8]], request.user)
+    for p in na_rade[:8]:
+        p.jmeno = na_rade_names.get(p.subject.pk) or p.subject.code
 
     nastaveni_ceka = 0
     if _is_admin(request.user):
@@ -79,6 +90,8 @@ def dashboard(request):
         "posledni_session": recent,
         "koncepty": draft_list,
         "dnes_datum": today,
+        "na_rade": na_rade[:8], "na_rade_celkem": len(na_rade), "pripominky_dnes": pripominky,
+        "email_enabled": bool(settings.EMAIL_HOST),
     }
     return render(request, "core/dashboard.html", context)
 

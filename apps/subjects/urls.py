@@ -17,4 +17,5 @@ urlpatterns = [
     path("<int:pk>/pozvanka/<int:inv_pk>/", views.subject_invitation, name="subject_invitation"),
     path("<int:pk>/sdileni/", views.subject_sharing, name="subject_sharing"),
     path("<int:pk>/ucet/odebrat/", views.subject_account_remove, name="subject_account_remove"),
+    path("<int:pk>/plan/", views.subject_retest, name="subject_retest"),
 ]

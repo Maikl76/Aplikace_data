@@ -15,7 +15,8 @@
     <td>{{ s.get_level_display }}</td>
     <td class="text-right tabular-nums">{{ s.pocet_mereni }}</td>
     <td class="tabular-nums">{{ s.posledni_mereni|date:"d.m.Y"|default:"—" }}</td>
+    <td>{% if s.plan %}{% with b=s.plan.badge %}{% if b.1 %}<span class="badge {{ b.0 }}" title="{{ s.plan.text }}">{{ b.1 }}</span>{% else %}<span class="text-muted">—</span>{% endif %}{% endwith %}{% endif %}</td>
   </tr>
 {% empty %}
-  <tr><td colspan="6" class="text-muted py-6 text-center">Nikdo neodpovídá hledání.</td></tr>
+  <tr><td colspan="7" class="text-muted py-6 text-center">{% if show_due %}Nikdo není na řadě.{% else %}Nikdo neodpovídá hledání.{% endif %}</td></tr>
 {% endfor %}

@@ -483,6 +483,9 @@ class TestBattery(OrgScopedModel):
                                 help_text="Např. „dorost“. Prázdné = platí pro celý sport.")
     name = models.CharField("název", max_length=120, blank=True)
     note = models.TextField("poznámka", blank=True)
+    retest_weeks = models.PositiveSmallIntegerField(
+        "opakování po (týdnech)", null=True, blank=True,
+        help_text="Doporučený odstup dalšího měření; prázdné = bez plánu opakování.")
 
     class Meta:
         verbose_name = "baterie testů"

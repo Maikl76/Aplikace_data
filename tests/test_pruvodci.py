@@ -75,7 +75,7 @@ def test_prehled_vede_dnem(org):
     page = client.get(reverse("dashboard"))
     assert page.status_code == 200
     dnes = page.context["dnes"]
-    assert [s["title"] for s in dnes] == ["Kdo dnes přijde", "Hodnoty", "Kontrola", "Zprávy", "Předání"]
+    assert [s["title"] for s in dnes] == ["Kdo dnes přijde", "Hodnoty", "Kontrola", "Zprávy", "Předání", "Na řadě"]
     assert page.context["next_step"]["title"] == "Kdo dnes přijde"
     assert "Další krok: Kdo dnes přijde" in page.content.decode()
 

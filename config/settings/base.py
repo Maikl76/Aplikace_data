@@ -197,6 +197,9 @@ LLM_TEMPERATURE = env.float("LLM_TEMPERATURE", default=0.2)
 # E-maily (potvrzení objednávky, schválení). Bez EMAIL_HOST se nic
 # neodesílá, zprávy se jen vypíšou do logu – objednávky fungují i tak.
 EMAIL_HOST = env("EMAIL_HOST", default="")
+# Veřejná adresa aplikace do e-mailů posílaných mimo prohlížeč (připomínky
+# dalšího měření z příkazu), např. https://ftvs.pythonanywhere.com
+PUBLIC_BASE_URL = env("PUBLIC_BASE_URL", default="").rstrip("/")
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")

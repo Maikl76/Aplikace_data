@@ -112,9 +112,13 @@ def subject(request, pk):
                .select_related("coach"))
     steps = athlete_steps(subject, pending=pending, today_session=today_session,
                           reports=reports, sessions=sessions)
+    from apps.booking import services as booking
+    from apps.subjects import retest
+
     return render(request, "portal/subject.html", {
         "steps": steps, "next_step": next_step(steps),
-        "subject": subject,
+        "subject": subject, "plan": retest.plan_for(subject),
+        "booking_url": reverse("booking_form") if booking.enabled() else "",
         "tiles": overview.kpi_tiles(subject),
         "trends": trends,
         "sessions": sessions,
@@ -327,8 +331,12 @@ def coach_home(request):
     rows = list(subjects_for(request.user).filter(is_active=True)
                 .annotate(pocet_mereni=Count("sessions", distinct=True),
                           posledni=Max("sessions__date")).order_by("code"))
+    from apps.subjects import retest
+
+    plans = {p.subject.pk: p for p in retest.plans_for(rows)}
     for s in rows:
         s.jmeno = s.display_for(request.user)
+        s.plan = plans.get(s.pk)
     rows.sort(key=lambda s: s.jmeno.lower())
     pending = (Sharing.objects.filter(coach=request.user, status=Sharing.Status.REQUESTED)
                .select_related("subject").order_by("-created_at"))

@@ -8,7 +8,7 @@ from .models import Consent, Sharing
 
 
 def subject_steps(subject, *, sessions, accounts, sharings, may_edit: bool,
-                  exams=()) -> list[dict]:
+                  exams=(), plan=None) -> list[dict]:
     """``sessions`` od nejnovějšího s anotací ``hodnot`` a načtenými zprávami."""
     from apps.external.models import ExternalExam
     from apps.reports.models import Report, ReportDelivery
@@ -44,9 +44,11 @@ def subject_steps(subject, *, sessions, accounts, sharings, may_edit: bool,
               "Sportovec nebo zákonný zástupce dostane pozvánku – odkaz nebo QR kód."),
              url="#ucet", button="Pozvánka" if may_edit and not has_account else "",
              optional=True),
-        step(3, "Měření", bool(measured),
-             (f"Poslední měření {last.date:%d.%m.%Y}."
-              + (f" {len(planned)} naplánovaných dnů bez hodnot." if planned else "")
+        step(3, "Měření", bool(measured) and not (plan and plan.status == "overdue"),
+             (f"Poslední měření {last.date:%d.%m.%Y}. "
+              + (plan.text() if plan and plan.status != "none" else
+                 f"{len(planned)} naplánovaných dnů bez hodnot." if planned else
+                 "Bez plánu opakování – interval se nastavuje u baterie sportu.")
               if measured else
               f"Naplánováno na {planned[0].date:%d.%m.%Y}, hodnoty zatím chybí." if planned else
               "Zatím žádné měření – nový testovací den se předvyplní podle baterie sportu."),

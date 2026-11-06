@@ -1,3 +1,6 @@
+from datetime import date
+
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
@@ -10,7 +13,7 @@ from apps.external.models import ExternalExam
 from apps.genetics import services as genetics
 from apps.measurements.models import TestSession
 
-from . import accounts, search
+from . import accounts, retest, search
 from .models import AccountInvitation, Sport, Subject, Team
 
 
@@ -27,10 +30,19 @@ def subject_list(request):
     q = request.GET.get("q", "").strip()
     subjects = (search.search(request.user, q, limit=None, base=qs) if q
                 else search.annotate(qs.order_by("code"), request.user, limit=300))
+    plans = {p.subject.pk: p for p in retest.plans_for(subjects)}
+    for s in subjects:
+        s.plan = plans.get(s.pk)
+    due_count = sum(1 for p in plans.values() if p.is_due)
+    show_due = bool(request.GET.get("na_rade"))
+    if show_due:
+        subjects = sorted((s for s in subjects if s.plan and s.plan.is_due),
+                          key=lambda s: s.plan.due)
 
     context = {"subjects": subjects, "q": q,
                "sports": Sport.objects.for_user(request.user).order_by("name"),
-               "sport_id": sport, "inactive": inactive, "show_inactive": show_inactive}
+               "sport_id": sport, "inactive": inactive, "show_inactive": show_inactive,
+               "show_due": show_due, "due_count": due_count}
     if request.headers.get("HX-Request"):
         return render(request, "subjects/_subject_rows.html", context)
     return render(request, "subjects/subject_list.html", context)
@@ -85,8 +97,10 @@ def subject_detail(request, pk):
     accounts_info = accounts.accounts_of(subject) if _may_edit(request.user) else None
     sharings_list = [_with_coach_label(sh) for sh in subject.sharings.select_related("coach")]
     exams = list(subject.external_exams.order_by("-date", "-pk"))
+    plan = retest.plan_for(subject)
     steps = subject_steps(subject, sessions=sessions, accounts=accounts_info,
-                          sharings=sharings_list, may_edit=_may_edit(request.user), exams=exams)
+                          sharings=sharings_list, may_edit=_may_edit(request.user), exams=exams,
+                          plan=plan)
 
     return render(request, "subjects/subject_detail.html", {
         "steps": steps, "next_step": next_step(steps),
@@ -96,6 +110,8 @@ def subject_detail(request, pk):
         "last_session": measured[0] if measured else None,
         "tiles": overview.kpi_tiles(subject),
         "external_exams": exams, "may_edit": _may_edit(request.user),
+        "plan": plan, "reminders": list(subject.retest_reminders.all()[:3]),
+        "email_enabled": bool(settings.EMAIL_HOST),
         # Stejná logika jako v pravidlech: karta nesmí tvrdit něco jiného než zpráva.
         "restriction": ExternalExam.active_restriction_for(subject),
         "accounts": accounts_info,
@@ -392,6 +408,55 @@ def subject_invite(request, pk):
     invitation = accounts.create_invitation(subject, kind, user=request.user)
     record(request, AuditLog.Action.CREATE, invitation, subject_code=subject.code, druh=kind)
     return redirect("subject_invitation", pk=pk, inv_pk=invitation.pk)
+
+
+@login_required
+def subject_retest(request, pk):
+    """Plán opakování u sportovce: podle baterie, vlastní interval, konkrétní termín; připomínka hned."""
+    from django.contrib import messages
+
+    subject = get_object_or_404(Subject.objects.for_user(request.user), pk=pk)
+    back = reverse("subject_detail", args=[pk]) + "#plan"
+    if request.method != "POST" or not _may_edit(request.user):
+        return redirect(back)
+    if request.POST.get("akce") == "pripomenout":
+        plan = retest.plan_for(subject)
+        if plan.due is None:
+            messages.error(request, "Bez termínu dalšího měření není co připomínat – nastavte "
+                                    "interval u baterie sportu, nebo plán u sportovce.")
+            return redirect(back)
+        link = retest.booking_link(request.build_absolute_uri("/"))
+        sent = retest.remind(plan, user=request.user, booking_url=link, manual=True)
+        if sent is not None:
+            record(request, AuditLog.Action.UPDATE, subject, subject_code=subject.code,
+                   akce="pripominka_mereni")
+            messages.success(request, f"Připomínka dalšího měření odešla ({sent.recipients} "
+                                      f"{'adresa' if sent.recipients == 1 else 'adresy'}).")
+        elif not settings.EMAIL_HOST:
+            messages.error(request, "Poštovní server není nastavený (EMAIL_HOST v .env) – "
+                                    "připomínku předejte sami.")
+        else:
+            messages.error(request, "Sportovec nemá uložený e‑mail ani zástupce s účtem; "
+                                    "doplňte kontakt v Upravit údaje.")
+        return redirect(back)
+    mode = request.POST.get("rezim", "baterie")
+    try:
+        if mode == "vlastni":
+            weeks = int(request.POST.get("tydny", "").strip() or 0)
+            if not 1 <= weeks <= 104:
+                raise ValueError
+            subject.retest_weeks, subject.next_test_date = weeks, None
+        elif mode == "datum":
+            subject.next_test_date = date.fromisoformat(request.POST.get("datum", "").strip())
+        else:
+            subject.retest_weeks, subject.next_test_date = None, None
+    except ValueError:
+        messages.error(request, "Interval zadejte v týdnech (1 až 104), termín jako datum.")
+        return redirect(back)
+    subject.save(update_fields=["retest_weeks", "next_test_date", "updated_at"])
+    record(request, AuditLog.Action.UPDATE, subject, subject_code=subject.code, plan=mode)
+    messages.success(request, "Plán opakování je uložený. " + retest.plan_for(subject).text())
+    return redirect(back)
 
 
 @login_required
