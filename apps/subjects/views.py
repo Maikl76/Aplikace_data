@@ -11,7 +11,7 @@ from apps.genetics import services as genetics
 from apps.measurements.models import TestSession
 
 from . import accounts, search
-from .models import AccountInvitation, Sport, Subject
+from .models import AccountInvitation, Sport, Subject, Team
 
 
 @login_required
@@ -264,7 +264,8 @@ def subject_new(request):
                                 "u uživatele vyberte organizaci.")
         return redirect("subject_list")
     sports = Sport.objects.for_user(request.user).order_by("name")
-    form = SubjectForm(request.POST or None, sports=sports)
+    teams = Team.objects.filter(organization=organization).select_related("sport").order_by("name")
+    form = SubjectForm(request.POST or None, sports=sports, teams=teams)
     if request.method == "POST":
         if not settings.IDENTITY_ENCRYPTION_KEY:
             messages.error(request, "Chybí šifrovací klíč – jméno nejde uložit. Spusťte "
@@ -299,8 +300,10 @@ def subject_edit(request, pk):
         messages.error(request, "Chybí šifrovací klíč – jméno nejde přečíst ani uložit.")
         return redirect("subject_detail", pk=pk)
     sports = Sport.objects.for_user(request.user).order_by("name")
+    teams = (Team.objects.filter(organization=subject.organization).select_related("sport")
+             .order_by("name"))
     if request.method == "POST":
-        form = SubjectForm(request.POST, sports=sports)
+        form = SubjectForm(request.POST, sports=sports, teams=teams)
         duplicates = _check(request, form, subject.organization, subject)
         if duplicates is not None and "exact" not in duplicates:
             services.update_subject(subject, form.cleaned_data)
@@ -310,7 +313,7 @@ def subject_edit(request, pk):
             return redirect("subject_detail", pk=subject.pk)
         return _form_page(request, form, subject, duplicates)
     record(request, AuditLog.Action.VIEW, subject, subject_code=subject.code, identita=True)
-    form = SubjectForm(initial=services.initial(subject), sports=sports)
+    form = SubjectForm(initial=services.initial(subject), sports=sports, teams=teams)
     return _form_page(request, form, subject)
 
 

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}MDC u ukazatelů – FTVS{% endblock %}
+{% block content %}
+{% include "catalog/_tabs.html" with tab="mdc" %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <div class="eyebrow">Nastavení testování</div>
+    <h1 class="text-2xl font-semibold">MDC u ukazatelů</h1>
+    <p class="text-sm text-muted mt-1 max-w-2xl">MDC je nejmenší změna, kterou měření odliší od své chyby. Bez ní zpráva u opakovaného měření neřekne „zlepšení“, jen že změnu nelze odlišit od chyby měření. Každá hodnota potřebuje zdroj: citaci, nebo vlastní reliability studii (kdy, kolik osob). SWC je nejmenší prakticky významná změna, nepovinná.</p>
+  </div>
+</div>
+
+{% steps steps heading="Postup nastavení testování" may_act=can_edit %}
+
+<form method="post">{% csrf_token %}
+  <div class="card overflow-x-auto mb-4">
+    <div class="px-4 pt-4 pb-2 flex flex-wrap items-center justify-between gap-2"><h2 class="card-title">Ukazatele testů v bateriích</h2><span class="text-xs text-muted">{% if key_total %}{{ key_total }} klíčových, {{ key_missing }} bez MDC{% endif %}</span></div>
+    <table class="table text-sm">
+      <thead><tr><th>Ukazatel</th><th class="max-md:hidden">Testy</th><th>MDC</th><th class="max-md:hidden">SWC</th><th>Zdroj hodnoty</th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td class="font-medium">{{ r.metric.name }}{% if r.metric.unit %} <span class="text-muted font-normal">[{{ r.metric.unit }}]</span>{% endif %}{% if r.key %} <span class="badge badge-accent" title="Klíčový ukazatel: jde na kartu sportovce a do týmového přehledu">klíčový</span>{% endif %}</td>
+            <td class="text-2 max-md:hidden">{{ r.tests|join:", " }}</td>
+            <td><input name="mdc_{{ r.metric.pk }}" value="{{ r.metric.mdc|default_if_none:'' }}" inputmode="decimal" class="input w-24 text-sm py-1" {% if not can_edit %}readonly{% endif %}></td>
+            <td class="max-md:hidden"><input name="swc_{{ r.metric.pk }}" value="{{ r.metric.swc|default_if_none:'' }}" inputmode="decimal" class="input w-24 text-sm py-1" {% if not can_edit %}readonly{% endif %}></td>
+            <td><input name="zdroj_{{ r.metric.pk }}" value="{{ r.metric.mdc_source }}" maxlength="300" class="input text-sm py-1" placeholder="citace, nebo vlastní reliabilita (kdy, n)" {% if not can_edit %}readonly{% endif %}></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="text-muted py-6">Zatím žádný test v baterii – nejdřív sestavte baterie (Sporty a baterie).</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if others %}
+    <details class="card mb-4">
+      <summary class="px-4 py-3 cursor-pointer card-title">Ostatní ukazatele katalogu ({{ others|length }})</summary>
+      <div class="overflow-x-auto">
+        <table class="table text-sm">
+          <thead><tr><th>Ukazatel</th><th>MDC</th><th class="max-md:hidden">SWC</th><th>Zdroj hodnoty</th></tr></thead>
+          <tbody>
+            {% for r in others %}
+              <tr>
+                <td class="font-medium">{{ r.metric.name }}{% if r.metric.unit %} <span class="text-muted font-normal">[{{ r.metric.unit }}]</span>{% endif %}</td>
+                <td><input name="mdc_{{ r.metric.pk }}" value="{{ r.metric.mdc|default_if_none:'' }}" inputmode="decimal" class="input w-24 text-sm py-1" {% if not can_edit %}readonly{% endif %}></td>
+                <td class="max-md:hidden"><input name="swc_{{ r.metric.pk }}" value="{{ r.metric.swc|default_if_none:'' }}" inputmode="decimal" class="input w-24 text-sm py-1" {% if not can_edit %}readonly{% endif %}></td>
+                <td><input name="zdroj_{{ r.metric.pk }}" value="{{ r.metric.mdc_source }}" maxlength="300" class="input text-sm py-1" {% if not can_edit %}readonly{% endif %}></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  {% endif %}
+
+  {% if can_edit %}
+    <div class="flex flex-wrap items-center gap-3 sticky bottom-0 py-3" style="background: var(--bg)">
+      <button class="btn btn-primary">{% icon "check" %}Uložit MDC</button>
+      <span class="text-xs text-muted">Hodnota bez zdroje se neuloží. Typickou chybu měření a věrohodný rozsah upravíte u testu.</span>
+    </div>
+  {% else %}
+    <p class="text-xs text-muted">MDC doplňuje správce.</p>
+  {% endif %}
+</form>
+{% endblock %}

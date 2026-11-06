@@ -52,10 +52,10 @@
   <ul class="flex flex-wrap gap-2 mt-3 text-sm">
     <li class="pristroj"><span class="font-medium">VALD ForceDecks</span>
       <span class="text-muted">CMJ, IMTP, SJ, stoj na jedné noze</span>
-      {% if can_edit_devices %}<a class="link" href="/admin/catalog/importprofile/?device=vald_forcedecks" title="Které sloupce se importují">sloupce</a>{% endif %}</li>
+      {% if can_edit_devices %}<a class="link" href="{% url 'import_profiles' %}#vald_forcedecks" title="Které sloupce se importují">sloupce</a>{% endif %}</li>
     <li class="pristroj"><span class="font-medium">VALD HumanTrak</span>
       <span class="text-muted">box lift</span>
-      {% if can_edit_devices %}<a class="link" href="/admin/catalog/importprofile/?device=vald_humantrak" title="Které sloupce se importují">sloupce</a>{% endif %}</li>
+      {% if can_edit_devices %}<a class="link" href="{% url 'import_profiles' %}#vald_humantrak" title="Které sloupce se importují">sloupce</a>{% endif %}</li>
     <li class="pristroj"><span class="font-medium">Původní Excel</span>
       <span class="text-muted">data ze staré aplikace</span></li>
     {% for d in devices %}

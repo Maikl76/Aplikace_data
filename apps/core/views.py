@@ -220,15 +220,75 @@ def password_setup(request, token):
 
 @login_required
 def workplace(request):
-    """Nastavovací kroky všech částí na jednom místě; tlačítka podle role."""
+    """Nastavení: kroky všech částí na jednom místě a kategorie nastavení; tlačítka podle role."""
     from apps.core.middleware import READ_ONLY
-    from apps.core.workplace import workplace_steps
+    from apps.core.workplace import settings_sections, workplace_steps
 
     user = request.user
     return render(request, "core/workplace.html", {
-        "steps": workplace_steps(user),
+        "steps": workplace_steps(user), "sections": settings_sections(user),
         "may_act": user.is_superuser or user.role not in READ_ONLY,
+        "is_admin": _is_admin(user),
     })
+
+
+@login_required
+def organization_settings(request):
+    """Pracoviště: název a týmy (název, sport). Zkratka se nemění – podle ní se párují přenosy."""
+    from django.contrib import messages
+    from django.db import transaction
+    from django.db.models import Count
+    from django.shortcuts import redirect
+
+    from apps.subjects.models import Sport, Team
+
+    from .audit import record
+    from .models import AuditLog
+
+    user = request.user
+    if not _is_admin(user):
+        return render(request, "core/odepreno.html", {"duvod": "Pracoviště a týmy nastavuje správce."},
+                      status=403)
+    org = user.organization
+    if org is None:
+        messages.error(request, "Účet nemá pracoviště – přiřadí ho superuživatel v administraci.")
+        return redirect("workplace")
+    sports = list(Sport.objects.for_user(user).order_by("name"))
+    teams = list(Team.objects.filter(organization=org).select_related("sport")
+                 .annotate(sportovcu=Count("subjects")).order_by("name"))
+    if request.method == "POST":
+        post = request.POST
+        problems = []
+        with transaction.atomic():
+            name = post.get("nazev", "").strip()[:200]
+            if name and name != org.name:
+                org.name = name
+                org.save(update_fields=["name", "updated_at"])
+            sport_by_pk = {str(s.pk): s for s in sports}
+            for team in teams:
+                if f"t{team.pk}_delete" in post:
+                    team.delete()  # sportovci zůstanou, jen bez týmu
+                    continue
+                team_name = post.get(f"t{team.pk}_name", team.name).strip()[:120]
+                sport = sport_by_pk.get(post.get(f"t{team.pk}_sport", ""))
+                if not team_name or sport is None:
+                    problems.append(f"Tým „{team.name}“: název i sport jsou povinné – neuloženo.")
+                    continue
+                team.name, team.sport = team_name, sport
+                team.save()
+            new_name = post.get("nt_name", "").strip()[:120]
+            new_sport = sport_by_pk.get(post.get("nt_sport", ""))
+            if new_name or new_sport is not None:
+                if not new_name or new_sport is None:
+                    problems.append("Nový tým: napište název a vyberte sport.")
+                else:
+                    Team.objects.create(organization=org, name=new_name, sport=new_sport)
+        record(request, AuditLog.Action.UPDATE, org, nastaveni="pracoviste")
+        for problem in problems:
+            messages.warning(request, problem)
+        messages.success(request, "Pracoviště a týmy jsou uložené.")
+        return redirect("workplace_org")
+    return render(request, "core/organization.html", {"org": org, "sports": sports, "teams": teams})
 
 
 @login_required

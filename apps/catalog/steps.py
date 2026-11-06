@@ -62,7 +62,7 @@ def catalog_steps(user, status: dict | None = None) -> list[dict]:
               "neřekne „zlepšení“, jen že změnu nelze odlišit od chyby měření."
               if no_mdc else (f"Všech {len(key_metrics)} klíčových ukazatelů má MDC."
                               if key_metrics else "Nejdřív klíčové ukazatele.")),
-             url="/admin/catalog/metricdef/", button="Doplnit MDC", admin_only=True,
+             url=reverse("mdc_settings"), button="Doplnit MDC", admin_only=True,
              count=len(no_mdc) or None),
         step(5, "Normy a pravidla", c["norms"] > 0 or c["rules"] > 0,
              (f"{c['norms']} norem, {c['rules']} aktivních pravidel." if c["norms"] or c["rules"]

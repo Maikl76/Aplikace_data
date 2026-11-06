@@ -81,6 +81,12 @@
         <span class="text-xs text-muted">Když v seznamu není – založí se.</span>
       </label>
       <label class="block">
+        <span class="text-sm font-medium">{{ form.team.label }}</span>
+        {{ form.team }}
+        <span class="text-xs text-muted">{{ form.team.help_text }}</span>
+        {% if form.team.errors %}<span class="text-xs block" style="color: var(--bad)">{{ form.team.errors|join:" " }}</span>{% endif %}
+      </label>
+      <label class="block">
         <span class="text-sm font-medium">{{ form.category.label }}</span>
         <input type="text" name="category" value="{{ form.category.value|default:'' }}" list="kategorie" class="input mt-1" maxlength="60">
         <datalist id="kategorie">{% for c in categories %}<option value="{{ c }}">{% endfor %}</datalist>

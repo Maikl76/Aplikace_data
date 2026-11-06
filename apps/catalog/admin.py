@@ -48,7 +48,7 @@ class MetricDefAdmin(admin.ModelAdmin):
         (None, {"fields": ("organization", "code", "name", "family", "unit", "decimals",
                            "direction", "description", "is_active")}),
         ("Rozlišení změny od šumu", {
-            "fields": ("typical_error", "mdc", "swc"),
+            "fields": ("typical_error", "mdc", "mdc_source", "swc"),
             "description": "Bez MDC nelze u opakovaného měření odlišit skutečnou "
                            "změnu od chyby měření. Doplňte z literatury nebo "
                            "z vlastní reliability studie.",

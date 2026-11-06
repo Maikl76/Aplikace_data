@@ -474,11 +474,11 @@ def test_o_aplikaci_a_stav_pracoviste_rikaji_pravdu_o_modelu(settings, db):
     settings.DEMO_MODE = True
     html = client.get("/o-aplikaci/").content.decode()
     assert "cloudový model" in html and "AI běží lokálně" not in html
-    steps = {s["title"]: s for s in client.get("/stav/").context["steps"]}
+    steps = {s["title"]: s for s in client.get("/nastaveni/").context["steps"]}
     assert "cloudový" in steps["Klíče a model"]["text"]
 
     settings.DEMO_MODE = False
     html = client.get("/o-aplikaci/").content.decode()
     assert "AI běží lokálně" in html and "nepoužije" in html
-    steps = {s["title"]: s for s in client.get("/stav/").context["steps"]}
+    steps = {s["title"]: s for s in client.get("/nastaveni/").context["steps"]}
     assert not steps["Klíče a model"]["done"] and "nepoužije" in steps["Klíče a model"]["text"]

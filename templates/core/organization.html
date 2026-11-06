@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Pracoviště a týmy – FTVS{% endblock %}
+{% block content %}
+<div class="max-w-3xl">
+  <a href="{% url 'workplace' %}" class="text-sm link">← Nastavení</a>
+  <h1 class="text-2xl font-semibold leading-tight">Pracoviště a týmy</h1>
+  <p class="text-sm text-2 mt-1 mb-4">Název pracoviště je v hlavičce zpráv. Zkratka se nemění: podle ní se párují přenosy katalogu mezi počítači. Tým je skupina sportovců jednoho sportu (např. ročník nebo družstvo); sportovec může být v jednom týmu, smazání týmu sportovce nemaže.</p>
+  <form method="post" class="space-y-3">{% csrf_token %}
+    <section class="card p-4">
+      <h2 class="card-title mb-2">Pracoviště</h2>
+      <div class="grid sm:grid-cols-2 gap-3 text-sm">
+        <label class="block"><span class="text-xs text-2">Název</span>
+          <input name="nazev" value="{{ org.name }}" maxlength="200" required class="input text-sm py-1.5"></label>
+        <label class="block"><span class="text-xs text-2">Zkratka (nemění se)</span>
+          <input value="{{ org.short_name }}" readonly class="input text-sm py-1.5 text-muted"></label>
+      </div>
+    </section>
+    <section class="card p-4">
+      <h2 class="card-title mb-2">Týmy</h2>
+      {% if not sports %}<p class="text-sm text-muted">Nejdřív založte sport (Sporty a baterie).</p>{% endif %}
+      <div class="space-y-2 text-sm">
+        {% for t in teams %}
+          <div class="grid sm:grid-cols-3 gap-2 items-center p-2 rounded-lg" style="background: var(--surface-2)">
+            <input name="t{{ t.pk }}_name" value="{{ t.name }}" maxlength="120" class="input text-sm py-1.5">
+            <select name="t{{ t.pk }}_sport" class="input text-sm py-1.5">{% for sp in sports %}<option value="{{ sp.pk }}" {% if t.sport_id == sp.pk %}selected{% endif %}>{{ sp.name }}</option>{% endfor %}</select>
+            <div class="flex items-center gap-3 text-xs text-muted"><span>{{ t.sportovcu }} sportovců</span><label class="inline-flex items-center gap-1"><input type="checkbox" name="t{{ t.pk }}_delete"> smazat</label></div>
+          </div>
+        {% empty %}<p class="text-sm text-muted">Zatím žádný tým.</p>{% endfor %}
+        {% if sports %}
+          <div class="grid sm:grid-cols-3 gap-2 items-center p-2 rounded-lg border border-dashed" style="border-color: var(--border)">
+            <input name="nt_name" maxlength="120" class="input text-sm py-1.5" placeholder="Nový tým (prázdné se neuloží)">
+            <select name="nt_sport" class="input text-sm py-1.5"><option value="">— sport —</option>{% for sp in sports %}<option value="{{ sp.pk }}">{{ sp.name }}</option>{% endfor %}</select>
+            <span class="text-xs text-muted">sportovce k týmu přiřadíte na jeho kartě</span>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+    <button class="btn btn-primary">{% icon "check" %}Uložit</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,6 +1,8 @@
 """
-Stav pracoviště: nastavovací kroky všech částí na jednom místě. Odpovědný
-člověk tu vidí, co ještě chybí, a každý krok ho vede přímo tam.
+Nastavení: stav pracoviště (nastavovací kroky všech částí na jednom místě)
+a kategorie nastavení jako dlaždice. Odpovědný člověk tu vidí, co ještě
+chybí, a každý krok ho vede přímo tam. Administrace Djanga je jen zadní
+vrátka „pro pokročilé“.
 """
 
 from django.conf import settings
@@ -72,7 +74,7 @@ def workplace_steps(user) -> list[dict]:
               "neřekne „zlepšení“, jen že změnu nelze odlišit od chyby měření."
               if no_mdc else (f"Všech {len(key_metrics)} klíčových ukazatelů má MDC."
                               if key_metrics else "Nejdřív klíčové ukazatele.")),
-             url="/admin/catalog/metricdef/", button="Doplnit MDC", admin_only=True),
+             url=reverse("mdc_settings"), button="Doplnit MDC", admin_only=True),
         step(5, "Přístroje a import", devices > 0 or imported,
              (f"{devices} přístrojů s profilem" + (", import už proběhl." if imported else ".")
               if devices or imported else
@@ -100,3 +102,74 @@ def workplace_steps(user) -> list[dict]:
 
 def pending_count(user) -> int:
     return sum(1 for s in workplace_steps(user) if not s["done"] and not s["optional"])
+
+
+def settings_sections(user) -> list[dict]:
+    """Kategorie nastavení: kam co patří, stav z dat a tlačítko přímo tam."""
+    from apps.catalog.models import ImportProfile, Questionnaire
+    from apps.catalog.steps import catalog_status
+    from apps.evidence.models import Article
+    from apps.genetics.setup_views import setup_steps as genetics_steps
+    from apps.subjects.models import Team
+
+    from .models import Remark, User
+    from .roles import COLLEAGUE_ROLES
+
+    org = user.organization
+    shared = Q(organization__isnull=True) | Q(organization=org)
+    c = catalog_status(user)
+    colleagues = (User.objects.filter(organization=org, role__in=COLLEAGUE_ROLES, is_active=True)
+                  .exclude(pk=user.pk).count())
+    teams = Team.objects.filter(organization=org).count()
+    profiles = ImportProfile.objects.filter(shared, is_active=True).count()
+    questionnaires = Questionnaire.objects.filter(shared).count()
+    articles = Article.objects.filter(status=Article.Status.APPROVED).count()
+    remarks = Remark.objects.filter(organization=org, status=Remark.Status.OPEN).count()
+    genetics = genetics_steps(user)
+
+    def section(title, text, *, url="", button="", admin_only=False, later="", links=()):
+        return {"title": title, "text": text, "url": url, "button": button,
+                "admin_only": admin_only, "later": later, "links": list(links)}
+
+    return [
+        section("Pracoviště a kolegové",
+                f"{org.name if org else 'bez pracoviště'}; {colleagues} účtů kolegů, {teams} týmů.",
+                url=reverse("workplace_org"), button="Pracoviště a týmy", admin_only=True,
+                links=[("Kolegové a role", reverse("colleagues"))]),
+        section("Sporty a baterie testů",
+                f"{len(c['sports'])} sportů, {len(c['sports']) - len(c['sports_without'])} "
+                "s baterií testů.",
+                url=reverse("sport_list"), button="Sporty a baterie"),
+        section("Testy a ukazatele",
+                f"{len(c['protocols'])} testů v bateriích; {len(c['key_metrics']) - len(c['no_mdc'])} "
+                f"z {len(c['key_metrics'])} klíčových ukazatelů má MDC.",
+                url=reverse("test_list"), button="Testy",
+                links=[("MDC u ukazatelů", reverse("mdc_settings"))]),
+        section("Přístroje a import",
+                f"{profiles} profilů importu (které sloupce exportu jsou které ukazatele).",
+                url=reverse("import_list"), button="Import a přístroje",
+                links=[("Sloupce exportů", reverse("import_profiles"))]),
+        section("Normy a pravidla",
+                f"{c['norms']} norem, {c['rules']} aktivních pravidel. Bez norem zpráva neukáže "
+                "postavení vůči referenci; pravidla dávají nálezy a doporučení.",
+                url="/admin/catalog/norm/", button="Normy (administrace)", admin_only=True,
+                later="Průvodce normami a pravidly je další dávka.",
+                links=[("Pravidla (administrace)", "/admin/rules/rule/")]),
+        section("Dotazníky",
+                f"{questionnaires} dotazníků (RPE, únava, genetika).",
+                url="/admin/catalog/questionnaire/", button="Dotazníky (administrace)",
+                admin_only=True, later="Průvodce dotazníky je další dávka."),
+        section("Objednávky", "Nabídka testování a volné termíny, podle nich se klienti objednávají.",
+                url=reverse("booking_offers"), button="Nabídka a termíny"),
+        section("Články", f"{articles} článků v knihovně; zdroje pro normy, pravidla a karty.",
+                url=reverse("article_list"), button="Knihovna článků"),
+        section("Genetika",
+                f"{sum(1 for g in genetics if g['done'])} z {len(genetics)} kroků nastavení; "
+                "karty vede průvodce.",
+                url=reverse("genetics_home"), button="Genetika"),
+        section("Připomínky", f"{remarks} nevyřízených připomínek kolegů.",
+                url=reverse("remarks"), button="Připomínky", admin_only=True),
+        section("Klíče a model",
+                "Šifrovací klíče a jazykový model; nastavuje se v souboru .env.",
+                url=reverse("about") + "#technika", button="Jak nastavit", admin_only=True),
+    ]

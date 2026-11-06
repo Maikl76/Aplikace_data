@@ -1,11 +1,27 @@
 {% extends "base.html" %}
 {% load ui %}
-{% block title %}Stav pracoviště – FTVS{% endblock %}
+{% block title %}Nastavení – FTVS{% endblock %}
 {% block content %}
 <div class="mb-5">
-  <h1 class="text-2xl font-semibold">Stav pracoviště</h1>
-  <p class="text-sm text-muted mt-1">Nastavení všech částí na jednom místě. Každý krok říká, co chybí, a vede přímo tam. Nic se neodškrtává ručně, stav plyne z dat. Volitelné kroky nebrání provozu.</p>
+  <h1 class="text-2xl font-semibold">Nastavení</h1>
+  <p class="text-sm text-muted mt-1">Nastavení pracoviště na jednom místě. Nahoře stav: každý krok říká, co chybí, a vede přímo tam; nic se neodškrtává ručně, stav plyne z dat. Dole kategorie, kam co patří. Vše, co se tu nastaví, jsou data – nic se neprogramuje.</p>
 </div>
-{% steps steps heading="Nastavení pracoviště" may_act=may_act done_label="vše nastaveno" %}
-<p class="text-xs text-muted">Denní práci vede <a class="link" href="{% url 'dashboard' %}">Přehled</a>; jak co funguje, říká <a class="link" href="{% url 'about' %}">O aplikaci</a>. Co vám na postupu nesedí, napište jako připomínku, správce je sbírá.</p>
+{% steps steps heading="Stav pracoviště" may_act=may_act done_label="vše nastaveno" %}
+
+<h2 class="card-title mb-3">Kam co patří</h2>
+<div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-3 mb-5">
+  {% for s in sections %}
+    <section class="card p-4 flex flex-col gap-2">
+      <h3 class="font-medium">{{ s.title }}</h3>
+      <p class="text-sm text-2 flex-1">{{ s.text }}{% if s.later %} <span class="text-muted">{{ s.later }}</span>{% endif %}</p>
+      <div class="flex flex-wrap items-center gap-2 text-sm">
+        {% if s.admin_only and not is_admin %}<span class="text-xs text-muted">nastavuje správce</span>
+        {% elif may_act and s.url %}<a href="{{ s.url }}" class="btn btn-sm">{{ s.button }}</a>{% endif %}
+        {% for label, url in s.links %}{% if is_admin or not s.admin_only %}<a href="{{ url }}" class="link text-xs">{{ label }}</a>{% endif %}{% endfor %}
+      </div>
+    </section>
+  {% endfor %}
+</div>
+
+<p class="text-xs text-muted">Denní práci vede <a class="link" href="{% url 'dashboard' %}">Přehled</a>; jak co funguje, říká <a class="link" href="{% url 'about' %}">O aplikaci</a>. Co vám na postupu nesedí, napište jako připomínku, správce je sbírá.{% if user.is_staff %} Pro pokročilé: <a class="link" href="/admin/">administrace</a> (audit, identity sportovců, zákonní zástupci, externí vyšetření, technické záznamy).{% endif %}</p>
 {% endblock %}

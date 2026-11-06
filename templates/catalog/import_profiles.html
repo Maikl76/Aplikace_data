@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Sloupce exportů – FTVS{% endblock %}
+{% block content %}
+<div class="max-w-5xl">
+  <a href="{% url 'import_list' %}" class="text-sm link">← Import</a>
+  <h1 class="text-2xl font-semibold leading-tight">Sloupce exportů</h1>
+  <p class="text-sm text-2 mt-1 mb-4">Exporty z přístrojů VALD aplikace pozná sama. Tady je, který typ testu v exportu je který test z katalogu a které sloupce se importují jako které ukazatele. Když přístroj sloupec přejmenuje nebo chcete sledovat další ukazatel, doplní se tady, nic se neprogramuje. Přístroje přidané průvodcem mají sloupce ve svém průvodci (Import → přístroj).</p>
+
+  <form method="post" class="space-y-4">{% csrf_token %}
+    {% for g in groups %}
+      <h2 class="card-title" id="{{ g.code }}">{{ g.label }}</h2>
+      {% for p in g.profiles %}
+        <section class="card p-4 space-y-3">
+          <div class="grid sm:grid-cols-3 gap-3 text-sm items-end">
+            <label class="block"><span class="text-xs text-2">Typ testu v exportu</span>
+              <input value="{{ p.test_type }}" readonly class="input text-sm py-1.5 text-muted"></label>
+            <label class="block"><span class="text-xs text-2">Test z katalogu</span>
+              <select name="p{{ p.pk }}_protocol" class="input text-sm py-1.5" {% if not can_edit %}disabled{% endif %}>{% for pr in protocols %}<option value="{{ pr.pk }}" {% if pr.pk == p.protocol_id %}selected{% endif %}>{{ pr.name }}</option>{% endfor %}</select></label>
+            <label class="inline-flex items-center gap-2 pb-2"><input type="checkbox" name="p{{ p.pk }}_active" {% if p.is_active %}checked{% endif %} {% if not can_edit %}disabled{% endif %}> importovat</label>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="table text-sm">
+              <thead><tr><th>Sloupec v exportu</th><th>Ukazatel</th><th class="max-md:hidden" title="Importovat i varianty (Left) a (Right)">i strany</th><th class="max-md:hidden" title="Převod hodnoty, např. −1 nebo 0,001">násobek</th><th></th></tr></thead>
+              <tbody>
+                {% for c in p.rows %}
+                  <tr>
+                    <td><input name="c{{ c.pk }}_column" value="{{ c.column }}" maxlength="200" class="input text-sm py-1 min-w-[14rem]" {% if not can_edit %}readonly{% endif %}></td>
+                    <td><select name="c{{ c.pk }}_metric" class="input text-sm py-1 min-w-[12rem]" {% if not can_edit %}disabled{% endif %}>
+                      {% for label, items in p.metric_groups %}<optgroup label="{{ label }}">{% for m in items %}<option value="{{ m.pk }}" {% if m.pk == c.metric_id %}selected{% endif %}>{{ m.name }}{% if m.unit %} [{{ m.unit }}]{% endif %}</option>{% endfor %}</optgroup>{% endfor %}
+                    </select></td>
+                    <td class="max-md:hidden"><input type="checkbox" name="c{{ c.pk }}_sides" {% if c.with_sides %}checked{% endif %} {% if not can_edit %}disabled{% endif %}></td>
+                    <td class="max-md:hidden"><input name="c{{ c.pk }}_factor" value="{{ c.factor|default:'1' }}" inputmode="decimal" class="input w-20 text-sm py-1" {% if not can_edit %}readonly{% endif %}></td>
+                    <td class="text-xs text-muted whitespace-nowrap">{% if can_edit %}<label class="inline-flex items-center gap-1"><input type="checkbox" name="c{{ c.pk }}_delete"> smazat</label>{% endif %}</td>
+                  </tr>
+                {% endfor %}
+                {% if can_edit %}
+                  {% for i in p.blank %}
+                    <tr class="text-muted">
+                      <td><input name="n{{ p.pk }}_{{ i }}_column" maxlength="200" class="input text-sm py-1 min-w-[14rem]" placeholder="nový sloupec přesně jak ho píše export"></td>
+                      <td><select name="n{{ p.pk }}_{{ i }}_metric" class="input text-sm py-1 min-w-[12rem]"><option value="">— ukazatel —</option>
+                        {% for label, items in p.metric_groups %}<optgroup label="{{ label }}">{% for m in items %}<option value="{{ m.pk }}">{{ m.name }}{% if m.unit %} [{{ m.unit }}]{% endif %}</option>{% endfor %}</optgroup>{% endfor %}
+                      </select></td>
+                      <td class="max-md:hidden"><input type="checkbox" name="n{{ p.pk }}_{{ i }}_sides" checked></td>
+                      <td class="max-md:hidden"><input name="n{{ p.pk }}_{{ i }}_factor" value="1" inputmode="decimal" class="input w-20 text-sm py-1"></td>
+                      <td></td>
+                    </tr>
+                  {% endfor %}
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      {% endfor %}
+    {% empty %}
+      <p class="text-sm text-muted">Žádný profil importu. Doplní je příkaz seed_catalog (spustit.bat ho volá sám).</p>
+    {% endfor %}
+
+    {% if can_edit %}
+      <section class="card p-4 border border-dashed" style="border-color: var(--border)">
+        <h2 class="card-title mb-1">Nový typ testu v exportu</h2>
+        <p class="text-xs text-muted mb-2">Když export VALD obsahuje typ testu, který aplikace ještě nezná. Po uložení k němu doplňte sloupce.</p>
+        <div class="grid sm:grid-cols-3 gap-3 text-sm">
+          <select name="np_device" class="input text-sm py-1.5"><option value="">— přístroj —</option>{% for value, label in devices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+          <input name="np_test_type" maxlength="120" class="input text-sm py-1.5" placeholder="typ testu přesně jak ho píše export">
+          <select name="np_protocol" class="input text-sm py-1.5"><option value="">— test z katalogu —</option>{% for pr in protocols %}<option value="{{ pr.pk }}">{{ pr.name }}</option>{% endfor %}</select>
+        </div>
+      </section>
+      <div class="flex flex-wrap items-center gap-3 sticky bottom-0 py-3" style="background: var(--bg)">
+        <button class="btn btn-primary">{% icon "check" %}Uložit profily</button>
+        <span class="text-xs text-muted">Změna platí pro další importy; co už je naměřené, se nemění. U starého importu doplní nové ukazatele tlačítko „načíst znovu“.</span>
+      </div>
+    {% else %}
+      <p class="text-xs text-muted">Profily importu nastavuje správce.</p>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

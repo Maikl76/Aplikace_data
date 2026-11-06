@@ -38,7 +38,7 @@
       <li><a href="#zpravy">Zprávy a AI</a></li>
       <li><a href="#objednavky">Objednávky od klientů</a></li>
       <li><a href="#genetika">Genetika</a></li>
-      <li><a href="#katalog">Katalog a nastavení</a></li>
+      <li><a href="#katalog">Nastavení</a></li>
       <li><a href="#vyhodnoceni">Jak aplikace vyhodnocuje</a></li>
       <li><a href="#data">Ochrana dat</a></li>
       <li><a href="#technika">Spuštění a technika</a></li>
@@ -189,7 +189,7 @@
           <thead><tr><th>Kde</th><th>Kroky</th></tr></thead>
           <tbody>
             <tr><td class="font-medium whitespace-nowrap"><a class="link" href="{% url 'dashboard' %}">Přehled</a></td><td>dnes: kdo přijde, hodnoty, kontrola, zprávy, předání</td></tr>
-            <tr><td class="font-medium whitespace-nowrap"><a class="link" href="{% url 'workplace' %}">Stav pracoviště</a></td><td>nastavení všech částí: kolegové, sporty a baterie, testy a klíčové ukazatele, MDC, přístroje, normy a pravidla, objednávky, genetika, klíče a model</td></tr>
+            <tr><td class="font-medium whitespace-nowrap"><a class="link" href="{% url 'workplace' %}">Nastavení</a></td><td>nastavení všech částí: kolegové, sporty a baterie, testy a klíčové ukazatele, MDC, přístroje, normy a pravidla, objednávky, genetika, klíče a model</td></tr>
             <tr><td class="font-medium whitespace-nowrap">Karta sportovce</td><td>údaje a souhlasy, účet v portálu, měření, zpráva, předání nebo sdílení</td></tr>
             <tr><td class="font-medium whitespace-nowrap">Testovací den</td><td>testy podle baterie, prostředí a únava, hodnoty, RPE, kontrola, zpráva</td></tr>
             <tr><td class="font-medium whitespace-nowrap">Zpráva</td><td>koncept, souhrn, doporučení, kontrola, vydání, předání</td></tr>
@@ -419,8 +419,8 @@
 
     {# ================================================================== #}
     <section id="katalog" class="card p-5" data-kapitola>
-      <h2>Katalog a nastavení</h2>
-      <p><a class="link" href="/admin/">Katalog a nastavení</a> je administrace. Vše, co se tu nastaví, jsou data – nic se neprogramuje.</p>
+      <h2>Nastavení</h2>
+      <p>Stránka <a class="link" href="{% url 'workplace' %}">Nastavení</a> má nahoře stav pracoviště (kroky všech částí, každý říká, co chybí) a dole kategorie: pracoviště a kolegové, sporty a baterie, testy a ukazatele (včetně MDC se zdrojem), přístroje a import (sloupce exportů), normy a pravidla, dotazníky, objednávky, články, genetika, připomínky, klíče a model. Vše, co se tu nastaví, jsou data – nic se neprogramuje. Administrace Djanga je jen pro pokročilé (odkaz dole na stránce Nastavení): audit, identity sportovců, zákonní zástupci, externí vyšetření, technické záznamy. Normy, pravidla a dotazníky tam zatím zůstávají; průvodce pro ně je další dávka.</p>
       <div class="overflow-x-auto">
         <table class="table napoveda-tabulka">
           <thead><tr><th>Položka</th><th>K čemu</th></tr></thead>

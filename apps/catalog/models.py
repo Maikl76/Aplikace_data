@@ -114,6 +114,9 @@ class MetricDef(CatalogModel):
     typical_error = models.FloatField("typická chyba měření", null=True, blank=True)
     mdc = models.FloatField("MDC", null=True, blank=True,
                             help_text="Nejmenší detekovatelná změna (v jednotkách metriky).")
+    mdc_source = models.CharField(
+        "zdroj MDC", max_length=300, blank=True,
+        help_text="Odkud hodnota je: citace, nebo vlastní reliability studie (kdy, kolik osob).")
     swc = models.FloatField("SWC", null=True, blank=True,
                             help_text="Nejmenší prakticky významná změna.")
 

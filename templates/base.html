@@ -85,9 +85,8 @@
       {% nav_link "import_list" "Import" "upload" %}
       {% nav_link "sport_list" "Sporty a testy" "list" %}
       <div class="pt-3 mt-3 border-t" style="border-color: var(--border)">
-        {% nav_link "workplace" "Stav pracoviště" "check" %}
+        {% nav_link "workplace" "Nastavení" "settings" "/nastaveni/" %}
         {% if user.is_superuser or user.role == "admin" %}{% nav_link "colleagues" "Kolegové" "users" %}{% nav_link "remarks" "Připomínky" "inbox" "/pripominky/" nove_pripominky %}{% endif %}
-        {% nav_link "/admin/" "Katalog a nastavení" "settings" "/admin/" %}
         {% nav_link "about" "O aplikaci" "info" %}
       </div>
       {% endif %}

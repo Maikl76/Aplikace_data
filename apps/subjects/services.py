@@ -86,6 +86,8 @@ def _consents(subject, wanted: set[str]):
 
 def _apply(subject, identity, organization, data):
     subject.sport = _sport(organization, data)
+    team = data.get("team")
+    subject.team = team if team is not None and team.sport_id == subject.sport_id else None
     subject.sex = data["sex"]
     subject.birth_year = data["birth_date"].year
     subject.category = data.get("category", "").strip()
@@ -125,7 +127,8 @@ def update_subject(subject, data) -> Subject:
 
 def initial(subject) -> dict:
     """Hodnoty pro formulář úprav (dešifrovaná identita)."""
-    data = {"sport": subject.sport_id, "sex": subject.sex, "category": subject.category,
+    data = {"sport": subject.sport_id, "team": subject.team_id, "sex": subject.sex,
+            "category": subject.category,
             "level": subject.level, "dominant_side": subject.dominant_side,
             "note": subject.note,
             "consents": [c.scope for c in subject.consents.all() if c.is_valid]}

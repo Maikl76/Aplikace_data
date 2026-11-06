@@ -3,7 +3,7 @@ from datetime import date
 from django import forms
 from django.utils import timezone
 
-from .models import Consent, Sex, Sport, Subject
+from .models import Consent, Sex, Sport, Subject, Team
 from .services import FORM_CONSENTS
 
 
@@ -16,6 +16,10 @@ class SubjectForm(forms.Form):
     sport = forms.ModelChoiceField(label="Sport", queryset=Sport.objects.none(), required=False,
                                    empty_label="— vyberte —")
     new_sport = forms.CharField(label="nebo nový sport", max_length=100, required=False)
+    team = forms.ModelChoiceField(label="Tým", queryset=Team.objects.none(), required=False,
+                                  empty_label="— bez týmu —",
+                                  help_text="Skupina sportovců jednoho sportu; týmy zakládá "
+                                            "správce v Nastavení → Pracoviště a týmy.")
     category = forms.CharField(label="Kategorie", max_length=60, required=False,
                                help_text="Např. dorost. Podle ní se vybírá baterie testů.")
     level = forms.ChoiceField(label="Úroveň", choices=Subject.Level.choices,
@@ -33,14 +37,21 @@ class SubjectForm(forms.Form):
         initial=[Consent.Scope.TESTING, Consent.Scope.LONGITUDINAL])
     confirm_duplicate = forms.BooleanField(required=False)
 
-    def __init__(self, *args, sports=None, **kwargs):
+    def __init__(self, *args, sports=None, teams=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["sport"].queryset = sports if sports is not None else Sport.objects.none()
+        self.fields["team"].queryset = teams if teams is not None else Team.objects.none()
         for field in self.fields.values():
             if not isinstance(field.widget, (forms.RadioSelect, forms.CheckboxSelectMultiple,
                                              forms.CheckboxInput)):
                 field.widget.attrs.setdefault("class", "input mt-1")
         self.fields["first_name"].widget.attrs["autofocus"] = True
+
+    def clean_team(self):
+        team, sport = self.cleaned_data.get("team"), self.cleaned_data.get("sport")
+        if team and sport and team.sport_id != sport.pk:
+            raise forms.ValidationError(f"Tým {team.name} patří ke sportu {team.sport.name}.")
+        return team
 
     def clean_birth_date(self):
         value = self.cleaned_data["birth_date"]
