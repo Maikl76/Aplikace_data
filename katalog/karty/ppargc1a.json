@@ -1,0 +1,615 @@
+{
+ "format": "navrh-karty/1",
+ "popis": "PPARGC1A / rs8192678 (vytrvalost a adaptační kontext): v1 původní znění z podkladů v02, v2 návrh znění k revizi garantem oblasti Výkon a trénink.",
+ "varianty": [
+  {
+   "organizace": null,
+   "oblast": "vykon",
+   "gene": "PPARGC1A",
+   "full_name": "PPARG coactivator 1 alpha (Koaktivátor 1 alfa receptoru gama)",
+   "rsid": "rs8192678",
+   "notation": "rs8192678 (A/G; Gly482Ser)",
+   "subtitle": "Vytrvalost a adaptační kontext",
+   "genotypes": [
+    "AA",
+    "AG",
+    "GG"
+   ],
+   "genotype_aliases": {},
+   "strand_note": "Varianta se uvádí jako A/G (Gly482Ser) i jako C/T podle opačného vlákna; před převodem zápisu laboratoře potvrdit konvenci (revizní priorita karty).",
+   "frequency_source": "https://www.ncbi.nlm.nih.gov/snp/rs8192678#frequency_tab",
+   "order": 8,
+   "is_active": true
+  }
+ ],
+ "karty": [
+  {
+   "organizace": null,
+   "varianta": "rs8192678",
+   "nahrazuje": null,
+   "version": 1,
+   "status": "original",
+   "review_priorities": "Neurčovat VO₂max nebo rychlost adaptace bez měření; sjednotit A/G versus C/T konvenci.",
+   "biology_expert": "PPARGC1A kóduje transkripčního koaktivátora PGC-1α, který se podílí na řízení mitochondriální biogeneze, oxidace mastných kyselin, využití glukózy, termogeneze, angiogeneze a na posunu svalových vláken směrem k oxidativnějšímu fenotypu typu I. Z pohledu sportovní genomiky je tento gen významný zejména pro trénovatelnost aerobní kapacity, energetickou účinnost a adaptační odpověď na vytrvalostní zátěž.",
+   "biology_client": "Gen PPARGC1A pomáhá řídit, jak dobře sval pracuje s kyslíkem a jak efektivně vytváří energii při delší zátěži. Ovlivňuje mimo jiné tvorbu mitochondrií a to, zda se sval lépe přizpůsobuje vytrvalostnímu tréninku.",
+   "effect": "Polymorfismus rs8192678 (Gly482Ser) mění aminokyselinu v proteinu PGC-1α a může ovlivňovat transkripční aktivaci genů zapojených do oxidativního metabolismu a adaptace na vytrvalostní trénink. V dostupné sportovně-genetické literatuře je alela G opakovaně spojována s příznivější odpovědí na vytrvalostní trénink a častějším výskytem u vytrvalostních sportovců, zatímco přítomnost alely A bývá častěji spojována s nižším VO2max, nižší energetickou účinností a méně příznivým vytrvalostním profilem. Je však nutné zdůraznit, že jde o pravděpodobnostní predispozici, nikoli o deterministický marker výkonu.",
+   "limitations": "",
+   "frequency_note": "Převzaté frekvence: před schválením doložit konkrétní populační soubor a zdroj. Samotné označení „evropská populace“ nestačí.",
+   "related_areas": [
+    "Aerobní kapacita",
+    "Vytrvalostní výkon",
+    "Mitochondriální biogeneze",
+    "Oxidace mastných kyselin a glukózy",
+    "Energetická účinnost během cvičení"
+   ],
+   "import_note": "Původní návrh k revizi. Zachováno 67 neprázdných odstavců včetně identifikačního nadpisu; původní anglické názvy polí jsou nahrazeny českými nadpisy. Textová tvrzení nejsou nově ověřena.\n\nNásledují původní návrhy doporučení, včetně případných dávek. Nejsou návodem k použití; jejich vazba na genotyp a použitelnost čekají na odbornou revizi.\n\nPůvodní scénáře k posouzení. Odpověď ani měření samy nepotvrzují genetickou příčinu. Scénáře založené na měření nejsou aktivní ve V1.\n\nPůvodní hypotézy k samostatnému posouzení. Kombinace obsahující varianty mimo panel nelze vyhodnotit z aktuálního testu.",
+   "change_summary": "",
+   "approved_at": null,
+   "texty": [
+    {
+     "genotype": "AA",
+     "client_text": "Váš genotyp byl v mnoha studiích spojován s nižším VO2max, méně příznivou odpovědí na vytrvalostní trénink a nižší energetickou účinností během cvičení. To neznamená nemožnost dosahovat dobré vytrvalosti, ale obvykle větší závislost na kvalitě tréninku a dalších faktorech.",
+     "expert_text": "",
+     "frequency": "11,7 % (European populace)",
+     "order": 0
+    },
+    {
+     "genotype": "AG",
+     "client_text": "Váš genotyp představuje smíšený profil. Oproti genotypu GG nemusí být adaptační odpověď na vytrvalostní trénink tak příznivá, ale současně nejde o jednoznačně nepříznivý fenotyp. Výsledek lze interpretovat jako střední predispozici, u níž má významný vliv typ a dlouhodobost tréninku.",
+     "expert_text": "",
+     "frequency": "45,0 % (European populace)",
+     "order": 1
+    },
+    {
+     "genotype": "GG",
+     "client_text": "Váš genotyp pozitivně podporuje tréninkovou odpověď na vytrvalostní trénink. V literatuře bývá spojován s příznivější aerobní kapacitou, lepší energetickou účinností a vyšší pravděpodobností vytrvalostního profilu.",
+     "expert_text": "",
+     "frequency": "43,4 % (European populace)",
+     "order": 2
+    }
+   ],
+   "doporuceni": [
+    {
+     "genotype": "AA",
+     "kind": "sport",
+     "text": "Vytrvalostní aktivity pro Vás nejsou vyloučené, ale je vhodné počítat s tím, že rozvoj aerobní kapacity může vyžadovat pečlivější a dlouhodobější tréninkové vedení. Výhodné je systematické budování základní vytrvalosti a průběžná objektivizace pokroku.",
+     "basis": "",
+     "merge_key": "",
+     "order": 0,
+     "protokol": null
+    },
+    {
+     "genotype": "AA",
+     "kind": "training",
+     "text": "Doporučujeme důsledně pracovat s periodizací, rozvojem aerobní báze, technikou pohybu a postupným zvyšováním objemu. Dobře může fungovat kombinace souvislé vytrvalostní zátěže, práce v oblasti aerobního prahu a doplňkového silového tréninku pro zlepšení ekonomiky pohybu.",
+     "basis": "",
+     "merge_key": "",
+     "order": 1,
+     "protokol": null
+    },
+    {
+     "genotype": "AA",
+     "kind": "risk",
+     "text": "Nepříznivější genetický profil může vést k pomalejší adaptační odpovědi na vytrvalostní trénink a k větší frustraci při srovnávání s jedinci s příznivějším profilem. Rizikem je zejména nevhodně vysoká intenzita bez dostatečné aerobní základny.",
+     "basis": "",
+     "merge_key": "",
+     "order": 2,
+     "protokol": null
+    },
+    {
+     "genotype": "AG",
+     "kind": "sport",
+     "text": "Máte vyvážený profil, který může být vhodný pro kombinované disciplíny i pro vytrvalostní sporty, pokud je trénink dlouhodobě správně veden. Vaše genetická predispozice sama o sobě nevylučuje dobrý vytrvalostní výkon.",
+     "basis": "",
+     "merge_key": "",
+     "order": 3,
+     "protokol": null
+    },
+    {
+     "genotype": "AG",
+     "kind": "training",
+     "text": "Doporučujeme kombinovat rozvoj aerobní kapacity s doplňkovým silovým tréninkem a cíleně sledovat, na jaký typ zátěže reagujete nejlépe. Praktický význam má pravidelné hodnocení VO2max, prahových ukazatelů nebo tempa při submaximální zátěži.",
+     "basis": "",
+     "merge_key": "",
+     "order": 4,
+     "protokol": null
+    },
+    {
+     "genotype": "AG",
+     "kind": "risk",
+     "text": "Rizikem je spíše nevyužití potenciálu při nesprávně nastaveném tréninku než jednoznačná biologická nevýhoda. Při jednostranném zatížení bez dostatečné adaptace může docházet k pomalejšímu zlepšování aerobních parametrů.",
+     "basis": "",
+     "merge_key": "",
+     "order": 5,
+     "protokol": null
+    },
+    {
+     "genotype": "GG",
+     "kind": "sport",
+     "text": "Jste přirozeně více disponován/a pro vytrvalostní aktivity a disciplíny, kde rozhoduje aerobní kapacita, efektivní oxidativní metabolismus a ekonomika pohybu. Tento profil může být výhodný například pro běh na delší tratě, cyklistiku, plavání nebo triatlon.",
+     "basis": "",
+     "merge_key": "",
+     "order": 6,
+     "protokol": null
+    },
+    {
+     "genotype": "GG",
+     "kind": "training",
+     "text": "Doporučujeme zaměřit se na dlouhodobý vytrvalostní trénink, rozvoj aerobní kapacity, práci s intenzitou kolem ventilačních a laktátových prahů a na techniku pohybu. Vhodné je doplnit pravidelný silový trénink pro stabilitu, prevenci přetížení a podporu výkonu.",
+     "basis": "",
+     "merge_key": "",
+     "order": 7,
+     "protokol": null
+    },
+    {
+     "genotype": "GG",
+     "kind": "risk",
+     "text": "Ani příznivý genetický profil nezaručuje automaticky vysoký výkon. Rizikem může být podcenění silové složky, regenerace nebo výživy, což může omezit využití aerobního potenciálu.",
+     "basis": "",
+     "merge_key": "",
+     "order": 8,
+     "protokol": null
+    }
+   ],
+   "dukazy": [],
+   "zdroje": [
+    {
+     "label": "",
+     "title": "",
+     "citation": "Steinbacher, P., Feichtinger, R. G., Kedenko, L., Kedenko, I., Reinhardt, S., Schönauer, A. L., et al. (2015). The single nucleotide polymorphism Gly482Ser in the PGC-1α gene impairs exercise-induced slow-twitch muscle fibre transformation in humans. PLOS ONE, 10(4), e0123881.",
+     "url": "",
+     "order": 0
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Stefan, N., Thamer, C., Staiger, H., Machicao, F., Machann, J., Schick, F., et al. (2007). Genetic variations in PPARD and PPARGC1A determine mitochondrial function and change in aerobic physical fitness and insulin sensitivity during lifestyle intervention. Journal of Clinical Endocrinology & Metabolism, 92(5), 1827-1833.",
+     "url": "",
+     "order": 1
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Ring-Dimitriou, S., Kedenko, L., Kedenko, I., Feichtinger, R. G., Steinbacher, P., Stoiber, W., et al. (2014). Does Genetic Variation in PPARGC1A Affect Exercise-Induced Changes in Ventilatory Thresholds and Metabolic Syndrome? Journal of Exercise Physiology Online, 17(2), 1-18.",
+     "url": "",
+     "order": 2
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Petr, M., Stastny, P., Tufano, J., Zając, A., & Maciejewska-Skrendo, A. (2018). The role of peroxisome proliferator-activated receptors (PPARs) and their transcriptional coactivator´s gene variations in human trainability: a systematic review. International Journal of Molecular Sciences.",
+     "url": "",
+     "order": 3
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Maciejewska, A., Sawczuk, M., Cieszczyk, P., Mozhayskaya, I. A., & Ahmetov, I. I. (2012). The PPARGC1A gene Gly482Ser in Polish and Russian athletes. Journal of Sports Sciences, 30(1), 101-113.",
+     "url": "",
+     "order": 4
+    }
+   ],
+   "nepripustne": [],
+   "scenare": [
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Lépe zvládám dlouhodobou vytrvalostní zátěž než krátké maximální úseky.",
+     "answer_match": {
+      "choices": [
+       "vytrvalost"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 0,
+     "otazka": "vykonovy_profil",
+     "texty": [
+      {
+       "genotype": "AA",
+       "text": "Vaše odpověď ukazuje, že praktický fenotyp může být příznivější než samotná genetická predispozice. Je pravděpodobné, že důležitou roli hraje dlouhodobá tréninková adaptace a další biologické faktory."
+      },
+      {
+       "genotype": "AG",
+       "text": "Vaše odpověď dobře odpovídá smíšenému, ale funkčně vytrvalostně orientovanému profilu. Doporučujeme tento směr dále rozvíjet a objektivně sledovat adaptační odpověď."
+      },
+      {
+       "genotype": "GG",
+       "text": "Vaše odpověď velmi dobře odpovídá Vaší genetické predispozici. Máte pravděpodobně dobré předpoklady pro vytrvalostní výkon a efektivní práci při dlouhodobé zátěži."
+      }
+     ]
+    },
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Lépe mi sedí krátké intenzivní úseky než dlouhé vytrvalostní zatížení.",
+     "answer_match": {
+      "choices": [
+       "sila"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 1,
+     "otazka": "vykonovy_profil",
+     "texty": [
+      {
+       "genotype": "AA",
+       "text": "Vaše odpověď je s Vaším genetickým profilem v souladu. Může naznačovat, že vytrvalostní složka vyžaduje systematičtější rozvoj a trpělivější trénink."
+      },
+      {
+       "genotype": "AG",
+       "text": "Vaše odpověď ukazuje, že se Váš praktický profil může posouvat spíše ke kombinovanému nebo intenzitně orientovanému výkonu. Smysl dává individualizace tréninku podle reálné odezvy."
+      },
+      {
+       "genotype": "GG",
+       "text": "Vaše odpověď naznačuje určitý nesoulad mezi genetickým profilem a subjektivně vnímaným výkonem. Je možné, že Váš vytrvalostní potenciál není plně využit nebo je limitován jinými faktory, například tréninkovým zaměřením, technikou nebo regenerací."
+      }
+     ]
+    },
+    {
+     "kind": "measurement",
+     "title": "Kontext 2: zdroj zátěžový test - VO2max / aerobní kapacita",
+     "statement": "Na vytrvalostní trénink reaguji výrazným zlepšením VO2max nebo tempa při stejné tepové frekvenci.",
+     "answer_match": {},
+     "condition": {},
+     "is_active": false,
+     "order": 2,
+     "otazka": null,
+     "texty": [
+      {
+       "genotype": "AA",
+       "text": "Váš výsledek ukazuje, že i méně příznivý genotyp může být při kvalitním tréninku dobře kompenzován. To podporuje význam prostředí a tréninkové historie."
+      },
+      {
+       "genotype": "AG",
+       "text": "Váš výsledek odpovídá střední až dobré trénovatelnosti aerobní kapacity. Doporučujeme pokračovat v režimu, který zlepšení přináší."
+      },
+      {
+       "genotype": "GG",
+       "text": "Váš výsledek velmi dobře odpovídá příznivému genetickému profilu. Zlepšení aerobní kapacity po tréninku je s tímto genotypem očekávatelné."
+      }
+     ]
+    },
+    {
+     "kind": "measurement",
+     "title": "Kontext 2: zdroj zátěžový test - VO2max / aerobní kapacita",
+     "statement": "I přes pravidelný vytrvalostní trénink se moje VO2max nebo aerobní parametry zlepšují jen omezeně.",
+     "answer_match": {},
+     "condition": {},
+     "is_active": false,
+     "order": 3,
+     "otazka": null,
+     "texty": [
+      {
+       "genotype": "AA",
+       "text": "Váš výsledek odpovídá méně příznivé genetické predispozici pro trénovatelnost aerobní kapacity. Doporučujeme detailněji individualizovat trénink a zhodnotit i regeneraci, výživu a dávkování intenzity."
+      },
+      {
+       "genotype": "AG",
+       "text": "Váš výsledek může odpovídat smíšenému profilu, u něhož je reakce na vytrvalostní zátěž více individuální. Vhodné je ověřit, zda aktuální trénink odpovídá Vašemu skutečnému adaptačnímu profilu."
+      },
+      {
+       "genotype": "GG",
+       "text": "Váš výsledek naznačuje, že geneticky příznivý profil není v praxi plně využit. Je vhodné hledat limitující faktory mimo samotný genotyp, například v tréninkové skladbě, zdravotním stavu nebo životním stylu."
+      }
+     ]
+    }
+   ],
+   "revize": []
+  },
+  {
+   "organizace": null,
+   "varianta": "rs8192678",
+   "nahrazuje": {
+    "varianta": "rs8192678",
+    "verze": 1
+   },
+   "version": 2,
+   "status": "draft",
+   "review_priorities": "Neurčovat VO₂max nebo rychlost adaptace bez měření; sjednotit A/G versus C/T konvenci.",
+   "biology_expert": "PPARGC1A kóduje transkripční koaktivátor PGC-1α, regulátor mitochondriální biogeneze, oxidace mastných kyselin a angiogeneze. Varianta rs8192678 (Gly482Ser) je missense záměna; vliv na funkci proteinu je popisován nejednotně [S4, OVĚŘIT].",
+   "biology_client": "Gen PPARGC1A nese návod na bílkovinu PGC-1α, která ve svalu spouští tvorbu mitochondrií a další změny po vytrvalostním tréninku. Varianta rs8192678 mění jednu aminokyselinu této bílkoviny (Gly482Ser) [S1, OVĚŘIT]. Jak na trénink zareagujete, ukáže jen měření v čase.",
+   "effect": "Alela G (Gly) je v některých studiích častější u vytrvalostních sportovců [S5, OVĚŘIT]; alela A (Ser) byla v jedné studii spojena s menší přeměnou svalových vláken po tréninku [S1, OVĚŘIT]. Přehled trénovatelnosti hodnotí výsledky jako nejednotné [S4, OVĚŘIT].",
+   "limitations": "Z genotypu PPARGC1A nelze určit VO₂max, trénovatelnost ani rychlost adaptace na vytrvalostní trénink. Studie popisují malé rozdíly mezi skupinami a nejsou jednotné. Reakci na trénink ukáže jen opakované měření. Zápis varianty se uvádí jako A/G i C/T podle vlákna; převod zápisu laboratoře je třeba ověřit.",
+   "frequency_note": "Původní hodnoty 11,7 / 45,0 / 43,4 % se nepřebírají bez konkrétního souboru (dbSNP, gnomAD, populace).",
+   "related_areas": [
+    "Aerobní kapacita",
+    "Vytrvalostní výkon",
+    "Mitochondriální biogeneze",
+    "Oxidace mastných kyselin a glukózy",
+    "Energetická účinnost během cvičení"
+   ],
+   "import_note": "Původní návrh k revizi. Zachováno 67 neprázdných odstavců včetně identifikačního nadpisu; původní anglické názvy polí jsou nahrazeny českými nadpisy. Textová tvrzení nejsou nově ověřena.\n\nNásledují původní návrhy doporučení, včetně případných dávek. Nejsou návodem k použití; jejich vazba na genotyp a použitelnost čekají na odbornou revizi.\n\nPůvodní scénáře k posouzení. Odpověď ani měření samy nepotvrzují genetickou příčinu. Scénáře založené na měření nejsou aktivní ve V1.\n\nPůvodní hypotézy k samostatnému posouzení. Kombinace obsahující varianty mimo panel nelze vyhodnotit z aktuálního testu.",
+   "change_summary": "Návrh znění podle revizní priority karty: VO₂max ani rychlost adaptace se bez měření neurčují, konvenci zápisu A/G versus C/T je třeba sjednotit. Texty pro genotypy popisují, co studie uvádějí a co z výsledku určit nejde; doporučení podle genotypu nahrazena obecným postupem a opakovanou spiroergometrií; scénáře nad měřením odstraněny; doplněny nepřípustné výroky, názvy zdrojů a řádky důkazů E01–E05. Místa označená [OVĚŘIT] a [DOPLNIT] garant ověří před schválením.",
+   "approved_at": null,
+   "texty": [
+    {
+     "genotype": "AA",
+     "client_text": "Byl zjištěn genotyp AA varianty PPARGC1A rs8192678 (Gly482Ser). Alela A (Ser) byla v některých studiích méně častá u vytrvalostních sportovců a v jedné studii spojena s menší přeměnou svalových vláken po tréninku [S1, S5, OVĚŘIT]; souhrnné práce popisují nejednotné výsledky [S4, OVĚŘIT]. Z výsledku nelze určit vaši aerobní kapacitu ani to, jak na vytrvalostní trénink zareagujete; to ukáže opakované měření.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 0
+    },
+    {
+     "genotype": "AG",
+     "client_text": "Byl zjištěn genotyp AG varianty PPARGC1A rs8192678 (Gly482Ser). Nesete jednu kopii každé alely. Studie u této skupiny nenacházejí jednoznačný rozdíl v aerobní kapacitě ani v reakci na trénink [S4, OVĚŘIT]. Z výsledku nelze určit vaše předpoklady; to ukáže opakované měření.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 1
+    },
+    {
+     "genotype": "GG",
+     "client_text": "Byl zjištěn genotyp GG varianty PPARGC1A rs8192678 (Gly482Ser). Alela G (Gly) je v některých studiích častější u vytrvalostních sportovců [S5, OVĚŘIT]; souhrnné práce popisují nejednotné výsledky [S4, OVĚŘIT]. Neznamená to, že máte vyšší aerobní kapacitu. Z výsledku nelze určit, jak na vytrvalostní trénink zareagujete; to ukáže opakované měření.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 2
+    }
+   ],
+   "doporuceni": [
+    {
+     "genotype": "",
+     "kind": "training",
+     "text": "Zaměření a dávkování vytrvalostního tréninku vychází z cíle, sportu, tréninkové historie a měření, ne z genotypu.",
+     "basis": "general",
+     "merge_key": "trenink-podle-mereni",
+     "order": 9,
+     "protokol": null
+    },
+    {
+     "genotype": "",
+     "kind": "training",
+     "text": "Reakci na vytrvalostní trénink ukáže opakovaná spiroergometrie (VO₂max, ventilační prahy) v odstupu týdnů; zpráva porovná měření a změnu posoudí podle chyby měření.",
+     "basis": "measurement",
+     "merge_key": "vytrvalost-adaptace",
+     "order": 10,
+     "protokol": "spiro_ramp"
+    },
+    {
+     "genotype": "",
+     "kind": "training",
+     "text": "Vytrvalostní trénink stavějte na aerobním základu a postupném zvyšování objemu; platí pro všechny genotypy.",
+     "basis": "general",
+     "merge_key": "aerobni-zaklad",
+     "order": 11,
+     "protokol": null
+    }
+   ],
+   "dukazy": [
+    {
+     "code": "E01",
+     "trait": "Identita varianty",
+     "basis_text": "rs8192678, PPARGC1A Gly482Ser; zápis A/G nebo C/T podle vlákna. [OVĚŘIT transkript a konvenci; DOPLNIT dbSNP jako zdroj]",
+     "usage": "Jen identifikace; před převodem zápisu laboratoře potvrdit konvenci.",
+     "source_labels": "",
+     "order": 0
+    },
+    {
+     "code": "E02",
+     "trait": "Přeměna svalových vláken po tréninku",
+     "basis_text": "Steinbacher 2015: nositelé Ser482 s menší přeměnou na pomalá vlákna po tréninku [S1]. [OVĚŘIT soubor, design a velikost efektu]",
+     "usage": "Populační asociace z jedné studie; žádná predikce u klienta.",
+     "source_labels": "S1",
+     "order": 1
+    },
+    {
+     "code": "E03",
+     "trait": "Zdatnost a mitochondrie při intervenci",
+     "basis_text": "Stefan 2007: změna aerobní zdatnosti a mitochondriální funkce při intervenci životního stylu [S2]. Ring-Dimitriou 2014: ventilační prahy, online časopis [S3]. [OVĚŘIT závěry a kvalitu zdroje S3]",
+     "usage": "Uvést jen jako „v některých studiích“; vliv tréninku je větší než vliv genotypu.",
+     "source_labels": "S2, S3",
+     "order": 2
+    },
+    {
+     "code": "E04",
+     "trait": "Trénovatelnost – přehled",
+     "basis_text": "Petr 2018: systematický přehled PPAR a koaktivátorů v trénovatelnosti [S4]. [OVĚŘIT závěr k rs8192678]",
+     "usage": "Nejednotné výsledky; žádná predikce VO₂max ani adaptace (revizní priorita karty).",
+     "source_labels": "S4",
+     "order": 3
+    },
+    {
+     "code": "E05",
+     "trait": "Status sportovce",
+     "basis_text": "Maciejewska 2012: frekvence genotypů u polských a ruských sportovců [S5]. [OVĚŘIT směr a velikost efektu]",
+     "usage": "Populační asociace: „v některých studiích“.",
+     "source_labels": "S5",
+     "order": 4
+    }
+   ],
+   "zdroje": [
+    {
+     "label": "S1",
+     "title": "Steinbacher 2015 – přeměna svalových vláken po tréninku",
+     "citation": "Steinbacher, P., Feichtinger, R. G., Kedenko, L., Kedenko, I., Reinhardt, S., Schönauer, A. L., et al. (2015). The single nucleotide polymorphism Gly482Ser in the PGC-1α gene impairs exercise-induced slow-twitch muscle fibre transformation in humans. PLOS ONE, 10(4), e0123881.",
+     "url": "",
+     "order": 0
+    },
+    {
+     "label": "S2",
+     "title": "Stefan 2007 – mitochondrie a zdatnost při intervenci",
+     "citation": "Stefan, N., Thamer, C., Staiger, H., Machicao, F., Machann, J., Schick, F., et al. (2007). Genetic variations in PPARD and PPARGC1A determine mitochondrial function and change in aerobic physical fitness and insulin sensitivity during lifestyle intervention. Journal of Clinical Endocrinology & Metabolism, 92(5), 1827-1833.",
+     "url": "",
+     "order": 1
+    },
+    {
+     "label": "S3",
+     "title": "Ring-Dimitriou 2014 – ventilační prahy (online časopis)",
+     "citation": "Ring-Dimitriou, S., Kedenko, L., Kedenko, I., Feichtinger, R. G., Steinbacher, P., Stoiber, W., et al. (2014). Does Genetic Variation in PPARGC1A Affect Exercise-Induced Changes in Ventilatory Thresholds and Metabolic Syndrome? Journal of Exercise Physiology Online, 17(2), 1-18.",
+     "url": "",
+     "order": 2
+    },
+    {
+     "label": "S4",
+     "title": "Petr 2018 – systematický přehled trénovatelnosti",
+     "citation": "Petr, M., Stastny, P., Tufano, J., Zając, A., & Maciejewska-Skrendo, A. (2018). The role of peroxisome proliferator-activated receptors (PPARs) and their transcriptional coactivator´s gene variations in human trainability: a systematic review. International Journal of Molecular Sciences.",
+     "url": "",
+     "order": 3
+    },
+    {
+     "label": "S5",
+     "title": "Maciejewska 2012 – polští a ruští sportovci",
+     "citation": "Maciejewska, A., Sawczuk, M., Cieszczyk, P., Mozhayskaya, I. A., & Ahmetov, I. I. (2012). The PPARGC1A gene Gly482Ser in Polish and Russian athletes. Journal of Sports Sciences, 30(1), 101-113.",
+     "url": "",
+     "order": 4
+    }
+   ],
+   "nepripustne": [
+    {
+     "text": "nižší VO2max",
+     "note": ""
+    },
+    {
+     "text": "nižší trénovatelnost",
+     "note": ""
+    },
+    {
+     "text": "pozitivně podporuje tréninkovou odpověď",
+     "note": ""
+    },
+    {
+     "text": "jste disponován pro vytrvalostní",
+     "note": ""
+    },
+    {
+     "text": "jste disponována pro vytrvalostní",
+     "note": ""
+    },
+    {
+     "text": "příznivější aerobní kapacita",
+     "note": ""
+    },
+    {
+     "text": "potenciál není plně využit",
+     "note": ""
+    },
+    {
+     "text": "potvrzuje genetický profil",
+     "note": ""
+    },
+    {
+     "text": "méně příznivý genotyp",
+     "note": ""
+    },
+    {
+     "text": "příznivý genetický profil",
+     "note": ""
+    }
+   ],
+   "scenare": [
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Lépe zvládám dlouhodobou vytrvalostní zátěž než krátké maximální úseky.",
+     "answer_match": {
+      "choices": [
+       "vytrvalost"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 0,
+     "otazka": "vykonovy_profil",
+     "texty": [
+      {
+       "genotype": "AA",
+       "text": "Vaše zkušenost, že vám sedí delší zátěž, je cennější vodítko než genotyp; ten ji nepotvrzuje ani nevyvrací. Jak na vytrvalostní trénink reagujete, ukáže opakované měření (VO₂max, prahy), ne genotyp."
+      },
+      {
+       "genotype": "AG",
+       "text": "Vaše zkušenost, že vám sedí delší zátěž, je cennější vodítko než genotyp; ten ji nepotvrzuje ani nevyvrací. Jak na vytrvalostní trénink reagujete, ukáže opakované měření (VO₂max, prahy), ne genotyp."
+      },
+      {
+       "genotype": "GG",
+       "text": "Vaše zkušenost, že vám sedí delší zátěž, je cennější vodítko než genotyp; ten ji nepotvrzuje ani nevyvrací. Jak na vytrvalostní trénink reagujete, ukáže opakované měření (VO₂max, prahy), ne genotyp."
+      }
+     ]
+    },
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Lépe mi sedí krátké intenzivní úseky než dlouhé vytrvalostní zatížení.",
+     "answer_match": {
+      "choices": [
+       "sila"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 1,
+     "otazka": "vykonovy_profil",
+     "texty": [
+      {
+       "genotype": "AA",
+       "text": "Vaše zkušenost, že vám jdou krátké intenzivní úseky, je cennější vodítko než genotyp; ten ji nepotvrzuje ani nevyvrací. O vytrvalostních i silových předpokladech vypovídá měření a tréninková historie."
+      },
+      {
+       "genotype": "AG",
+       "text": "Vaše zkušenost, že vám jdou krátké intenzivní úseky, je cennější vodítko než genotyp; ten ji nepotvrzuje ani nevyvrací. O vytrvalostních i silových předpokladech vypovídá měření a tréninková historie."
+      },
+      {
+       "genotype": "GG",
+       "text": "Vaše zkušenost, že vám jdou krátké intenzivní úseky, je cennější vodítko než genotyp; ten ji nepotvrzuje ani nevyvrací. O vytrvalostních i silových předpokladech vypovídá měření a tréninková historie."
+      }
+     ]
+    }
+   ],
+   "revize": [
+    {
+     "part": "Konvence zápisu",
+     "original": "",
+     "proposal": "",
+     "reason": "Sjednotit A/G versus C/T podle metody laboratoře (revizní priorita karty); zapsat do poznámky k zápisu a do panelu.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Důkaz E02 – Steinbacher 2015",
+     "original": "",
+     "proposal": "",
+     "reason": "Ověřit soubor, design a velikost efektu.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Důkaz E04 – Petr 2018",
+     "original": "",
+     "proposal": "",
+     "reason": "Ověřit závěr přehledu k rs8192678; pokud trénovatelnost nepotvrzuje, texty pro genotypy ještě zkrátit.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Důkaz E03 – kvalita zdroje S3",
+     "original": "",
+     "proposal": "",
+     "reason": "Ring-Dimitriou 2014 vyšel v online časopise; rozhodnout, zda ho ponechat.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Frekvence genotypů",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit se souborem a zdrojem, nebo nechat prázdné.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Scénáře z dotazníku",
+     "original": "",
+     "proposal": "",
+     "reason": "Texty pro odpověď „vytrvalost“ a „síla“ jsou stejné pro všechny genotypy; scénáře nad měřením odstraněny. Po kontrole zapnout (krok 5).",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    }
+   ]
+  }
+ ]
+}

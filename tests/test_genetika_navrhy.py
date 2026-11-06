@@ -141,6 +141,43 @@ def test_navrh_z_vlastniho_souboru_nese_test_a_otazku(org, tmp_path):
         _load(str(tmp_path / "nic.json"))
 
 
+FILES = sorted(p.name for p in FILE.parent.glob("*.json"))
+
+
+def test_vsechny_navrhy_v_repozitari_se_nactou_a_jsou_po_sedmy_krok_hotove(org):
+    """Každý soubor v katalog/karty: varianta v panelu, kroky 1–7 hotové, blokují jen značky."""
+    call_command("seed_catalog", verbosity=0)
+    text = _load()
+    assert len(FILES) == 10 and all(f"{name}: " in text for name in FILES)
+    panel = GenePanel.objects.get()
+    for variant in GeneVariant.objects.all():
+        assert panel.items.filter(variant=variant).exists(), variant
+        card = variant.cards.filter(status=GeneCard.Status.DRAFT).get()
+        steps = card_steps(card)
+        assert [s["done"] for s in steps[:7]] == [True] * 7, (variant.label, [s["text"] for s in steps])
+        check = services.checklist(card)
+        assert all("značku k ověření" in i.text for i in check.blocking), (variant.label, check.blocking)
+        assert card.revisions.filter(decision="open").exists() and card.change_summary
+        assert card.limitations and card.forbidden_statements.count() >= 5
+        assert all(r.basis for r in card.recommendations.all()) and card.sources.exists()
+        for scenario in card.scenarios.all():  # scénáře jen z dotazníku, napojené, vypnuté
+            assert scenario.question_id and scenario.answer_match and not scenario.is_active
+            assert scenario.texts.count() == len(variant.genotypes)
+    # původní znění z Wordu zůstává u sedmi plných karet; tři nové karty jsou jen návrh
+    originals = GeneCard.objects.filter(status=GeneCard.Status.ORIGINAL)
+    assert originals.count() == 7
+    assert {c.variant.gene for c in GeneCard.objects.filter(version=1, status="draft")} == {
+        "SLC16A1", "FTO", "TCF7L2"}
+    # MCM6/LCT: scénáře k whey nově napojené na otázku o whey
+    lct = GeneVariant.objects.get(rsid="rs4988235").cards.get(version=2)
+    assert sorted(lct.scenarios.values_list("question__code", flat=True)) == [
+        "mleko_obtize", "mleko_obtize", "whey_obtize", "whey_obtize"]
+    # ACTN3: revidované texty v0.2 a důkazy zůstávají, nic neblokuje
+    actn3 = GeneVariant.objects.get(rsid="rs1815739").cards.get(version=2)
+    assert services.checklist(actn3).ok and actn3.evidence.count() == 5
+    assert actn3.genotype_texts.get(genotype="TT").client_text.startswith("Byl zjištěn genotyp TT (XX)")
+
+
 def test_znacky_k_overeni_zastavi_schvaleni(org):
     card = _card(_variant(org))
     GenotypeText.objects.filter(card=card, genotype="CC").update(

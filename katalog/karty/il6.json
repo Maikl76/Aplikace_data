@@ -1,0 +1,625 @@
+{
+ "format": "navrh-karty/1",
+ "popis": "IL6 / rs1800795 (regenerace v kontextu zátěže): v1 původní znění z podkladů v02, v2 návrh znění k revizi garantem oblasti Regenerace.",
+ "varianty": [
+  {
+   "organizace": null,
+   "oblast": "regenerace",
+   "gene": "IL6",
+   "full_name": "Interleukin 6 (Interleukin 6)",
+   "rsid": "rs1800795",
+   "notation": "rs1800795 (C/G; promotorová varianta; alternativní označení -174G>C)",
+   "subtitle": "Regenerace v kontextu zátěže",
+   "genotypes": [
+    "CC",
+    "CG",
+    "GG"
+   ],
+   "genotype_aliases": {},
+   "strand_note": "",
+   "frequency_source": "https://www.ncbi.nlm.nih.gov/snp/rs1800795#frequency_tab",
+   "order": 5,
+   "is_active": true
+  }
+ ],
+ "karty": [
+  {
+   "organizace": null,
+   "varianta": "rs1800795",
+   "nahrazuje": null,
+   "version": 1,
+   "status": "original",
+   "review_priorities": "Únava a bolestivost nejsou měřením zánětu. Neurčovat délku regenerace ze samotné varianty.",
+   "biology_expert": "IL6 kóduje interleukin 6, pleiotropní cytokin zapojený do regulace akutní fáze zánětu, imunitní odpovědi, reparace tkání a metabolických adaptací na zátěž. Ve sportovní fyziologii je IL-6 důležitý i jako myokin uvolňovaný kosterním svalem během a po cvičení, kde ovlivňuje zánětlivou odpověď, mobilizaci energetických substrátů a následnou regeneraci.",
+   "biology_client": "Gen IL6 ovlivňuje, jak silně Vaše tělo reaguje zánětlivě na intenzivní nebo neobvyklou zátěž. Ve sportu se proto sleduje hlavně jeho vztah k regeneraci, svalovému poškození po tréninku a celkové toleranci vysoké zátěže.",
+   "effect": "Polymorfismus rs1800795 je lokalizován v promotorové oblasti genu IL6 a může ovlivňovat míru transkripce genu a následnou hladinu IL-6. Ve sportovní literatuře bývá C alela častěji spojována s vyšší post-exercise zánětlivou odpovědí a pomalejší regenerací, zatímco genotyp GG bývá interpretován jako příznivější z hlediska nižší cytokinové reakce. Současně ale platí, že výsledky studií nejsou ve všech populacích a fenotypech plně jednotné, a proto je třeba variantu chápat jako marker náchylnosti, nikoli jako samostatný prediktor výkonu.",
+   "limitations": "",
+   "frequency_note": "Převzaté frekvence: před schválením doložit konkrétní populační soubor a zdroj. Samotné označení „evropská populace“ nestačí.",
+   "related_areas": [
+    "Regenerace po tréninku",
+    "Prozánětlivá odpověď po cvičení",
+    "Svalové poškození a DOMS",
+    "Tolerance vysokointenzivní zátěže",
+    "Nutriční modulace zánětu (omega-3 mastné kyseliny)"
+   ],
+   "import_note": "Původní návrh k revizi. Zachováno 63 neprázdných odstavců včetně identifikačního nadpisu; původní anglické názvy polí jsou nahrazeny českými nadpisy. Textová tvrzení nejsou nově ověřena.\n\nNásledují původní návrhy doporučení, včetně případných dávek. Nejsou návodem k použití; jejich vazba na genotyp a použitelnost čekají na odbornou revizi.\n\nPůvodní scénáře k posouzení. Odpověď ani měření samy nepotvrzují genetickou příčinu. Scénáře založené na měření nejsou aktivní ve V1.\n\nPůvodní hypotézy k samostatnému posouzení. Kombinace obsahující varianty mimo panel nelze vyhodnotit z aktuálního testu.",
+   "change_summary": "",
+   "approved_at": null,
+   "texty": [
+    {
+     "genotype": "CC",
+     "client_text": "Váš genetický profil odpovídá vyšší pravděpodobnosti výraznější cytokinové a zánětlivé odpovědi po intenzivním nebo objemově náročném tréninku. V praxi to může znamenat větší sklon k delší regeneraci, vyšší svalové bolestivosti a větší citlivosti na kumulaci zatížení.",
+     "expert_text": "",
+     "frequency": "20,0 % (Europeanská populace)",
+     "order": 0
+    },
+    {
+     "genotype": "CG",
+     "client_text": "Váš genetický profil představuje střední, přechodný fenotyp mezi vyšší a nižší zánětlivou odpovědí. Regenerace může být běžná až mírně prodloužená v závislosti na typu tréninku, spánku, výživě a celkovém stresu organismu.",
+     "expert_text": "",
+     "frequency": "47,9 % (Europeanská populace)",
+     "order": 1
+    },
+    {
+     "genotype": "GG",
+     "client_text": "Váš genetický profil odpovídá příznivější regulaci zánětlivé odpovědi po cvičení. Ve sportovní praxi bývá tento genotyp spojován s nižšími hladinami cytokinů po zátěži a s rychlejším návratem do tréninku, přestože skutečný fenotyp bude vždy ovlivněn i tréninkovým a nutričním kontextem.",
+     "expert_text": "",
+     "frequency": "32,0 % (Europeanská populace)",
+     "order": 2
+    }
+   ],
+   "doporuceni": [
+    {
+     "genotype": "CC",
+     "kind": "sport",
+     "text": "Tento profil vyžaduje zvýšenou pozornost k regeneraci zejména u sportů s vysokým podílem excentrické práce, opakovaných sprintů, silového tréninku do selhání a vysokého týdenního objemu. Vhodnější je promyšlené dávkování intenzivních jednotek a pečlivé sledování kumulace únavy.",
+     "basis": "",
+     "merge_key": "",
+     "order": 0,
+     "protokol": null
+    },
+    {
+     "genotype": "CC",
+     "kind": "training",
+     "text": "Doporučujeme nezařazovat více velmi intenzivních jednotek bez dostatečného odstupu, systematicky plánovat odpočinkové dny, pracovat s periodizací a po náročných jednotkách aktivně podporovat regeneraci. Smysl má i dostatečný příjem bílkovin, omega-3 mastných kyselin, kvalitní spánek a sledování známek přetrvávající svalové bolestivosti.",
+     "basis": "",
+     "merge_key": "",
+     "order": 1,
+     "protokol": null
+    },
+    {
+     "genotype": "CC",
+     "kind": "risk",
+     "text": "Genotyp CC může být spojen s vyšší náchylností k prodloužené regeneraci a k výraznější zánětlivé odpovědi po cvičení. Rizikem je zejména chronická kumulace únavy, pokud není zatížení adekvátně kompenzováno regenerací a výživou.",
+     "basis": "",
+     "merge_key": "",
+     "order": 2,
+     "protokol": null
+    },
+    {
+     "genotype": "CG",
+     "kind": "sport",
+     "text": "Máte střední profil, který je obecně dobře zvládnutelný, ale při vysoké tréninkové intenzitě nebo v období závodního stresu může vyžadovat cílenější práci s regenerací.",
+     "basis": "",
+     "merge_key": "",
+     "order": 3,
+     "protokol": null
+    },
+    {
+     "genotype": "CG",
+     "kind": "training",
+     "text": "Doporučujeme vyvážený přístup: kombinovat náročné jednotky s lehčími dny, sledovat subjektivní únavu a v období vyššího stresu vědomě navyšovat důraz na spánek, hydrataci a protizánětlivě orientovanou stravu.",
+     "basis": "",
+     "merge_key": "",
+     "order": 4,
+     "protokol": null
+    },
+    {
+     "genotype": "CG",
+     "kind": "risk",
+     "text": "Nemáte extrémně nepříznivý profil, ale při dlouhodobé vysoké zátěži bez dostatečné kompenzace se může projevit prodloužená regenerace nebo vyšší citlivost na svalové poškození.",
+     "basis": "",
+     "merge_key": "",
+     "order": 5,
+     "protokol": null
+    },
+    {
+     "genotype": "GG",
+     "kind": "sport",
+     "text": "Tento profil je příznivější pro zvládání náročnějších tréninkových bloků a rychlejší obnovu po intenzivní zátěži. To může být výhodné zejména v disciplínách s vyšší frekvencí intenzivních jednotek nebo soutěžních startů.",
+     "basis": "",
+     "merge_key": "",
+     "order": 6,
+     "protokol": null
+    },
+    {
+     "genotype": "GG",
+     "kind": "training",
+     "text": "Přestože je profil z hlediska regenerace příznivější, stále doporučujeme standardní preventivní režim: sledování únavy, kvalitní spánek, adekvátní příjem energie a pravidelnou kontrolu tréninkové zátěže. Lepší genetický profil není důvodem k podceňování regenerace.",
+     "basis": "",
+     "merge_key": "",
+     "order": 7,
+     "protokol": null
+    },
+    {
+     "genotype": "GG",
+     "kind": "risk",
+     "text": "Ani příznivější genotyp GG negarantuje bezproblémovou regeneraci. Při špatné periodizaci, nedostatečném energetickém příjmu nebo dlouhodobém stresu se mohou potíže objevit i u tohoto profilu.",
+     "basis": "",
+     "merge_key": "",
+     "order": 8,
+     "protokol": null
+    }
+   ],
+   "dukazy": [],
+   "zdroje": [
+    {
+     "label": "",
+     "title": "",
+     "citation": "National Center for Biotechnology Information. IL6 interleukin 6 [Homo sapiens]. NCBI Gene.",
+     "url": "",
+     "order": 0
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Pedersen, B. K., & Febbraio, M. A. (2001). Exercise and interleukin-6. Current Opinion in Hematology, 8(3), 137-141.",
+     "url": "",
+     "order": 1
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Steensberg, A., van Hall, G., Osada, T., Sacchetti, M., Saltin, B., & Klarlund Pedersen, B. (2000). Production of interleukin-6 in contracting human skeletal muscles can account for the exercise-induced increase in plasma interleukin-6. Journal of Physiology, 529(Pt 1), 237-242.",
+     "url": "",
+     "order": 2
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Baumert, P., Lake, M. J., Stewart, C. E., Drust, B., & Erskine, R. M. (2016). Genetic variation and exercise-induced muscle damage: Implications for athletic performance, injury and ageing. European Journal of Applied Physiology, 116(9), 1595-1625.",
+     "url": "",
+     "order": 3
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Ben-Zaken, S., Meckel, Y., Nemet, D., Eliakim, A., & others. (2017). Increased prevalence of the IL-6 -174C genetic polymorphism among Asian and Caucasian subjects with elevated indirect markers of exercise-induced muscle damage. Journal of Sports Sciences, 35(13), 1279-1284.",
+     "url": "",
+     "order": 4
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Miranda-Vilela, A. L., Akimoto, A. K., Alves, P. C. Z., Pereira, L. C. S., Klautau-Guimaraes, M. N., Grisolia, C. K., & others. (2016). Association between interleukin 6 -174 G/C promoter gene polymorphism and runners’ responses to the dietary ingestion of antioxidant supplementation based on pequi oil. Genetics and Molecular Research, 15(4).",
+     "url": "",
+     "order": 5
+    }
+   ],
+   "nepripustne": [],
+   "scenare": [
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Po náročném tréninku mívám výraznou svalovou bolestivost a potřebuji delší čas na zotavení.",
+     "answer_match": {
+      "choices": [
+       "vyrazna"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 0,
+     "otazka": "bolestivost",
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Vaše odpověď velmi dobře odpovídá genetickému profilu IL6 CC. Pravděpodobně se u Vás výraznější zánětlivá odpověď po zátěži skutečně projevuje i fenotypově. Doporučujeme důsledněji řídit rozestupy mezi náročnými tréninky a zaměřit se na aktivní podporu regenerace."
+      },
+      {
+       "genotype": "CG",
+       "text": "Vaše odpověď naznačuje, že Váš střední genetický profil se v praxi může chovat spíše méně příznivě. To není neobvyklé a může to být zesíleno typem tréninku, nízkou dostupností energie, spánkovým deficitem nebo dalšími genetickými faktory."
+      },
+      {
+       "genotype": "GG",
+       "text": "Vaše odpověď ukazuje určitý nesoulad mezi příznivějším genetickým profilem a skutečnou zkušeností. Doporučujeme hledat další vysvětlující faktory, například nadměrný objem zatížení, deficit regenerace, nedostatečný příjem energie nebo souběžně působící zánětlivé markery."
+      }
+     ]
+    },
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Obvykle se po intenzivním tréninku zotavím rychle a mohu brzy znovu kvalitně trénovat.",
+     "answer_match": {
+      "choices": [
+       "bezna"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 1,
+     "otazka": "bolestivost",
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Vaše odpověď ukazuje, že i přes méně příznivý genetický profil může být reálný fenotyp velmi dobrý. Pravděpodobně u Vás dobře fungují kompenzační faktory, jako je kvalitní tréninkové řízení, výživa, spánek a celková odolnost organismu."
+      },
+      {
+       "genotype": "CG",
+       "text": "Vaše odpověď velmi dobře odpovídá vyrovnanému přechodnému profilu. Zdá se, že aktuální tréninkový i životní režim podporuje dobrou regeneraci a je vhodné v tomto nastavení pokračovat."
+      },
+      {
+       "genotype": "GG",
+       "text": "Vaše odpověď je v souladu s příznivějším profilem GG. Zánětlivá odezva po zátěži u Vás pravděpodobně zůstává lépe regulovaná, což může usnadňovat častější kvalitní trénink."
+      }
+     ]
+    },
+    {
+     "kind": "measurement",
+     "title": "Kontext 2: zdroj laboratorní / terénní monitorace",
+     "statement": "Po intenzivním bloku mám opakovaně zvýšené CRP, výraznou únavu nebo delší pokles výkonu.",
+     "answer_match": {},
+     "condition": {},
+     "is_active": false,
+     "order": 2,
+     "otazka": null,
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Tento nález je s profilem CC dobře slučitelný. Může odrážet vyšší zánětlivou odpověď na zátěž a potvrzuje potřebu opatrnějšího dávkování intenzity a objemu."
+      },
+      {
+       "genotype": "CG",
+       "text": "Nález může odpovídat střednímu profilu, ale pravděpodobně ukazuje i význam dalších faktorů. Doporučujeme vedle genetiky zhodnotit i celkovou zátěž, infekční epizody, energetickou dostupnost a kvalitu spánku."
+      },
+      {
+       "genotype": "GG",
+       "text": "Takový výsledek není pro GG typický, a proto doporučujeme nevysvětlovat jej pouze genetikou IL6. Smysl má hledat další příčiny, například nepřiměřený trénink, nedostatečnou regeneraci nebo souběžně působící genetické a klinické faktory."
+      }
+     ]
+    },
+    {
+     "kind": "measurement",
+     "title": "Kontext 2: zdroj laboratorní / terénní monitorace",
+     "statement": "I při vyšší tréninkové frekvenci zůstávají zánětlivé markery i subjektivní únava nízké.",
+     "answer_match": {},
+     "condition": {},
+     "is_active": false,
+     "order": 3,
+     "otazka": null,
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Tento výsledek ukazuje, že méně příznivý genotyp nemusí automaticky znamenat problém. Pravděpodobně je velmi dobře zvládnuta tréninková dávka i regenerace."
+      },
+      {
+       "genotype": "CG",
+       "text": "Vaše odpověď odpovídá dobře kompenzovanému střednímu profilu. Současný režim je pravděpodobně vhodně nastaven."
+      },
+      {
+       "genotype": "GG",
+       "text": "Tento nález dobře odpovídá příznivějšímu profilu GG a podporuje závěr, že Vaše tělo zvládá zánětlivou odpověď po zátěži efektivně."
+      }
+     ]
+    }
+   ],
+   "revize": []
+  },
+  {
+   "organizace": null,
+   "varianta": "rs1800795",
+   "nahrazuje": {
+    "varianta": "rs1800795",
+    "verze": 1
+   },
+   "version": 2,
+   "status": "draft",
+   "review_priorities": "Únava a bolestivost nejsou měřením zánětu. Neurčovat délku regenerace ze samotné varianty.",
+   "biology_expert": "IL6 kóduje interleukin 6, pleiotropní cytokin akutní fáze zánětu, imunitní odpovědi a reparace tkání; při cvičení je uvolňován kontrahujícím se svalem jako myokin [S2, S3]. Polymorfismus rs1800795 (-174G>C) v promotoru může ovlivňovat transkripci [DOPLNIT primární zdroj, např. Fishman et al. 1998; OVĚŘIT].",
+   "biology_client": "Gen IL6 nese návod na interleukin-6, signální bílkovinu imunitního systému, kterou při zátěži uvolňuje i pracující sval. Varianta rs1800795 leží v řídicí oblasti genu a může souviset s tím, kolik této bílkoviny vzniká [S1, OVĚŘIT]. Jak se po tréninku zotavujete, ale určuje hlavně zatížení, spánek, strava a celkový stres.",
+   "effect": "Alela C byla v některých studiích častější u osob s vyššími nepřímými ukazateli svalového poškození po zátěži [S5, OVĚŘIT]; přehled genetické variability a svalového poškození hodnotí důkazy jako omezené [S4, OVĚŘIT]. Vztah k délce regenerace u jednotlivce doložený není.",
+   "limitations": "Z genotypu IL6 nelze určit délku regenerace ani sílu zánětlivé odpovědi u jednoho člověka. Únava a svalová bolestivost nejsou měřením zánětu. Studie popisují rozdíly mezi skupinami a nejsou jednotné; rychlost zotavení ukáže jen sledování únavy, bolestivosti a výkonu v čase.",
+   "frequency_note": "Původní hodnoty 20,0 / 47,9 / 32,0 % se nepřebírají bez konkrétního souboru (dbSNP, gnomAD, populace).",
+   "related_areas": [
+    "Regenerace po tréninku",
+    "Prozánětlivá odpověď po cvičení",
+    "Svalové poškození a DOMS",
+    "Tolerance vysokointenzivní zátěže",
+    "Nutriční modulace zánětu (omega-3 mastné kyseliny)"
+   ],
+   "import_note": "Původní návrh k revizi. Zachováno 63 neprázdných odstavců včetně identifikačního nadpisu; původní anglické názvy polí jsou nahrazeny českými nadpisy. Textová tvrzení nejsou nově ověřena.\n\nNásledují původní návrhy doporučení, včetně případných dávek. Nejsou návodem k použití; jejich vazba na genotyp a použitelnost čekají na odbornou revizi.\n\nPůvodní scénáře k posouzení. Odpověď ani měření samy nepotvrzují genetickou příčinu. Scénáře založené na měření nejsou aktivní ve V1.\n\nPůvodní hypotézy k samostatnému posouzení. Kombinace obsahující varianty mimo panel nelze vyhodnotit z aktuálního testu.",
+   "change_summary": "Návrh znění podle revizní priority karty: únava a bolestivost nejsou měřením zánětu, délka regenerace se z varianty neurčuje. Texty pro genotypy popisují, co studie uvádějí a co z výsledku určit nejde; doporučení podle genotypu nahrazena obecným sledováním únavy, spánku a energie; scénáře nad měřením odstraněny; doplněny nepřípustné výroky, názvy zdrojů a řádky důkazů E01–E05. Místa označená [OVĚŘIT] a [DOPLNIT] garant ověří před schválením.",
+   "approved_at": null,
+   "texty": [
+    {
+     "genotype": "CC",
+     "client_text": "Byl zjištěn genotyp CC varianty IL6 rs1800795 (-174G>C). Alela C byla v některých studiích častější u lidí s vyššími ukazateli svalového poškození po zátěži [S5, OVĚŘIT]; vztah k rychlosti regenerace doložený není [S4, OVĚŘIT]. Z výsledku nelze určit, jak dlouho se zotavujete; to ukáže sledování únavy, bolestivosti a výkonu v čase.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 0
+    },
+    {
+     "genotype": "CG",
+     "client_text": "Byl zjištěn genotyp CG varianty IL6 rs1800795 (-174G>C). Nesete jednu kopii každé alely. Studie u této skupiny nenacházejí jednoznačný rozdíl ve svalovém poškození po zátěži [S4, OVĚŘIT]. Z výsledku nelze určit, jak dlouho se zotavujete; to ukáže sledování únavy, bolestivosti a výkonu v čase.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 1
+    },
+    {
+     "genotype": "GG",
+     "client_text": "Byl zjištěn genotyp GG varianty IL6 rs1800795 (-174G>C). V některých studiích je tento genotyp spojován s nižší tvorbou interleukinu-6 v klidu [S4, OVĚŘIT]; vztah k regeneraci po tréninku doložený není. Neznamená to, že se zotavujete rychleji. Z výsledku nelze určit délku regenerace; to ukáže sledování únavy, bolestivosti a výkonu v čase.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 2
+    }
+   ],
+   "doporuceni": [
+    {
+     "genotype": "",
+     "kind": "regeneration",
+     "text": "Po náročných jednotkách sledujte únavu a bolestivost (dotazník v aplikaci) a výkon v dalším tréninku; rozestupy mezi náročnými jednotkami upravujte podle nich, ne podle genotypu.",
+     "basis": "general",
+     "merge_key": "regenerace-sledovani",
+     "order": 9,
+     "protokol": null
+    },
+    {
+     "genotype": "",
+     "kind": "regeneration",
+     "text": "Dostatek spánku, příjem energie a bílkovin odpovídající zátěži platí pro všechny genotypy [DOPLNIT zdroj, např. konsenzus ke spánku sportovců].",
+     "basis": "general",
+     "merge_key": "spanek-energie",
+     "order": 10,
+     "protokol": null
+    },
+    {
+     "genotype": "",
+     "kind": "risk",
+     "text": "Přetrvávající únava, pokles výkonu nebo opakované infekce jsou důvod snížit zátěž a poradit se s lékařem, bez ohledu na genotyp.",
+     "basis": "general",
+     "merge_key": "unava-pretrvava",
+     "order": 11,
+     "protokol": null
+    }
+   ],
+   "dukazy": [
+    {
+     "code": "E01",
+     "trait": "Identita varianty",
+     "basis_text": "rs1800795, promotor IL6, -174G>C [S1]. [OVĚŘIT orientaci alel C/G podle metody laboratoře]",
+     "usage": "Jen identifikace; žádný závěr o regeneraci.",
+     "source_labels": "S1",
+     "order": 0
+    },
+    {
+     "code": "E02",
+     "trait": "IL-6 jako myokin při zátěži",
+     "basis_text": "Pedersen 2001, Steensberg 2000: IL-6 uvolňuje kontrahující se sval, hladina po zátěži stoupá [S2, S3]. Biologie, ne vliv genotypu.",
+     "usage": "Uvést jako biologickou souvislost; nedělat z ní závěr o genotypu.",
+     "source_labels": "S2, S3",
+     "order": 1
+    },
+    {
+     "code": "E03",
+     "trait": "Promotor a hladina IL-6",
+     "basis_text": "Vliv -174G>C na transkripci a klidovou hladinu IL-6 je v literatuře nejednotný. [DOPLNIT primární zdroj, např. Fishman et al. 1998, J Clin Invest; OVĚŘIT]",
+     "usage": "Nedělat z něj závěr o zánětlivé odpovědi u klienta.",
+     "source_labels": "",
+     "order": 2
+    },
+    {
+     "code": "E04",
+     "trait": "Svalové poškození po zátěži",
+     "basis_text": "Ben-Zaken 2017: alela C častější u osob s vyššími nepřímými ukazateli svalového poškození (CK) [S5]. [OVĚŘIT design, soubor a velikost efektu] Baumert 2016: přehled hodnotí důkazy jako omezené [S4]. [OVĚŘIT závěr]",
+     "usage": "Populační asociace: „v některých studiích“. Žádná predikce délky regenerace.",
+     "source_labels": "S4, S5",
+     "order": 3
+    },
+    {
+     "code": "E05",
+     "trait": "Únava, bolestivost a zánět",
+     "basis_text": "Subjektivní únava a bolestivost nejsou měřením zánětu (revizní priorita karty).",
+     "usage": "Scénáře z dotazníku mluví o zkušenosti vedle genotypu, ne o potvrzení.",
+     "source_labels": "",
+     "order": 4
+    }
+   ],
+   "zdroje": [
+    {
+     "label": "S1",
+     "title": "Gen IL6 (NCBI Gene)",
+     "citation": "National Center for Biotechnology Information. IL6 interleukin 6 [Homo sapiens]. NCBI Gene.",
+     "url": "",
+     "order": 0
+    },
+    {
+     "label": "S2",
+     "title": "Pedersen 2001 – IL-6 a cvičení",
+     "citation": "Pedersen, B. K., & Febbraio, M. A. (2001). Exercise and interleukin-6. Current Opinion in Hematology, 8(3), 137-141.",
+     "url": "",
+     "order": 1
+    },
+    {
+     "label": "S3",
+     "title": "Steensberg 2000 – IL-6 z pracujícího svalu",
+     "citation": "Steensberg, A., van Hall, G., Osada, T., Sacchetti, M., Saltin, B., & Klarlund Pedersen, B. (2000). Production of interleukin-6 in contracting human skeletal muscles can account for the exercise-induced increase in plasma interleukin-6. Journal of Physiology, 529(Pt 1), 237-242.",
+     "url": "",
+     "order": 2
+    },
+    {
+     "label": "S4",
+     "title": "Baumert 2016 – přehled: genetika a svalové poškození",
+     "citation": "Baumert, P., Lake, M. J., Stewart, C. E., Drust, B., & Erskine, R. M. (2016). Genetic variation and exercise-induced muscle damage: Implications for athletic performance, injury and ageing. European Journal of Applied Physiology, 116(9), 1595-1625.",
+     "url": "",
+     "order": 3
+    },
+    {
+     "label": "S5",
+     "title": "Ben-Zaken 2017 – alela C a ukazatele svalového poškození",
+     "citation": "Ben-Zaken, S., Meckel, Y., Nemet, D., Eliakim, A., & others. (2017). Increased prevalence of the IL-6 -174C genetic polymorphism among Asian and Caucasian subjects with elevated indirect markers of exercise-induced muscle damage. Journal of Sports Sciences, 35(13), 1279-1284.",
+     "url": "",
+     "order": 4
+    },
+    {
+     "label": "S6",
+     "title": "Miranda-Vilela 2016 – běžci a antioxidant (nepoužito)",
+     "citation": "Miranda-Vilela, A. L., Akimoto, A. K., Alves, P. C. Z., Pereira, L. C. S., Klautau-Guimaraes, M. N., Grisolia, C. K., & others. (2016). Association between interleukin 6 -174 G/C promoter gene polymorphism and runners’ responses to the dietary ingestion of antioxidant supplementation based on pequi oil. Genetics and Molecular Research, 15(4).",
+     "url": "",
+     "order": 5
+    }
+   ],
+   "nepripustne": [
+    {
+     "text": "potřebujete delší regeneraci",
+     "note": ""
+    },
+    {
+     "text": "regenerujete pomaleji",
+     "note": ""
+    },
+    {
+     "text": "regenerujete rychleji",
+     "note": ""
+    },
+    {
+     "text": "výraznější zánětlivá odpověď u vás",
+     "note": ""
+    },
+    {
+     "text": "příznivější regulace zánětlivé odpovědi",
+     "note": ""
+    },
+    {
+     "text": "profil odpovídá vyšší pravděpodobnosti",
+     "note": ""
+    },
+    {
+     "text": "únava potvrzuje genotyp",
+     "note": ""
+    },
+    {
+     "text": "omega-3 podle genotypu",
+     "note": ""
+    },
+    {
+     "text": "potvrzuje genetický profil",
+     "note": ""
+    }
+   ],
+   "scenare": [
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Po náročném tréninku mívám výraznou svalovou bolestivost a potřebuji delší čas na zotavení.",
+     "answer_match": {
+      "choices": [
+       "vyrazna"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 0,
+     "otazka": "bolestivost",
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Výrazná bolestivost a pomalé zotavení jsou důvod upravit rozestupy mezi náročnými jednotkami, spánek a příjem energie; genotyp je nevysvětluje ani nepotvrzuje. Únava a bolestivost nejsou měřením zánětu."
+      },
+      {
+       "genotype": "CG",
+       "text": "Výrazná bolestivost a pomalé zotavení jsou důvod upravit rozestupy mezi náročnými jednotkami, spánek a příjem energie; genotyp je nevysvětluje ani nepotvrzuje. Únava a bolestivost nejsou měřením zánětu."
+      },
+      {
+       "genotype": "GG",
+       "text": "Výrazná bolestivost a pomalé zotavení jsou důvod upravit rozestupy mezi náročnými jednotkami, spánek a příjem energie; genotyp je nevysvětluje ani nepotvrzuje. Únava a bolestivost nejsou měřením zánětu."
+      }
+     ]
+    },
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Obvykle se po intenzivním tréninku zotavím rychle a mohu brzy znovu kvalitně trénovat.",
+     "answer_match": {
+      "choices": [
+       "bezna"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 1,
+     "otazka": "bolestivost",
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Rychlé zotavení je dobrá zpráva bez ohledu na genotyp; běžná prevence (spánek, příjem energie, střídání zátěže a odpočinku) platí dál."
+      },
+      {
+       "genotype": "CG",
+       "text": "Rychlé zotavení je dobrá zpráva bez ohledu na genotyp; běžná prevence (spánek, příjem energie, střídání zátěže a odpočinku) platí dál."
+      },
+      {
+       "genotype": "GG",
+       "text": "Rychlé zotavení je dobrá zpráva bez ohledu na genotyp; běžná prevence (spánek, příjem energie, střídání zátěže a odpočinku) platí dál."
+      }
+     ]
+    }
+   ],
+   "revize": [
+    {
+     "part": "Důkaz E04 – Ben-Zaken 2017",
+     "original": "",
+     "proposal": "",
+     "reason": "Ověřit design, soubor a velikost efektu; zda jde o CK po zátěži a u kterých populací.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Důkaz E04 – Baumert 2016",
+     "original": "",
+     "proposal": "",
+     "reason": "Ověřit závěr přehledu k IL6 -174G>C; pokud důkazy nepovažuje za dostatečné, texty pro genotypy ještě zkrátit.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Důkaz E03 – promotor",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit primární zdroj pro vliv varianty na transkripci.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Doporučení – spánek a energie",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit zdroj; pak odstranit značku [DOPLNIT].",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Frekvence genotypů",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit se souborem a zdrojem, nebo nechat prázdné.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Scénáře z dotazníku",
+     "original": "",
+     "proposal": "",
+     "reason": "Texty pro odpověď „výrazná“ a „běžná“ jsou stejné pro všechny genotypy; po kontrole zapnout (krok 5). Scénáře nad laboratorní monitorací (CRP) odstraněny.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    }
+   ]
+  }
+ ]
+}

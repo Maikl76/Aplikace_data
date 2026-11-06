@@ -1,0 +1,296 @@
+{
+ "format": "navrh-karty/1",
+ "popis": "FTO / rs9939609 (hmotnost a stravovací kontext): karta bez původního obsahu; v1 návrh znění k revizi garantem oblasti Hmotnost a metabolický kontext.",
+ "varianty": [
+  {
+   "organizace": null,
+   "oblast": "hmotnost",
+   "gene": "FTO",
+   "full_name": "FTO alpha-ketoglutarate dependent dioxygenase",
+   "rsid": "rs9939609",
+   "notation": "rs9939609 (intron 1; T>A) [OVĚŘIT]",
+   "subtitle": "Hmotnost a stravovací kontext",
+   "genotypes": [
+    "TT",
+    "AT",
+    "AA"
+   ],
+   "genotype_aliases": {},
+   "strand_note": "",
+   "frequency_source": "https://www.ncbi.nlm.nih.gov/snp/rs9939609#frequency_tab",
+   "order": 9,
+   "is_active": true
+  }
+ ],
+ "karty": [
+  {
+   "organizace": null,
+   "varianta": "rs9939609",
+   "nahrazuje": null,
+   "version": 1,
+   "status": "draft",
+   "review_priorities": "",
+   "biology_expert": "FTO kóduje dioxygenázu závislou na 2-oxoglutarátu (demetylace RNA). Varianta rs9939609 v intronu 1 je v populačních studiích spojena s BMI; mechanismus zahrnuje pravděpodobně regulaci sousedních genů (IRX3, IRX5) [DOPLNIT zdroj; OVĚŘIT].",
+   "biology_client": "Gen FTO se podílí na řízení chuti k jídlu a energetické bilance; varianta rs9939609 leží v jeho první intronové oblasti a ovlivňuje pravděpodobně i sousední geny [S1, OVĚŘIT]. Hmotnost určuje především příjem a výdej energie; genotyp k tomu dává jen malou dílčí informaci.",
+   "effect": "Alela A je v populačních studiích spojena s vyšším BMI (v průměru asi 0,4 kg/m² na alelu [S1, OVĚŘIT]); pohybová aktivita vliv zmenšuje [S2, OVĚŘIT] a na výsledek intervencí ke snížení hmotnosti genotyp nemá vliv [S3, OVĚŘIT].",
+   "limitations": "Z genotypu FTO nelze určit hmotnost, složení těla, kalorický příjem ani vhodnou dietu. Vliv varianty na hmotnost je v populačních studiích malý a pohybová aktivita ho zmenšuje. Složení těla ukáže měření; stravu nastavuje odborník podle cíle, tréninku a měření, ne podle genotypu.",
+   "frequency_note": "Doplnit z dbSNP s názvem souboru a populace, nebo nechat prázdné.",
+   "related_areas": [],
+   "import_note": "K odbornému dopracování. V původním produktovém dokumentu tato genová karta nebyla; nejde o obsah ztracený při převodu.",
+   "change_summary": "Karta nebyla v původních podkladech; jde o první návrh od začátku. Zdroje jsou doplněné bez DOI a je třeba je ověřit. Doplněno: biologie, omezení (žádný kalorický příjem ani dieta z genotypu), texty pro genotypy, dvě obecná doporučení (strava podle cíle a měření, složení těla), nepřípustné výroky, zdroje S1–S4 a řádky důkazů E01–E04. Osnovové úkoly z podkladů zůstávají v revizních záznamech.",
+   "approved_at": null,
+   "texty": [
+    {
+     "genotype": "TT",
+     "client_text": "Byl zjištěn genotyp TT varianty FTO rs9939609. Nenesete alelu A, která je v populačních studiích spojena s mírně vyšší tělesnou hmotností [S1, OVĚŘIT]. Z výsledku nelze určit vaši hmotnost, složení těla ani vhodnou stravu; o nich rozhoduje příjem a výdej energie a měření složení těla.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 0
+    },
+    {
+     "genotype": "AT",
+     "client_text": "Byl zjištěn genotyp AT varianty FTO rs9939609. Nesete jednu kopii alely A, která v populačních studiích odpovídá v průměru o asi 0,4 kg/m² vyššímu BMI [S1, OVĚŘIT]; rozdíl je malý proti vlivu stravy a pohybu a pravidelná pohybová aktivita ho dále zmenšuje [S2, OVĚŘIT]. Z výsledku nelze určit vaši hmotnost, složení těla ani vhodnou stravu; o nich rozhoduje příjem a výdej energie a měření složení těla.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 1
+    },
+    {
+     "genotype": "AA",
+     "client_text": "Byl zjištěn genotyp AA varianty FTO rs9939609. Nesete dvě kopie alely A, která je v populačních studiích spojena s mírně vyšší hmotností (v průměru asi o 3 kg u dvou kopií [S1, OVĚŘIT]). Rozdíl je malý proti vlivu stravy a pohybu, pravidelná pohybová aktivita ho zmenšuje [S2, OVĚŘIT] a na úspěšnost snižování hmotnosti genotyp nemá vliv [S3, OVĚŘIT]. Z výsledku nelze určit vaši hmotnost, složení těla ani vhodnou stravu; o nich rozhoduje příjem a výdej energie a měření složení těla.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 2
+    }
+   ],
+   "doporuceni": [
+    {
+     "genotype": "",
+     "kind": "nutrition",
+     "text": "Stravu nastavujte podle cíle, tréninkového zatížení a měření složení těla, ne podle genotypu; při záměru měnit hmotnost se poraďte se sportovním nutričním specialistou.",
+     "basis": "general",
+     "merge_key": "strava-podle-cile",
+     "order": 0,
+     "protokol": null
+    },
+    {
+     "genotype": "",
+     "kind": "nutrition",
+     "text": "Vývoj hmotnosti a složení těla ukáže opakované měření složení těla; zpráva porovná měření v čase.",
+     "basis": "measurement",
+     "merge_key": "slozeni-tela-mereni",
+     "order": 1,
+     "protokol": "bodycomp"
+    }
+   ],
+   "dukazy": [
+    {
+     "code": "E01",
+     "trait": "Identita varianty",
+     "basis_text": "rs9939609, FTO intron 1, T>A [S4]. [OVĚŘIT orientaci alel podle metody laboratoře]",
+     "usage": "Jen identifikace.",
+     "source_labels": "S4",
+     "order": 0
+    },
+    {
+     "code": "E02",
+     "trait": "Varianta a BMI",
+     "basis_text": "Frayling 2007: alela A spojena s vyšším BMI, asi 0,4 kg/m² na alelu, asi 3 kg u AA; velké evropské soubory [S1]. [OVĚŘIT hodnoty]",
+     "usage": "Populační asociace s malým efektem; žádná predikce hmotnosti u klienta.",
+     "source_labels": "S1",
+     "order": 1
+    },
+    {
+     "code": "E03",
+     "trait": "Pohybová aktivita",
+     "basis_text": "Kilpeläinen 2011: metaanalýza 218 166 dospělých; u aktivních je vliv varianty asi o 27 % menší [S2]. [OVĚŘIT hodnotu]",
+     "usage": "Uvést, že pohyb vliv zmenšuje; bez dávky pohybu podle genotypu.",
+     "source_labels": "S2",
+     "order": 2
+    },
+    {
+     "code": "E04",
+     "trait": "Snižování hmotnosti",
+     "basis_text": "Livingstone 2016: metaanalýza 8 RCT; genotyp FTO neovlivňuje úbytek hmotnosti při intervenci [S3]. [OVĚŘIT]",
+     "usage": "Žádná dieta podle genotypu (pokyn z osnovy karty).",
+     "source_labels": "S3",
+     "order": 3
+    }
+   ],
+   "zdroje": [
+    {
+     "label": "S1",
+     "title": "Varianta a BMI [OVĚŘIT citaci]",
+     "citation": "Frayling TM, Timpson NJ, Weedon MN, et al. A common variant in the FTO gene is associated with body mass index and predisposes to childhood and adult obesity. Science. 2007;316(5826):889–894.",
+     "url": "",
+     "order": 0
+    },
+    {
+     "label": "S2",
+     "title": "Pohybová aktivita a vliv varianty [OVĚŘIT citaci]",
+     "citation": "Kilpeläinen TO, Qi L, Brage S, et al. Physical activity attenuates the influence of FTO variants on obesity risk: a meta-analysis of 218,166 adults and 19,268 children. PLoS Med. 2011;8(11):e1001116.",
+     "url": "",
+     "order": 1
+    },
+    {
+     "label": "S3",
+     "title": "Genotyp a snižování hmotnosti [OVĚŘIT citaci]",
+     "citation": "Livingstone KM, Celis-Morales C, Papandonatos GD, et al. FTO genotype and weight loss: systematic review and meta-analysis of 9563 individual participant data from eight randomised controlled trials. BMJ. 2016;354:i4707.",
+     "url": "",
+     "order": 2
+    },
+    {
+     "label": "S4",
+     "title": "Varianta (dbSNP) [OVĚŘIT citaci]",
+     "citation": "National Center for Biotechnology Information. rs9939609, dbSNP summary for FTO intron 1 variant.",
+     "url": "",
+     "order": 3
+    }
+   ],
+   "nepripustne": [
+    {
+     "text": "máte sklon k obezitě",
+     "note": ""
+    },
+    {
+     "text": "máte rizikový genotyp",
+     "note": ""
+    },
+    {
+     "text": "musíte jíst méně",
+     "note": ""
+    },
+    {
+     "text": "genotyp určuje kalorický příjem",
+     "note": ""
+    },
+    {
+     "text": "optimální dieta pro váš genotyp",
+     "note": ""
+    },
+    {
+     "text": "potvrzuje genetický profil",
+     "note": ""
+    },
+    {
+     "text": "hůře hubnete",
+     "note": ""
+    },
+    {
+     "text": "snadněji přibíráte",
+     "note": ""
+    }
+   ],
+   "scenare": [],
+   "revize": [
+    {
+     "part": "Identifikace",
+     "original": "",
+     "proposal": "",
+     "reason": "Pracovní zápisy genotypů: TT, AT, AA. Laboratorní konvenci je třeba potvrdit.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Biologická funkce a účinek varianty",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit odborný a klientský popis; oddělit funkci genu od doloženého účinku konkrétní varianty.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Frekvence a důkazy",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit konkrétní populaci, zdroj frekvencí, zkoumaný znak a sílu i omezení důkazů.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Interpretace a doporučení",
+     "original": "",
+     "proposal": "",
+     "reason": "Připravit samostatný text pro každý genotyp a uvést, z jakých důkazů doporučení vychází.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Dotazník a fenotyp",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit související otázky a případné důvody budoucího měření. Viz doprovodný dokument.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Interakce a zdroje",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit pouze doložené kombinace; uvést, zda všechny potřebné varianty patří do panelu.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Omezení a revize",
+     "original": "",
+     "proposal": "",
+     "reason": "Neurčovat kalorický příjem ani optimální dietu pouze z genotypu. Doplnit odbornou kartu.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Zařazení do V1",
+     "original": "",
+     "proposal": "",
+     "reason": "Rozhodnout, zda karta patří do první verze panelu: oblast je „bez zdravotních závěrů“ a obsah vznikl od začátku.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Zdroje S1–S4",
+     "original": "",
+     "proposal": "",
+     "reason": "Citace doplněné bez DOI z paměti; ověřit a doplnit DOI.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Důkazy E02–E04",
+     "original": "",
+     "proposal": "",
+     "reason": "Ověřit uvedené hodnoty (0,4 kg/m² na alelu, 3 kg u AA, 27 % u aktivních).",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Frekvence genotypů",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit z dbSNP s populací, nebo nechat prázdné.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Dotazník a fenotyp",
+     "original": "",
+     "proposal": "",
+     "reason": "Rozhodnout, zda napojit scénář na otázky o vývoji a záměru hmotnosti; zatím bez scénářů.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    }
+   ]
+  }
+ ]
+}

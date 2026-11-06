@@ -1,0 +1,615 @@
+{
+ "format": "navrh-karty/1",
+ "popis": "ACE / rs1799752 (vytrvalost a výkonový kontext): v1 původní znění z podkladů v02, v2 návrh znění k revizi garantem oblasti Výkon a trénink.",
+ "varianty": [
+  {
+   "organizace": null,
+   "oblast": "vykon",
+   "gene": "ACE",
+   "full_name": "Angiotensin-converting enzyme (Angiotenzin-konvertující enzym)",
+   "rsid": "rs1799752",
+   "notation": "rs1799752 (I/D; intron 16 Alu insertion/deletion)",
+   "subtitle": "Vytrvalost a výkonový kontext",
+   "genotypes": [
+    "II",
+    "ID",
+    "DD"
+   ],
+   "genotype_aliases": {},
+   "strand_note": "Zápis I/D: ověřit, zda laboratoř genotypuje inzerci/deleci Alu v intronu 16 přímo (rs1799752 / rs4646994 podle databáze), nebo zástupný SNP; nezaměňovat.",
+   "frequency_source": "https://www.ncbi.nlm.nih.gov/snp/rs1799752#frequency_tab",
+   "order": 1,
+   "is_active": true
+  }
+ ],
+ "karty": [
+  {
+   "organizace": null,
+   "varianta": "rs1799752",
+   "nahrazuje": null,
+   "version": 1,
+   "status": "original",
+   "review_priorities": "Ověřit mapování ACE I/D a vztah rs1799752 / rs4646994 podle laboratorní metody. Nezaměňovat za proxy SNP.",
+   "biology_expert": "ACE kóduje angiotenzin-konvertující enzym, klíčovou součást systému renin-angiotenzin-aldosteron. Enzym převádí angiotenzin I na angiotenzin II a současně odbourává bradykinin. Tím ovlivňuje vazokonstrikci, regulaci krevního tlaku, retenci sodíku a vody i hemodynamickou odpověď během fyzické zátěže. Ve sportovní genomice je ACE relevantní zejména pro rozdíly v aerobní distribuci krve, periferní cévní rezistenci, ekonomice zátěže a částečně i pro silově-rychlostní profil.",
+   "biology_client": "Gen ACE ovlivňuje, jak intenzivně pracuje systém regulující cévní napětí, krevní tlak a rozdělení krve během zátěže. U sportu se proto zkoumá hlavně jeho vztah k vytrvalosti, aerobní kapacitě a částečně i k silově-rychlostnímu výkonu.",
+   "effect": "Polymorfismus rs1799752 představuje inserci nebo deleci 287 bp Alu sekvence v intronu 16 genu ACE. Alela D a genotyp DD jsou spojeny s vyšší aktivitou ACE, zatímco genotyp II s nižší aktivitou. Ve sportovní literatuře je alela I častěji spojována s vytrvalostním profilem a genotyp II s lepším aerobním výkonem či ekonomičtější odpovědí při déletrvající zátěži. Naopak alela D bývá častěji dávávána do souvislosti se silově-rychlostním profilem. Přesto je celková evidence smíšená a velikost efektu je spíše střední až malá.",
+   "limitations": "",
+   "frequency_note": "Převzaté frekvence: před schválením doložit konkrétní populační soubor a zdroj. Samotné označení „evropská populace“ nestačí.",
+   "related_areas": [
+    "Aerobní kapacita",
+    "Vytrvalostní výkon",
+    "Rychlost, výbušnost, zvýšený svalový výkon",
+    "Hemodynamická odpověď na zátěž",
+    "Tréninková adaptace na vytrvalostní a silový trénink"
+   ],
+   "import_note": "Původní návrh k revizi. Zachováno 61 neprázdných odstavců včetně identifikačního nadpisu; původní anglické názvy polí jsou nahrazeny českými nadpisy. Textová tvrzení nejsou nově ověřena.\n\nNásledují původní návrhy doporučení, včetně případných dávek. Nejsou návodem k použití; jejich vazba na genotyp a použitelnost čekají na odbornou revizi.\n\nPůvodní scénáře k posouzení. Odpověď ani měření samy nepotvrzují genetickou příčinu. Scénáře založené na měření nejsou aktivní ve V1.\n\nPůvodní hypotézy k samostatnému posouzení. Kombinace obsahující varianty mimo panel nelze vyhodnotit z aktuálního testu.",
+   "change_summary": "",
+   "approved_at": null,
+   "texty": [
+    {
+     "genotype": "II",
+     "client_text": "Váš genetický profil odpovídá spíše vytrvalostnímu a aerobnímu zaměření. Pravděpodobně máte příznivější předpoklady pro déletrvající zátěž, ekonomičtější distribuci kyslíku do pracujících svalů a lepší odpověď na vytrvalostní trénink než nositelé genotypu DD.",
+     "expert_text": "",
+     "frequency": "Údaj nebyl nalezen v dostupných podkladech (ve zdrojové tabulce jsou položky Ref HMOZ / Alt HMOZ / HTRZ / Population uvedeny jako NA).",
+     "order": 0
+    },
+    {
+     "genotype": "ID",
+     "client_text": "Váš genetický profil představuje přechodný, smíšený fenotyp mezi vytrvalostním a silově-rychlostním profilem. V praxi se může dobře uplatnit v kombinovaných sportech a výsledný projev bude výrazně ovlivněn typem tréninku, sportovní specializací a dalšími genetickými i negenetickými faktory.",
+     "expert_text": "",
+     "frequency": "Údaj nebyl nalezen v dostupných podkladech (ve zdrojové tabulce jsou položky Ref HMOZ / Alt HMOZ / HTRZ / Population uvedeny jako NA).",
+     "order": 1
+    },
+    {
+     "genotype": "DD",
+     "client_text": "Váš genetický profil odpovídá spíše silově-rychlostnímu nebo anaerobněji orientovanému nastavení. Ve sportovní genetice je genotyp DD častěji spojován s vyšší aktivitou ACE, vyšší cévní rezistencí a relativně příznivějším profilem pro krátkodobé intenzivní výkony, přesto nejde o jednoznačný ani dostatečný prediktor sportovní specializace.",
+     "expert_text": "",
+     "frequency": "Údaj nebyl nalezen v dostupných podkladech (ve zdrojové tabulce jsou položky Ref HMOZ / Alt HMOZ / HTRZ / Population uvedeny jako NA).",
+     "order": 2
+    }
+   ],
+   "doporuceni": [
+    {
+     "genotype": "II",
+     "kind": "sport",
+     "text": "Tento profil je příznivější pro vytrvalostní disciplíny a sporty, kde je důležitá aerobní kapacita, ekonomika pohybu a schopnost dlouhodobě udržet výkon, například běh na delší tratě, cyklistika, triatlon, veslování nebo běžecké lyžování.",
+     "basis": "",
+     "merge_key": "",
+     "order": 0,
+     "protokol": null
+    },
+    {
+     "genotype": "II",
+     "kind": "training",
+     "text": "Doporučujeme rozvíjet především vytrvalostní trénink, práci v aerobních zónách, tempo a prahové úseky, ekonomiku pohybu a současně zařazovat doplňkový silový trénink pro stabilitu, efektivitu pohybu a prevenci přetížení. Vhodná je i systematická práce s technikou a řízením intenzity.",
+     "basis": "",
+     "merge_key": "",
+     "order": 1,
+     "protokol": null
+    },
+    {
+     "genotype": "II",
+     "kind": "risk",
+     "text": "Nemáte genetický profil typicky spojovaný se silově-rychlostní specializací, proto může být rozvoj maximální explozivní výkonnosti méně spontánní než u nositelů DD. Nejde však o omezení, které by znemožňovalo kvalitní silový rozvoj při cíleném tréninku.",
+     "basis": "",
+     "merge_key": "",
+     "order": 2,
+     "protokol": null
+    },
+    {
+     "genotype": "ID",
+     "kind": "sport",
+     "text": "Máte univerzální profil vhodný pro sporty kombinující vytrvalostní i silově-rychlostní složku, například sportovní hry, víceboj, bojové sporty nebo střední tratě.",
+     "basis": "",
+     "merge_key": "",
+     "order": 3,
+     "protokol": null
+    },
+    {
+     "genotype": "ID",
+     "kind": "training",
+     "text": "Doporučujeme vyvážený tréninkový mix zahrnující vytrvalostní i silový rozvoj. Klíčová je dlouhodobá profilace podle konkrétní sportovní disciplíny a pravidelné sledování, zda se v praxi více prosazuje aerobní nebo anaerobní složka výkonu.",
+     "basis": "",
+     "merge_key": "",
+     "order": 4,
+     "protokol": null
+    },
+    {
+     "genotype": "ID",
+     "kind": "risk",
+     "text": "Nemáte extrémně vyhraněný genetický profil, což je výhodné pro širší adaptabilitu, ale zároveň to znamená, že samotná genetická informace méně přesně ukazuje optimální specializaci. O to větší význam má reálný výkon, tréninková historie a funkční diagnostika.",
+     "basis": "",
+     "merge_key": "",
+     "order": 5,
+     "protokol": null
+    },
+    {
+     "genotype": "DD",
+     "kind": "sport",
+     "text": "Tento profil může být příznivější pro sporty a disciplíny s vyšší náročností na sílu, rychlost, explozivitu nebo krátkodobou intenzivní práci, například sprinty, skoky, silové disciplíny nebo opakované anaerobní úseky.",
+     "basis": "",
+     "merge_key": "",
+     "order": 6,
+     "protokol": null
+    },
+    {
+     "genotype": "DD",
+     "kind": "training",
+     "text": "Doporučujeme akcentovat silový a explozivní trénink, krátké intenzivní intervaly, rozvoj maximální síly, rychlosti a neuromuskulární efektivity. Současně je vhodné udržovat dostatečnou aerobní bázi, aby nedocházelo k jednostrannému profilu a horší toleranci objemu.",
+     "basis": "",
+     "merge_key": "",
+     "order": 7,
+     "protokol": null
+    },
+    {
+     "genotype": "DD",
+     "kind": "risk",
+     "text": "U tohoto profilu může být menší přirozená dispozice k vrcholovému vytrvalostnímu výkonu než u genotypu II. Při jednostranně anaerobním zatížení je vhodné hlídat regeneraci, cévní reakci na zátěž a dostatečný rozvoj aerobní složky jako kompenzace.",
+     "basis": "",
+     "merge_key": "",
+     "order": 8,
+     "protokol": null
+    }
+   ],
+   "dukazy": [],
+   "zdroje": [
+    {
+     "label": "",
+     "title": "",
+     "citation": "National Center for Biotechnology Information. ACE angiotensin I converting enzyme [Homo sapiens]. NCBI Gene.",
+     "url": "",
+     "order": 0
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Montgomery, H. E., Marshall, R., Hemingway, H., Myerson, S., Clarkson, P., Dollery, C., et al. (1998). Human gene for physical performance. Nature, 393(6682), 221-222.",
+     "url": "",
+     "order": 1
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Myerson, S., Hemingway, H., Budget, R., Martin, J., Humphries, S., & Montgomery, H. (1999). Human angiotensin I-converting enzyme gene and endurance performance. Journal of Applied Physiology, 87(4), 1313-1316.",
+     "url": "",
+     "order": 2
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Ma, F., Yang, Y., Li, X., Zhou, F., Gao, C., Li, M., & Gao, L. (2013). The Association of Sport Performance with ACE and ACTN3 Genetic Polymorphisms: A Systematic Review and Meta-Analysis. PLoS One, 8(1), e54685.",
+     "url": "",
+     "order": 3
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Sommers, L., Pitsch, W., Heitkamp, H.-C., & Kindermann, W. (2024). Role of the ACE I/D Polymorphism in Selected Public Health Diseases and in Elite Physical Performance: A Systematic Review and Meta-Analysis. International Journal of Environmental Research and Public Health, 21(11), 1439.",
+     "url": "",
+     "order": 4
+    }
+   ],
+   "nepripustne": [],
+   "scenare": [
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Lépe zvládám delší souvislou zátěž a vytrvalostní trénink než krátké maximální výkony.",
+     "answer_match": {
+      "choices": [
+       "vytrvalost"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 0,
+     "otazka": "vykonovy_profil",
+     "texty": [
+      {
+       "genotype": "II",
+       "text": "Vaše odpověď velmi dobře odpovídá genetickému profilu ACE II. V praxi se u Vás pravděpodobně projevuje vytrvalostní zaměření a dobrá tolerance déletrvající aerobní zátěže. Doporučujeme tento potenciál dále cíleně rozvíjet."
+      },
+      {
+       "genotype": "ID",
+       "text": "Vaše odpověď naznačuje, že se Váš smíšený genetický profil v praxi přiklání spíše k vytrvalostnímu typu. To je plně možné a ukazuje to na význam tréninkové adaptace i dalších genových faktorů."
+      },
+      {
+       "genotype": "DD",
+       "text": "Vaše odpověď ukazuje určitý nesoulad mezi genetickým profilem a výkonovým projevem. Je možné, že Váš trénink nebo sportovní zkušenost dlouhodobě posunuly Váš výkon směrem k vytrvalosti, případně u Vás převládají jiné podpůrné faktory."
+      }
+     ]
+    },
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Dosahuji velmi dobrých výsledků v krátkých sprintech, silových testech nebo krátkých intenzivních intervalech.",
+     "answer_match": {
+      "choices": [
+       "sila"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 1,
+     "otazka": "vykonovy_profil",
+     "texty": [
+      {
+       "genotype": "II",
+       "text": "Vaše odpověď ukazuje lepší anaerobní a silově-rychlostní projev, než by odpovídalo typickému profilu II. To může být důsledkem kvalitního tréninku nebo vlivu dalších genetických markerů. Doporučujeme respektovat tento praktický fenotyp a nespoléhat pouze na jednu variantu."
+      },
+      {
+       "genotype": "ID",
+       "text": "Vaše odpověď dobře odpovídá smíšenému profilu ID, který může podporovat univerzálnější výkon. Má smysl dále rozvíjet jak silově-rychlostní, tak vytrvalostní složku a profilovat je podle sportovního cíle."
+      },
+      {
+       "genotype": "DD",
+       "text": "Vaše odpověď velmi dobře odpovídá očekávanému profilu DD. Pravděpodobně se u Vás projevuje příznivější predispozice pro krátkodobý intenzivní výkon. Doporučujeme tuto složku cíleně rozvíjet při současném důrazu na kvalitní regeneraci."
+      }
+     ]
+    },
+    {
+     "kind": "measurement",
+     "title": "Kontext 2: zdroj zátěžový test – laboratorní vyšetření VO2max / prahový test",
+     "statement": "V laboratorním testu dosahuji nadprůměrných hodnot VO2max nebo velmi dobré ekonomiky při vytrvalostní zátěži.",
+     "answer_match": {},
+     "condition": {},
+     "is_active": false,
+     "order": 2,
+     "otazka": null,
+     "texty": [
+      {
+       "genotype": "II",
+       "text": "Váš výsledek velmi dobře potvrzuje genetický profil ACE II. Takový nález je v souladu s častěji popisovanou vazbou mezi I alelou a vytrvalostním výkonem, i když vždy záleží také na trénovanosti a tělesné konstituci."
+      },
+      {
+       "genotype": "ID",
+       "text": "Váš výsledek naznačuje, že Váš smíšený profil se funkčně projevuje směrem k aerobní výkonnosti. To může být výhodné zejména u sportů vyžadujících současně ekonomiku zátěže i schopnost akcelerace."
+      },
+      {
+       "genotype": "DD",
+       "text": "Váš výsledek ukazuje, že i přes méně vytrvalostně příznivý genetický profil můžete dosahovat velmi dobrých aerobních parametrů. To podporuje závěr, že u ACE rs1799752 je reálný tréninkový efekt a celkový genetický kontext zásadní."
+      }
+     ]
+    },
+    {
+     "kind": "measurement",
+     "title": "Kontext 2: zdroj zátěžový test – laboratorní vyšetření VO2max / prahový test",
+     "statement": "V laboratorním testu mám podprůměrné hodnoty VO2max nebo rychlejší nástup únavy při delší zátěži.",
+     "answer_match": {},
+     "condition": {},
+     "is_active": false,
+     "order": 3,
+     "otazka": null,
+     "texty": [
+      {
+       "genotype": "II",
+       "text": "Vaše odpověď naznačuje, že geneticky příznivější profil II se v praxi nemusí plně projevovat. Doporučujeme zhodnotit tréninkovou historii, tělesné složení, ekonomiku pohybu a případné limitující zdravotní nebo nutriční faktory."
+      },
+      {
+       "genotype": "ID",
+       "text": "Váš výsledek odpovídá smíšenému profilu, který nemusí sám o sobě zaručovat vysokou aerobní výkonnost. Doporučujeme cílený rozvoj vytrvalostní složky, pokud je pro Vaši disciplínu důležitá."
+      },
+      {
+       "genotype": "DD",
+       "text": "Vaše odpověď je v souladu s tím, že profil DD bývá méně často spojován se špičkovým vytrvalostním výkonem. Doporučujeme rozvíjet aerobní základ cíleně a realisticky, bez očekávání, že genetická predispozice bude v této oblasti jednoznačně výhodná."
+      }
+     ]
+    }
+   ],
+   "revize": []
+  },
+  {
+   "organizace": null,
+   "varianta": "rs1799752",
+   "nahrazuje": {
+    "varianta": "rs1799752",
+    "verze": 1
+   },
+   "version": 2,
+   "status": "draft",
+   "review_priorities": "Ověřit mapování ACE I/D a vztah rs1799752 / rs4646994 podle laboratorní metody. Nezaměňovat za proxy SNP.",
+   "biology_expert": "ACE kóduje angiotenzin-konvertující enzym systému renin–angiotenzin–aldosteron; převádí angiotenzin I na angiotenzin II a odbourává bradykinin. Polymorfismus rs1799752 je inzerce/delece 287 bp Alu sekvence v intronu 16; alela D je spojována s vyšší sérovou aktivitou ACE [DOPLNIT primární zdroj, např. Rigat et al. 1990; OVĚŘIT].",
+   "biology_client": "Gen ACE nese návod na enzym, který se podílí na regulaci krevního tlaku a napětí cév (přeměňuje angiotenzin I na angiotenzin II). Varianta rs1799752 je vložení (I) nebo chybění (D) krátkého úseku DNA v genu a souvisí s množstvím enzymu v krvi [S1, OVĚŘIT]. Vytrvalost ani sílu z ní samotné určit nejde.",
+   "effect": "Alela I je v části studií častější u vytrvalostních sportovců (horolezci, vytrvalci [S2, S3]), alela D u silově-rychlostních disciplín; metaanalýzy popisují malý a nejednotný efekt [S4, S5, OVĚŘIT]. Vztah k VO₂max a trénovatelnosti u jednotlivce doložený není.",
+   "limitations": "Z genotypu ACE nelze určit aerobní kapacitu, vytrvalost, sílu ani vhodný sport. Studie popisují malé rozdíly mezi skupinami sportovců, ne předpoklady jednoho člověka, a výsledky nejsou jednotné. O vytrvalostních a silových předpokladech vypovídá měření a tréninková historie.",
+   "frequency_note": "Ve zdrojové tabulce frekvence chybí (NA). Doplnit z literatury s konkrétním souborem a populací (indel není v gnomAD jako SNP), nebo nechat prázdné.",
+   "related_areas": [
+    "Aerobní kapacita",
+    "Vytrvalostní výkon",
+    "Rychlost, výbušnost, zvýšený svalový výkon",
+    "Hemodynamická odpověď na zátěž",
+    "Tréninková adaptace na vytrvalostní a silový trénink"
+   ],
+   "import_note": "Původní návrh k revizi. Zachováno 61 neprázdných odstavců včetně identifikačního nadpisu; původní anglické názvy polí jsou nahrazeny českými nadpisy. Textová tvrzení nejsou nově ověřena.\n\nNásledují původní návrhy doporučení, včetně případných dávek. Nejsou návodem k použití; jejich vazba na genotyp a použitelnost čekají na odbornou revizi.\n\nPůvodní scénáře k posouzení. Odpověď ani měření samy nepotvrzují genetickou příčinu. Scénáře založené na měření nejsou aktivní ve V1.\n\nPůvodní hypotézy k samostatnému posouzení. Kombinace obsahující varianty mimo panel nelze vyhodnotit z aktuálního testu.",
+   "change_summary": "Návrh znění podle revizní priority karty (ověřit mapování I/D, nezaměňovat za zástupný SNP) a podle pravidla, že genotyp neurčuje typ sportovce. Texty pro genotypy popisují, co studie uvádějí a co z výsledku určit nejde; doporučení podle genotypu nahrazena obecným postupem a měřením (spiroergometrie, výskok); scénáře nad měřením odstraněny; doplněny nepřípustné výroky, názvy zdrojů a řádky důkazů E01–E05. Místa označená [OVĚŘIT] a [DOPLNIT] garant ověří před schválením.",
+   "approved_at": null,
+   "texty": [
+    {
+     "genotype": "II",
+     "client_text": "Byl zjištěn genotyp II varianty ACE rs1799752 (inzerce/delece). Alela I je v některých studiích častější u vytrvalostních sportovců a bývá spojována s nižší aktivitou enzymu ACE [S2, S3, OVĚŘIT]; souhrnné práce popisují malý a nejednotný rozdíl [S4, S5, OVĚŘIT]. Z výsledku nelze určit vaši aerobní kapacitu ani to, jaký sport vám sedí; to ukáže měření a tréninková zkušenost.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 0
+    },
+    {
+     "genotype": "ID",
+     "client_text": "Byl zjištěn genotyp ID varianty ACE rs1799752 (inzerce/delece). Nesete jednu kopii každé alely. Studie u této skupiny nenacházejí jednoznačný rozdíl ve vytrvalostním ani silovém výkonu [S4, OVĚŘIT]. Z výsledku nelze určit vaše předpoklady; o nich vypovídá měření a tréninková zkušenost.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 1
+    },
+    {
+     "genotype": "DD",
+     "client_text": "Byl zjištěn genotyp DD varianty ACE rs1799752 (inzerce/delece). Alela D je spojována s vyšší aktivitou enzymu ACE a v některých studiích je častější u silově-rychlostních disciplín [S4, OVĚŘIT]; souhrnné práce popisují malý a nejednotný rozdíl [S4, S5, OVĚŘIT]. Z výsledku nelze určit vaši sílu, rychlost ani vytrvalost; to ukáže měření a tréninková zkušenost.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 2
+    }
+   ],
+   "doporuceni": [
+    {
+     "genotype": "",
+     "kind": "training",
+     "text": "Zaměření tréninku (vytrvalost, síla, kombinace) vychází z cíle, sportu, tréninkové historie a měření, ne z genotypu.",
+     "basis": "general",
+     "merge_key": "trenink-podle-mereni",
+     "order": 9,
+     "protokol": null
+    },
+    {
+     "genotype": "",
+     "kind": "training",
+     "text": "Vytrvalostní předpoklady a jejich vývoj ukáže spiroergometrie (VO₂max, ventilační prahy); zpráva porovná výsledek s normou a s minulým měřením.",
+     "basis": "measurement",
+     "merge_key": "vytrvalost-mereni",
+     "order": 10,
+     "protokol": "spiro_ramp"
+    },
+    {
+     "genotype": "",
+     "kind": "training",
+     "text": "Silově-rychlostní předpoklady posoudí výskok na silové desce a Wingate test; zpráva porovná výsledek s normou a s minulým měřením.",
+     "basis": "measurement",
+     "merge_key": "sila-mereni",
+     "order": 11,
+     "protokol": "cmj"
+    }
+   ],
+   "dukazy": [
+    {
+     "code": "E01",
+     "trait": "Identita varianty",
+     "basis_text": "Inzerce/delece Alu v intronu 16 genu ACE; v databázích vedená jako rs1799752 i rs4646994 [S1]. [OVĚŘIT, kterou značku a metodu používá laboratoř]",
+     "usage": "Jen identifikace; žádný výkonový závěr.",
+     "source_labels": "S1",
+     "order": 0
+    },
+    {
+     "code": "E02",
+     "trait": "Aktivita enzymu ACE",
+     "basis_text": "Alela D je spojována s vyšší sérovou aktivitou ACE. [DOPLNIT primární zdroj, např. Rigat et al. 1990, J Clin Invest; OVĚŘIT]",
+     "usage": "Uvést jako biologickou souvislost; nedělat z ní výkonový závěr.",
+     "source_labels": "",
+     "order": 1
+    },
+    {
+     "code": "E03",
+     "trait": "Vytrvalostní výkon – původní studie",
+     "basis_text": "Montgomery 1998: horolezci a vojenský výcvik, alela I častější / lepší odezva na trénink [S2]. Myerson 1999: olympijští vytrvalci, vyšší frekvence alely I [S3]. Malé soubory, britská populace. [OVĚŘIT velikost souborů a efektu]",
+     "usage": "Populační asociace: „v některých studiích“. Žádná predikce u klienta.",
+     "source_labels": "S2, S3",
+     "order": 2
+    },
+    {
+     "code": "E04",
+     "trait": "Metaanalýzy",
+     "basis_text": "Ma 2013: souhrn studií ACE a ACTN3 u sportovců; genotyp II a vytrvalostní status [S4]. [OVĚŘIT OR a 95% CI] Sommers 2024: metaanalýza ACE I/D v elitním výkonu [S5]. [OVĚŘIT závěr a heterogenitu]",
+     "usage": "Populační asociace s malým efektem; žádný výběr sportu ani úprava tréninku podle genotypu.",
+     "source_labels": "S4, S5",
+     "order": 3
+    },
+    {
+     "code": "E05",
+     "trait": "Individuální využitelnost",
+     "basis_text": "Konsenzus 2015 nepodporuje použití genetických testů pro výběr talentu a individuální předepisování tréninku. [DOPLNIT zdroj: Webborn et al. 2015, Br J Sports Med]",
+     "usage": "Žádné pravidlo měnící trénink jen podle ACE.",
+     "source_labels": "",
+     "order": 4
+    }
+   ],
+   "zdroje": [
+    {
+     "label": "S1",
+     "title": "Gen ACE (NCBI Gene)",
+     "citation": "National Center for Biotechnology Information. ACE angiotensin I converting enzyme [Homo sapiens]. NCBI Gene.",
+     "url": "",
+     "order": 0
+    },
+    {
+     "label": "S2",
+     "title": "Montgomery 1998 – horolezci, vytrvalost",
+     "citation": "Montgomery, H. E., Marshall, R., Hemingway, H., Myerson, S., Clarkson, P., Dollery, C., et al. (1998). Human gene for physical performance. Nature, 393(6682), 221-222.",
+     "url": "",
+     "order": 1
+    },
+    {
+     "label": "S3",
+     "title": "Myerson 1999 – vytrvalostní běžci",
+     "citation": "Myerson, S., Hemingway, H., Budget, R., Martin, J., Humphries, S., & Montgomery, H. (1999). Human angiotensin I-converting enzyme gene and endurance performance. Journal of Applied Physiology, 87(4), 1313-1316.",
+     "url": "",
+     "order": 2
+    },
+    {
+     "label": "S4",
+     "title": "Ma 2013 – metaanalýza ACE a ACTN3",
+     "citation": "Ma, F., Yang, Y., Li, X., Zhou, F., Gao, C., Li, M., & Gao, L. (2013). The Association of Sport Performance with ACE and ACTN3 Genetic Polymorphisms: A Systematic Review and Meta-Analysis. PLoS One, 8(1), e54685.",
+     "url": "",
+     "order": 3
+    },
+    {
+     "label": "S5",
+     "title": "Sommers 2024 – metaanalýza ACE I/D",
+     "citation": "Sommers, L., Pitsch, W., Heitkamp, H.-C., & Kindermann, W. (2024). Role of the ACE I/D Polymorphism in Selected Public Health Diseases and in Elite Physical Performance: A Systematic Review and Meta-Analysis. International Journal of Environmental Research and Public Health, 21(11), 1439.",
+     "url": "",
+     "order": 4
+    }
+   ],
+   "nepripustne": [
+    {
+     "text": "profil odpovídá spíše vytrvalostnímu",
+     "note": ""
+    },
+    {
+     "text": "profil odpovídá spíše silově-rychlostnímu",
+     "note": ""
+    },
+    {
+     "text": "máte univerzální profil",
+     "note": ""
+    },
+    {
+     "text": "příznivější předpoklady pro",
+     "note": ""
+    },
+    {
+     "text": "jste vytrvalostní typ",
+     "note": ""
+    },
+    {
+     "text": "jste rychlostní typ",
+     "note": ""
+    },
+    {
+     "text": "potvrzuje genetický profil",
+     "note": ""
+    },
+    {
+     "text": "vhodné sporty pro váš genotyp",
+     "note": ""
+    },
+    {
+     "text": "doporučujeme sporty",
+     "note": ""
+    },
+    {
+     "text": "aditivně podporovat",
+     "note": ""
+    }
+   ],
+   "scenare": [
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Lépe zvládám delší souvislou zátěž a vytrvalostní trénink než krátké maximální výkony.",
+     "answer_match": {
+      "choices": [
+       "vytrvalost"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 0,
+     "otazka": "vykonovy_profil",
+     "texty": [
+      {
+       "genotype": "II",
+       "text": "Vaše zkušenost, že vám sedí delší souvislá zátěž, je cennější vodítko než genotyp; ten ji nepotvrzuje ani nevyvrací. O vytrvalostních předpokladech vypovídá měření (spiroergometrie) a tréninková historie, podle nich se nastavuje trénink."
+      },
+      {
+       "genotype": "ID",
+       "text": "Vaše zkušenost, že vám sedí delší souvislá zátěž, je cennější vodítko než genotyp; ten ji nepotvrzuje ani nevyvrací. O vytrvalostních předpokladech vypovídá měření (spiroergometrie) a tréninková historie, podle nich se nastavuje trénink."
+      },
+      {
+       "genotype": "DD",
+       "text": "Vaše zkušenost, že vám sedí delší souvislá zátěž, je cennější vodítko než genotyp; ten ji nepotvrzuje ani nevyvrací. O vytrvalostních předpokladech vypovídá měření (spiroergometrie) a tréninková historie, podle nich se nastavuje trénink."
+      }
+     ]
+    },
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Dosahuji velmi dobrých výsledků v krátkých sprintech, silových testech nebo krátkých intenzivních intervalech.",
+     "answer_match": {
+      "choices": [
+       "sila"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 1,
+     "otazka": "vykonovy_profil",
+     "texty": [
+      {
+       "genotype": "II",
+       "text": "Vaše zkušenost, že vám jdou krátké intenzivní výkony, je cennější vodítko než genotyp; ten ji nepotvrzuje ani nevyvrací. O silově-rychlostních předpokladech vypovídá měření (výskok, Wingate test) a tréninková historie, podle nich se nastavuje trénink."
+      },
+      {
+       "genotype": "ID",
+       "text": "Vaše zkušenost, že vám jdou krátké intenzivní výkony, je cennější vodítko než genotyp; ten ji nepotvrzuje ani nevyvrací. O silově-rychlostních předpokladech vypovídá měření (výskok, Wingate test) a tréninková historie, podle nich se nastavuje trénink."
+      },
+      {
+       "genotype": "DD",
+       "text": "Vaše zkušenost, že vám jdou krátké intenzivní výkony, je cennější vodítko než genotyp; ten ji nepotvrzuje ani nevyvrací. O silově-rychlostních předpokladech vypovídá měření (výskok, Wingate test) a tréninková historie, podle nich se nastavuje trénink."
+      }
+     ]
+    }
+   ],
+   "revize": [
+    {
+     "part": "Identita varianty",
+     "original": "",
+     "proposal": "",
+     "reason": "Ověřit mapování ACE I/D a vztah rs1799752 / rs4646994 podle metody laboratoře; nezaměňovat za zástupný SNP (revizní priorita karty).",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Důkaz E04 – Ma 2013",
+     "original": "",
+     "proposal": "",
+     "reason": "Ověřit OR a 95% CI pro genotyp II a vytrvalostní status; zapsat do řádku důkazů.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Důkaz E04 – Sommers 2024",
+     "original": "",
+     "proposal": "",
+     "reason": "Ověřit závěr metaanalýzy a heterogenitu; pokud efekt nepotvrzuje, texty pro genotypy ještě zkrátit.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Důkaz E02 – aktivita ACE",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit primární zdroj pro vztah alely D a aktivity enzymu.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Frekvence genotypů",
+     "original": "",
+     "proposal": "",
+     "reason": "Ve zdrojové tabulce chybí; doplnit z literatury s konkrétním souborem a populací, nebo nechat prázdné.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Scénáře z dotazníku",
+     "original": "",
+     "proposal": "",
+     "reason": "Texty pro odpověď „vytrvalost“ a „síla“ jsou stejné pro všechny genotypy; po kontrole scénáře zapnout (krok 5).",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    }
+   ]
+  }
+ ]
+}

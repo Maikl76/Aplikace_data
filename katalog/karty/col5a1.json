@@ -1,0 +1,624 @@
+{
+ "format": "navrh-karty/1",
+ "popis": "COL5A1 / rs12722 (pojivové tkáně a zatížení): v1 původní znění z podkladů v02, v2 návrh znění k revizi garantem oblasti Pohybový aparát.",
+ "varianty": [
+  {
+   "organizace": null,
+   "oblast": "pohybovy_aparat",
+   "gene": "COL5A1",
+   "full_name": "Collagen Type V Alpha 1 Chain (Kolagen typu V alfa 1 řetězec)",
+   "rsid": "rs12722",
+   "notation": "rs12722 (NM_000093.5:c.*267C>T; 3′UTR C>T)",
+   "subtitle": "Pojivové tkáně a zatížení",
+   "genotypes": [
+    "CC",
+    "CT",
+    "TT"
+   ],
+   "genotype_aliases": {},
+   "strand_note": "",
+   "frequency_source": "NCBI dbSNP / interní tabulka Gene names",
+   "order": 3,
+   "is_active": true
+  }
+ ],
+ "karty": [
+  {
+   "organizace": null,
+   "varianta": "rs12722",
+   "nahrazuje": null,
+   "version": 1,
+   "status": "original",
+   "review_priorities": "Nepřevádět populační asociaci přímo na osobní riziko poranění.",
+   "biology_expert": "COL5A1 kóduje α1 řetězec kolagenu typu V, který se podílí na regulaci tvorby, průměru a uspořádání kolagenních fibril v pojivových tkáních. Ovlivňuje biomechanické vlastnosti šlach, vazů a dalších struktur bohatých na kolagen. Variabilita v tomto genu může modifikovat odolnost měkkých tkání vůči opakované mechanické zátěži.",
+   "biology_client": "Gen COL5A1 ovlivňuje, jak jsou v těle uspořádaná kolagenní vlákna. Tím může mít vliv na pevnost, pružnost a odolnost šlach a vazů při sportovní zátěži, zejména při běhu, skocích a dalších opakovaných pohybech.",
+   "effect": "Polymorfismus rs12722 je lokalizován v 3′ nepřekládané oblasti genu COL5A1. Předpokládá se, že může ovlivňovat stabilitu mRNA a tím i expresi kolagenu typu V, což se následně může projevit změnou mechanických vlastností šlach a vazů. V literatuře je varianta nejčastěji studována ve vztahu k Achillově tendinopatii, dalším poraněním měkkých tkání, flexibilitě a běžecké ekonomice. Evidence je nejsilnější pro oblast tendinopatie; pro flexibilitu a výkon jsou výsledky částečně nejednotné.",
+   "limitations": "",
+   "frequency_note": "Převzaté frekvence: před schválením doložit konkrétní populační soubor a zdroj. Samotné označení „evropská populace“ nestačí.",
+   "related_areas": [
+    "Pružnost a odolnost pojivové tkáně",
+    "Riziko poranění šlach (tendinopatie) a vytrvalostní výkon",
+    "Flexibilita a rozsah pohybu",
+    "Ekonomika běhu",
+    "Vytrvalostní výkon"
+   ],
+   "import_note": "Původní návrh k revizi. Zachováno 69 neprázdných odstavců včetně identifikačního nadpisu; původní anglické názvy polí jsou nahrazeny českými nadpisy. Textová tvrzení nejsou nově ověřena.\n\nNásledují původní návrhy doporučení, včetně případných dávek. Nejsou návodem k použití; jejich vazba na genotyp a použitelnost čekají na odbornou revizi.\n\nPůvodní scénáře k posouzení. Odpověď ani měření samy nepotvrzují genetickou příčinu. Scénáře založené na měření nejsou aktivní ve V1.\n\nPůvodní hypotézy k samostatnému posouzení. Kombinace obsahující varianty mimo panel nelze vyhodnotit z aktuálního testu.",
+   "change_summary": "",
+   "approved_at": null,
+   "texty": [
+    {
+     "genotype": "CC",
+     "client_text": "Tento genotyp je obvykle spojován s běžným až mírně příznivějším profilem z hlediska rizika tendinopatie. V některých studiích je také dáván do souvislosti s větším rozsahem pohybu. Neznamená to však nulové riziko poranění, protože zásadní roli stále hraje typ zátěže, technika, tréninkový objem a regenerace.",
+     "expert_text": "",
+     "frequency": "19,4 % (Evropská populace)",
+     "order": 0
+    },
+    {
+     "genotype": "CT",
+     "client_text": "Tento genotyp představuje střední profil. Ve srovnání s CC může být riziko přetížení šlach mírně vyšší, zejména při vysoké kumulaci excentrické nebo odrazové zátěže. Praktický fenotyp bude výrazně ovlivněn tréninkem, biomechanikou a historií poranění.",
+     "expert_text": "",
+     "frequency": "50,1 % (Evropská populace)",
+     "order": 1
+    },
+    {
+     "genotype": "TT",
+     "client_text": "Tento genotyp je v části literatury spojován se zvýšeným rizikem tendinopatie a dalších měkkotkáňových poranění. Současně může souviset s vyšší tuhostí muskulotendinózního systému, což může být v některých případech výhodné pro běžeckou ekonomiku, ale z preventivního hlediska vyžaduje pečlivější řízení zátěže.",
+     "expert_text": "",
+     "frequency": "30,5 % (Evropská populace)",
+     "order": 2
+    }
+   ],
+   "doporuceni": [
+    {
+     "genotype": "CC",
+     "kind": "sport",
+     "text": "Genotyp CC je slučitelný se širokým spektrem sportů. Z genetického hlediska není důvod omezovat dynamické nebo vytrvalostní disciplíny pouze na základě této varianty.",
+     "basis": "",
+     "merge_key": "",
+     "order": 0,
+     "protokol": null
+    },
+    {
+     "genotype": "CC",
+     "kind": "training",
+     "text": "Doporučujeme standardní prevenci přetížení šlach: postupnou progresi zátěže, silový trénink dolních končetin a trupu, kvalitní rozcvičení a práci na technice běhu, dopadu a odrazu.",
+     "basis": "",
+     "merge_key": "",
+     "order": 1,
+     "protokol": null
+    },
+    {
+     "genotype": "CC",
+     "kind": "risk",
+     "text": "Specifické genetické riziko je spíše nižší, ale při nadměrném objemu, nevhodné biomechanice nebo nedostatečné regeneraci může i tento genotyp rozvinout tendinopatii.",
+     "basis": "",
+     "merge_key": "",
+     "order": 2,
+     "protokol": null
+    },
+    {
+     "genotype": "CT",
+     "kind": "sport",
+     "text": "Máte střední genetickou predispozici z hlediska odolnosti šlach. Vhodné jsou jak vytrvalostní, tak herní či silově-rychlostní sporty, ale s důrazem na kvalitní prevenci přetížení.",
+     "basis": "",
+     "merge_key": "",
+     "order": 3,
+     "protokol": null
+    },
+    {
+     "genotype": "CT",
+     "kind": "training",
+     "text": "Doporučujeme důsledně hlídat skoky v tréninkovém objemu, pravidelně zařazovat silový trénink se zaměřením na lýtka, hamstringy a stabilizaci kyčlí a využívat excentricko-izometrická cvičení pro prevenci tendinopatií.",
+     "basis": "",
+     "merge_key": "",
+     "order": 4,
+     "protokol": null
+    },
+    {
+     "genotype": "CT",
+     "kind": "risk",
+     "text": "Riziko přetížení šlach může být mírně zvýšené, zejména při běhu, plyometrii, změnách směru a dalších aktivitách s vysokou elastickou zátěží.",
+     "basis": "",
+     "merge_key": "",
+     "order": 5,
+     "protokol": null
+    },
+    {
+     "genotype": "TT",
+     "kind": "sport",
+     "text": "Tento genotyp nevylučuje vysokou sportovní výkonnost, ale vyžaduje zvýšenou pozornost k prevenci poranění šlach a vazů. U některých jedinců může být přítomna výhodnější ekonomika běhu, tento možný benefit však nepřevažuje nad potřebou pečlivého řízení zátěže.",
+     "basis": "",
+     "merge_key": "",
+     "order": 6,
+     "protokol": null
+    },
+    {
+     "genotype": "TT",
+     "kind": "training",
+     "text": "Doporučujeme velmi pozvolnou progresi běžeckého objemu a plyometrie, pravidelný silový trénink zaměřený na odolnost šlach, kvalitní regeneraci a včasnou reakci na první známky přetížení. Vhodné je systematicky pracovat i s flexibilitou, mobilitou a technikou pohybu.",
+     "basis": "",
+     "merge_key": "",
+     "order": 7,
+     "protokol": null
+    },
+    {
+     "genotype": "TT",
+     "kind": "risk",
+     "text": "Může být zvýšená náchylnost k tendinopatiím a dalším měkkotkáňovým komplikacím při opakované mechanické zátěži. Riziko roste zejména při rychlém navýšení objemu nebo intenzity tréninku.",
+     "basis": "",
+     "merge_key": "",
+     "order": 8,
+     "protokol": null
+    }
+   ],
+   "dukazy": [],
+   "zdroje": [
+    {
+     "label": "",
+     "title": "",
+     "citation": "September, A. V., Cook, J., Handley, C. J., van der Merwe, L., Schwellnus, M. P., & Collins, M. (2009). Variants within the COL5A1 gene are associated with Achilles tendinopathy in two populations. British Journal of Sports Medicine, 43(5), 357-365.",
+     "url": "",
+     "order": 0
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Posthumus, M., Schwellnus, M. P., & Collins, M. (2011). The COL5A1 gene: a novel marker of endurance running performance. Medicine and Science in Sports and Exercise, 43(4), 584-589.",
+     "url": "",
+     "order": 1
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Lv, Z. T., Gao, S. T., Cheng, P., Liang, S., & Yu, S. Y. (2018). Association between polymorphism rs12722 in COL5A1 and musculoskeletal soft tissue injuries: a systematic review and meta-analysis. Oncotarget, 9(20), 15365-15374.",
+     "url": "",
+     "order": 2
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Miyamoto-Mikami, E., Miyamoto, N., Kumagai, H., Hirata, K., Kimura, N., Fuku, N., Miyachi, M., et al. (2019). COL5A1 rs12722 polymorphism is not associated with passive muscle stiffness and sports-related muscle injury in Japanese athletes. BMC Medical Genetics, 20, 192.",
+     "url": "",
+     "order": 3
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "elders in Taiwan. Experimental Gerontology, 82, 46-52.",
+     "url": "",
+     "order": 4
+    }
+   ],
+   "nepripustne": [],
+   "scenare": [
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Opakovaně mívám bolesti Achillovy nebo patelární šlachy při vyšším tréninkovém objemu.",
+     "answer_match": {
+      "choices": [
+       "opakovane"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 0,
+     "otazka": "slachy_opakovane",
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Taková odpověď naznačuje, že skutečné riziko je u Vás pravděpodobně více ovlivněno tréninkovým zatížením, biomechanikou nebo historií poranění než samotnou genetickou predispozicí. Doporučujeme prověřit techniku, obuv, povrch a řízení objemu zátěže."
+      },
+      {
+       "genotype": "CT",
+       "text": "Vaše odpověď odpovídá středně rizikovému profilu. Doporučujeme aktivní prevenci tendinopatie, pečlivější periodizaci a včasné řešení prvních symptomů přetížení."
+      },
+      {
+       "genotype": "TT",
+       "text": "Vaše odpověď dobře odpovídá méně příznivému profilu této varianty. Doporučujeme důsledné řízení zátěže, posílení šlachového aparátu a časnou intervenci při opakovaných bolestech."
+      }
+     ]
+    },
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Šlachové potíže nemívám ani při vyšší běžecké nebo silové zátěži.",
+     "answer_match": {
+      "choices": [
+       "nikdy"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 1,
+     "otazka": "slachy_opakovane",
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Vaše odpověď je v souladu s příznivějším profilem této varianty. Přesto doporučujeme zachovat preventivní opatření, zejména při zvyšování objemu nebo intenzity."
+      },
+      {
+       "genotype": "CT",
+       "text": "Vaše odpověď ukazuje, že současný tréninkový a regenerační režim pravděpodobně dobře kompenzuje střední genetickou predispozici. Doporučujeme v nastavené prevenci pokračovat."
+      },
+      {
+       "genotype": "TT",
+       "text": "Vaše odpověď ukazuje, že méně příznivá genetická predispozice se u Vás v praxi nemusí výrazně projevovat. Pravděpodobně hraje významnou roli kvalitní tréninková adaptace, technika a regenerace."
+      }
+     ]
+    },
+    {
+     "kind": "measurement",
+     "title": "Kontext 2: zdroj funkční test – flexibilita / ekonomika běhu",
+     "statement": "Dosahuji nadprůměrných hodnot flexibility nebo rozsahu pohybu.",
+     "answer_match": {},
+     "condition": {},
+     "is_active": false,
+     "order": 2,
+     "otazka": null,
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Tento výsledek může být v souladu s částí literatury, která dává genotyp CC do souvislosti s větším rozsahem pohybu. Doporučujeme tuto vlastnost doplnit dostatečnou silou a stabilitou, aby nevedla k funkční nestabilitě."
+      },
+      {
+       "genotype": "CT",
+       "text": "Výsledek odpovídá intermediárnímu profilu, kde pravděpodobně významně působí trénink a další individuální faktory. Doporučujeme vyvážit mobilitu a stabilitu podle požadavků konkrétního sportu."
+      },
+      {
+       "genotype": "TT",
+       "text": "Tento výsledek ukazuje, že skutečný fenotyp může být příznivější, než by naznačovala část literatury. Vysoká flexibilita však sama o sobě nesnižuje potřebu prevence přetížení šlach."
+      }
+     ]
+    },
+    {
+     "kind": "measurement",
+     "title": "Kontext 2: zdroj funkční test – flexibilita / ekonomika běhu",
+     "statement": "Při delším běhu se cítím ekonomicky a technicky efektivně.",
+     "answer_match": {},
+     "condition": {},
+     "is_active": false,
+     "order": 3,
+     "otazka": null,
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Tento výsledek pravděpodobně odráží zejména tréninkovou adaptaci a techniku běhu. Samotná varianta COL5A1 zde pravděpodobně není hlavním vysvětlením."
+      },
+      {
+       "genotype": "CT",
+       "text": "Výsledek odpovídá smíšenému profilu. Doporučujeme dále rozvíjet ekonomiku pohybu a současně chránit šlachy před přetížením."
+      },
+      {
+       "genotype": "TT",
+       "text": "Tento výsledek může být v souladu s hypotézou příznivější běžecké ekonomiky u nositelů TT. Tento potenciální benefit je však třeba vždy vyvažovat důslednou prevencí tendinopatie."
+      }
+     ]
+    }
+   ],
+   "revize": []
+  },
+  {
+   "organizace": null,
+   "varianta": "rs12722",
+   "nahrazuje": {
+    "varianta": "rs12722",
+    "verze": 1
+   },
+   "version": 2,
+   "status": "draft",
+   "review_priorities": "Nepřevádět populační asociaci přímo na osobní riziko poranění.",
+   "biology_expert": "COL5A1 kóduje α1 řetězec kolagenu typu V, který reguluje fibrilogenezi kolagenu typu I (průměr a uspořádání fibril) v pojivových tkáních. Varianta rs12722 (NM_000093.5:c.*267C>T) leží v 3′ nepřekládané oblasti; předpokládá se vliv na stabilitu mRNA a expresi [S1, OVĚŘIT].",
+   "biology_client": "Gen COL5A1 nese návod na jednu část kolagenu typu V, který spolu s dalšími kolageny tvoří šlachy a vazy a ovlivňuje tloušťku a uspořádání kolagenních vláken. Varianta rs12722 leží v nepřekládané oblasti genu a může ovlivňovat, kolik této bílkoviny vzniká [S1, OVĚŘIT]. Zda se u vás šlachy přetíží, určuje hlavně zatížení, technika a regenerace.",
+   "effect": "Alela T (genotyp TT) byla v některých studiích častější u osob s tendinopatií Achillovy šlachy [S1]; metaanalýza nachází malý a nejednotný vztah k poraněním měkkých tkání [S3, OVĚŘIT]; u japonských sportovců asociace nebyla potvrzena [S4]. Vztah k flexibilitě a ekonomice běhu je nejednotný [S2, OVĚŘIT].",
+   "limitations": "Z genotypu COL5A1 nelze určit osobní riziko poranění šlach, flexibilitu ani ekonomiku běhu. Studie popisují rozdíly v četnosti genotypů mezi skupinami lidí s tendinopatií a bez ní, s malým a nejednotným efektem a bez ověření v jiných populacích. O riziku přetížení rozhoduje zatížení, technika, historie zranění a regenerace; na ty se zaměřují doporučení.",
+   "frequency_note": "Původní hodnoty 19,4 / 50,1 / 30,5 % se nepřebírají bez konkrétního souboru; zdroj frekvencí „interní tabulka“ nahradit dbSNP/gnomAD s populací.",
+   "related_areas": [
+    "Pružnost a odolnost pojivové tkáně",
+    "Riziko poranění šlach (tendinopatie) a vytrvalostní výkon",
+    "Flexibilita a rozsah pohybu",
+    "Ekonomika běhu",
+    "Vytrvalostní výkon"
+   ],
+   "import_note": "Původní návrh k revizi. Zachováno 69 neprázdných odstavců včetně identifikačního nadpisu; původní anglické názvy polí jsou nahrazeny českými nadpisy. Textová tvrzení nejsou nově ověřena.\n\nNásledují původní návrhy doporučení, včetně případných dávek. Nejsou návodem k použití; jejich vazba na genotyp a použitelnost čekají na odbornou revizi.\n\nPůvodní scénáře k posouzení. Odpověď ani měření samy nepotvrzují genetickou příčinu. Scénáře založené na měření nejsou aktivní ve V1.\n\nPůvodní hypotézy k samostatnému posouzení. Kombinace obsahující varianty mimo panel nelze vyhodnotit z aktuálního testu.",
+   "change_summary": "Návrh znění podle revizní priority karty: populační asociace se nepřevádí na osobní riziko poranění. Texty pro genotypy popisují, co studie uvádějí a co z výsledku určit nejde; doporučení podle genotypu nahrazena obecnou prevencí přetížení a měřením dopadu; scénáře nad měřením odstraněny; doplněny nepřípustné výroky, názvy zdrojů a řádky důkazů E01–E06. Místa označená [OVĚŘIT] a [DOPLNIT] garant ověří před schválením.",
+   "approved_at": null,
+   "texty": [
+    {
+     "genotype": "CC",
+     "client_text": "Byl zjištěn genotyp CC varianty COL5A1 rs12722. V některých studiích byl tento genotyp méně častý u lidí s tendinopatií Achillovy šlachy, souhrnné práce ale nacházejí malý a nejednotný vztah [S1, S3, S4, OVĚŘIT]. Z výsledku nelze určit vaše riziko poranění šlach ani flexibilitu; o nich rozhoduje zatížení, technika, historie zranění a regenerace.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 0
+    },
+    {
+     "genotype": "CT",
+     "client_text": "Byl zjištěn genotyp CT varianty COL5A1 rs12722. Nesete jednu kopii každé alely. Studie u této skupiny nenacházejí jednoznačný rozdíl v četnosti poranění šlach [S3, OVĚŘIT]. Z výsledku nelze určit vaše riziko poranění; o něm rozhoduje zatížení, technika, historie zranění a regenerace.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 1
+    },
+    {
+     "genotype": "TT",
+     "client_text": "Byl zjištěn genotyp TT varianty COL5A1 rs12722. Alela T byla v některých studiích častější u lidí s tendinopatií Achillovy šlachy, jiné studie vztah nepotvrdily [S1, S3, S4, OVĚŘIT]. Neznamená to, že se u vás šlachové potíže objeví. Z výsledku nelze určit vaše riziko poranění; o něm rozhoduje zatížení, technika, historie zranění a regenerace.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 2
+    }
+   ],
+   "doporuceni": [
+    {
+     "genotype": "",
+     "kind": "training",
+     "text": "Objem běhu, skoků a plyometrie zvyšujte postupně a po přestávce v tréninku se vracejte pozvolna; náhlé skoky v objemu jsou nejčastější příčina přetížení šlach bez ohledu na genotyp [DOPLNIT zdroj a konkrétní pravidlo progrese].",
+     "basis": "general",
+     "merge_key": "objem-postupne",
+     "order": 9,
+     "protokol": null
+    },
+    {
+     "genotype": "",
+     "kind": "training",
+     "text": "Silový trénink lýtek, hamstringů a stabilizace kyčlí a excentrická cvičení jsou běžná prevence tendinopatií pro všechny [DOPLNIT zdroj].",
+     "basis": "general",
+     "merge_key": "slachy-prevence",
+     "order": 10,
+     "protokol": null
+    },
+    {
+     "genotype": "",
+     "kind": "risk",
+     "text": "Při opakovaných bolestech Achillovy nebo patelární šlachy upravte zátěž a obraťte se na fyzioterapeuta nebo lékaře; první příznaky přetížení neřešte zvýšením objemu.",
+     "basis": "general",
+     "merge_key": "slachy-priznaky",
+     "order": 11,
+     "protokol": null
+    },
+    {
+     "genotype": "",
+     "kind": "training",
+     "text": "Sílu při dopadu a asymetrii ve výskoku na silové desce sledujte v čase; zpráva porovná měření s minulým.",
+     "basis": "measurement",
+     "merge_key": "dopad-mereni",
+     "order": 12,
+     "protokol": "cmj"
+    }
+   ],
+   "dukazy": [
+    {
+     "code": "E01",
+     "trait": "Identita varianty",
+     "basis_text": "rs12722, COL5A1 NM_000093.5:c.*267C>T, 3′UTR. [OVĚŘIT transkript a souřadnice; DOPLNIT dbSNP jako zdroj]",
+     "usage": "Jen identifikace; žádný závěr o riziku.",
+     "source_labels": "",
+     "order": 0
+    },
+    {
+     "code": "E02",
+     "trait": "Achillova tendinopatie – původní studie",
+     "basis_text": "September 2009: dvě populace (Jihoafrická republika, Austrálie); genotyp CC méně častý u osob s tendinopatií [S1]. [OVĚŘIT směr a velikost efektu, velikost souborů]",
+     "usage": "Populační asociace: „v některých studiích“. Žádné osobní riziko.",
+     "source_labels": "S1",
+     "order": 1
+    },
+    {
+     "code": "E03",
+     "trait": "Poranění měkkých tkání – metaanalýza",
+     "basis_text": "Lv 2018: systematický přehled a metaanalýza rs12722 a poranění měkkých tkání [S3]. [OVĚŘIT OR, 95% CI a heterogenitu]",
+     "usage": "Malý a nejednotný efekt; nepřevádět na osobní riziko (revizní priorita karty).",
+     "source_labels": "S3",
+     "order": 2
+    },
+    {
+     "code": "E04",
+     "trait": "Přenositelnost mezi populacemi",
+     "basis_text": "Miyamoto-Mikami 2019: u japonských sportovců bez asociace s tuhostí svalu ani poraněními [S4].",
+     "usage": "Uvést, že výsledky nejsou jednotné a nejsou ověřené napříč populacemi.",
+     "source_labels": "S4",
+     "order": 3
+    },
+    {
+     "code": "E05",
+     "trait": "Ekonomika běhu a flexibilita",
+     "basis_text": "Posthumus 2011: jedna studie, vytrvalostní běh [S2]. [OVĚŘIT design a závěr] Flexibilita: nejednotné výsledky. [DOPLNIT zdroje]",
+     "usage": "V této verzi žádný závěr o ekonomice běhu ani flexibilitě.",
+     "source_labels": "S2",
+     "order": 4
+    },
+    {
+     "code": "E06",
+     "trait": "Neúplný bibliografický fragment",
+     "basis_text": "„elders in Taiwan. Experimental Gerontology, 82, 46–52.“ – zachováno z podkladů. [DOPLNIT citaci, nebo po ověření vyřadit]",
+     "usage": "Nepoužívat, dokud není doplněn.",
+     "source_labels": "S5",
+     "order": 5
+    }
+   ],
+   "zdroje": [
+    {
+     "label": "S1",
+     "title": "September 2009 – Achillova tendinopatie, dvě populace",
+     "citation": "September, A. V., Cook, J., Handley, C. J., van der Merwe, L., Schwellnus, M. P., & Collins, M. (2009). Variants within the COL5A1 gene are associated with Achilles tendinopathy in two populations. British Journal of Sports Medicine, 43(5), 357-365.",
+     "url": "",
+     "order": 0
+    },
+    {
+     "label": "S2",
+     "title": "Posthumus 2011 – vytrvalostní běh",
+     "citation": "Posthumus, M., Schwellnus, M. P., & Collins, M. (2011). The COL5A1 gene: a novel marker of endurance running performance. Medicine and Science in Sports and Exercise, 43(4), 584-589.",
+     "url": "",
+     "order": 1
+    },
+    {
+     "label": "S3",
+     "title": "Lv 2018 – metaanalýza poranění",
+     "citation": "Lv, Z. T., Gao, S. T., Cheng, P., Liang, S., & Yu, S. Y. (2018). Association between polymorphism rs12722 in COL5A1 and musculoskeletal soft tissue injuries: a systematic review and meta-analysis. Oncotarget, 9(20), 15365-15374.",
+     "url": "",
+     "order": 2
+    },
+    {
+     "label": "S4",
+     "title": "Miyamoto-Mikami 2019 – japonští sportovci, bez asociace",
+     "citation": "Miyamoto-Mikami, E., Miyamoto, N., Kumagai, H., Hirata, K., Kimura, N., Fuku, N., Miyachi, M., et al. (2019). COL5A1 rs12722 polymorphism is not associated with passive muscle stiffness and sports-related muscle injury in Japanese athletes. BMC Medical Genetics, 20, 192.",
+     "url": "",
+     "order": 3
+    },
+    {
+     "label": "S5",
+     "title": "Neúplný fragment – doplnit nebo vyřadit",
+     "citation": "elders in Taiwan. Experimental Gerontology, 82, 46-52.",
+     "url": "",
+     "order": 4
+    }
+   ],
+   "nepripustne": [
+    {
+     "text": "máte zvýšené riziko tendinopatie",
+     "note": ""
+    },
+    {
+     "text": "máte zvýšené riziko zranění",
+     "note": ""
+    },
+    {
+     "text": "riziko poranění je u vás nižší",
+     "note": ""
+    },
+    {
+     "text": "méně příznivý profil této varianty",
+     "note": ""
+    },
+    {
+     "text": "příznivější profil této varianty",
+     "note": ""
+    },
+    {
+     "text": "výhodnější ekonomika běhu",
+     "note": ""
+    },
+    {
+     "text": "potvrzuje genetickou predispozici",
+     "note": ""
+    },
+    {
+     "text": "odpovídá méně příznivému profilu",
+     "note": ""
+    }
+   ],
+   "scenare": [
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Opakovaně mívám bolesti Achillovy nebo patelární šlachy při vyšším tréninkovém objemu.",
+     "answer_match": {
+      "choices": [
+       "opakovane"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 0,
+     "otazka": "slachy_opakovane",
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Opakované bolesti šlach jsou samy o sobě důvod upravit zátěž a nechat se vyšetřit, bez ohledu na genotyp. Genotyp obtíže nepotvrzuje ani nevysvětluje; o příčině rozhoduje zatížení, technika a historie zranění."
+      },
+      {
+       "genotype": "CT",
+       "text": "Opakované bolesti šlach jsou samy o sobě důvod upravit zátěž a nechat se vyšetřit, bez ohledu na genotyp. Genotyp obtíže nepotvrzuje ani nevysvětluje; o příčině rozhoduje zatížení, technika a historie zranění."
+      },
+      {
+       "genotype": "TT",
+       "text": "Opakované bolesti šlach jsou samy o sobě důvod upravit zátěž a nechat se vyšetřit, bez ohledu na genotyp. Genotyp obtíže nepotvrzuje ani nevysvětluje; o příčině rozhoduje zatížení, technika a historie zranění."
+      }
+     ]
+    },
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Šlachové potíže nemívám ani při vyšší běžecké nebo silové zátěži.",
+     "answer_match": {
+      "choices": [
+       "nikdy"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 1,
+     "otazka": "slachy_opakovane",
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Bez šlachových potíží platí běžná prevence přetížení (postupný objem, silový trénink); genotyp na tom nic nemění."
+      },
+      {
+       "genotype": "CT",
+       "text": "Bez šlachových potíží platí běžná prevence přetížení (postupný objem, silový trénink); genotyp na tom nic nemění."
+      },
+      {
+       "genotype": "TT",
+       "text": "Bez šlachových potíží platí běžná prevence přetížení (postupný objem, silový trénink); genotyp na tom nic nemění."
+      }
+     ]
+    }
+   ],
+   "revize": [
+    {
+     "part": "Důkaz E02 – September 2009",
+     "original": "",
+     "proposal": "",
+     "reason": "Ověřit směr a velikost efektu, velikost souborů.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Důkaz E03 – Lv 2018",
+     "original": "",
+     "proposal": "",
+     "reason": "Ověřit OR, 95% CI a heterogenitu; pokud efekt nepotvrzuje, texty pro genotypy ještě zkrátit.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Zdroj S5 – fragment",
+     "original": "",
+     "proposal": "",
+     "reason": "„elders in Taiwan. Experimental Gerontology, 82, 46–52.“: doplnit citaci, nebo po ověření vyřadit (pokyn z kontroly úplnosti).",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Doporučení – progrese zátěže a prevence",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit zdroje pro pravidlo progrese objemu a pro excentrická cvičení; pak odstranit značky [DOPLNIT].",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Frekvence genotypů",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit z dbSNP/gnomAD s populací, nebo nechat prázdné; „interní tabulka“ nestačí.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Scénáře z dotazníku",
+     "original": "",
+     "proposal": "",
+     "reason": "Texty pro odpověď „opakovaně“ a „nikdy“ jsou stejné pro všechny genotypy; po kontrole zapnout (krok 5).",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    }
+   ]
+  }
+ ]
+}

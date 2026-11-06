@@ -1,0 +1,284 @@
+{
+ "format": "navrh-karty/1",
+ "popis": "SLC16A1 / rs1049434 (intenzivní zátěž a laktát): karta bez původního obsahu; v1 návrh znění k revizi garantem oblasti Výkon a trénink.",
+ "varianty": [
+  {
+   "organizace": null,
+   "oblast": "vykon",
+   "gene": "SLC16A1",
+   "full_name": "Solute carrier family 16 member 1 (přenašeč MCT1)",
+   "rsid": "rs1049434",
+   "notation": "rs1049434 (c.1470T>A; p.Glu490Asp; A1470T) [OVĚŘIT]",
+   "subtitle": "Intenzivní zátěž a laktátový metabolismus",
+   "genotypes": [
+    "AA",
+    "AT",
+    "TT"
+   ],
+   "genotype_aliases": {},
+   "strand_note": "A/T varianta je strandově nejednoznačná: genotyp nelze orientovat jen z písmen alel. Před převodem zápisu laboratoře potvrdit metodu a vlákno.",
+   "frequency_source": "https://www.ncbi.nlm.nih.gov/snp/rs1049434#frequency_tab",
+   "order": 7,
+   "is_active": true
+  }
+ ],
+ "karty": [
+  {
+   "organizace": null,
+   "varianta": "rs1049434",
+   "nahrazuje": null,
+   "version": 1,
+   "status": "draft",
+   "review_priorities": "",
+   "biology_expert": "SLC16A1 kóduje monokarboxylátový transportér MCT1 (laktát, pyruvát, ketolátky; kotransport s H⁺), exprimovaný v oxidativních vláknech, srdci a erytrocytech. Varianta rs1049434 (Glu490Asp, A1470T) je missense záměna; u nositelů byla popsána snížená transportní kapacita laktátu v erytrocytech [S2, OVĚŘIT].",
+   "biology_client": "Gen SLC16A1 nese návod na přenašeč MCT1, který přenáší laktát a vodíkové ionty přes buněčnou membránu – z pracujícího svalu ven i do buněk, které laktát využívají jako palivo. Varianta rs1049434 mění jednu aminokyselinu tohoto přenašeče [S1, OVĚŘIT]. Jak zvládáte intenzivní zátěž, ukáže měření, ne genotyp.",
+   "effect": "Některé studie popisují rozdíly v hladině laktátu po intenzivní zátěži mezi genotypy a rozdílné frekvence genotypů u sportovců různých disciplín [S3, S4, OVĚŘIT]; výsledky jsou malé, nejednotné a směr účinku je třeba ověřit.",
+   "limitations": "Z genotypu SLC16A1 nelze určit anaerobní kapacitu, toleranci laktátu ani vhodný sport. Studie jsou malé a nejednotné. Varianta A/T je strandově nejednoznačná – zápis laboratoře je třeba orientovat podle metody, ne podle písmen. Zvládání intenzivní zátěže ukáže Wingate test a laktátová křivka.",
+   "frequency_note": "Doplnit z dbSNP s názvem souboru a populace, nebo nechat prázdné.",
+   "related_areas": [],
+   "import_note": "K odbornému dopracování. V původním produktovém dokumentu tato genová karta nebyla; nejde o obsah ztracený při převodu.",
+   "change_summary": "Karta nebyla v původních podkladech; jde o první návrh od začátku. Zdroje jsou doplněné bez DOI a je třeba je ověřit. Doplněno: biologie, omezení, texty pro genotypy, dvě obecná doporučení (trénink podle měření, Wingate test), nepřípustné výroky, zdroje S1–S4 a řádky důkazů E01–E03. Osnovové úkoly z podkladů zůstávají v revizních záznamech.",
+   "approved_at": null,
+   "texty": [
+    {
+     "genotype": "AA",
+     "client_text": "Byl zjištěn genotyp AA varianty SLC16A1 rs1049434 [OVĚŘIT orientaci alel podle metody laboratoře]. Některé studie popisují u této varianty rozdíly v hromadění laktátu po intenzivní zátěži, výsledky ale nejsou jednotné [S3, S4, OVĚŘIT]. Z výsledku nelze určit, jak zvládáte intenzivní zátěž; to ukáže Wingate test a laktátová křivka.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 0
+    },
+    {
+     "genotype": "AT",
+     "client_text": "Byl zjištěn genotyp AT varianty SLC16A1 rs1049434 [OVĚŘIT orientaci alel podle metody laboratoře]. Nesete jednu kopii každé alely. Studie u této skupiny nenacházejí jednoznačný rozdíl [S3, S4, OVĚŘIT]. Z výsledku nelze určit, jak zvládáte intenzivní zátěž; to ukáže Wingate test a laktátová křivka.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 1
+    },
+    {
+     "genotype": "TT",
+     "client_text": "Byl zjištěn genotyp TT varianty SLC16A1 rs1049434 [OVĚŘIT orientaci alel podle metody laboratoře]. Některé studie popisují u této varianty rozdíly v hromadění laktátu po intenzivní zátěži, výsledky ale nejsou jednotné [S3, S4, OVĚŘIT]. Z výsledku nelze určit, jak zvládáte intenzivní zátěž; to ukáže Wingate test a laktátová křivka.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 2
+    }
+   ],
+   "doporuceni": [
+    {
+     "genotype": "",
+     "kind": "training",
+     "text": "Dávkování intenzivní intervalové zátěže vychází z cíle, sportu, tréninkové historie a měření, ne z genotypu.",
+     "basis": "general",
+     "merge_key": "trenink-podle-mereni",
+     "order": 0,
+     "protokol": null
+    },
+    {
+     "genotype": "",
+     "kind": "training",
+     "text": "Anaerobní výkon a pokles výkonu během zátěže ukáže Wingate test; zpráva porovná výsledek s normou a s minulým měřením.",
+     "basis": "measurement",
+     "merge_key": "anaerobni-mereni",
+     "order": 1,
+     "protokol": "wingate"
+    }
+   ],
+   "dukazy": [
+    {
+     "code": "E01",
+     "trait": "Identita varianty",
+     "basis_text": "rs1049434, SLC16A1 c.1470T>A, p.Glu490Asp; strandově nejednoznačná A/T. [OVĚŘIT transkript, souřadnice a konvenci laboratoře]",
+     "usage": "Jen identifikace; bez potvrzení vlákna se genotyp nedá orientovat.",
+     "source_labels": "S1",
+     "order": 0
+    },
+    {
+     "code": "E02",
+     "trait": "Transport laktátu",
+     "basis_text": "Merezhinskaya 2000: snížený transport laktátu v erytrocytech u nositelů [S2]. [OVĚŘIT, zda jde o tuto variantu a jaký soubor]",
+     "usage": "Uvést jako biologickou souvislost; žádný výkonový závěr.",
+     "source_labels": "S2",
+     "order": 1
+    },
+    {
+     "code": "E03",
+     "trait": "Laktát po zátěži a status sportovce",
+     "basis_text": "Cupeiro 2010: pilotní studie, rozdíly v laktátu po kruhovém tréninku [S3]. Fedotovskaya 2014: frekvence genotypů u sportovců [S4]. [OVĚŘIT směr účinku, soubory a velikost efektu]",
+     "usage": "Populační asociace: „v některých studiích“; žádná predikce u klienta.",
+     "source_labels": "S3, S4",
+     "order": 2
+    }
+   ],
+   "zdroje": [
+    {
+     "label": "S1",
+     "title": "Gen a varianta (NCBI) [OVĚŘIT citaci]",
+     "citation": "National Center for Biotechnology Information. SLC16A1 solute carrier family 16 member 1 [Homo sapiens]; rs1049434 (dbSNP). NCBI Gene / dbSNP.",
+     "url": "",
+     "order": 0
+    },
+    {
+     "label": "S2",
+     "title": "Transport laktátu u nositelů [OVĚŘIT citaci]",
+     "citation": "Merezhinskaya N, Fishbein WN, Davis JI, Foellmer JW. Mutations in MCT1 cDNA in patients with symptomatic deficiency in lactate transport. Muscle Nerve. 2000;23(1):90–97.",
+     "url": "",
+     "order": 1
+    },
+    {
+     "label": "S3",
+     "title": "Laktát po intenzivním tréninku [OVĚŘIT citaci]",
+     "citation": "Cupeiro R, Benito PJ, Maffulli N, Calderón FJ, González-Lamuño D. MCT1 genetic polymorphism influence in high intensity circuit training: a pilot study. J Sci Med Sport. 2010;13(5):526–530.",
+     "url": "",
+     "order": 2
+    },
+    {
+     "label": "S4",
+     "title": "Status sportovce [OVĚŘIT citaci]",
+     "citation": "Fedotovskaya ON, Mustafina LJ, Popov DV, Vinogradova OL, Ahmetov II. A common polymorphism of the MCT1 gene and athletic performance. Int J Sports Physiol Perform. 2014;9(1):173–180.",
+     "url": "",
+     "order": 3
+    }
+   ],
+   "nepripustne": [
+    {
+     "text": "lépe snášíte laktát",
+     "note": ""
+    },
+    {
+     "text": "hůře snášíte laktát",
+     "note": ""
+    },
+    {
+     "text": "hromadí se vám laktát",
+     "note": ""
+    },
+    {
+     "text": "rychle odbouráváte laktát",
+     "note": ""
+    },
+    {
+     "text": "potvrzuje genetický profil",
+     "note": ""
+    },
+    {
+     "text": "vhodné sporty pro váš genotyp",
+     "note": ""
+    },
+    {
+     "text": "jste anaerobní typ",
+     "note": ""
+    }
+   ],
+   "scenare": [],
+   "revize": [
+    {
+     "part": "Identifikace",
+     "original": "",
+     "proposal": "",
+     "reason": "Pracovní zápisy genotypů: AA, AT, TT. Laboratorní konvenci je třeba potvrdit.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Biologická funkce a účinek varianty",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit odborný a klientský popis; oddělit funkci genu od doloženého účinku konkrétní varianty.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Frekvence a důkazy",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit konkrétní populaci, zdroj frekvencí, zkoumaný znak a sílu i omezení důkazů.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Interpretace a doporučení",
+     "original": "",
+     "proposal": "",
+     "reason": "Připravit samostatný text pro každý genotyp a uvést, z jakých důkazů doporučení vychází.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Dotazník a fenotyp",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit související otázky a případné důvody budoucího měření. Viz doprovodný dokument.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Interakce a zdroje",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit pouze doložené kombinace; uvést, zda všechny potřebné varianty patří do panelu.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Omezení a revize",
+     "original": "",
+     "proposal": "",
+     "reason": "A/T varianta je strandově nejednoznačná. Genotyp nelze orientovat jen ze znaků alel. Doplnit odbornou kartu.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Zařazení do V1",
+     "original": "",
+     "proposal": "",
+     "reason": "Rozhodnout, zda karta patří do první verze panelu: obsah vznikl od začátku, důkazy jsou malé a nejednotné.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Orientace alel",
+     "original": "",
+     "proposal": "",
+     "reason": "A/T varianta je strandově nejednoznačná; potvrdit metodu laboratoře a zapsat konvenci do panelu (pokyn z osnovy).",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Zdroje S1–S4",
+     "original": "",
+     "proposal": "",
+     "reason": "Citace doplněné bez DOI z paměti; ověřit, doplnit DOI, případně nahradit aktuálnějším přehledem.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Frekvence genotypů",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit z dbSNP s populací, nebo nechat prázdné.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Dotazník a fenotyp",
+     "original": "",
+     "proposal": "",
+     "reason": "Rozhodnout, zda napojit scénář na otázku o výkonovém profilu; zatím bez scénářů.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,268 @@
+{
+ "format": "navrh-karty/1",
+ "popis": "TCF7L2 / rs7903146 (metabolický kontext výživy): karta bez původního obsahu; v1 návrh znění k revizi garantem oblasti Hmotnost a metabolický kontext.",
+ "varianty": [
+  {
+   "organizace": null,
+   "oblast": "hmotnost",
+   "gene": "TCF7L2",
+   "full_name": "Transcription factor 7 like 2",
+   "rsid": "rs7903146",
+   "notation": "rs7903146 (intron 3; C>T) [OVĚŘIT]",
+   "subtitle": "Metabolický kontext výživy",
+   "genotypes": [
+    "CC",
+    "CT",
+    "TT"
+   ],
+   "genotype_aliases": {},
+   "strand_note": "",
+   "frequency_source": "https://www.ncbi.nlm.nih.gov/snp/rs7903146#frequency_tab",
+   "order": 10,
+   "is_active": true
+  }
+ ],
+ "karty": [
+  {
+   "organizace": null,
+   "varianta": "rs7903146",
+   "nahrazuje": null,
+   "version": 1,
+   "status": "draft",
+   "review_priorities": "",
+   "biology_expert": "TCF7L2 kóduje transkripční faktor dráhy Wnt s rolí v sekreci inzulinu a funkci β-buněk. Varianta rs7903146 (intron 3) je v populačních studiích spojena s vyšším rizikem diabetu 2. typu [S1, OVĚŘIT]; intervence životního stylu snižuje progresi bez ohledu na genotyp [S2, OVĚŘIT].",
+   "biology_client": "Gen TCF7L2 nese návod na bílkovinu, která řídí činnost dalších genů, mimo jiné v buňkách slinivky tvořících inzulin. Varianta rs7903146 leží v intronové oblasti genu [S1, OVĚŘIT]. Hladinu cukru v krvi a metabolické zdraví určuje hlavně strava, pohyb a tělesná hmotnost; vypovídá o nich lékařské vyšetření, ne genotyp.",
+   "effect": "Alela T je v populačních studiích spojena s vyšší pravděpodobností diabetu 2. typu (asi 1,4násobek na alelu [S1, OVĚŘIT]); jde o zdravotní, ne sportovní znak. Úprava stravy a pohybu působí bez ohledu na genotyp [S2, OVĚŘIT].",
+   "limitations": "Z genotypu TCF7L2 nelze určit glykemii, diagnózu ani vhodnou stravu. Varianta je známá z populačních studií onemocnění, nikoli ze sportovní diagnostiky; zdravotní závěry do sportovní zprávy nepatří a patří lékaři. Úprava stravy a pohybu působí bez ohledu na genotyp.",
+   "frequency_note": "Doplnit z dbSNP s názvem souboru a populace, nebo nechat prázdné.",
+   "related_areas": [],
+   "import_note": "K odbornému dopracování. V původním produktovém dokumentu tato genová karta nebyla; nejde o obsah ztracený při převodu.",
+   "change_summary": "Karta nebyla v původních podkladech; jde o první návrh od začátku. Zdroje jsou doplněné bez DOI a je třeba je ověřit. Doplněno: biologie, omezení (žádná diagnóza, glykemie ani dieta z genotypu), texty pro genotypy, jedno obecné doporučení, nepřípustné výroky, zdroje S1–S3 a řádky důkazů E01–E03. Osnovové úkoly z podkladů zůstávají v revizních záznamech.",
+   "approved_at": null,
+   "texty": [
+    {
+     "genotype": "CC",
+     "client_text": "Byl zjištěn genotyp CC varianty TCF7L2 rs7903146. Nenesete alelu T, která je v populačních studiích spojena s odlišnou regulací hladiny cukru v krvi [S1, OVĚŘIT]. Z výsledku nelze určit vaši glykemii, metabolické zdraví ani vhodnou stravu; o nich vypovídá jen lékařské vyšetření.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 0
+    },
+    {
+     "genotype": "CT",
+     "client_text": "Byl zjištěn genotyp CT varianty TCF7L2 rs7903146. Nesete jednu kopii alely T, která je v populačních studiích spojena s odlišnou regulací hladiny cukru v krvi [S1, OVĚŘIT]; vliv stravy a pohybu je větší než vliv genotypu a úprava životního stylu působí bez ohledu na genotyp [S2, OVĚŘIT]. Z výsledku nelze určit vaši glykemii, zdravotní stav ani stravu; ty posoudí lékař z vyšetření.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 1
+    },
+    {
+     "genotype": "TT",
+     "client_text": "Byl zjištěn genotyp TT varianty TCF7L2 rs7903146. Nesete dvě kopie alely T, která je v populačních studiích spojena s odlišnou regulací hladiny cukru v krvi [S1, OVĚŘIT]; vliv stravy a pohybu je větší než vliv genotypu a úprava životního stylu působí bez ohledu na genotyp [S2, OVĚŘIT]. Z výsledku nelze určit vaši glykemii, zdravotní stav ani stravu; ty posoudí lékař z vyšetření.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 2
+    }
+   ],
+   "doporuceni": [
+    {
+     "genotype": "",
+     "kind": "nutrition",
+     "text": "Stravu a hmotnost nastavujte podle cíle, tréninku a měření; s otázkami na hladinu cukru nebo metabolické zdraví se obraťte na lékaře, ne na genotyp.",
+     "basis": "general",
+     "merge_key": "strava-podle-cile",
+     "order": 0,
+     "protokol": null
+    }
+   ],
+   "dukazy": [
+    {
+     "code": "E01",
+     "trait": "Identita varianty",
+     "basis_text": "rs7903146, TCF7L2 intron 3, C>T [S3]. [OVĚŘIT orientaci alel podle metody laboratoře]",
+     "usage": "Jen identifikace.",
+     "source_labels": "S3",
+     "order": 0
+    },
+    {
+     "code": "E02",
+     "trait": "Varianta a diabetes 2. typu",
+     "basis_text": "Grant 2006: alela T spojena s vyšším rizikem diabetu 2. typu, asi 1,4násobek na alelu, islandská a další populace [S1]. [OVĚŘIT hodnotu]",
+     "usage": "Zdravotní znak; do sportovní zprávy jen bez zdravotního závěru, s odkazem na lékaře.",
+     "source_labels": "S1",
+     "order": 1
+    },
+    {
+     "code": "E03",
+     "trait": "Intervence životního stylu",
+     "basis_text": "Florez 2006: v programu prevence diabetu intervence životního stylu snižovala progresi u všech genotypů [S2]. [OVĚŘIT]",
+     "usage": "Žádná dieta podle genotypu (pokyn z osnovy karty).",
+     "source_labels": "S2",
+     "order": 2
+    }
+   ],
+   "zdroje": [
+    {
+     "label": "S1",
+     "title": "Varianta a diabetes 2. typu [OVĚŘIT citaci]",
+     "citation": "Grant SFA, Thorleifsson G, Reynisdottir I, et al. Variant of transcription factor 7-like 2 (TCF7L2) gene confers risk of type 2 diabetes. Nat Genet. 2006;38(3):320–323.",
+     "url": "",
+     "order": 0
+    },
+    {
+     "label": "S2",
+     "title": "Intervence životního stylu [OVĚŘIT citaci]",
+     "citation": "Florez JC, Jablonski KA, Bayley N, et al. TCF7L2 polymorphisms and progression to diabetes in the Diabetes Prevention Program. N Engl J Med. 2006;355(3):241–250.",
+     "url": "",
+     "order": 1
+    },
+    {
+     "label": "S3",
+     "title": "Varianta (dbSNP) [OVĚŘIT citaci]",
+     "citation": "National Center for Biotechnology Information. rs7903146, dbSNP summary for TCF7L2 intron 3 variant.",
+     "url": "",
+     "order": 2
+    }
+   ],
+   "nepripustne": [
+    {
+     "text": "máte riziko cukrovky",
+     "note": ""
+    },
+    {
+     "text": "máte diabetes",
+     "note": ""
+    },
+    {
+     "text": "máte vyšší glykemii",
+     "note": ""
+    },
+    {
+     "text": "genotyp určuje stravu",
+     "note": ""
+    },
+    {
+     "text": "nízkosacharidová dieta pro váš genotyp",
+     "note": ""
+    },
+    {
+     "text": "potvrzuje genetický profil",
+     "note": ""
+    },
+    {
+     "text": "máte rizikový genotyp",
+     "note": ""
+    }
+   ],
+   "scenare": [],
+   "revize": [
+    {
+     "part": "Identifikace",
+     "original": "",
+     "proposal": "",
+     "reason": "Pracovní zápisy genotypů: CC, CT, TT. Laboratorní konvenci je třeba potvrdit.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Biologická funkce a účinek varianty",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit odborný a klientský popis; oddělit funkci genu od doloženého účinku konkrétní varianty.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Frekvence a důkazy",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit konkrétní populaci, zdroj frekvencí, zkoumaný znak a sílu i omezení důkazů.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Interpretace a doporučení",
+     "original": "",
+     "proposal": "",
+     "reason": "Připravit samostatný text pro každý genotyp a uvést, z jakých důkazů doporučení vychází.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Dotazník a fenotyp",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit související otázky a případné důvody budoucího měření. Viz doprovodný dokument.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Interakce a zdroje",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit pouze doložené kombinace; uvést, zda všechny potřebné varianty patří do panelu.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Omezení a revize",
+     "original": "",
+     "proposal": "",
+     "reason": "Neodvozovat diagnózu, glykemii ani konkrétní dietu z genotypu. Doplnit odbornou kartu.",
+     "source": "podklady – osnova k doplnění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Zařazení do V1",
+     "original": "",
+     "proposal": "",
+     "reason": "Rozhodnout, zda karta patří do první verze panelu: varianta je známá z populačních studií onemocnění a oblast je „bez zdravotních závěrů“.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Zdroje S1–S3",
+     "original": "",
+     "proposal": "",
+     "reason": "Citace doplněné bez DOI z paměti; ověřit a doplnit DOI.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Důkaz E02",
+     "original": "",
+     "proposal": "",
+     "reason": "Ověřit velikost efektu (asi 1,4násobek na alelu) a populace.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Frekvence genotypů",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit z dbSNP s populací, nebo nechat prázdné.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Dotazník a fenotyp",
+     "original": "",
+     "proposal": "",
+     "reason": "Zatím bez scénářů; rozhodnout, zda vůbec.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    }
+   ]
+  }
+ ]
+}

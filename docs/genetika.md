@@ -145,13 +145,18 @@ pro klienta, v omezení interpretace, v doporučeních a v zapnutých scénář�
 schválení zastaví – kontrola je hlásí jako blokující; v řádcích důkazů jen
 upozorní. Garant je nahradí ověřeným údajem, nebo větu smaže.
 
-První takový soubor je `katalog/karty/cyp1a2.json` (CYP1A2 / rs762551, oblast
-Kofein): v1 je původní karta z podkladů v02 převedená aplikací, v2 návrh
-podle revizního pokynu karty (žádná dávka ani zaručený účinek kofeinu
-z genotypu) – nové texty pro genotypy, čtyři obecná doporučení včetně pokusu
-s kofeinem jako budoucího měření (spiroergometrie), texty scénářů pro odpověď
-o účinku kofeinu (vypnuté, zapne garant), nepřípustné výroky, řádky důkazů
-E01–E05 a šest revizních záznamů s tím, co ověřit před odesláním k revizi.
+V repozitáři je deset souborů, jeden pro každou variantu panelu:
+
+| Soubor | Karta | Co nese |
+|---|---|---|
+| `ace.json`, `col5a1.json`, `il6.json`, `ppargc1a.json`, `cyp1a2.json` | ACE, COL5A1, IL6, PPARGC1A, CYP1A2 | v1 původní karta z podkladů v02 převedená aplikací; v2 návrh podle revizní priority karty: nové texty pro genotypy (co studie uvádějí, co z výsledku určit nejde), obecná doporučení místo doporučení podle genotypu (včetně budoucího měření testem z katalogu), neutrální texty scénářů z dotazníku (vypnuté), nepřípustné výroky, zdroje s názvy, řádky důkazů a úkoly k ověření |
+| `actn3.json` | ACTN3 | v1 původní karta; v2 navazuje na revizi v0.2 z podkladů – revidované texty, důkazy E01–E05, výroky a zdroje S1–S6 zůstávají, doplněno omezení, obecná doporučení a texty scénářů |
+| `mcm6-lct.json` | MCM6/LCT | v1 původní karta; v2 s pozdějšími návrhy klientských formulací z podkladů, scénáře k whey napojené na otázku dotazníku |
+| `slc16a1.json`, `fto.json`, `tcf7l2.json` | SLC16A1, FTO, TCF7L2 | karty bez původního obsahu (v podkladech jen osnova): v1 návrh od začátku – biologie, omezení, opatrné texty pro genotypy, obecná doporučení, výroky, zdroje bez DOI a důkazy; osnovové úkoly zůstávají v revizních záznamech spolu s úkolem rozhodnout o zařazení do V1 |
+
+Všechny návrhy mají kroky 1–7 průvodce hotové; schválení blokují jen značky
+k ověření a otevřené revizní záznamy (krok 8). U ACTN3 kontrola nic
+neblokuje, protože texty jsou z revize v0.2.
 
 ## Dotazník ke genetickému vyšetření
 

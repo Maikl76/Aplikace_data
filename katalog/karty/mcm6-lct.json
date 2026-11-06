@@ -1,0 +1,642 @@
+{
+ "format": "navrh-karty/1",
+ "popis": "MCM6/LCT / rs4988235 (trávení laktózy): v1 původní znění z podkladů v02, v2 návrh navazující na pozdější návrhy klientských formulací.",
+ "varianty": [
+  {
+   "organizace": null,
+   "oblast": "laktoza",
+   "gene": "MCM6/LCT",
+   "full_name": "Lactase (Laktáza)",
+   "rsid": "rs4988235",
+   "notation": "rs4988235 (C/T; -13910C>T)",
+   "subtitle": "Trávení laktózy",
+   "genotypes": [
+    "CC",
+    "CT",
+    "TT"
+   ],
+   "genotype_aliases": {},
+   "strand_note": "",
+   "frequency_source": "https://www.ncbi.nlm.nih.gov/snp/rs4988235#frequency_tab",
+   "order": 6,
+   "is_active": true
+  }
+ ],
+ "karty": [
+  {
+   "organizace": null,
+   "varianta": "rs4988235",
+   "nahrazuje": null,
+   "version": 1,
+   "status": "original",
+   "review_priorities": "Genetická predispozice neprokazuje příznaky intolerance. Vyjasnit populační přenositelnost a orientaci alel.\n\nPoužívaný název LCT zůstává v původním textu. V panelu kartu označujeme MCM6/LCT; identitu regulační varianty a její populační použitelnost je třeba zachovat při revizi.",
+   "biology_expert": "LCT kóduje enzym laktázu-phlorizin hydrolázu lokalizovaný v kartáčovém lemu enterocytů tenkého střeva. Tento enzym štěpí laktózu na glukózu a galaktózu. Aktivita laktázy je vysoká v kojeneckém věku a u části populace přetrvává i v dospělosti. Klinicky i nutričně významná variabilita ale není dána samotnou kódující sekvencí LCT, ale především regulačními variantami v oblasti genu MCM6, které ovlivňují expresi LCT.",
+   "biology_client": "Gen LCT souvisí s tvorbou enzymu laktázy, který umožňuje trávit mléčný cukr – laktózu. Pokud je aktivita laktázy v dospělosti nízká, po konzumaci mléka nebo výrobků s vyšším obsahem laktózy se mohou objevovat nadýmání, průjem, křeče nebo pocit plnosti.",
+   "effect": "Polymorfismus rs4988235 (-13910C>T) je regulační varianta spojená s přetrváváním nebo poklesem exprese laktázy v dospělosti. Genotyp CC je obecně spojen s nepersistencí laktázy a se zvyšující se pravděpodobností intolerance laktózy s věkem. Naopak genotypy CT a TT bývají spojeny s laktázovou persistencí, tedy se zachovanou schopností trávit laktózu i v dospělosti.",
+   "limitations": "",
+   "frequency_note": "Převzaté frekvence: před schválením doložit konkrétní populační soubor a zdroj. Samotné označení „evropská populace“ nestačí.",
+   "related_areas": [
+    "Laktózová tolerance",
+    "Sportovní výživa a tolerance mléčných výrobků",
+    "Gastrointestinální komfort při zátěži",
+    "Tolerance syrovátkových a mléčných proteinů"
+   ],
+   "import_note": "Původní návrh k revizi. Zachováno 54 neprázdných odstavců včetně identifikačního nadpisu; původní anglické názvy polí jsou nahrazeny českými nadpisy. Textová tvrzení nejsou nově ověřena.\n\nGen v původní kartě: LCT\n\nNásledují původní návrhy doporučení, včetně případných dávek. Nejsou návodem k použití; jejich vazba na genotyp a použitelnost čekají na odbornou revizi.\n\nPůvodní scénáře k posouzení. Odpověď ani měření samy nepotvrzují genetickou příčinu. Scénáře založené na měření nejsou aktivní ve V1.\n\nPůvodní hypotézy k samostatnému posouzení. Kombinace obsahující varianty mimo panel nelze vyhodnotit z aktuálního testu.\n\nSouvisející oblasti: Pro tuto položku nebyla v dostupných podkladech nalezena dostatečně kvalitní a prakticky využitelná genová interakce, kterou by bylo vhodné rutinně interpretovat společně s rs4988235 v rámci této karty.",
+   "change_summary": "",
+   "approved_at": null,
+   "texty": [
+    {
+     "genotype": "CC",
+     "client_text": "S postupujícím věkem u Vás pravděpodobně poroste riziko horší tolerance laktózy. Prakticky to znamená vyšší pravděpodobnost zažívacích obtíží po čerstvém mléce nebo po výrobcích s vyšším obsahem laktózy. Ve sportovní výživě může být důležité sledovat toleranci mléčných koktejlů, whey koncentrátu nebo jiných suplementů s obsahem laktózy.",
+     "expert_text": "",
+     "frequency": "22,8 % (Evropská populace)",
+     "order": 0
+    },
+    {
+     "genotype": "CT",
+     "client_text": "Máte vysokou pravděpodobnost zachované tolerance laktózy i v dospělosti. Ve většině případů bývá příjem běžných mléčných výrobků dobře snášen. Přesto platí, že skutečná tolerance závisí i na množství přijaté laktózy, složení stravy a individuálním fenotypu.",
+     "expert_text": "",
+     "frequency": "41,1 % (Evropská populace)",
+     "order": 1
+    },
+    {
+     "genotype": "TT",
+     "client_text": "Máte velmi vysokou pravděpodobnost laktázové persistence, tedy dobré tolerance laktózy i v dospělosti. Obvykle byste měl/a bez větších obtíží tolerovat čerstvé mléko i většinu mléčných výrobků, pokud není přítomen jiný gastrointestinální problém nebo intolerance jiné složky potravy.",
+     "expert_text": "",
+     "frequency": "36,1 % (Evropská populace)",
+     "order": 2
+    }
+   ],
+   "doporuceni": [
+    {
+     "genotype": "CC",
+     "kind": "sport",
+     "text": "Pokud se u Vás po mléce nebo po běžných proteinových nápojích objevují zažívací obtíže, preferujte nízkolaktózové nebo bezlaktózové varianty. Ve sportovní praxi bývá vhodný zejména whey izolát nebo hydrolyzát místo koncentrátu.",
+     "basis": "",
+     "merge_key": "",
+     "order": 0,
+     "protokol": null
+    },
+    {
+     "genotype": "CC",
+     "kind": "training",
+     "text": "Před tréninkem, během dlouhé zátěže i bezprostředně po ní zařazujte jen takové mléčné produkty a suplementy, které dobře tolerujete. Vyhněte se experimentům s vyšší dávkou laktózy před výkonem, aby nedošlo ke zhoršení gastrointestinálního komfortu a tím i výkonu.",
+     "basis": "",
+     "merge_key": "",
+     "order": 1,
+     "protokol": null
+    },
+    {
+     "genotype": "CC",
+     "kind": "risk",
+     "text": "Největším rizikem je gastrointestinální diskomfort, který může snižovat kvalitu tréninku, regenerace i celkový příjem energie a bílkovin. Při dlouhodobém vyřazení mléčných výrobků je vhodné hlídat příjem vápníku, vitaminu D a celkovou kvalitu bílkovin.",
+     "basis": "",
+     "merge_key": "",
+     "order": 2,
+     "protokol": null
+    },
+    {
+     "genotype": "CT",
+     "kind": "sport",
+     "text": "Mléčné výrobky a většina běžných sportovních suplementů s obsahem laktózy pro Vás budou pravděpodobně dobře použitelné. Přesto je vhodné sledovat individuální toleranci při vyšším jednorázovém příjmu nebo při konzumaci těsně před výkonem.",
+     "basis": "",
+     "merge_key": "",
+     "order": 3,
+     "protokol": null
+    },
+    {
+     "genotype": "CT",
+     "kind": "training",
+     "text": "Můžete standardně využívat mléko, jogurty i většinu syrovátkových produktů, pokud Vám subjektivně vyhovují. V případě citlivějšího trávení před zátěží je vhodné rozdělit dávku nebo zvolit fermentované či nízkolaktózové varianty.",
+     "basis": "",
+     "merge_key": "",
+     "order": 4,
+     "protokol": null
+    },
+    {
+     "genotype": "CT",
+     "kind": "risk",
+     "text": "Geneticky nepředpokládáme významně zvýšené riziko intolerance laktózy, ale obtíže mohou vzniknout i z jiných důvodů - například při vysoké dávce, současném stresu, po antibiotikách nebo při jiném střevním onemocnění.",
+     "basis": "",
+     "merge_key": "",
+     "order": 5,
+     "protokol": null
+    },
+    {
+     "genotype": "TT",
+     "kind": "sport",
+     "text": "Z genetického hlediska jste dobře disponován/a pro konzumaci běžných mléčných výrobků i sportovní výživy obsahující laktózu. To Vám dává větší flexibilitu při volbě zdrojů bílkovin a sacharidů v rámci regenerace.",
+     "basis": "",
+     "merge_key": "",
+     "order": 6,
+     "protokol": null
+    },
+    {
+     "genotype": "TT",
+     "kind": "training",
+     "text": "Můžete bez většího omezení využívat mléko, kefír, jogurty i syrovátkové přípravky podle energetických a regeneračních cílů. Vždy však zohledněte celkovou snášenlivost konkrétní potraviny a načasování vůči výkonu.",
+     "basis": "",
+     "merge_key": "",
+     "order": 7,
+     "protokol": null
+    },
+    {
+     "genotype": "TT",
+     "kind": "risk",
+     "text": "Specifické genetické riziko intolerance laktózy je nízké. Případné obtíže je pak vhodné hledat spíše v jiných příčinách - například v intoleranci mléčných bílkovin, funkčních gastrointestinálních obtížích nebo v nevhodně načasovaném příjmu.",
+     "basis": "",
+     "merge_key": "",
+     "order": 8,
+     "protokol": null
+    }
+   ],
+   "dukazy": [],
+   "zdroje": [
+    {
+     "label": "",
+     "title": "",
+     "citation": "Enattah, N. S., Sahi, T., Savilahti, E., Terwilliger, J. D., Peltonen, L., & Jarvela, I. (2002). Identification of a variant associated with adult-type hypolactasia. Nature Genetics, 30(2), 233-237.",
+     "url": "",
+     "order": 0
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Beja-Pereira, A., Luikart, G., England, P. R., Bradley, D. G., Jann, O. C., Bertorelle, G., et al. (2003). Gene-culture coevolution between cattle milk protein genes and human lactase genes. Nature Genetics, 35(4), 311-313.",
+     "url": "",
+     "order": 1
+    }
+   ],
+   "nepripustne": [],
+   "scenare": [
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Po vypití čerstvého mléka mívám nadýmání, křeče nebo průjem.",
+     "answer_match": {
+      "choices": [
+       "obtize"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 0,
+     "otazka": "mleko_obtize",
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Tato odpověď velmi dobře odpovídá Vašemu genetickému profilu. Je pravděpodobné, že se u Vás skutečně projevuje zhoršená tolerance laktózy. Doporučujeme pracovat s bezlaktózovými nebo nízkolaktózovými variantami a sledovat, jaká dávka je ještě dobře snášena."
+      },
+      {
+       "genotype": "CT",
+       "text": "Tato odpověď není s Vaší genetickou predispozicí v úplném souladu. Je vhodné zvážit, zda obtíže nevznikají až při vysoké dávce laktózy, při kombinaci s jinými potravinami nebo v souvislosti s jiným gastrointestinálním problémem."
+      },
+      {
+       "genotype": "TT",
+       "text": "Tato odpověď spíše ukazuje na fenotypový nesoulad s genetickou predispozicí. Pokud obtíže přetrvávají, je vhodné hledat jinou příčinu než primární nepersistenci laktázy - například intoleranci mléčných bílkovin nebo funkční střevní potíže."
+      }
+     ]
+    },
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Mléko a běžné mléčné výrobky snáším bez potíží.",
+     "answer_match": {
+      "choices": [
+       "bez"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 1,
+     "otazka": "mleko_obtize",
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Vaše odpověď ukazuje, že se genetická predispozice zatím nemusí fenotypově plně projevovat. To není neobvyklé, protože pokles aktivity laktázy může být pozvolný a závislý na věku, dávce laktózy i složení stravy."
+      },
+      {
+       "genotype": "CT",
+       "text": "Vaše odpověď velmi dobře odpovídá Vaší genetické predispozici. Pravděpodobně máte zachovanou schopnost laktózu dobře trávit i v dospělosti."
+      },
+      {
+       "genotype": "TT",
+       "text": "Vaše odpověď velmi dobře odpovídá Vaší genetické predispozici. Tolerance laktózy je u tohoto genotypu očekávatelná a lze ji v běžné sportovní výživě považovat za výhodu."
+      }
+     ]
+    },
+    {
+     "kind": "other",
+     "title": "Kontext 2: zdroj nutriční praxe – tolerance sportovních suplementů",
+     "statement": "Po whey koncentrátu nebo mléčném regeneračním nápoji mívám zažívací obtíže.",
+     "answer_match": {},
+     "condition": {},
+     "is_active": false,
+     "order": 2,
+     "otazka": null,
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Tento výsledek dobře zapadá do genetické predispozice k horší toleranci laktózy. Prakticky to znamená, že by pro Vás pravděpodobně byly vhodnější izoláty, hydrolyzáty nebo zcela nemléčné zdroje bílkovin."
+      },
+      {
+       "genotype": "CT",
+       "text": "Obtíže mohou souviset s dávkou laktózy nebo s konkrétním produktem, nikoliv nutně s výraznou genetickou predispozicí. Doporučujeme zkusit fermentované nebo nízkolaktózové varianty a sledovat rozdíl v toleranci."
+      },
+      {
+       "genotype": "TT",
+       "text": "Tento nález opět naznačuje, že problém nemusí být primárně v laktóze. Vhodné je zvážit i jinou složku suplementu, osmolalitu nápoje nebo nevhodné načasování vzhledem k intenzivní zátěži."
+      }
+     ]
+    },
+    {
+     "kind": "other",
+     "title": "Kontext 2: zdroj nutriční praxe – tolerance sportovních suplementů",
+     "statement": "Bez problémů toleruji i větší množství mléka nebo whey koncentrátu.",
+     "answer_match": {},
+     "condition": {},
+     "is_active": false,
+     "order": 3,
+     "otazka": null,
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Tato odpověď ukazuje, že ani rizikovější genetický profil nemusí automaticky znamenat klinicky významnou intoleranci. Vaše skutečná tolerance může být stále dostatečná, zejména pokud jde o menší až střední dávky."
+      },
+      {
+       "genotype": "CT",
+       "text": "Tato odpověď odpovídá očekávatelnému fenotypu. Zachovaná tolerance laktózy Vám usnadňuje využití běžné sportovní výživy."
+      },
+      {
+       "genotype": "TT",
+       "text": "Tato odpověď přesně odpovídá Vašemu genetickému profilu. Tolerance laktózy je pravděpodobně dobrá i při vyšší dávce, pokud není přítomen jiný trávicí problém."
+      }
+     ]
+    }
+   ],
+   "revize": []
+  },
+  {
+   "organizace": null,
+   "varianta": "rs4988235",
+   "nahrazuje": {
+    "varianta": "rs4988235",
+    "verze": 1
+   },
+   "version": 2,
+   "status": "draft",
+   "review_priorities": "Genetická predispozice neprokazuje příznaky intolerance. Vyjasnit populační přenositelnost a orientaci alel.\n\nPoužívaný název LCT zůstává v původním textu. V panelu kartu označujeme MCM6/LCT; identitu regulační varianty a její populační použitelnost je třeba zachovat při revizi.",
+   "biology_expert": "LCT kóduje laktázu-florizin hydrolázu kartáčového lemu enterocytů. Perzistence laktázy v dospělosti je dána regulačními variantami v intronu 13 genu MCM6; -13910C>T (rs4988235) je hlavní varianta u evropských populací [S1, S2]. V jiných populacích perzistenci řídí jiné varianty (např. -13915T>G, -14010G>C) [DOPLNIT zdroj; OVĚŘIT].",
+   "biology_client": "Gen LCT nese návod na laktázu, enzym tenkého střeva, který štěpí mléčný cukr. Varianta rs4988235 (-13910C>T) leží v sousedním genu MCM6 a řídí, zda tvorba laktázy přetrvává i v dospělosti [S1]. Zda vám mléko způsobuje obtíže, ukáže jen vaše zkušenost; genotyp obtíže nepotvrzuje ani nevyvrací.",
+   "effect": "Alela T je v evropských populacích spojena s přetrváváním exprese laktázy v dospělosti, genotyp CC s nepersistencí [S1]. Zda se nepersistence projeví obtížemi, závisí na dávce laktózy, složení stravy a střevní mikroflóře [DOPLNIT zdroj].",
+   "limitations": "Z genotypu MCM6/LCT nelze určit, zda máte obtíže po laktóze, ani jaké množství snášíte. Varianta -13910C>T je dobře popsaná u evropských populací; v jiných populacích přetrvávání laktázy řídí jiné varianty, takže výsledek tam vypovídá méně [S2, OVĚŘIT]. Obtíže po mléce mohou mít i jiné příčiny.",
+   "frequency_note": "Původní hodnoty 22,8 / 41,1 / 36,1 % se nepřebírají bez konkrétního souboru; frekvence se mezi populacemi výrazně liší – uvést populaci.",
+   "related_areas": [
+    "Laktózová tolerance",
+    "Sportovní výživa a tolerance mléčných výrobků",
+    "Gastrointestinální komfort při zátěži",
+    "Tolerance syrovátkových a mléčných proteinů"
+   ],
+   "import_note": "Původní návrh k revizi. Zachováno 54 neprázdných odstavců včetně identifikačního nadpisu; původní anglické názvy polí jsou nahrazeny českými nadpisy. Textová tvrzení nejsou nově ověřena.\n\nGen v původní kartě: LCT\n\nNásledují původní návrhy doporučení, včetně případných dávek. Nejsou návodem k použití; jejich vazba na genotyp a použitelnost čekají na odbornou revizi.\n\nPůvodní scénáře k posouzení. Odpověď ani měření samy nepotvrzují genetickou příčinu. Scénáře založené na měření nejsou aktivní ve V1.\n\nPůvodní hypotézy k samostatnému posouzení. Kombinace obsahující varianty mimo panel nelze vyhodnotit z aktuálního testu.\n\nSouvisející oblasti: Pro tuto položku nebyla v dostupných podkladech nalezena dostatečně kvalitní a prakticky využitelná genová interakce, kterou by bylo vhodné rutinně interpretovat společně s rs4988235 v rámci této karty.",
+   "change_summary": "Návrh navazuje na pozdější návrhy klientských formulací (CC, CT, TT zůstávají). Doplněno vysvětlení pro klienta, omezení interpretace a účinek varianty; doporučení podle genotypu nahrazena obecnými (tolerance, vápník a vitamin D, novinky v tréninku); scénáře k whey napojeny na otázku dotazníku; doplněny nepřípustné výroky, názvy zdrojů a řádky důkazů E01–E04. Místa označená [OVĚŘIT] a [DOPLNIT] garant ověří před schválením.",
+   "approved_at": null,
+   "texty": [
+    {
+     "genotype": "CC",
+     "client_text": "V populacích, pro které je marker dobře popsaný, je genotyp CC spojen s laktázovou nepersistencí. Sám neprokazuje, že Vám běžné množství laktózy způsobuje obtíže.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 0
+    },
+    {
+     "genotype": "CT",
+     "client_text": "Genotyp CT je v příslušných populacích spojen s přetrváváním aktivity laktázy v dospělosti. Nevylučuje zažívací obtíže nebo jejich jiné příčiny.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 1
+    },
+    {
+     "genotype": "TT",
+     "client_text": "Genotyp TT je v příslušných populacích spojen s přetrváváním aktivity laktázy v dospělosti. Neurčuje Vaši individuálně tolerovanou dávku laktózy.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 2
+    }
+   ],
+   "doporuceni": [
+    {
+     "genotype": "",
+     "kind": "nutrition",
+     "text": "Mléčné výrobky a doplňky volte podle toho, co snášíte; při obtížích zkuste bezlaktózové nebo nízkolaktózové varianty, fermentované výrobky nebo whey izolát a sledujte, jaká dávka je ještě dobře snášená.",
+     "basis": "general",
+     "merge_key": "laktoza-tolerance",
+     "order": 9,
+     "protokol": null
+    },
+    {
+     "genotype": "",
+     "kind": "risk",
+     "text": "Při dlouhodobém vyřazení mléčných výrobků hlídejte příjem vápníku a vitaminu D [DOPLNIT zdroj doporučeného příjmu].",
+     "basis": "general",
+     "merge_key": "vapnik-vitamin-d",
+     "order": 10,
+     "protokol": null
+    },
+    {
+     "genotype": "",
+     "kind": "nutrition",
+     "text": "Nové potraviny a doplňky zkoušejte v tréninku, ne před soutěží.",
+     "basis": "general",
+     "merge_key": "novinky-v-treninku",
+     "order": 11,
+     "protokol": null
+    }
+   ],
+   "dukazy": [
+    {
+     "code": "E01",
+     "trait": "Identita varianty",
+     "basis_text": "rs4988235, MCM6 intron 13, -13910C>T vůči LCT. [OVĚŘIT orientaci alel C/T podle metody laboratoře; DOPLNIT dbSNP jako zdroj]",
+     "usage": "Jen identifikace.",
+     "source_labels": "",
+     "order": 0
+    },
+    {
+     "code": "E02",
+     "trait": "Nepersistence laktázy",
+     "basis_text": "Enattah 2002: varianta -13910C>T v úplné vazbě s hypolaktázií dospělých ve finských rodinách; CC = nepersistence [S1]. [OVĚŘIT soubor a sílu vazby]",
+     "usage": "Genotyp CC uvést jako spojený s nepersistencí v popsaných populacích; neuvádět jako intoleranci.",
+     "source_labels": "S1",
+     "order": 1
+    },
+    {
+     "code": "E03",
+     "trait": "Populační rozšíření",
+     "basis_text": "Beja-Pereira 2003: rozšíření varianty v Evropě souvisí s historií chovu skotu [S2]. V jiných populacích jiné varianty. [DOPLNIT zdroj k variantám mimo Evropu]",
+     "usage": "Uvést omezenou přenositelnost mimo evropské populace.",
+     "source_labels": "S2",
+     "order": 2
+    },
+    {
+     "code": "E04",
+     "trait": "Genotyp a příznaky",
+     "basis_text": "Vztah genotypu k příznakům po běžné dávce laktózy je volný; příznaky závisí na dávce a mikroflóře. [DOPLNIT zdroj, např. systematický přehled k laktózové intoleranci]",
+     "usage": "Žádný závěr o příznacích nebo tolerované dávce u klienta (revizní priorita karty).",
+     "source_labels": "",
+     "order": 3
+    }
+   ],
+   "zdroje": [
+    {
+     "label": "S1",
+     "title": "Enattah 2002 – varianta -13910C>T a hypolaktázie dospělých",
+     "citation": "Enattah, N. S., Sahi, T., Savilahti, E., Terwilliger, J. D., Peltonen, L., & Jarvela, I. (2002). Identification of a variant associated with adult-type hypolactasia. Nature Genetics, 30(2), 233-237.",
+     "url": "",
+     "order": 0
+    },
+    {
+     "label": "S2",
+     "title": "Beja-Pereira 2003 – rozšíření varianty a chov skotu",
+     "citation": "Beja-Pereira, A., Luikart, G., England, P. R., Bradley, D. G., Jann, O. C., Bertorelle, G., et al. (2003). Gene-culture coevolution between cattle milk protein genes and human lactase genes. Nature Genetics, 35(4), 311-313.",
+     "url": "",
+     "order": 1
+    }
+   ],
+   "nepripustne": [
+    {
+     "text": "máte intoleranci laktózy",
+     "note": ""
+    },
+    {
+     "text": "nesnášíte laktózu",
+     "note": ""
+    },
+    {
+     "text": "laktózu netrávíte",
+     "note": ""
+    },
+    {
+     "text": "tolerujete laktózu bez problémů",
+     "note": ""
+    },
+    {
+     "text": "jste dobře disponován",
+     "note": ""
+    },
+    {
+     "text": "jste dobře disponována",
+     "note": ""
+    },
+    {
+     "text": "odpověď odpovídá genetickému profilu",
+     "note": ""
+    },
+    {
+     "text": "odpovídá vašemu genetickému profilu",
+     "note": ""
+    },
+    {
+     "text": "potvrzuje genetický profil",
+     "note": ""
+    }
+   ],
+   "scenare": [
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Po vypití čerstvého mléka mívám nadýmání, křeče nebo průjem.",
+     "answer_match": {
+      "choices": [
+       "obtize"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 0,
+     "otazka": "mleko_obtize",
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Obtíže po mléce jsou samy o sobě důvod vyzkoušet nízkolaktózové nebo bezlaktózové varianty a sledovat, jaká dávka je ještě snášená; genotyp je nepotvrzuje ani nevyvrací a jiné příčiny obtíží nevylučuje."
+      },
+      {
+       "genotype": "CT",
+       "text": "Obtíže po mléce jsou samy o sobě důvod vyzkoušet nízkolaktózové nebo bezlaktózové varianty a sledovat, jaká dávka je ještě snášená; genotyp je nepotvrzuje ani nevyvrací a jiné příčiny obtíží nevylučuje."
+      },
+      {
+       "genotype": "TT",
+       "text": "Obtíže po mléce jsou samy o sobě důvod vyzkoušet nízkolaktózové nebo bezlaktózové varianty a sledovat, jaká dávka je ještě snášená; genotyp je nepotvrzuje ani nevyvrací a jiné příčiny obtíží nevylučuje."
+      }
+     ]
+    },
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Mléko a běžné mléčné výrobky snáším bez potíží.",
+     "answer_match": {
+      "choices": [
+       "bez"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 1,
+     "otazka": "mleko_obtize",
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Snášíte-li mléko bez potíží, není důvod ho kvůli genotypu omezovat."
+      },
+      {
+       "genotype": "CT",
+       "text": "Snášíte-li mléko bez potíží, není důvod ho kvůli genotypu omezovat."
+      },
+      {
+       "genotype": "TT",
+       "text": "Snášíte-li mléko bez potíží, není důvod ho kvůli genotypu omezovat."
+      }
+     ]
+    },
+    {
+     "kind": "questionnaire",
+     "title": "",
+     "statement": "Po whey koncentrátu nebo mléčném regeneračním nápoji mívám zažívací obtíže.",
+     "answer_match": {
+      "choices": [
+       "obtize"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 2,
+     "otazka": "whey_obtize",
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Zažívací obtíže po whey nebo mléčném nápoji mohou mít více příčin (laktóza, složení, množství, načasování); zkuste izolát, menší dávku nebo jiný zdroj bílkovin a sledujte rozdíl. Genotyp o tom nerozhoduje."
+      },
+      {
+       "genotype": "CT",
+       "text": "Zažívací obtíže po whey nebo mléčném nápoji mohou mít více příčin (laktóza, složení, množství, načasování); zkuste izolát, menší dávku nebo jiný zdroj bílkovin a sledujte rozdíl. Genotyp o tom nerozhoduje."
+      },
+      {
+       "genotype": "TT",
+       "text": "Zažívací obtíže po whey nebo mléčném nápoji mohou mít více příčin (laktóza, složení, množství, načasování); zkuste izolát, menší dávku nebo jiný zdroj bílkovin a sledujte rozdíl. Genotyp o tom nerozhoduje."
+      }
+     ]
+    },
+    {
+     "kind": "questionnaire",
+     "title": "",
+     "statement": "Bez problémů toleruji i větší množství mléka nebo whey koncentrátu.",
+     "answer_match": {
+      "choices": [
+       "bez"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 3,
+     "otazka": "whey_obtize",
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Tolerance mléka a whey bez obtíží je vodítko sama o sobě; genotyp ji nepotvrzuje ani nevyvrací."
+      },
+      {
+       "genotype": "CT",
+       "text": "Tolerance mléka a whey bez obtíží je vodítko sama o sobě; genotyp ji nepotvrzuje ani nevyvrací."
+      },
+      {
+       "genotype": "TT",
+       "text": "Tolerance mléka a whey bez obtíží je vodítko sama o sobě; genotyp ji nepotvrzuje ani nevyvrací."
+      }
+     ]
+    }
+   ],
+   "revize": [
+    {
+     "part": "Interpretace genotypu CC",
+     "original": "S postupujícím věkem u Vás pravděpodobně poroste riziko horší tolerance laktózy. Prakticky to znamená vyšší pravděpodobnost zažívacích obtíží po čerstvém mléce nebo po výrobcích s vyšším obsahem laktózy. Ve sportovní výživě může být důležité sledovat toleranci mléčných koktejlů, whey koncentrátu nebo jiných suplementů s obsahem laktózy.",
+     "proposal": "V populacích, pro které je marker dobře popsaný, je genotyp CC spojen s laktázovou nepersistencí. Sám neprokazuje, že Vám běžné množství laktózy způsobuje obtíže.",
+     "reason": "Převzato z předchozího pracovního balíčku. Návrhy rozlišují genetický výsledek a skutečné obtíže; čekají na schválení.",
+     "source": "podklady v02",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Interpretace genotypu CT",
+     "original": "Máte vysokou pravděpodobnost zachované tolerance laktózy i v dospělosti. Ve většině případů bývá příjem běžných mléčných výrobků dobře snášen. Přesto platí, že skutečná tolerance závisí i na množství přijaté laktózy, složení stravy a individuálním fenotypu.",
+     "proposal": "Genotyp CT je v příslušných populacích spojen s přetrváváním aktivity laktázy v dospělosti. Nevylučuje zažívací obtíže nebo jejich jiné příčiny.",
+     "reason": "Převzato z předchozího pracovního balíčku. Návrhy rozlišují genetický výsledek a skutečné obtíže; čekají na schválení.",
+     "source": "podklady v02",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Interpretace genotypu TT",
+     "original": "Máte velmi vysokou pravděpodobnost laktázové persistence, tedy dobré tolerance laktózy i v dospělosti. Obvykle byste měl/a bez větších obtíží tolerovat čerstvé mléko i většinu mléčných výrobků, pokud není přítomen jiný gastrointestinální problém nebo intolerance jiné složky potravy.",
+     "proposal": "Genotyp TT je v příslušných populacích spojen s přetrváváním aktivity laktázy v dospělosti. Neurčuje Vaši individuálně tolerovanou dávku laktózy.",
+     "reason": "Převzato z předchozího pracovního balíčku. Návrhy rozlišují genetický výsledek a skutečné obtíže; čekají na schválení.",
+     "source": "podklady v02",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Revizní záznamy z podkladů",
+     "original": "",
+     "proposal": "",
+     "reason": "Rozhodnout tři otevřené záznamy (pozdější návrhy klientských formulací pro CC, CT, TT): přijmout, nebo upravit.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Orientace alel",
+     "original": "",
+     "proposal": "",
+     "reason": "Vyjasnit zápis C/T podle metody laboratoře (revizní priorita karty).",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Populační přenositelnost",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit zdroj k variantám mimo evropské populace a větu o omezené přenositelnosti ponechat, nebo zpřesnit.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Důkaz E04 – příznaky",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit zdroj k vztahu genotypu a příznaků; pak odstranit značku [DOPLNIT].",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Frekvence genotypů",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit s populací a zdrojem, nebo nechat prázdné.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Scénáře z dotazníku",
+     "original": "",
+     "proposal": "",
+     "reason": "Dva scénáře k mléku mají nové texty; dva scénáře k whey jsou nově napojené na otázku o whey. Po kontrole zapnout (krok 5).",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    }
+   ]
+  }
+ ]
+}

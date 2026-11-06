@@ -1,0 +1,598 @@
+{
+ "format": "navrh-karty/1",
+ "popis": "ACTN3 / rs1815739 (síla a výbušnost): v1 původní znění z podkladů v02, v2 návrh navazující na revizi v0.2 (revidované texty, důkazy a zdroje zůstávají).",
+ "varianty": [
+  {
+   "organizace": null,
+   "oblast": "vykon",
+   "gene": "ACTN3",
+   "full_name": "Actinin alpha 3 (Alfa-aktinin 3)",
+   "rsid": "rs1815739",
+   "notation": "rs1815739 (c.1729C>T; p.Arg577Ter; R577X)",
+   "subtitle": "Síla a výbušnost",
+   "genotypes": [
+    "CC",
+    "CT",
+    "TT"
+   ],
+   "genotype_aliases": {
+    "CC": "RR",
+    "CT": "RX",
+    "TT": "XX"
+   },
+   "strand_note": "",
+   "frequency_source": "https://www.ncbi.nlm.nih.gov/snp/rs1815739#frequency_tab",
+   "order": 2,
+   "is_active": true
+  }
+ ],
+ "karty": [
+  {
+   "organizace": null,
+   "varianta": "rs1815739",
+   "nahrazuje": null,
+   "version": 1,
+   "status": "original",
+   "review_priorities": "Nevyvozovat podíl rychlých vláken, univerzální profil, typ sportu ani riziko zranění.\n\nPlatí také omezení z již zpracované revize ACTN3 v0.2: původní výroky o svalových vláknech, univerzálním typu, výběru sportu a účinku kreatinu se nevracejí do aktivního reportu. Revidované znění a důkazy jsou uvedeny za původním textem této karty.",
+   "biology_expert": "ACTN3 kóduje strukturální protein α-aktinin-3, který je lokalizován v Z-linii rychlých (typ II) svalových vláken. Podílí se na stabilizaci sarkomer a efektivním přenosu síly při rychlých a explozivních kontrakcích.",
+   "biology_client": "Gen ACTN3 kóduje protein alfa-aktinin 3, který je produkován pouze v rychlých svalových vláknech. Tento protein se podílí na schopnosti svalu vyvíjet vysokou sílu a rychlost při krátkodobých intenzivních činnostech.",
+   "effect": "Polymorfismus rs1815739 (c.1729C>T) vede k substituci argininu (Arg nebo R) za STOP kodon (X) v poloze 577 proteinu, což způsobuje, že homozygoti XX (genotyp TT) neprodukují žádný protein α-aktinin 3, přičemž jeho absence není považována za patologický fenotyp. Výzkumy ukazují, že genotyp CC (genotyp RR) je častější u sportovců specializujících se na rychlostní a silové disciplíny, zatímco genotyp TT (XX) je typičtější pro vytrvalostní sportovce.",
+   "limitations": "",
+   "frequency_note": "Převzaté frekvence: před schválením doložit konkrétní populační soubor a zdroj. Samotné označení „evropská populace“ nestačí.",
+   "related_areas": [
+    "Aerobní kapacita",
+    "Anaerobní výkon s produkcí laktátu",
+    "Rychlost, výbušnost, zvýšený svalový výkon",
+    "Suplementace kreatinem",
+    "Svalová hypertrofie a síla",
+    "Vytrvalostní výkon"
+   ],
+   "import_note": "Původní návrh k revizi. Zachováno 64 neprázdných odstavců včetně identifikačního nadpisu; původní anglické názvy polí jsou nahrazeny českými nadpisy. Textová tvrzení nejsou nově ověřena.\n\nNásledují původní návrhy doporučení, včetně případných dávek. Nejsou návodem k použití; jejich vazba na genotyp a použitelnost čekají na odbornou revizi.\n\nPůvodní scénáře k posouzení. Odpověď ani měření samy nepotvrzují genetickou příčinu. Scénáře založené na měření nejsou aktivní ve V1.\n\nPůvodní hypotézy k samostatnému posouzení. Kombinace obsahující varianty mimo panel nelze vyhodnotit z aktuálního testu.\n\nNásledující hodnocení je interní pracovní posouzení pro tuto kartu, nikoli standardizovaný klasifikační systém. Každé tvrzení musí mít vlastní vazbu na zdroj a přesně vymezený výsledek.\n\nZdroje byly cíleně ověřeny pro tuto revizi. Před schválením provozní verze je třeba dokončit aktualizovanou systematickou rešerši pro každý výstupní znak. Níže uvedený konsenzus z roku 2015 není prezentován jako nová publikace.",
+   "change_summary": "",
+   "approved_at": null,
+   "texty": [
+    {
+     "genotype": "CC",
+     "client_text": "Vaše svalová vlákna jsou přirozeně uzpůsobena pro rychlostní a silové výkony. Máte vyšší podíl rychlých svalových vláken typu II, což Vám umožňuje efektivně generovat maximální sílu a výbušnost při krátkodobé intenzivní zátěži.",
+     "expert_text": "",
+     "frequency": "32 % (Evropská populace)",
+     "order": 0
+    },
+    {
+     "genotype": "CT",
+     "client_text": "Vaše svalová vlákna představují vyvážený profil mezi rychlostí a vytrvalostí. Máte potenciál pro kombinované sportovní výkony, přičemž správně vedený trénink může významně ovlivnit, zda se více rozvine rychlostní nebo vytrvalostní složka.",
+     "expert_text": "",
+     "frequency": "49 % (Evropská populace)",
+     "order": 1
+    },
+    {
+     "genotype": "TT",
+     "client_text": "Vaše svalová vlákna jsou více orientována na vytrvalostní výkon. Přirozeně máte nižší schopnost generovat maximální explozivní sílu, ale naopak lepší předpoklady pro oxidativní metabolismus a odolnost vůči únavě.",
+     "expert_text": "",
+     "frequency": "19 % (Evropská populace)",
+     "order": 2
+    }
+   ],
+   "doporuceni": [
+    {
+     "genotype": "CC",
+     "kind": "sport",
+     "text": "Jste přirozeně disponován/a pro rychlostní a silové disciplíny, jako jsou sprint, skoky, vzpírání nebo jiné krátkodobé výbušné aktivity.",
+     "basis": "",
+     "merge_key": "",
+     "order": 0,
+     "protokol": null
+    },
+    {
+     "genotype": "CC",
+     "kind": "training",
+     "text": "Doporučujeme Vám zaměřit se především na silový a explozivní trénink, včetně plyometrie, krátkých intervalů s vysokou intenzitou a dynamických silových cvičení. Vhodné je také systematicky rozvíjet techniku pro maximální využití Vašeho výkonového potenciálu.",
+     "basis": "",
+     "merge_key": "",
+     "order": 1,
+     "protokol": null
+    },
+    {
+     "genotype": "CC",
+     "kind": "risk",
+     "text": "Nemáte výrazná specifická genetická rizika, nicméně při vysoké intenzitě zatížení je důležité dbát na dostatečnou regeneraci, prevenci přetížení svalů a šlach a pravidelně zařazovat kompenzační cvičení.",
+     "basis": "",
+     "merge_key": "",
+     "order": 2,
+     "protokol": null
+    },
+    {
+     "genotype": "CT",
+     "kind": "sport",
+     "text": "Máte univerzální predispozice a jste vhodný/á pro kombinované sporty a disciplíny spojující rychlost i vytrvalost, například sportovní hry, víceboj nebo střednědobé tratě.",
+     "basis": "",
+     "merge_key": "",
+     "order": 3,
+     "protokol": null
+    },
+    {
+     "genotype": "CT",
+     "kind": "training",
+     "text": "Doporučujeme Vám vyvážený mix silového, rychlostního i vytrvalostního tréninku. Klíčové je dlouhodobé zaměření tréninku, které může Vaši výkonnost dále profilovat podle Vašich cílů.",
+     "basis": "",
+     "merge_key": "",
+     "order": 4,
+     "protokol": null
+    },
+    {
+     "genotype": "CT",
+     "kind": "risk",
+     "text": "Nemáte výraznou genetickou predispozici k poranění, nicméně je vhodné sledovat rovnováhu mezi zátěží a regenerací, aby nedocházelo k jednostrannému přetížení organismu.",
+     "basis": "",
+     "merge_key": "",
+     "order": 5,
+     "protokol": null
+    },
+    {
+     "genotype": "TT",
+     "kind": "sport",
+     "text": "Jste přirozeně více disponován/a pro vytrvalostní aktivity, jako je běh na dlouhé tratě, cyklistika nebo plavání.",
+     "basis": "",
+     "merge_key": "",
+     "order": 6,
+     "protokol": null
+    },
+    {
+     "genotype": "TT",
+     "kind": "training",
+     "text": "Doporučujeme Vám zaměřit se primárně na vytrvalostní trénink a doplnit jej pravidelným silovým tréninkem pro podporu svalové síly, stability a prevence svalových dysbalancí. Důležitá je také technika a ekonomika pohybu.",
+     "basis": "",
+     "merge_key": "",
+     "order": 7,
+     "protokol": null
+    },
+    {
+     "genotype": "TT",
+     "kind": "risk",
+     "text": "Můžete mít mírně vyšší náchylnost k nižší svalové síle a k mikrotraumatům při explozivní zátěži. Doporučuje se důsledná prevence přetížení, stabilizační cvičení, strečink a postupné zvyšování tréninkové intenzity.",
+     "basis": "",
+     "merge_key": "",
+     "order": 8,
+     "protokol": null
+    }
+   ],
+   "dukazy": [],
+   "zdroje": [],
+   "nepripustne": [],
+   "scenare": [
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Dosahuji velmi dobrých výsledků v krátkých sprintech a výbušných cvičeních.",
+     "answer_match": {
+      "choices": [
+       "sila"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 0,
+     "otazka": "vykonovy_profil",
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Vaše odpověď potvrzuje, že Váš genetický potenciál pro explozivní a silově-rychlostní výkon se v praxi skutečně projevuje. Doporučujeme Vám tento potenciál cíleně rozvíjet a zaměřit se na sporty a tréninkové metody využívající maximální sílu, rychlost a dynamiku."
+      },
+      {
+       "genotype": "CT",
+       "text": "Vaše odpověď naznačuje, že se Váš výkonový profil v praxi přibližuje spíše silově-rychlostnímu typu. Doporučujeme Vám více akcentovat explozivní trénink, protože právě v této oblasti můžete dosahovat nadprůměrných výsledků."
+      },
+      {
+       "genotype": "TT",
+       "text": "Vaše odpověď ukazuje, že i přes genetickou predispozici spíše k vytrvalostnímu výkonu jste schopen/na dosahovat velmi dobrých výsledků ve výbušných aktivitách. Tento výkon je pravděpodobně výsledkem adaptace na trénink, ale může být spojen s vyšší energetickou náročností a rizikem přetížení. Doporučujeme pečlivě řídit objem a intenzitu explozivní zátěže."
+      }
+     ]
+    },
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Lépe zvládám dlouhé série nebo vytrvalostní trénink než krátké maximální výkony.",
+     "answer_match": {
+      "choices": [
+       "vytrvalost"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 1,
+     "otazka": "vykonovy_profil",
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Vaše odpověď naznačuje určitý nesoulad mezi genetickým předpokladem a skutečným výkonovým profilem. Je možné, že Váš silově-rychlostní potenciál není plně využíván. Doporučujeme zvážit větší zařazení explozivního a silového tréninku, který může Vaši výkonnost dále posunout."
+      },
+      {
+       "genotype": "CT",
+       "text": "Vaše odpověď odpovídá smíšenému výkonovému profilu. Máte schopnost adaptovat se jak na vytrvalostní, tak na silově-rychlostní zátěž. Doporučujeme udržovat vyvážený tréninkový režim a případně profilovat výkon podle Vašich sportovních cílů."
+      },
+      {
+       "genotype": "TT",
+       "text": "Vaše odpověď velmi dobře odpovídá Vaší genetické predispozici. Máte přirozené předpoklady pro vytrvalostní výkon a efektivní práci při dlouhodobé zátěži. Doporučujeme tento profil dále rozvíjet a zaměřit se na vytrvalostní trénink s doplňkovým silovým tréninkem pro stabilitu."
+      }
+     ]
+    },
+    {
+     "kind": "measurement",
+     "title": "Kontext 2: zdroj zátěžový test – Wingate test (peak power)",
+     "statement": "Dosahuji nadprůměrných hodnot peak power ve Wingate testu (např.> 11 W/kg).",
+     "answer_match": {},
+     "condition": {},
+     "is_active": false,
+     "order": 2,
+     "otazka": null,
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Váš výsledek potvrzuje, že Váš genetický potenciál pro krátkodobý anaerobní výkon se v praxi plně projevuje. Vaše schopnost generovat vysoký výkon během krátké maximální zátěže je nadprůměrná. Doporučujeme tento potenciál cíleně rozvíjet prostřednictvím silového a explozivního tréninku a zaměřit se na disciplíny, kde je rozhodující maximální výkon v krátkém čase."
+      },
+      {
+       "genotype": "CT",
+       "text": "Váš výsledek naznačuje, že Váš výkonový profil se v praxi přibližuje spíše silově-rychlostnímu typu. I přes smíšenou genetickou predispozici dosahujete velmi dobrých anaerobních výsledků. Doporučujeme více akcentovat explozivní a silový trénink, protože právě v této oblasti máte potenciál k dalšímu zlepšení."
+      },
+      {
+       "genotype": "TT",
+       "text": "Váš výsledek ukazuje, že i přes genetickou predispozici spíše k vytrvalostnímu výkonu jste schopen/na dosahovat velmi vysokého anaerobního výkonu. Tento výkon je pravděpodobně výsledkem tréninkové adaptace nebo vlivu dalších genetických faktorů. Doporučujeme věnovat zvýšenou pozornost regeneraci a řízení intenzity tréninku, protože dosažení těchto výkonů může být pro Váš organismus energeticky náročnější."
+      }
+     ]
+    },
+    {
+     "kind": "measurement",
+     "title": "Kontext 2: zdroj zátěžový test – Wingate test (peak power)",
+     "statement": "Dosahuji podprůměrných hodnot peak power ve Wingate testu (např. <9 W/kg).",
+     "answer_match": {},
+     "condition": {},
+     "is_active": false,
+     "order": 3,
+     "otazka": null,
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Váš výsledek naznačuje, že Váš genetický potenciál pro anaerobní výkon není plně využit. Doporučujeme zaměřit se na rozvoj maximální síly a explozivity, případně upravit tréninkovou strukturu."
+      },
+      {
+       "genotype": "CT",
+       "text": "Váš výsledek odpovídá spíše vyváženému nebo méně specializovanému profilu. Doporučujeme cíleně rozvíjet silově-rychlostní schopnosti, pokud jsou relevantní pro Váš sportovní cíl."
+      },
+      {
+       "genotype": "TT",
+       "text": "Váš výsledek odpovídá Vaší genetické predispozici. Doporučujeme zaměřit se primárně na vytrvalostní složku výkonu a anaerobní kapacitu rozvíjet jako doplňkovou schopnost."
+      }
+     ]
+    }
+   ],
+   "revize": []
+  },
+  {
+   "organizace": null,
+   "varianta": "rs1815739",
+   "nahrazuje": {
+    "varianta": "rs1815739",
+    "verze": 1
+   },
+   "version": 2,
+   "status": "draft",
+   "review_priorities": "Nevyvozovat podíl rychlých vláken, univerzální profil, typ sportu ani riziko zranění.\n\nPlatí také omezení z již zpracované revize ACTN3 v0.2: původní výroky o svalových vláknech, univerzálním typu, výběru sportu a účinku kreatinu se nevracejí do aktivního reportu. Revidované znění a důkazy jsou uvedeny za původním textem této karty.",
+   "biology_expert": "ACTN3 kóduje protein Z-linie rychlých svalových vláken. Varianta R577X zavádí předčasný stop kodon; u homozygotů XX je popsána absence α-aktininu-3. Samotná tato absence není důkazem onemocnění ani konkrétní výkonnostní úrovně. [S1, S2]",
+   "biology_client": "Gen ACTN3 souvisí s tvorbou bílkoviny přítomné v rychlých svalových vláknech. Výsledek poskytuje dílčí biologickou informaci. Vaši aktuální sílu, rychlost ani vytrvalost z něj samotného nelze určit.",
+   "effect": "Varianta R577X (c.1729C>T) zavádí předčasný stop kodon; homozygoti TT (XX) netvoří α-aktinin-3, což není onemocnění [S1, S2]. Populační asociace genotypu CC (RR) se silově-rychlostními disciplínami je malá (OR 1,21; 95% CI 1,03–1,42 [S3]) a individuálně nevyužitelná [S4].",
+   "limitations": "Z genotypu ACTN3 nelze určit podíl rychlých vláken, sílu, výbušnost, vytrvalost, vhodný sport, riziko zranění ani účinek kreatinu. Metaanalýzy popisují malý rozdíl mezi skupinami sportovců; konsenzus z roku 2015 nepodporuje výběr talentu ani úpravu tréninku podle genotypu [S3, S4]. O síle a výbušnosti vypovídá měření.",
+   "frequency_note": "Původní hodnoty 32 / 49 / 19 % se nepřebírají bez konkrétního populačního souboru (dbSNP, gnomAD, populace). Frekvence není mírou výhodnosti genotypu.",
+   "related_areas": [
+    "Aerobní kapacita",
+    "Anaerobní výkon s produkcí laktátu",
+    "Rychlost, výbušnost, zvýšený svalový výkon",
+    "Suplementace kreatinem",
+    "Svalová hypertrofie a síla",
+    "Vytrvalostní výkon"
+   ],
+   "import_note": "Původní návrh k revizi. Zachováno 64 neprázdných odstavců včetně identifikačního nadpisu; původní anglické názvy polí jsou nahrazeny českými nadpisy. Textová tvrzení nejsou nově ověřena.\n\nNásledují původní návrhy doporučení, včetně případných dávek. Nejsou návodem k použití; jejich vazba na genotyp a použitelnost čekají na odbornou revizi.\n\nPůvodní scénáře k posouzení. Odpověď ani měření samy nepotvrzují genetickou příčinu. Scénáře založené na měření nejsou aktivní ve V1.\n\nPůvodní hypotézy k samostatnému posouzení. Kombinace obsahující varianty mimo panel nelze vyhodnotit z aktuálního testu.\n\nNásledující hodnocení je interní pracovní posouzení pro tuto kartu, nikoli standardizovaný klasifikační systém. Každé tvrzení musí mít vlastní vazbu na zdroj a přesně vymezený výsledek.\n\nZdroje byly cíleně ověřeny pro tuto revizi. Před schválením provozní verze je třeba dokončit aktualizovanou systematickou rešerši pro každý výstupní znak. Níže uvedený konsenzus z roku 2015 není prezentován jako nová publikace.",
+   "change_summary": "Návrh navazuje na revizi ACTN3 v0.2: revidované texty pro genotypy, vysvětlení pro klienta, důkazy E01–E05, nepřípustné výroky a zdroje S1–S6 zůstávají. Doplněno omezení interpretace a stručný účinek varianty; doporučení podle genotypu nahrazena obecným postupem, měřením (výskok, Wingate) a větou o kreatinu; scénáře z dotazníku mají neutrální texty, scénáře nad měřením odstraněny.",
+   "approved_at": null,
+   "texty": [
+    {
+     "genotype": "CC",
+     "client_text": "Byl zjištěn genotyp CC (RR) varianty ACTN3 rs1815739. Tento genotyp je ve studiích častější u některých skupin sportovců v silově-rychlostních disciplínách. Z tohoto výsledku však nelze určit Vaši aktuální sílu, výbušnost ani vhodný sport. [S3, S4]",
+     "expert_text": "",
+     "frequency": "",
+     "order": 0
+    },
+    {
+     "genotype": "CT",
+     "client_text": "Byl zjištěn genotyp CT (RX) varianty ACTN3 rs1815739. Nesete jednu kopii varianty R a jednu kopii X. Tento výsledek sám o sobě neprokazuje vyvážený poměr silových a vytrvalostních schopností. Jejich posouzení vychází z Vaší zkušenosti a objektivního měření.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 1
+    },
+    {
+     "genotype": "TT",
+     "client_text": "Byl zjištěn genotyp TT (XX) varianty ACTN3 rs1815739, spojený s absencí bílkoviny α-aktininu-3. Samotný výsledek neznamená onemocnění a neurčuje Vaši individuální výkonnost. Nelze z něj uzavřít, že máte nízkou výbušnost nebo vysokou vytrvalost. [S1, S2, S4]",
+     "expert_text": "",
+     "frequency": "",
+     "order": 2
+    }
+   ],
+   "doporuceni": [
+    {
+     "genotype": "",
+     "kind": "training",
+     "text": "O zaměření tréninku rozhoduje sport, cíl, tréninková historie a měření; genotyp ACTN3 není důvod trénink měnit [S4].",
+     "basis": "general",
+     "merge_key": "trenink-podle-mereni",
+     "order": 9,
+     "protokol": null
+    },
+    {
+     "genotype": "",
+     "kind": "training",
+     "text": "Sílu a výbušnost posoudí výskok na silové desce (CMJ) a Wingate test; zpráva porovná výsledek s normou a s minulým měřením.",
+     "basis": "measurement",
+     "merge_key": "sila-mereni",
+     "order": 10,
+     "protokol": "cmj"
+    },
+    {
+     "genotype": "",
+     "kind": "nutrition",
+     "text": "O kreatinu rozhodují obecná doporučení pro daný sport a zdravotní stav; jeho účinek u vás genotyp ACTN3 nepředpovídá [S5].",
+     "basis": "general",
+     "merge_key": "kreatin",
+     "order": 11,
+     "protokol": null
+    }
+   ],
+   "dukazy": [
+    {
+     "code": "E01",
+     "trait": "Molekulární důsledek",
+     "basis_text": "Referenční databázový záznam a popis absence proteinu u XX. [S1, S2]",
+     "usage": "Uvést biologický důsledek; nevyvozovat výkon.",
+     "source_labels": "S1, S2",
+     "order": 0
+    },
+    {
+     "code": "E02",
+     "trait": "Silově-rychlostní disciplíny",
+     "basis_text": "Metaanalýza: RR versus RX + XX v silově-rychlostních disciplínách OR 1,21; 95% CI 1,03–1,42. Zahrnuté studie do 31. 10. 2012. [S3]",
+     "usage": "Populační asociace. OR není procentní zvýšení výkonu ani pravděpodobnost úspěchu klienta.",
+     "source_labels": "S3",
+     "order": 1
+    },
+    {
+     "code": "E03",
+     "trait": "Individuální trénink",
+     "basis_text": "Konsenzus 2015 nepodporuje použití testů pro výběr talentu a individuální předepisování tréninku. [S4]",
+     "usage": "V této verzi žádné pravidlo měnící trénink jen podle ACTN3.",
+     "source_labels": "S4",
+     "order": 2
+    },
+    {
+     "code": "E04",
+     "trait": "Odezva na kreatin",
+     "basis_text": "Studie 161 profesionálních fotbalistů mužů; ACTN3 nebyl asociován s přírůstkem svalové hmoty. Výsledek BMI není výsledek síly. [S5]",
+     "usage": "Žádná predikce účinnosti kreatinu u klienta podle ACTN3.",
+     "source_labels": "S5",
+     "order": 3
+    },
+    {
+     "code": "E05",
+     "trait": "Vytrvalost, zranění a interakce",
+     "basis_text": "Pro navržené individuální výroky nebyla v této revizi doložena dostatečná validace.",
+     "usage": "Blokovat automatická tvrzení o lepší vytrvalosti, riziku zranění a aditivní výhodě kombinací.",
+     "source_labels": "",
+     "order": 4
+    }
+   ],
+   "zdroje": [
+    {
+     "label": "S1",
+     "title": "Identita varianty",
+     "citation": "NCBI ClinVar. ACTN3 NM_001104.4:c.1729C>T; p.Arg577Ter. Variation ID 18312. Referenční identita, transkript a GRCh38 souřadnice. Přístup 3. 11. 2026.\nhttps://www.ncbi.nlm.nih.gov/clinvar/variation/18312/",
+     "url": "https://www.ncbi.nlm.nih.gov/clinvar/variation/18312/",
+     "order": 0
+    },
+    {
+     "label": "S2",
+     "title": "Molekulární důsledek",
+     "citation": "NCBI ClinVar. ACTN3 variant record RCV000019975. Souhrn původních prací, včetně North et al. 1999; podklad k absenci proteinu u XX. Záznam není validací sportovních doporučení.\nhttps://www.ncbi.nlm.nih.gov/clinvar/RCV000019975/",
+     "url": "https://www.ncbi.nlm.nih.gov/clinvar/RCV000019975/",
+     "order": 1
+    },
+    {
+     "label": "S3",
+     "title": "Populační asociace",
+     "citation": "Ma F et al. The Association of Sport Performance with ACE and ACTN3 Genetic Polymorphisms: A Systematic Review and Meta-Analysis. PLOS ONE. 2013;8(1):e54685.\nhttps://doi.org/10.1371/journal.pone.0054685",
+     "url": "https://doi.org/10.1371/journal.pone.0054685",
+     "order": 2
+    },
+    {
+     "label": "S4",
+     "title": "Individuální využitelnost",
+     "citation": "Webborn N et al. Direct-to-consumer genetic testing for predicting sports performance and talent identification: Consensus statement. British Journal of Sports Medicine. 2015;49:1486–1491.\nhttps://doi.org/10.1136/bjsports-2015-095343",
+     "url": "https://doi.org/10.1136/bjsports-2015-095343",
+     "order": 3
+    },
+    {
+     "label": "S5",
+     "title": "Kreatin",
+     "citation": "Varillas-Delgado D. Association of Genetic Profile with Muscle Mass Gain and Muscle Injury Prevention in Professional Football Players after Creatine Supplementation. Nutrients. 2024;16(15):2511.\nhttps://doi.org/10.3390/nu16152511",
+     "url": "https://doi.org/10.3390/nu16152511",
+     "order": 4
+    },
+    {
+     "label": "S6",
+     "title": "Oprava identifikátoru AMPD1",
+     "citation": "NCBI ClinVar. NM_000036.3(AMPD1):c.34C>T; rs17602729. Použito výhradně k ověření identifikátoru, nikoli ke klinické interpretaci AMPD1.\nhttps://www.ncbi.nlm.nih.gov/clinvar/RCV000019933/",
+     "url": "https://www.ncbi.nlm.nih.gov/clinvar/RCV000019933/",
+     "order": 5
+    }
+   ],
+   "nepripustne": [
+    {
+     "text": "Máte více rychlých vláken",
+     "note": "z revize v podkladech"
+    },
+    {
+     "text": "jste univerzální typ",
+     "note": "z revize v podkladech"
+    },
+    {
+     "text": "genetický potenciál se plně projevil",
+     "note": "z revize v podkladech"
+    },
+    {
+     "text": "nevyužíváte svůj genetický potenciál",
+     "note": "z revize v podkladech"
+    },
+    {
+     "text": "nemáte genetické riziko zranění",
+     "note": "z revize v podkladech"
+    },
+    {
+     "text": "výkon je pro Vás energeticky náročnější",
+     "note": "z revize v podkladech"
+    },
+    {
+     "text": "kreatin u Vás s vysokou pravděpodobností zvýší sílu",
+     "note": "z revize v podkladech"
+    }
+   ],
+   "scenare": [
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Dosahuji velmi dobrých výsledků v krátkých sprintech a výbušných cvičeních.",
+     "answer_match": {
+      "choices": [
+       "sila"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 0,
+     "otazka": "vykonovy_profil",
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Vaše zkušenost, že vám jdou krátké intenzivní výkony, je cennější vodítko než genotyp; ten ji nepotvrzuje ani nevyvrací. O silově-rychlostních předpokladech vypovídá měření (výskok, Wingate test) a tréninková historie, podle nich se nastavuje trénink."
+      },
+      {
+       "genotype": "CT",
+       "text": "Vaše zkušenost, že vám jdou krátké intenzivní výkony, je cennější vodítko než genotyp; ten ji nepotvrzuje ani nevyvrací. O silově-rychlostních předpokladech vypovídá měření (výskok, Wingate test) a tréninková historie, podle nich se nastavuje trénink."
+      },
+      {
+       "genotype": "TT",
+       "text": "Vaše zkušenost, že vám jdou krátké intenzivní výkony, je cennější vodítko než genotyp; ten ji nepotvrzuje ani nevyvrací. O silově-rychlostních předpokladech vypovídá měření (výskok, Wingate test) a tréninková historie, podle nich se nastavuje trénink."
+      }
+     ]
+    },
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Lépe zvládám dlouhé série nebo vytrvalostní trénink než krátké maximální výkony.",
+     "answer_match": {
+      "choices": [
+       "vytrvalost"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 1,
+     "otazka": "vykonovy_profil",
+     "texty": [
+      {
+       "genotype": "CC",
+       "text": "Vaše zkušenost, že vám sedí delší souvislá zátěž, je cennější vodítko než genotyp; ten ji nepotvrzuje ani nevyvrací. O vytrvalostních předpokladech vypovídá měření (spiroergometrie) a tréninková historie, podle nich se nastavuje trénink."
+      },
+      {
+       "genotype": "CT",
+       "text": "Vaše zkušenost, že vám sedí delší souvislá zátěž, je cennější vodítko než genotyp; ten ji nepotvrzuje ani nevyvrací. O vytrvalostních předpokladech vypovídá měření (spiroergometrie) a tréninková historie, podle nich se nastavuje trénink."
+      },
+      {
+       "genotype": "TT",
+       "text": "Vaše zkušenost, že vám sedí delší souvislá zátěž, je cennější vodítko než genotyp; ten ji nepotvrzuje ani nevyvrací. O vytrvalostních předpokladech vypovídá měření (spiroergometrie) a tréninková historie, podle nich se nastavuje trénink."
+      }
+     ]
+    }
+   ],
+   "revize": [
+    {
+     "part": "Interpretace genotypu CC",
+     "original": "Vaše svalová vlákna jsou přirozeně uzpůsobena pro rychlostní a silové výkony. Máte vyšší podíl rychlých svalových vláken typu II, což Vám umožňuje efektivně generovat maximální sílu a výbušnost při krátkodobé intenzivní zátěži.",
+     "proposal": "Byl zjištěn genotyp CC (RR) varianty ACTN3 rs1815739. Tento genotyp je ve studiích častější u některých skupin sportovců v silově-rychlostních disciplínách. Z tohoto výsledku však nelze určit Vaši aktuální sílu, výbušnost ani vhodný sport. [S3, S4]",
+     "reason": "Převzato z genové karty ACTN3 v0.2 ze 3. 11. 2026. Má přednost před rozpornou původní formulací. Zůstává návrhem k odbornému schválení.",
+     "source": "podklady v02",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Interpretace genotypu CT",
+     "original": "Vaše svalová vlákna představují vyvážený profil mezi rychlostí a vytrvalostí. Máte potenciál pro kombinované sportovní výkony, přičemž správně vedený trénink může významně ovlivnit, zda se více rozvine rychlostní nebo vytrvalostní složka.",
+     "proposal": "Byl zjištěn genotyp CT (RX) varianty ACTN3 rs1815739. Nesete jednu kopii varianty R a jednu kopii X. Tento výsledek sám o sobě neprokazuje vyvážený poměr silových a vytrvalostních schopností. Jejich posouzení vychází z Vaší zkušenosti a objektivního měření.",
+     "reason": "Převzato z genové karty ACTN3 v0.2 ze 3. 11. 2026. Má přednost před rozpornou původní formulací. Zůstává návrhem k odbornému schválení.",
+     "source": "podklady v02",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Interpretace genotypu TT",
+     "original": "Vaše svalová vlákna jsou více orientována na vytrvalostní výkon. Přirozeně máte nižší schopnost generovat maximální explozivní sílu, ale naopak lepší předpoklady pro oxidativní metabolismus a odolnost vůči únavě.",
+     "proposal": "Byl zjištěn genotyp TT (XX) varianty ACTN3 rs1815739, spojený s absencí bílkoviny α-aktininu-3. Samotný výsledek neznamená onemocnění a neurčuje Vaši individuální výkonnost. Nelze z něj uzavřít, že máte nízkou výbušnost nebo vysokou vytrvalost. [S1, S2, S4]",
+     "reason": "Převzato z genové karty ACTN3 v0.2 ze 3. 11. 2026. Má přednost před rozpornou původní formulací. Zůstává návrhem k odbornému schválení.",
+     "source": "podklady v02",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Biologická funkce – pro klienta",
+     "original": "Gen ACTN3 kóduje protein alfa-aktinin 3, který je produkován pouze v rychlých svalových vláknech. Tento protein se podílí na schopnosti svalu vyvíjet vysokou sílu a rychlost při krátkodobých intenzivních činnostech.",
+     "proposal": "Gen ACTN3 souvisí s tvorbou bílkoviny přítomné v rychlých svalových vláknech. Výsledek poskytuje dílčí biologickou informaci. Vaši aktuální sílu, rychlost ani vytrvalost z něj samotného nelze určit.",
+     "reason": "Převzato z genové karty ACTN3 v0.2 ze 3. 11. 2026. Má přednost před rozpornou původní formulací. Zůstává návrhem k odbornému schválení.",
+     "source": "podklady v02",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Revizní záznamy z podkladů",
+     "original": "",
+     "proposal": "",
+     "reason": "Rozhodnout čtyři otevřené záznamy (revidované texty pro genotypy a vysvětlení pro klienta z v0.2): přijmout, nebo upravit.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Frekvence genotypů",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit se souborem a zdrojem, nebo nechat prázdné; původní hodnoty 32 / 49 / 19 % bez souboru se nepřebírají.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Interakce ACE a AMPD1",
+     "original": "",
+     "proposal": "",
+     "reason": "Zůstávají hypotézou mimo aktivní pravidla (AMPD1 není v panelu; identifikátor opraven na rs17602729). Potvrdit, že se ve zprávě nepoužijí.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Scénáře z dotazníku",
+     "original": "",
+     "proposal": "",
+     "reason": "Texty pro odpověď „síla“ a „vytrvalost“ jsou stejné pro všechny genotypy; scénáře nad měřením (Wingate) odstraněny. Po kontrole zapnout (krok 5).",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    }
+   ]
+  }
+ ]
+}
