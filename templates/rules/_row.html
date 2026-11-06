@@ -1,0 +1,30 @@
+{% load ui %}
+{# Jeden řádek stavitele podmínky. Čeká i (index) a row (slovník hodnot). #}
+<div class="card p-3" data-radek>
+  <div class="grid sm:grid-cols-12 gap-2 items-end">
+    <label class="block sm:col-span-3"><span class="text-xs text-2">Druh</span>
+      <select name="r{{ i }}_kind" class="input mt-1 text-sm py-1.5" data-kind>{% for value, label, help in kinds %}<option value="{{ value }}" {% if row.kind == value %}selected{% endif %} title="{{ help }}">{{ label }}</option>{% endfor %}</select></label>
+    <label class="block sm:col-span-4"><span class="text-xs text-2">Ukazatel</span>
+      <select name="r{{ i }}_metric" class="input mt-1 text-sm py-1.5">
+        <option value="">— vyberte —</option>
+        <option value="*" {% if row.metric == "*" %}selected{% endif %}>všechny ukazatele měřené oboustranně (jen u asymetrie)</option>
+        {% for m in metrics %}<option value="{{ m.code }}" {% if row.metric == m.code %}selected{% endif %}>{{ m.name }}{% if m.unit %} [{{ m.unit }}]{% endif %}</option>{% endfor %}
+      </select></label>
+    <label class="block sm:col-span-2"><span class="text-xs text-2">Operátor</span>
+      <select name="r{{ i }}_op" class="input mt-1 text-sm py-1.5">{% for op in operators %}<option value="{{ op }}" {% if row.op == op %}selected{% endif %}>{{ op }}</option>{% endfor %}</select></label>
+    <label class="block sm:col-span-2"><span class="text-xs text-2">Práh</span>
+      <input name="r{{ i }}_value" value="{{ row.value }}" inputmode="decimal" class="input mt-1 text-sm py-1.5" placeholder="např. 1,0"></label>
+    <div class="sm:col-span-1 text-right"><button type="button" class="btn btn-sm" data-odebrat title="Odebrat podmínku">{% icon "minus" %}</button></div>
+  </div>
+  <div class="grid sm:grid-cols-12 gap-2 items-end mt-2">
+    <label class="block sm:col-span-3"><span class="text-xs text-2">Strana</span>
+      <select name="r{{ i }}_side" class="input mt-1 text-sm py-1.5"><option value="">každá strana</option>{% for value, label in sides %}<option value="{{ value }}" {% if row.side == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+    <label class="block sm:col-span-3"><span class="text-xs text-2">Režim</span>
+      <select name="r{{ i }}_mode" class="input mt-1 text-sm py-1.5"><option value="">každý režim</option>{% for value, label in modes %}<option value="{{ value }}" {% if row.mode == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+    <label class="block sm:col-span-2"><span class="text-xs text-2">Rychlost (°/s)</span>
+      <input name="r{{ i }}_speed" value="{{ row.speed }}" inputmode="decimal" class="input mt-1 text-sm py-1.5" placeholder="každá"></label>
+    <label class="block sm:col-span-2"><span class="text-xs text-2">Segment</span>
+      <input name="r{{ i }}_segment" value="{{ row.segment }}" maxlength="32" class="input mt-1 text-sm py-1.5" placeholder="každý"></label>
+    <label class="flex items-center gap-2 sm:col-span-2 text-xs pb-2" data-mdc><input type="checkbox" name="r{{ i }}_mdc" {% if row.mdc %}checked{% endif %}> jen změna nad MDC</label>
+  </div>
+</div>

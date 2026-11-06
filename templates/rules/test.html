@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Zkouška pravidel – FTVS{% endblock %}
+{% block content %}
+<div class="mb-5">
+  <a href="{% if rule %}{% url 'rule_edit' rule.pk %}{% else %}{% url 'rules_settings' %}{% endif %}" class="text-sm link">← {% if rule %}Pravidlo {{ rule.name }}{% else %}Pravidla{% endif %}</a>
+  <h1 class="text-2xl font-semibold mt-1">Zkouška na datech{% if rule %}: {{ rule.name }}{% else %}: všechna aktivní pravidla{% endif %}</h1>
+  <p class="text-sm text-muted mt-1 max-w-2xl">Pravidlo se vyhodnotí nad posledními {{ limit }} testovacími dny pracoviště tak, jak by to udělala zpráva – nic se neukládá, do zpráv se nic nezapíše. U dne, kde pravidlo nesedlo, je vidět proč: ukazatel se neměřil, chybí minulé měření nebo norma, nebo hodnoty práh nesplnily.</p>
+  {% if rule %}<p class="text-sm mt-2"><span class="text-muted">Podmínka:</span> {{ rule.condition_text }}{% if rule.applies_to_sport %} <span class="text-muted">· jen sport {{ rule.applies_to_sport.name }}</span>{% endif %}{% if not rule.is_active %} <span class="badge">vypnuté – zkouška běží i tak</span>{% endif %}</p>{% endif %}
+</div>
+
+{% if rows %}
+  <p class="text-sm mb-3">Sedí u <strong>{{ hits }}</strong> z {{ sessions }} dnů.{% if not rule and not rules %} Žádné aktivní pravidlo se správným zápisem.{% endif %}</p>
+  <div class="card overflow-x-auto">
+    <table class="table text-sm">
+      <thead><tr><th>Den</th><th>Sportovec</th><th>Výsledek</th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td class="whitespace-nowrap"><a class="link" href="{% url 'session_detail' r.session.pk %}">{{ r.session.date|date:"d.m.Y" }}</a></td>
+            <td class="whitespace-nowrap">{{ r.subject }}{% if r.session.subject.sport %} <span class="text-xs text-muted">{{ r.session.subject.sport.name }}</span>{% endif %}</td>
+            <td>
+              {% for f in r.findings %}
+                <div class="mb-1 pl-3 border-l-4" style="border-left-color: {% if f.severity == 'high' %}var(--bad){% elif f.severity == 'medium' %}var(--warn){% else %}var(--border-strong){% endif %}">
+                  {{ f.text }}
+                  <div class="text-xs text-muted">{{ f.get_severity_display|lower }}{% if not rule %} · pravidlo {{ f.rule.code }}{% endif %}{% if f.suppressed %} · <span style="color: var(--warn)">doporučení potlačeno: {{ f.suppressed_reason }}</span>{% endif %}</div>
+                </div>
+              {% empty %}
+                <span class="text-2">{% if r.why %}nesedí – {{ r.why }}{% else %}žádný nález{% endif %}</span>
+              {% endfor %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% elif not sessions %}
+  <div class="card p-5 text-sm text-muted">Pracoviště zatím nemá žádný testovací den – pravidlo není na čem zkoušet. Po prvním měření se zkouška spustí tady.</div>
+{% endif %}
+<div class="flex flex-wrap gap-2 mt-4">
+  {% if rule %}<a href="{% url 'rule_edit' rule.pk %}" class="btn">{% icon "edit" %}Upravit pravidlo</a>{% endif %}
+  <a href="{% url 'rules_settings' %}" class="btn">Zpět na pravidla</a>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Pravidla – FTVS{% endblock %}
+{% block content %}
+{% include "catalog/_tabs.html" with tab="pravidla" %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <div class="eyebrow">Nastavení testování</div>
+    <h1 class="text-2xl font-semibold">Pravidla</h1>
+    <p class="text-sm text-muted mt-1 max-w-2xl">Pravidlo je podmínka nad výsledky testovacího dne: když sedí, zpráva dostane nález s čísly a doporučení. Čísla do zprávy vznikají jen tady – jazykový model je smí převyprávět, ne přidat. Pravidlo se zakládá vypnuté; zapíná ho ten, kdo za práh ručí, a připojí k němu článek, který ho dokládá.</p>
+  </div>
+  {% if can_edit %}
+    <div class="flex flex-wrap gap-2">
+      {% if active %}<a href="{% url 'rules_test' %}" class="btn">{% icon "activity" %}Vyzkoušet aktivní</a>{% endif %}
+      <a href="{% url 'rule_new' %}" class="btn btn-primary">{% icon "plus" %}Nové pravidlo</a>
+    </div>
+  {% endif %}
+</div>
+
+{% steps steps heading="Postup u pravidel" may_act=can_edit %}
+
+<div class="card overflow-x-auto" id="pravidla">
+  <div class="px-4 pt-4 pb-2 flex flex-wrap items-center justify-between gap-2"><h2 class="card-title">Pravidla pracoviště</h2><span class="text-xs text-muted">{{ rules|length }} pravidel, {{ active }} aktivních</span></div>
+  <table class="table text-sm">
+    <thead><tr><th>Pravidlo</th><th>Podmínka</th><th class="max-md:hidden">Závažnost</th><th class="max-md:hidden">Zdroje</th><th class="max-md:hidden">Nálezů</th><th>Stav</th><th></th></tr></thead>
+    <tbody>
+      {% for r in rules %}
+        <tr id="pravidlo-{{ r.pk }}">
+          <td class="font-medium">{{ r.name }}<div class="text-xs text-muted font-normal">{{ r.code }} · v{{ r.version }}{% if r.applies_to_sport %} · {{ r.applies_to_sport.name }}{% else %} · všechny sporty{% endif %}</div></td>
+          <td class="text-2 max-w-md">{{ r.condition_text }}{% if r.contraindication.load_restriction %} <span class="text-xs text-muted" title="Při platném omezení zátěže od lékaře se nález zapíše, ale doporučení se nevydá.">· potlačí omezení zátěže</span>{% endif %}</td>
+          <td class="max-md:hidden">{{ r.get_severity_display|lower }}</td>
+          <td class="max-md:hidden tabular-nums">{% if r.article_count %}{{ r.article_count }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+          <td class="max-md:hidden tabular-nums">{{ r.nalezu }}</td>
+          <td class="whitespace-nowrap">
+            {% if r.is_active %}<span class="badge badge-good">aktivní</span>{% else %}<span class="badge">vypnuté</span>{% endif %}
+            {% if r.errors %}<span class="badge badge-bad" title="{{ r.errors|join:' ' }}">špatný zápis</span>{% endif %}
+            {% if r.warnings %}<span class="badge badge-warn" title="{{ r.warnings|join:' ' }}">nikdy nesedne</span>{% endif %}
+          </td>
+          <td class="text-right whitespace-nowrap">{% if can_edit %}<a class="btn btn-sm" href="{% url 'rule_edit' r.pk %}">{% icon "edit" %}Upravit</a>{% endif %}</td>
+        </tr>
+        {% if r.errors or r.warnings %}
+          <tr><td colspan="7" class="text-xs pt-0 pb-3" style="color: var(--warn)">{% for e in r.errors %}{{ e }} {% endfor %}{% for w in r.warnings %}{{ w }} {% endfor %}</td></tr>
+        {% endif %}
+      {% empty %}
+        <tr><td colspan="7" class="text-muted py-6">Zatím žádné pravidlo. Bez pravidel zpráva nemá nálezy ani doporučení z laboratoře – jen hodnoty, změny a postavení vůči normám.{% if can_edit %} <a class="link" href="{% url 'rule_new' %}">Nové pravidlo</a>.{% endif %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="text-xs text-muted mt-3">Jak se pravidlo použije: při sestavení zprávy se projdou aktivní pravidla; každá shoda je nález (věta s čísly) a případně doporučení. Vzorová pravidla „PŘÍKLAD“ mají orientační prahy bez zdroje – upravte je a zapněte až po ověření. Pravidla se přenášejí s katalogem (ulozit-katalog / nacist-katalog).</p>
+{% endblock %}

@@ -42,8 +42,9 @@ je u takové metriky poznámka „nejlepší pokus“.
 RPE je ve zprávě u testu („RPE 9/10 (velmi těžké)“), RPE za celý den v hlavičce,
 a obojí dostává i jazykový model jako kontext.
 
-Další dotazníky (wellness, spánek…) se přidají v administraci
-(*Katalog → Dotazníky*) – zatím se ale v aplikaci nabízí jen RPE.
+Další dotazníky (wellness, spánek…) se připraví v *Nastavení → Dotazníky*
+(otázky: škála, číslo, ano/ne, výběr, text) a v testovacím dni se nabídnou
+pod **Další dotazníky** – vyplní je operátor, nebo sportovec přes QR kód.
 
 ## Prostředí
 

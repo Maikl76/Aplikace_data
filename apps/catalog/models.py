@@ -536,7 +536,7 @@ class BatteryItem(models.Model):
 class Questionnaire(CatalogModel):
     """
     Dotazník nebo škála, kterou vyplňuje sportovec (nebo za něj operátor),
-    např. RPE. Otázky jsou data – další dotazník se založí v administraci.
+    např. RPE. Otázky jsou data – další dotazník se založí v Nastavení → Dotazníky.
     """
 
     code = models.SlugField("kód", max_length=64)

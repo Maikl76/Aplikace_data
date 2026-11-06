@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Dotazníky – FTVS{% endblock %}
+{% block content %}
+{% include "catalog/_tabs.html" with tab="dotazniky" %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <div class="eyebrow">Nastavení testování</div>
+    <h1 class="text-2xl font-semibold">Dotazníky</h1>
+    <p class="text-sm text-muted mt-1 max-w-2xl">Co sportovec vyplňuje: RPE po každém testu, dotazník genetiky před genetickou zprávou a vlastní dotazníky pracoviště (únava, spánek, bolest), které se nabídnou v testovacím dni. Otázky jsou data – škála, číslo, ano/ne, výběr nebo text, vždy s možností „nevím“ a „netýká se“, které se nikdy nepočítají jako „ne“.</p>
+  </div>
+  {% if can_edit %}<a href="{% url 'questionnaire_new' %}" class="btn btn-primary">{% icon "plus" %}Nový dotazník</a>{% endif %}
+</div>
+
+{% steps steps heading="Postup u dotazníků" may_act=can_edit %}
+
+<div class="card overflow-x-auto" id="dotazniky">
+  <div class="px-4 pt-4 pb-2 flex flex-wrap items-center justify-between gap-2"><h2 class="card-title">Dotazníky pracoviště</h2><span class="text-xs text-muted">{{ questionnaires|length }} dotazníků, {{ active }} aktivních</span></div>
+  <table class="table text-sm">
+    <thead><tr><th>Dotazník</th><th class="max-md:hidden">Otázek</th><th>Kde se nabízí</th><th class="max-md:hidden">Vyplnění</th><th>Stav</th><th></th></tr></thead>
+    <tbody>
+      {% for q in questionnaires %}
+        <tr id="dotaznik-{{ q.pk }}">
+          <td class="font-medium">{{ q.name }}<div class="text-xs text-muted font-normal">{{ q.code }}</div></td>
+          <td class="max-md:hidden tabular-nums">{{ q.question_count }}</td>
+          <td class="text-2 max-w-md">{{ q.used }}</td>
+          <td class="max-md:hidden tabular-nums">{{ q.vyplneni }}</td>
+          <td class="whitespace-nowrap">
+            {% if q.is_active %}<span class="badge badge-good">aktivní</span>{% else %}<span class="badge">vypnutý</span>{% endif %}
+            {% if q.problems %}<span class="badge badge-warn" title="{{ q.problems|join:'; ' }}">doplnit</span>{% endif %}
+          </td>
+          <td class="text-right whitespace-nowrap">{% if can_edit %}<a class="btn btn-sm" href="{% url 'questionnaire_edit' q.pk %}">{% icon "edit" %}Upravit</a>{% endif %}</td>
+        </tr>
+        {% if q.problems %}<tr><td colspan="6" class="text-xs pt-0 pb-3" style="color: var(--warn)">{{ q.problems|join:"; " }}</td></tr>{% endif %}
+      {% empty %}
+        <tr><td colspan="6" class="text-muted py-6">Zatím žádný dotazník. RPE a dotazník genetiky doplní start aplikace (seed_catalog).{% if can_edit %} Vlastní: <a class="link" href="{% url 'questionnaire_new' %}">Nový dotazník</a>.{% endif %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="text-xs text-muted mt-3">Odpovědi se ukládají ke sportovci a dni (RPE i k testu); „nevím“ a „netýká se“ jsou stavy bez hodnoty. Dotazníky se přenášejí s katalogem (ulozit-katalog / nacist-katalog).</p>
+{% endblock %}

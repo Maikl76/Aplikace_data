@@ -19,6 +19,7 @@ from apps.catalog.models import Question, Questionnaire
 from .models import Answer, QuestionnaireResponse
 
 RPE = "rpe"
+STANDALONE = ("genetika",)   # dotazníky ke sportovci (ne k testovacímu dni); kód z apps.genetics.seed
 STATES = {"unknown": Answer.State.UNKNOWN, "na": Answer.State.NA}
 TEXT_MAX = 2000
 
@@ -32,6 +33,21 @@ def questionnaire(code: str, organization=None):
                                                                           is_active=True)
              .prefetch_related("questions")}
     return found.get(getattr(organization, "pk", None)) or found.get(None)
+
+
+def available(organization) -> list:
+    """
+    Vlastní dotazníky k testovacímu dni (aktivní, mimo RPE a dotazníky ke sportovci);
+    vlastní verze pracoviště má přednost před sdílenou se stejným kódem.
+    """
+    scope = Q(organization__isnull=True)
+    if organization is not None:
+        scope |= Q(organization=organization)
+    by_code: dict = {}
+    for q in Questionnaire.objects.filter(scope, is_active=True).order_by("name", "pk"):
+        if q.organization_id is not None or q.code not in by_code:
+            by_code[q.code] = q
+    return [q for code, q in by_code.items() if code != RPE and code not in STANDALONE]
 
 
 def _fields(answer) -> dict:

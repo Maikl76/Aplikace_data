@@ -8,7 +8,7 @@
     <a href="{{ back_url }}" class="text-sm link">← {{ back_label }}</a>
     <h1 class="text-2xl font-semibold leading-tight">{{ questionnaire.name }}</h1>
     {% if questionnaire.description %}<p class="text-sm text-2 mt-1">{{ questionnaire.description }}</p>{% endif %}
-    {% if previous %}<p class="text-xs text-muted mt-1">Naposledy vyplněno {{ previous.created_at|date:"d.m.Y" }} ({{ previous.get_source_display|lower }}). Formulář je předvyplněný; uložením vznikne nové vyplnění, starší zůstane.</p>{% endif %}
+    {% if previous %}<p class="text-xs text-muted mt-1">Naposledy vyplněno {{ previous.created_at|date:"d.m.Y" }} ({{ previous.get_source_display|lower }}). Formulář je předvyplněný; {% if overwrite %}uložením se odpovědi k tomuto dni přepíšou{% else %}uložením vznikne nové vyplnění, starší zůstane{% endif %}.</p>{% endif %}
     <p class="text-xs text-muted mt-1">„Nevím“ a „netýká se“ jsou plnohodnotné odpovědi – nikdy se nepočítají jako „ne“.</p>
   </div>
   {% if missing %}

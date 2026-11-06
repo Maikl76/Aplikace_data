@@ -1,4 +1,4 @@
-"""Kroky nastavení testování: sporty, baterie, klíčové ukazatele, MDC, normy (a kroky norem)."""
+"""Kroky nastavení testování: sporty, baterie, klíčové ukazatele, MDC, normy, dotazníky (a jejich kroky)."""
 
 from django.db.models import Q
 
@@ -113,8 +113,76 @@ def norm_steps(user, status: dict | None = None) -> list[dict]:
              url="#normy", button="K normám", count=len(n["short_source"]) or None),
         step(4, "Pravidla", c["rules"] > 0,
              (f"{c['rules']} aktivních pravidel." if c["rules"]
-              else "Pravidla dávají nálezy a doporučení; zapíná je ten, kdo za práh ručí. "
-                   "Průvodce pravidly je další dávka."),
-             url="/admin/rules/rule/", button="Pravidla (administrace)", optional=True,
-             admin_only=True),
+              else "Pravidla dávají nálezy a doporučení; zapíná je ten, kdo za práh ručí."),
+             url=reverse("rules_settings"), button="Pravidla", optional=True),
+    ]
+
+
+def question_problems(question) -> list[str]:
+    """Co otázce chybí, aby šla vyplnit: dvě možnosti u výběru, správná škála."""
+    Kind = question.Kind
+    out = []
+    if question.kind in (Kind.CHOICE, Kind.MULTI) and len(question.option_codes()) < 2:
+        out.append("méně než dvě možnosti")
+    if question.kind == Kind.SCALE and question.scale_min >= question.scale_max:
+        out.append("škála „od“ není menší než „do“")
+    return out
+
+
+def questionnaire_problems(questionnaire) -> list[str]:
+    questions = list(questionnaire.questions.all())
+    if not questions:
+        return ["bez otázek"]
+    return [f"otázka „{q.text}“: {', '.join(p)}" for q in questions
+            if (p := question_problems(q))]
+
+
+def questionnaire_status(user) -> dict:
+    from django.db.models import Count
+
+    from apps.measurements.questionnaires import RPE, STANDALONE
+
+    from .models import Questionnaire
+
+    shared = Q(organization__isnull=True) | Q(organization=user.organization)
+    rows = list(Questionnaire.objects.filter(shared).prefetch_related("questions")
+                .annotate(vyplneni=Count("responses", distinct=True,
+                                         filter=Q(responses__subject__organization=user.organization)))
+                .order_by("-is_active", "name"))
+    for q in rows:
+        q.problems = questionnaire_problems(q)
+        q.question_count = len(q.questions.all())
+    active = [q for q in rows if q.is_active]
+    return {
+        "questionnaires": rows, "active": active,
+        "invalid": [q for q in rows if q.is_active and q.problems],
+        "custom": [q for q in rows if q.code not in (RPE, *STANDALONE)],
+        "responses": sum(q.vyplneni for q in rows),
+    }
+
+
+def questionnaire_steps(user, status: dict | None = None) -> list[dict]:
+    """Kroky dotazníků: aktivní dotazníky, úplné otázky, vyplnění."""
+    from django.urls import reverse
+
+    s = status or questionnaire_status(user)
+    rows, active, invalid, custom = s["questionnaires"], s["active"], s["invalid"], s["custom"]
+    return [
+        step(1, "Dotazníky", bool(active),
+             (f"{len(active)} aktivních z {len(rows)}: RPE po testu, dotazník genetiky"
+              + (f", {len(custom)} vlastních." if custom else
+                 ". Vlastní dotazník (únava, spánek, bolest) se nabídne v testovacím dni.")
+              if rows else "Zatím žádný dotazník – RPE a dotazník genetiky doplní start aplikace."),
+             url=reverse("questionnaire_new"), button="Nový dotazník"),
+        step(2, "Otázky", not invalid,
+             (f"{len(invalid)} aktivních dotazníků s neúplnými otázkami – bez otázek, s méně než "
+              "dvěma možnostmi nebo se špatnou škálou." if invalid
+              else "Každý aktivní dotazník má úplné otázky." if active
+              else "Otázky se doplňují u dotazníku."),
+             url="#dotazniky", button="K dotazníkům", count=len(invalid) or None),
+        step(3, "Vyplnění", s["responses"] > 0,
+             (f"{s['responses']} vyplněných dotazníků sportovců pracoviště." if s["responses"] else
+              "Zatím nic vyplněného: RPE se zapisuje v testovacím dni (operátor, nebo sportovec "
+              "přes QR kód), dotazník genetiky u sportovce v Genetice."),
+             url=reverse("session_list"), button="Testovací dny", optional=True),
     ]

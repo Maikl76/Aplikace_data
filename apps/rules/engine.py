@@ -11,6 +11,7 @@ i pro toho, kdo nekóduje, a musí jít změnit v administraci bez nasazení.
 Podporované tvary podmínky
 --------------------------
     {"metric": "ir_er_ratio", "op": "<", "value": 1.0, "where": {"speed": 210}}
+    („where“ – strana, režim, rychlost, segment – zúží každý druh podmínky)
     {"asymmetry": "*", "op": ">", "value": 10}          # |rozdíl L-P| v %
     {"asymmetry": "grip_strength", "op": ">", "value": 10}
     {"change": "cmj_height", "op": "<", "value": 0, "require_mdc": true}
@@ -400,10 +401,13 @@ def _eval_change(condition, context) -> list[dict]:
     compare = _op(condition)
     threshold = condition["value"]
     require_mdc = condition.get("require_mdc", True)
+    where = condition.get("where", {})
 
     matches = []
     for key, entry in context["values"].items():
         if entry["metric"].code != condition["change"]:
+            continue
+        if not _matches_where(entry, where):
             continue
         before = context["previous"].get(key)
         if before is None:
@@ -422,11 +426,14 @@ def _eval_change(condition, context) -> list[dict]:
 def _eval_z(condition, context) -> list[dict]:
     compare = _op(condition)
     threshold = condition["value"]
+    where = condition.get("where", {})
 
     matches = []
     for entry in context["values"].values():
         metric = entry["metric"]
         if metric.code != condition["z"]:
+            continue
+        if not _matches_where(entry, where):
             continue
         norm = find_norm(metric, context["subject"], side=entry["side"],
                          mode=entry["mode"], speed=entry["speed"],

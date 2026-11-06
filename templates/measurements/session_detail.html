@@ -115,13 +115,13 @@
     </div>
     {% if responses %}
       <ul class="px-4 pb-2 space-y-1.5">
-        {% for r in responses %}{% for a in r.answers %}
+        {% for r in responses %}{% if r.questionnaire.code == rpe.code %}{% for a in r.answers %}
           <li class="flex items-center gap-2 text-sm">
             <span class="badge badge-accent tabular-nums">{{ a.value_txt }}</span>
             <span class="flex-1 min-w-0">{{ r.after|default:"celý testovací den" }}{% if a.label %} <span class="text-muted">– {{ a.label }}</span>{% endif %}</span>
             <span class="text-xs text-muted" title="{{ r.response.get_source_display }}">{% if r.response.source == "sportovec" %}sportovec{% else %}operátor{% endif %}</span>
           </li>
-        {% endfor %}{% endfor %}
+        {% endfor %}{% endif %}{% endfor %}
       </ul>
     {% endif %}
     <form method="post" action="{% url 'session_questionnaire' session.pk %}"
@@ -151,6 +151,29 @@
            x-effect="if (qr) fetch('{% url 'session_questionnaire_qr' session.pk %}?dotaznik={{ rpe.code }}&beh=' + beh).then(r => r.text()).then(h => $el.innerHTML = h)">
         Připravuji QR kód…</div>
     </form>
+  </section>
+  {% endif %}
+
+  {% if other_questionnaires %}
+  <section class="card min-w-0" id="dalsi-dotazniky" x-data="{ qr: '' }">
+    <div class="px-4 pt-4 pb-2"><h2 class="card-title">Další dotazníky</h2>
+      <p class="text-xs text-muted">Vlastní dotazníky pracoviště (Nastavení → Dotazníky). Vyplní operátor se sportovcem, nebo sportovec sám přes QR kód.</p></div>
+    <ul class="px-4 pb-3 divide-y" style="border-color: var(--border)">
+      {% for q in other_questionnaires %}
+        <li class="py-2 text-sm">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="flex-1 min-w-0 font-medium">{{ q.name }}</span>
+            <a href="{% url 'session_questionnaire_form' session.pk q.code %}" class="btn btn-sm">{% icon "edit" %}Vyplnit</a>
+            <button type="button" class="btn btn-sm" @click="qr = qr === '{{ q.code }}' ? '' : '{{ q.code }}'">{% icon "qr" %}QR</button>
+          </div>
+          {% for r in responses %}{% if r.questionnaire.code == q.code %}
+            <div class="text-xs text-2 mt-1">vyplněno {{ r.response.updated_at|date:"d.m. H:i" }} ({% if r.response.source == "sportovec" %}sportovec{% else %}operátor{% endif %}): {% for a in r.answers %}{{ a.question.text }} – {{ a.display }}{% if not forloop.last %}; {% endif %}{% endfor %}</div>
+          {% endif %}{% endfor %}
+          <div x-show="qr === '{{ q.code }}'" x-cloak class="pt-2 text-sm text-muted"
+               x-effect="if (qr === '{{ q.code }}') fetch('{% url 'session_questionnaire_qr' session.pk %}?dotaznik={{ q.code }}').then(r => r.text()).then(h => $el.innerHTML = h)">Připravuji QR kód…</div>
+        </li>
+      {% endfor %}
+    </ul>
   </section>
   {% endif %}
 

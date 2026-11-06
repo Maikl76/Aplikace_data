@@ -24,20 +24,35 @@
         <h1 class="text-2xl font-semibold mt-1">{% if questions|length == 1 %}{{ questions.0.text }}{% else %}{{ questionnaire.name }}{% endif %}</h1>
         {% if questionnaire.description %}<p class="text-2 mt-1">{{ questionnaire.description }}</p>{% endif %}
       </div>
-      {% for question in questions %}
-        <fieldset class="card p-3">
-          {% if questions|length > 1 %}<legend class="font-medium px-1">{{ question.text }}</legend>{% endif %}
-          <div class="rpe-svisle">
-            {% for value, label in question.points %}
-              <label class="rpe-radek">
-                <input type="radio" name="q_{{ question.code }}" value="{{ value }}" required>
-                <span class="rpe-cislo">{{ value }}</span>
-                <span class="rpe-text">{{ label }}</span>
-              </label>
-            {% endfor %}
-          </div>
-        </fieldset>
-      {% endfor %}
+      {% if missing %}
+        <div class="card px-4 py-3 text-sm border-l-4" style="border-left-color: var(--warn)">
+          Chybí odpověď na povinné otázky: {% for q in missing %}<strong>{{ q.text }}</strong>{% if not forloop.last %}, {% endif %}{% endfor %}.
+        </div>
+      {% endif %}
+      {% if simple %}
+        {% for question in questions %}
+          <fieldset class="card p-3">
+            {% if questions|length > 1 %}<legend class="font-medium px-1">{{ question.text }}</legend>{% endif %}
+            <div class="rpe-svisle">
+              {% for value, label in question.points %}
+                <label class="rpe-radek">
+                  <input type="radio" name="q_{{ question.code }}" value="{{ value }}" required>
+                  <span class="rpe-cislo">{{ value }}</span>
+                  <span class="rpe-text">{{ label }}</span>
+                </label>
+              {% endfor %}
+            </div>
+          </fieldset>
+        {% endfor %}
+      {% else %}
+        {% for section in sections %}
+          <section class="card px-4 pb-2 pt-3">
+            {% if section.name %}<h2 class="font-medium">{{ section.name }}</h2>{% endif %}
+            {% for item in section.questions %}{% include "measurements/_question.html" %}{% endfor %}
+          </section>
+        {% endfor %}
+        <p class="text-xs text-2">„Nevím“ a „netýká se“ jsou plnohodnotné odpovědi.</p>
+      {% endif %}
       <button type="submit" class="btn btn-primary w-full py-3 text-base">Odeslat</button>
     </form>
   {% endif %}

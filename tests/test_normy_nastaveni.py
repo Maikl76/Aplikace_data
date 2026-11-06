@@ -68,7 +68,7 @@ def test_prehled_norem_s_kroky(org):
     assert not steps["Normy u klíčových ukazatelů"]["done"] and "0 z 1 klíčových" in steps["Normy u klíčových ukazatelů"]["text"]
     assert steps["Normy u klíčových ukazatelů"]["url"] == reverse("norm_new")
     assert steps["Hodnoty"]["done"] and steps["Zdroje"]["done"]  # nic k doplnění
-    assert steps["Pravidla"]["optional"] and steps["Pravidla"]["admin_only"]
+    assert steps["Pravidla"]["optional"] and steps["Pravidla"]["url"] == reverse("rules_settings")
     text = lab.get(url).content.decode()
     assert "Nová norma" not in text and "Normy podle ukazatele" in text
     # kroky nastavení vedou sem místo do administrace

@@ -1,7 +1,8 @@
 from django.urls import path
 from django.views.generic import RedirectView
 
-from apps.catalog import norm_views, settings_views
+from apps.catalog import norm_views, questionnaire_views, settings_views
+from apps.rules import setup_views as rule_views
 
 from . import views
 
@@ -18,6 +19,26 @@ urlpatterns = [
     path("nastaveni/normy/nova/", norm_views.norm_edit, name="norm_new"),
     path("nastaveni/normy/<int:pk>/", norm_views.norm_edit, name="norm_edit"),
     path("nastaveni/normy/<int:pk>/smazat/", norm_views.norm_delete, name="norm_delete"),
+    path("nastaveni/pravidla/", rule_views.rule_list, name="rules_settings"),
+    path("nastaveni/pravidla/nove/", rule_views.rule_edit, name="rule_new"),
+    path("nastaveni/pravidla/zkouska/", rule_views.rule_test, name="rules_test"),
+    path("nastaveni/pravidla/<int:pk>/", rule_views.rule_edit, name="rule_edit"),
+    path("nastaveni/pravidla/<int:pk>/smazat/", rule_views.rule_delete, name="rule_delete"),
+    path("nastaveni/pravidla/<int:pk>/zkouska/", rule_views.rule_test, name="rule_test"),
+    path("nastaveni/dotazniky/", questionnaire_views.questionnaire_list,
+         name="questionnaires_settings"),
+    path("nastaveni/dotazniky/novy/", questionnaire_views.questionnaire_edit,
+         name="questionnaire_new"),
+    path("nastaveni/dotazniky/<int:pk>/", questionnaire_views.questionnaire_edit,
+         name="questionnaire_edit"),
+    path("nastaveni/dotazniky/<int:pk>/smazat/", questionnaire_views.questionnaire_delete,
+         name="questionnaire_delete"),
+    path("nastaveni/dotazniky/<int:pk>/otazka/nova/", questionnaire_views.question_edit,
+         name="question_new"),
+    path("nastaveni/dotazniky/<int:pk>/otazka/<int:qpk>/", questionnaire_views.question_edit,
+         name="question_edit"),
+    path("nastaveni/dotazniky/<int:pk>/otazka/<int:qpk>/smazat/",
+         questionnaire_views.question_delete, name="question_delete"),
     path("pripominky/", views.remarks, name="remarks"),
     path("pripominky/nova/", views.remark_new, name="remark_new"),
     path("zdravi/", views.health, name="health"),

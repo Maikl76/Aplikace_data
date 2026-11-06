@@ -152,12 +152,11 @@ def settings_sections(user) -> list[dict]:
                 f"{c['norms']} norem, {c['rules']} aktivních pravidel. Bez norem zpráva neukáže "
                 "postavení vůči referenci; pravidla dávají nálezy a doporučení.",
                 url=reverse("norms_settings"), button="Normy",
-                later="Průvodce pravidly je další dávka.",
-                links=[("Pravidla (administrace)", "/admin/rules/rule/")]),
+                links=[("Pravidla", reverse("rules_settings"))]),
         section("Dotazníky",
-                f"{questionnaires} dotazníků (RPE, únava, genetika).",
-                url="/admin/catalog/questionnaire/", button="Dotazníky (administrace)",
-                admin_only=True, later="Průvodce dotazníky je další dávka."),
+                f"{questionnaires} dotazníků: RPE po testu, dotazník genetiky, vlastní dotazníky "
+                "k testovacímu dni.",
+                url=reverse("questionnaires_settings"), button="Dotazníky"),
         section("Objednávky", "Nabídka testování a volné termíny, podle nich se klienti objednávají.",
                 url=reverse("booking_offers"), button="Nabídka a termíny"),
         section("Články", f"{articles} článků v knihovně; zdroje pro normy, pravidla a karty.",

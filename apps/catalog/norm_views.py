@@ -205,7 +205,7 @@ def _parse(data: dict, metrics, sports) -> tuple[dict, list[str]]:
     return values, errors
 
 
-def _article_choices():
+def article_choices():
     out = []
     for a in Article.objects.filter(status=Article.Status.APPROVED).order_by("-year", "title")[:300]:
         citation = " ".join(filter(None, [
@@ -262,7 +262,7 @@ def norm_edit(request, pk=None):
         "sports": sports, "sexes": SEX, "levels": Subject.Level.choices, "sides": Side.choices,
         "modes": MODES, "percentile_rows": [(p, data[f"p{p}"]) for p in PERCENTILES],
         "has_percentiles": any(data[f"p{p}"] for p in PERCENTILES),
-        "articles": _article_choices(),
+        "articles": article_choices(),
     })
 
 

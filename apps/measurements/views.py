@@ -222,6 +222,7 @@ def session_detail(request, pk):
         "rpe_question": rpe.questions.first() if rpe else None,
         "rpe_runs": [r for r in runs if r.protocol.code not in planning.DERIVED_PROTOCOLS],
         "responses": questionnaires.summary(session),
+        "other_questionnaires": questionnaires.available(session.organization),
     })
 
 
@@ -282,12 +283,44 @@ def session_questionnaire_qr(request, pk):
     })
 
 
+@login_required
+def session_questionnaire_form(request, pk, code):
+    """Vlastní dotazník k testovacímu dni vyplněný v laboratoři (za sportovce nebo s ním)."""
+    session = get_object_or_404(TestSession.objects.for_user(request.user), pk=pk)
+    questionnaire = next((q for q in questionnaires.available(session.organization)
+                          if q.code == code), None)
+    if questionnaire is None:
+        messages.error(request, "Takový dotazník se v testovacím dni nenabízí.")
+        return redirect("session_detail", pk=pk)
+    previous = session.responses.filter(questionnaire=questionnaire, protocol_run=None).first()
+    missing = []
+    if request.method == "POST":
+        values = questionnaires.parse_answers(questionnaire, request.POST)
+        missing = questionnaires.missing_required(questionnaire, values)
+        if not missing:
+            source = (QuestionnaireResponse.Source.SUBJECT
+                      if request.POST.get("vyplnil") == "sportovec"
+                      else QuestionnaireResponse.Source.OPERATOR)
+            questionnaires.save(session, questionnaire, values, run=None, source=source)
+            record(request, AuditLog.Action.UPDATE, session,
+                   subject_code=session.subject.code, dotaznik=questionnaire.code)
+            messages.success(request, f"{questionnaire.name}: uloženo.")
+            return redirect(f"{reverse('session_detail', args=[pk])}#dotazniky")
+        messages.error(request, "Doplňte povinné otázky, nebo u nich zvolte „nevím“ / „netýká se“.")
+    return render(request, "measurements/questionnaire_form.html", {
+        "questionnaire": questionnaire, "previous": previous, "missing": missing,
+        "sections": questionnaires.sections(questionnaire, previous), "overwrite": True,
+        "back_url": f"{reverse('session_detail', args=[pk])}#dotazniky",
+        "back_label": f"Testovací den {session.date:%d.%m.%Y}", "who": True,
+    })
+
+
 def questionnaire_fill(request, token):
     """
     Vyplnění dotazníku sportovcem – bez přihlášení, jen s podepsaným odkazem.
     Neukazuje jméno ani výsledky, jen otázku.
     """
-    from apps.catalog.models import Questionnaire
+    from apps.catalog.models import Question, Questionnaire
 
     data = questionnaires.read_token(token)
     session = TestSession.objects.filter(pk=(data or {}).get("s")).first()
@@ -297,16 +330,20 @@ def questionnaire_fill(request, token):
         return render(request, "measurements/questionnaire_fill.html",
                       {"invalid": True}, status=410)
     run = session.protocol_runs.filter(pk=data.get("r")).select_related("protocol").first()
-    done = False
+    questions = list(questionnaire.questions.all())
+    simple = all(q.kind == Question.Kind.SCALE for q in questions)   # RPE: jen škála
+    done, missing = False, []
     if request.method == "POST":
         answers = questionnaires.parse_answers(questionnaire, request.POST)
-        if answers:
+        missing = questionnaires.missing_required(questionnaire, answers)
+        if answers and not missing:
             questionnaires.save(session, questionnaire, answers, run=run,
                                 source=QuestionnaireResponse.Source.SUBJECT)
             done = True
     return render(request, "measurements/questionnaire_fill.html", {
         "questionnaire": questionnaire, "run": run, "session": session, "done": done,
-        "questions": questionnaire.questions.all(),
+        "questions": questions, "simple": simple, "missing": missing,
+        "sections": [] if simple else questionnaires.sections(questionnaire),
     })
 
 

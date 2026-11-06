@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}{% if question %}Otázka{% else %}Nová otázka{% endif %} – {{ questionnaire.name }} – FTVS{% endblock %}
+{% block content %}
+<div class="mb-5">
+  <a href="{% url 'questionnaire_edit' questionnaire.pk %}#otazky" class="text-sm link">← Dotazník {{ questionnaire.name }}</a>
+  <h1 class="text-2xl font-semibold mt-1">{% if question %}Otázka: {{ question.text|truncatechars:60 }}{% else %}Nová otázka{% endif %}</h1>
+  <p class="text-sm text-muted mt-1 max-w-2xl">Čtyři části: znění, druh odpovědi, povinnost a stavy, náhled. Druh odpovědi určuje, co se ukládá: číslo na škále, číslo, ano/ne, kód možnosti, nebo text.{% if answers %} Otázka má {{ answers }} odpovědí.{% endif %}{% if scenarios %} Používají ji scénáře genových karet ({{ scenarios }}) – druh a kódy možností se nemění.{% endif %}</p>
+</div>
+
+<form method="post" class="space-y-5 max-w-4xl pb-6" id="otazka">
+  {% csrf_token %}
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">1</span>
+      <div><h2 class="card-title">Znění</h2><p class="text-sm text-muted">Otázka tak, jak ji sportovec uvidí. Vysvětlení je drobný text pod ní; oddíl drží otázky pohromadě.</p></div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <label class="block sm:col-span-2"><span class="text-sm font-medium">Otázka</span>
+        <input name="text" value="{{ data.text }}" required maxlength="300" class="input mt-1" placeholder="např. Jak jste se poslední týden vyspali?"></label>
+      <label class="block sm:col-span-2"><span class="text-sm font-medium">Vysvětlení</span> <span class="text-xs text-muted">– nepovinné</span>
+        <input name="help_text" value="{{ data.help_text }}" maxlength="300" class="input mt-1" placeholder="např. Průměr za posledních 7 nocí."></label>
+      <label class="block"><span class="text-sm font-medium">Oddíl</span> <span class="text-xs text-muted">– nepovinné</span>
+        <input name="section" value="{{ data.section }}" maxlength="120" list="oddily" class="input mt-1" placeholder="např. Regenerace">
+        <datalist id="oddily">{% for s in sections %}<option value="{{ s }}">{% endfor %}</datalist></label>
+      <label class="block"><span class="text-sm font-medium">Kód</span>
+        {% if question %}<input value="{{ data.code }}" readonly class="input mt-1" style="background: var(--surface-2)"><span class="text-xs text-muted">Kód se u uložené otázky nemění.</span>
+        {% else %}<input name="code" value="{{ data.code }}" maxlength="64" class="input mt-1" placeholder="prázdné = odvodí se ze znění">{% endif %}</label>
+    </div>
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">2</span>
+      <div><h2 class="card-title">Druh odpovědi</h2><p class="text-sm text-muted">Podle druhu se ukáže škála, pole pro číslo, ano/ne, nabídka možností, nebo textové pole.</p></div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-2">
+      {% for value, label, help in kinds %}
+        <label class="flex items-start gap-2 text-sm p-2 rounded-lg" style="background: var(--surface-2)"><input type="radio" name="kind" value="{{ value }}" class="mt-1" data-kind {% if data.kind == value %}checked{% endif %}{% if scenarios %} {% if data.kind != value %}disabled{% endif %}{% endif %}> <span><strong>{{ label }}</strong><br><span class="text-xs text-muted">{{ help }}</span></span></label>
+      {% endfor %}
+    </div>
+    <div class="mt-4 grid sm:grid-cols-3 gap-4" data-only="scale">
+      <label class="block"><span class="text-sm font-medium">Škála od</span>
+        <input name="scale_min" value="{{ data.scale_min }}" inputmode="numeric" class="input mt-1"></label>
+      <label class="block"><span class="text-sm font-medium">Škála do</span>
+        <input name="scale_max" value="{{ data.scale_max }}" inputmode="numeric" class="input mt-1"></label>
+      <label class="block sm:col-span-3"><span class="text-sm font-medium">Popisky bodů</span> <span class="text-xs text-muted">– nepovinné; na řádek „číslo = popisek“, body bez popisku se ukážou jen číslem</span>
+        <textarea name="anchors" rows="4" class="input mt-1 font-mono text-sm" placeholder="0 = klid&#10;5 = těžké&#10;10 = maximální">{{ data.anchors }}</textarea></label>
+    </div>
+    <div class="mt-4" data-only="number">
+      <label class="block max-w-xs"><span class="text-sm font-medium">Jednotka</span> <span class="text-xs text-muted">– nepovinné</span>
+        <input name="unit" value="{{ data.unit }}" maxlength="20" class="input mt-1" placeholder="např. h, kg, let"></label>
+    </div>
+    <div class="mt-4" data-only="choice multi">
+      <label class="block"><span class="text-sm font-medium">Možnosti</span> <span class="text-xs text-muted">– každá na řádek, buď „kod = Popisek“, nebo jen popisek (kód se odvodí)</span>
+        <textarea name="options" rows="5" class="input mt-1 text-sm" placeholder="dobre = Dobře, bez probuzení&#10;prerusovane = Přerušovaně&#10;spatne = Špatně">{{ data.options }}</textarea></label>
+      {% if scenarios %}<p class="text-xs text-muted mt-1">Kódy možností používají scénáře genových karet – popisek jde upravit, kód ne.</p>{% endif %}
+    </div>
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">3</span>
+      <div><h2 class="card-title">Povinnost a stavy</h2><p class="text-sm text-muted">„Nevím“ a „netýká se“ jsou odpovědi bez hodnoty – nikdy se nepřekládají na „ne“ a povinnou otázku splní.</p></div>
+    </div>
+    <div class="space-y-2 text-sm">
+      <label class="flex items-center gap-2"><input type="checkbox" name="required" {% if data.required %}checked{% endif %}> Povinná – bez odpovědi (nebo stavu) dotazník neuložit</label>
+      <label class="flex items-center gap-2"><input type="checkbox" name="allow_unknown" {% if data.allow_unknown %}checked{% endif %}> Nabídnout „nevím“</label>
+      <label class="flex items-center gap-2"><input type="checkbox" name="allow_na" {% if data.allow_na %}checked{% endif %}> Nabídnout „netýká se“</label>
+    </div>
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">4</span>
+      <div><h2 class="card-title">Náhled</h2><p class="text-sm text-muted">Tak otázku uvidí sportovec{% if not question %} – podle naposledy uloženého stavu formuláře{% endif %}.</p></div>
+    </div>
+    <fieldset disabled class="max-w-2xl">{% with item=preview %}{% include "measurements/_question.html" %}{% endwith %}</fieldset>
+  </section>
+
+  <div class="flex flex-wrap items-center gap-2 sticky bottom-0 py-3" style="background: var(--bg)">
+    <button class="btn btn-primary" name="action" value="ulozit">{% icon "check" %}Uložit otázku</button>
+    {% if not question %}<button class="btn" name="action" value="dalsi">{% icon "plus" %}Uložit a přidat další</button>{% endif %}
+    <a href="{% url 'questionnaire_edit' questionnaire.pk %}#otazky" class="btn">Zpět na dotazník</a>
+  </div>
+</form>
+{% if question %}
+  {% if answers or scenarios %}
+    <p class="text-xs text-muted max-w-4xl -mt-2 mb-6">Otázku používají odpovědi nebo scénáře, proto nejde smazat; zrušte u ní povinnost, aby ji sportovec mohl přeskočit.</p>
+  {% else %}
+    <form method="post" action="{% url 'question_delete' questionnaire.pk question.pk %}" class="max-w-4xl -mt-2 mb-6" onsubmit="return confirm('Smazat otázku?')">{% csrf_token %}
+      <button class="text-xs text-muted link">Smazat otázku</button>
+    </form>
+  {% endif %}
+{% endif %}
+<script>
+  (function () {
+    const blocks = document.querySelectorAll('[data-only]');
+    function refresh() {
+      const kind = (document.querySelector('[data-kind]:checked') || {}).value;
+      blocks.forEach(b => { b.style.display = b.dataset.only.split(' ').includes(kind) ? '' : 'none'; });
+    }
+    document.querySelectorAll('[data-kind]').forEach(r => r.addEventListener('change', refresh));
+    refresh();
+  })();
+</script>
+{% endblock %}

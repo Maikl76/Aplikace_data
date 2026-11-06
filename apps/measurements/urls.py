@@ -12,6 +12,8 @@ urlpatterns = [
     path("<int:pk>/dotaznik/", views.session_questionnaire, name="session_questionnaire"),
     path("<int:pk>/dotaznik/qr/", views.session_questionnaire_qr,
          name="session_questionnaire_qr"),
+    path("<int:pk>/dotaznik/<slug:code>/", views.session_questionnaire_form,
+         name="session_questionnaire_form"),
     path("provedeni/<int:pk>/", views.run_entry, name="run_entry"),
     path("provedeni/<int:pk>/podminky/", views.run_conditions, name="run_conditions"),
 ]

@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}{% if rule %}Pravidlo {{ rule.name }}{% else %}Nové pravidlo{% endif %} – FTVS{% endblock %}
+{% block content %}
+<div class="mb-5">
+  <a href="{% url 'rules_settings' %}" class="text-sm link">← Pravidla</a>
+  <h1 class="text-2xl font-semibold mt-1">{% if rule %}Pravidlo: {{ rule.name }} <span class="text-muted font-normal text-base">v{{ rule.version }}</span>{% else %}Nové pravidlo{% endif %}</h1>
+  <p class="text-sm text-muted mt-1 max-w-2xl">Pět částí: název a kdy platí, podmínka, texty nálezu a doporučení, kontraindikace, zdroje. Pravidlo dává nálezy až jako aktivní; zapněte ho, až práh ověříte a připojíte článek.{% if rule %} Při změně podmínky, textů nebo závažnosti se zvýší verze; starší nálezy ve zprávách si pamatují svou.{% endif %}</p>
+  {% if condition_text %}<p class="text-sm mt-2"><span class="text-muted">Teď zapsáno:</span> {{ condition_text }}</p>{% endif %}
+</div>
+
+<form method="post" class="space-y-5 max-w-4xl pb-6" id="pravidlo">
+  {% csrf_token %}
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">1</span>
+      <div><h2 class="card-title">Název a kdy platí</h2><p class="text-sm text-muted">Název se ukáže v přehledu, kód ve zprávě u nálezu („pravidlo pomer_ir_er v2“). Sport omezí pravidlo na sportovce toho sportu; závažnost řadí nálezy ve zprávě.</p></div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <label class="block"><span class="text-sm font-medium">Název</span>
+        <input name="name" value="{{ data.name }}" required maxlength="200" class="input mt-1" placeholder="např. Poměr IR/ER pod doporučenou hodnotou"></label>
+      <label class="block"><span class="text-sm font-medium">Kód</span>
+        {% if rule %}<input value="{{ data.code }}" readonly class="input mt-1" style="background: var(--surface-2)"><span class="text-xs text-muted">Kód se u uloženého pravidla nemění.</span>
+        {% else %}<input name="code" value="{{ data.code }}" maxlength="64" class="input mt-1" placeholder="prázdné = odvodí se z názvu"><span class="text-xs text-muted">Malá písmena bez diakritiky, slova spojená podtržítkem.</span>{% endif %}</label>
+      <label class="block"><span class="text-sm font-medium">Sport</span>
+        <select name="sport" class="input mt-1"><option value="">všechny sporty</option>{% for s in sports %}<option value="{{ s.pk }}" {% if data.sport == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>{% endfor %}</select></label>
+      <label class="block"><span class="text-sm font-medium">Závažnost</span>
+        <select name="severity" class="input mt-1">{% for value, label in severities %}<option value="{{ value }}" {% if data.severity == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+    </div>
+    <label class="flex items-start gap-2 mt-4 text-sm"><input type="checkbox" name="is_active" class="mt-1" {% if data.is_active %}checked{% endif %}> <span><strong>Aktivní</strong> – pravidlo dává nálezy a doporučení do zpráv. Zapíná ho ten, kdo za práh ručí.</span></label>
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">2</span>
+      <div><h2 class="card-title">Podmínka</h2><p class="text-sm text-muted">Co se porovnává a s jakým prahem. Hodnota ukazatele, asymetrie stran, změna proti minulému měření, nebo z-skóre vůči normě. Strana, režim, rychlost a segment podmínku zúží – prázdné platí při každé variantě měření.</p></div>
+    </div>
+    {% if data.json_mode %}
+      <input type="hidden" name="json_mode" value="1">
+      <p class="text-sm text-2 mb-2">Tahle podmínka má vnořené skupiny (all / any uvnitř sebe), které stavitel neumí – upravuje se jako JSON. Druhy: metric, asymmetry, change, z; strana, režim, rychlost a segment patří do „where“.</p>
+      <textarea name="condition_json" rows="10" class="input font-mono text-sm">{{ data.condition_json }}</textarea>
+    {% else %}
+      <input type="hidden" name="row_count" id="row_count" value="{{ data.rows|length }}">
+      <div class="space-y-2" id="podminky">
+        {% for row in data.rows %}{% with i=forloop.counter0 %}{% include "rules/_row.html" %}{% endwith %}{% endfor %}
+      </div>
+      <div class="flex flex-wrap items-center gap-3 mt-3">
+        <button type="button" class="btn btn-sm" id="pridat-podminku">{% icon "plus" %}Přidat podmínku</button>
+        <span class="text-sm text-2" id="skupina">Při více podmínkách pravidlo sedí, když:
+          <label class="inline-flex items-center gap-1 ml-2"><input type="radio" name="group" value="all" {% if data.group != "any" %}checked{% endif %}> všechny zároveň</label>
+          <label class="inline-flex items-center gap-1 ml-2"><input type="radio" name="group" value="any" {% if data.group == "any" %}checked{% endif %}> aspoň jedna</label>
+        </span>
+      </div>
+      {% if rule %}<details class="mt-3 text-xs text-muted"><summary class="cursor-pointer link">Zápis podmínky jako JSON (pro pokročilé)</summary><pre class="mt-1 p-2 rounded-lg overflow-x-auto" style="background: var(--surface-2)">{{ data.condition_json }}</pre></details>{% endif %}
+    {% endif %}
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">3</span>
+      <div><h2 class="card-title">Text nálezu a doporučení</h2><p class="text-sm text-muted">Věta do zprávy. Čísla do ní doplní pravidlo přes pole ve složených závorkách – jiná čísla text obsahovat nesmí. Pole „… s čárkou“ píší 1,05 místo 1.05.</p></div>
+    </div>
+    <label class="block"><span class="text-sm font-medium">Text nálezu</span>
+      <textarea name="finding_template" id="finding_template" rows="3" required class="input mt-1" maxlength="2000" placeholder="Poměr vnitřní a vnější rotace ramene {value_txt} při {speed_txt} °/s je pod orientační hodnotou {threshold_txt}.">{{ data.finding_template }}</textarea></label>
+    <div class="mt-2 text-xs" id="paleta">
+      <span class="text-muted">Pole k vložení (klik vloží do textu nálezu):</span>
+      {% for group in palette %}
+        <div class="mt-1 flex flex-wrap gap-1 items-center" data-paleta="{{ group.kind }}">
+          <span class="text-2 mr-1">{{ group.label }}:</span>
+          {% for name, help in group.fields %}<button type="button" class="badge" data-pole="{{ name }}" title="{{ help }}">{{ "{" }}{{ name }}{{ "}" }}</button>{% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+    <label class="block mt-4"><span class="text-sm font-medium">Text doporučení</span> <span class="text-xs text-muted">– nepovinné; smí používat stejná pole</span>
+      <textarea name="recommendation_template" rows="2" class="input mt-1" maxlength="2000" placeholder="Zvážit posílení zevních rotátorů ramene a kontrolní měření.">{{ data.recommendation_template }}</textarea></label>
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">4</span>
+      <div><h2 class="card-title">Kontraindikace</h2><p class="text-sm text-muted">Bezpečnostní pojistka: když má sportovec platné omezení zátěže od lékaře, nález se zapíše (je doložitelné, že pravidlo sedělo), ale doporučení se nevydá.</p></div>
+    </div>
+    <label class="flex items-start gap-2 text-sm"><input type="checkbox" name="load_restriction" class="mt-1" {% if data.load_restriction %}checked{% endif %}> <span>Potlačit doporučení při platném omezení zátěže od lékaře</span></label>
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">5</span>
+      <div><h2 class="card-title">Zdroje</h2><p class="text-sm text-muted">Článek z knihovny, který práh dokládá. Zpráva ho u nálezu cituje. Chybí-li článek v knihovně, nejdřív ho přidejte v Článcích (a schvalte).</p></div>
+    </div>
+    {% if links %}
+      <table class="table text-sm mb-3">
+        <thead><tr><th>Článek</th><th>Proč je relevantní</th><th>Odebrat</th></tr></thead>
+        <tbody>
+          {% for l in links %}
+            <tr><td class="max-w-sm">{{ l.article }}</td>
+              <td><input name="ra{{ l.pk }}_note" value="{{ l.relevance_note }}" maxlength="500" class="input text-sm py-1" placeholder="např. stejný test a populace"></td>
+              <td><input type="checkbox" name="ra{{ l.pk }}_delete"></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+    {% if articles %}
+      <input type="hidden" name="nra_count" id="nra_count" value="{% if data.new_articles %}{{ data.new_articles|length }}{% else %}1{% endif %}">
+      <div class="space-y-2" id="nove-clanky">
+        {% for item in data.new_articles %}
+          <div class="grid sm:grid-cols-2 gap-2">
+            <select name="nra{{ forloop.counter0 }}_article" class="input text-sm py-1.5"><option value="">— přidat článek z knihovny —</option>{% for a in articles %}<option value="{{ a.pk }}" {% if item.article == a.pk|stringformat:"s" %}selected{% endif %}>{{ a.label }}</option>{% endfor %}</select>
+            <input name="nra{{ forloop.counter0 }}_note" value="{{ item.note }}" maxlength="500" class="input text-sm py-1.5" placeholder="proč je relevantní">
+          </div>
+        {% empty %}
+          <div class="grid sm:grid-cols-2 gap-2">
+            <select name="nra0_article" class="input text-sm py-1.5"><option value="">— přidat článek z knihovny —</option>{% for a in articles %}<option value="{{ a.pk }}">{{ a.label }}</option>{% endfor %}</select>
+            <input name="nra0_note" maxlength="500" class="input text-sm py-1.5" placeholder="proč je relevantní">
+          </div>
+        {% endfor %}
+      </div>
+      <button type="button" class="btn btn-sm mt-2" id="pridat-clanek">{% icon "plus" %}Další článek</button>
+    {% else %}
+      <p class="text-sm text-2">V knihovně zatím není žádný schválený článek. <a class="link" href="{% url 'article_list' %}">Články</a></p>
+    {% endif %}
+  </section>
+
+  <div class="flex flex-wrap items-center gap-2 sticky bottom-0 py-3" style="background: var(--bg)">
+    <button class="btn btn-primary">{% icon "check" %}Uložit pravidlo</button>
+    {% if rule %}<a href="{% url 'rule_test' rule.pk %}" class="btn">{% icon "activity" %}Vyzkoušet na datech</a>{% endif %}
+    <a href="{% url 'rules_settings' %}" class="btn">Zpět na pravidla</a>
+  </div>
+</form>
+{% if rule %}
+  {% if findings %}
+    <p class="text-xs text-muted max-w-4xl -mt-2 mb-6">Pravidlo má {{ findings }} nálezů ve zprávách, proto nejde smazat – vypněte ho (nálezy zůstanou dohledatelné).</p>
+  {% else %}
+    <form method="post" action="{% url 'rule_delete' rule.pk %}" class="max-w-4xl -mt-2 mb-6" onsubmit="return confirm('Smazat pravidlo?')">{% csrf_token %}
+      <button class="text-xs text-muted link">Smazat pravidlo</button>
+    </form>
+  {% endif %}
+{% endif %}
+
+<template id="radek-sablona">{% include "rules/_row.html" with i="__i__" row=empty_row %}</template>
+<script>
+  (function () {
+    const list = document.getElementById('podminky');
+    const counter = document.getElementById('row_count');
+    const paleta = document.querySelectorAll('[data-paleta]');
+    function refresh() {
+      const kinds = new Set(Array.from(document.querySelectorAll('[data-kind]')).map(s => s.value));
+      paleta.forEach(g => { g.style.display = (kinds.size > 0 && !kinds.has(g.dataset.paleta)) ? 'none' : ''; });
+      document.querySelectorAll('[data-radek]').forEach(row => {
+        const kind = row.querySelector('[data-kind]').value;
+        row.querySelector('[data-mdc]').style.display = kind !== 'change' ? 'none' : '';
+      });
+      const group = document.getElementById('skupina');
+      if (group) group.style.display = document.querySelectorAll('[data-radek]').length < 2 ? 'none' : '';
+    }
+    if (list) {
+      document.getElementById('pridat-podminku').addEventListener('click', function () {
+        const n = parseInt(counter.value || '0', 10);
+        if (n >= {{ max_rows }}) return;
+        list.insertAdjacentHTML('beforeend', document.getElementById('radek-sablona').innerHTML.replaceAll('__i__', n));
+        counter.value = n + 1;
+        refresh();
+      });
+      list.addEventListener('click', function (e) {
+        const button = e.target.closest('[data-odebrat]');
+        if (button && list.querySelectorAll('[data-radek]').length > 1) { button.closest('[data-radek]').remove(); refresh(); }
+      });
+      list.addEventListener('change', function (e) { if (e.target.matches('[data-kind]')) refresh(); });
+      refresh();
+    }
+    const finding = document.getElementById('finding_template');
+    document.querySelectorAll('[data-pole]').forEach(b => b.addEventListener('click', function () {
+      const text = '{' + this.dataset.pole + '}';
+      const start = finding.selectionStart || finding.value.length;
+      finding.value = finding.value.slice(0, start) + text + finding.value.slice(finding.selectionEnd || start);
+      finding.focus();
+      finding.selectionStart = finding.selectionEnd = start + text.length;
+    }));
+    const articles = document.getElementById('nove-clanky');
+    const add = document.getElementById('pridat-clanek');
+    if (articles && add) add.addEventListener('click', function () {
+      const n = parseInt(document.getElementById('nra_count').value || '1', 10);
+      if (n >= 10) return;
+      const first = articles.firstElementChild.cloneNode(true);
+      first.querySelectorAll('[name]').forEach(el => { el.name = el.name.replace(/^nra\d+_/, 'nra' + n + '_'); if (el.tagName === 'SELECT') el.value = ''; else el.value = ''; });
+      articles.appendChild(first);
+      document.getElementById('nra_count').value = n + 1;
+    });
+  })();
+</script>
+{% endblock %}

@@ -1,4 +1,4 @@
-<nav class="flex gap-1 mb-5 text-sm border-b" style="border-color: var(--border)">
+<nav class="flex flex-wrap gap-1 mb-5 text-sm border-b" style="border-color: var(--border)">
   <a href="{% url 'sport_list' %}" class="px-3 py-2 -mb-px border-b-2 {% if tab == 'sporty' %}font-semibold{% else %}text-muted{% endif %}"
      style="border-color: {% if tab == 'sporty' %}var(--accent){% else %}transparent{% endif %}">Sporty a baterie</a>
   <a href="{% url 'test_list' %}" class="px-3 py-2 -mb-px border-b-2 {% if tab == 'testy' %}font-semibold{% else %}text-muted{% endif %}"
@@ -7,4 +7,8 @@
      style="border-color: {% if tab == 'mdc' %}var(--accent){% else %}transparent{% endif %}">MDC u ukazatelů</a>
   <a href="{% url 'norms_settings' %}" class="px-3 py-2 -mb-px border-b-2 {% if tab == 'normy' %}font-semibold{% else %}text-muted{% endif %}"
      style="border-color: {% if tab == 'normy' %}var(--accent){% else %}transparent{% endif %}">Normy</a>
+  <a href="{% url 'rules_settings' %}" class="px-3 py-2 -mb-px border-b-2 {% if tab == 'pravidla' %}font-semibold{% else %}text-muted{% endif %}"
+     style="border-color: {% if tab == 'pravidla' %}var(--accent){% else %}transparent{% endif %}">Pravidla</a>
+  <a href="{% url 'questionnaires_settings' %}" class="px-3 py-2 -mb-px border-b-2 {% if tab == 'dotazniky' %}font-semibold{% else %}text-muted{% endif %}"
+     style="border-color: {% if tab == 'dotazniky' %}var(--accent){% else %}transparent{% endif %}">Dotazníky</a>
 </nav>
