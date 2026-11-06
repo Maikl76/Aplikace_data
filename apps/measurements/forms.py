@@ -136,8 +136,57 @@ def parse_field_name(name: str) -> dict | None:
         return None
 
 
-def build_grid(protocol_run) -> list[dict]:
-    """Řádky zadávací mřížky i s už uloženými hodnotami."""
+def trial_columns(protocol_run, wanted: int | None = None) -> int:
+    """Kolik sloupců pokusů: podle protokolu, víc když jich už je, nebo když si o ně někdo řekl."""
+    highest = max(protocol_run.trials.values_list("number", flat=True), default=0)
+    return max(protocol_run.protocol.default_trials, highest, min(wanted or 0, 12))
+
+
+def odd_trial(values: list[tuple[int, float]]) -> tuple[int, float] | None:
+    """Pokus, který se nejvíc liší od průměru ostatních: (číslo, odchylka v %)."""
+    best = None
+    for number, value in values:
+        others = [v for n, v in values if n != number]
+        mean = sum(others) / len(others) if others else 0
+        if not mean:
+            continue
+        deviation = abs(value - mean) / abs(mean) * 100
+        if best is None or deviation > best[1]:
+            best = (number, deviation)
+    return best
+
+
+def row_warnings(metric, values: list[tuple[int, float]], out_of_range: list[int]) -> list[str]:
+    """
+    Kontrola hned při zadávání – stejná slova, jaká pak říká krok Kontrola:
+    rozptyl platných pokusů nad mezí metriky a hodnoty mimo věrohodný rozsah.
+    """
+    from apps.reports.results import trial_cv
+
+    out = []
+    if metric.trial_cv_limit is not None and len(values) >= 2:
+        cv = trial_cv([v for _, v in values])
+        if cv is not None and cv > metric.trial_cv_limit:
+            text = f"Pokusy se liší o {cv:.0f} % (mez {metric.trial_cv_limit:g} %)"
+            if worst := odd_trial(values):
+                text += f": pokus {worst[0]} se liší o {worst[1]:.0f} % od ostatních – změřit znovu?"
+            out.append(text + ("" if worst else " – změřit znovu?"))
+    if out_of_range:
+        unit = f" {metric.unit}" if metric.unit and metric.unit != "-" else ""
+        if metric.plausible_min is not None and metric.plausible_max is not None:
+            span = f"{metric.plausible_min:g}–{metric.plausible_max:g}{unit}"
+        elif metric.plausible_min is not None:
+            span = f"od {metric.plausible_min:g}{unit}"
+        else:
+            span = f"do {metric.plausible_max:g}{unit}"
+        out.append(f"{'Pokus' if len(out_of_range) == 1 else 'Pokusy'} "
+                   f"{', '.join(str(n) for n in out_of_range)} mimo věrohodný rozsah ({span}) – "
+                   "překlep, nebo chyba přístroje?")
+    return out
+
+
+def build_grid(protocol_run, *, columns: int | None = None) -> list[dict]:
+    """Řádky zadávací mřížky i s už uloženými hodnotami a kontrolou pokusů."""
     from .models import Measurement
 
     existing = {
@@ -147,7 +196,7 @@ def build_grid(protocol_run) -> list[dict]:
     }
     invalid = set(protocol_run.trials.filter(is_valid=False).values_list("number", flat=True))
 
-    trials = list(range(1, protocol_run.protocol.default_trials + 1))
+    trials = list(range(1, trial_columns(protocol_run, columns) + 1))
     rows = []
     from apps.analytics.derived import DERIVED_METRICS
 
@@ -170,6 +219,15 @@ def build_grid(protocol_run) -> list[dict]:
                     "quality": measurement.quality if measurement else "",
                     "invalid": trial_number in invalid,
                 })
+            valid = [(n, existing[(pm.metric_id, combo["side"], combo["mode"], combo["speed"],
+                                   combo["segment"], n)].value)
+                     for n in trials if n not in invalid
+                     and (pm.metric_id, combo["side"], combo["mode"], combo["speed"],
+                          combo["segment"], n) in existing]
+            outside = [n for n in trials
+                       if (m := existing.get((pm.metric_id, combo["side"], combo["mode"],
+                                              combo["speed"], combo["segment"], n)))
+                       and m.quality == Measurement.Quality.OUT_OF_RANGE]
             rows.append({
                 "protocol_metric": pm,
                 "metric": pm.metric,
@@ -179,6 +237,7 @@ def build_grid(protocol_run) -> list[dict]:
                 "combo": combo,
                 "label": _combo_label(combo),
                 "cells": cells,
+                "warnings": row_warnings(pm.metric, valid, outside),
             })
     return rows
 

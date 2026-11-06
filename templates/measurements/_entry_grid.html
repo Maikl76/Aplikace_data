@@ -6,6 +6,7 @@
     </p>
   {% endif %}
   <input type="hidden" name="pokusy_stav" value="1">
+  <input type="hidden" name="pokusu" value="{{ trials|length }}">
   <table class="table">
     <thead>
       <tr>
@@ -24,21 +25,23 @@
     </thead>
     <tbody>
       {% for row in rows %}
-        <tr>
+        {# Meze pro kontrolu hned při psaní (zadavani.js) – stejná slova jako po uložení. #}
+        <tr data-cv-limit="{{ row.metric.trial_cv_limit|default_if_none:'' }}" data-min="{{ row.metric.plausible_min|default_if_none:'' }}" data-max="{{ row.metric.plausible_max|default_if_none:'' }}" data-unit="{% if row.metric.unit != '-' %}{{ row.metric.unit }}{% endif %}">
           <td class="min-w-[11rem]">
             <div class="font-medium">{{ row.metric.name }}</div>
             <div class="text-xs text-muted">
               {{ row.label|default:"bez rozlišení" }}{% if row.metric.unit and row.metric.unit != "-" %} · {{ row.metric.unit }}{% endif %}{% if row.metric.trial_rule_note %} · počítá se {{ row.metric.trial_rule_note }}{% endif %}{% if row.long_time %} · lze psát i min:s{% endif %}
             </div>
+            <div class="text-xs mt-1 kontrola" data-kontrola style="color: var(--warn)">{% for w in row.warnings %}<div>{% icon "alert" "w-3.5 h-3.5 inline" %} {{ w }}</div>{% endfor %}</div>
           </td>
           {% for cell in row.cells %}
             <td class="min-w-[6.5rem]">
               <div class="relative">
                 {# inputmode="decimal" vyvolá na tabletu číselnou klávesnici; min:s potřebuje dvojtečku #}
                 <input type="text" inputmode="{% if row.long_time %}text{% else %}decimal{% endif %}" name="{{ cell.name }}"
-                       value="{{ cell.value }}" autocomplete="off"
+                       value="{{ cell.value }}" autocomplete="off" data-pokus="{{ forloop.counter }}"
                        aria-label="{{ row.metric.name }} {{ row.label }} – {{ forloop.counter }}. pokus"
-                       class="input text-center text-lg py-2.5 tabular-nums{% if row.is_time %} pr-9{% endif %}"
+                       class="input js-hodnota text-center text-lg py-2.5 tabular-nums{% if row.is_time %} pr-9{% endif %}"
                        {% if cell.quality == 'range' %}style="border-color: var(--warn); background: var(--warn-soft)" title="Mimo věrohodný rozsah – zkontrolujte"{% elif cell.invalid %}style="opacity: .55; text-decoration: line-through" title="Neplatný pokus – do výsledků se nepočítá"{% endif %}>
                 {% if row.is_time %}
                   <button type="button" class="stopky-tlacitko" title="Změřit stopkami"
@@ -56,4 +59,8 @@
       {% endfor %}
     </tbody>
   </table>
+  <div class="px-4 py-2 text-xs text-muted border-t flex flex-wrap items-center gap-3" style="border-color: var(--border)">
+    <a class="link" href="{{ request.path }}?pokusy={{ trials|length|add:1 }}" title="Další sloupec pokusu – třeba když se pokus liší a měříte znovu. Nejdřív uložte, co máte.">+ přidat pokus</a>
+    <span>Když se pokus liší víc, než je u ukazatele obvyklé, mřížka to napíše hned – ještě u přístroje jde změřit znovu.</span>
+  </div>
 </div>

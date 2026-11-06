@@ -39,6 +39,43 @@
   </p>
 </form>
 
+<section class="card p-4 mb-6" id="slozka">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h2 class="card-title">Sledovaná složka</h2>
+      <p class="text-sm text-muted">Nový export ze složky přístroje se načte sám; jednoznačný se rovnou uloží, ostatní čekají na kontrolu.</p>
+    </div>
+    {% if watched.dir %}
+      <span class="badge {% if watched.running %}badge-good{% else %}badge-warn{% endif %}" title="{{ watched.dir }}">{% if watched.running %}hlídač běží · kontrola {{ watched.checked_at|date:"H:i" }}{% elif watched.checked_at %}hlídač neběží · naposledy {{ watched.checked_at|date:"d.m.Y H:i" }}{% else %}hlídač zatím neběžel{% endif %}</span>
+    {% else %}
+      <span class="badge">nenastavená</span>
+    {% endif %}
+  </div>
+  {% if watched.dir %}
+    <p class="text-xs text-muted mt-2">Složka: <code>{{ watched.dir }}</code>{% if not watched.running %} – hlídač spouští <code>spustit.bat</code> (okno „Sledovana slozka“); bez něj se složka nekontroluje.{% endif %}</p>
+    {% if watched.files %}
+      <table class="table text-sm mt-3">
+        <thead><tr><th>Soubor</th><th>Kdy</th><th>Stav</th><th class="max-md:hidden">Poznámka</th><th></th></tr></thead>
+        <tbody>
+          {% for w in watched.files %}
+            <tr>
+              <td class="font-medium break-all">{{ w.name }}</td>
+              <td class="tabular-nums whitespace-nowrap text-2">{{ w.created_at|date:"d.m.Y H:i" }}</td>
+              <td>{% if w.status == "ulozeno" %}<span class="badge badge-good">uloženo samo</span>{% elif w.status == "ceka" %}<span class="badge badge-warn">čeká na kontrolu</span>{% elif w.status == "chyba" %}<span class="badge badge-bad">nešlo načíst</span>{% else %}<span class="badge">přeskočeno</span>{% endif %}</td>
+              <td class="text-2 max-md:hidden">{{ w.message }}</td>
+              <td class="text-right whitespace-nowrap">{% if w.batch and w.status == "ceka" and w.batch.status == "parsed" %}<a class="btn btn-sm btn-primary" href="{% url 'import_detail' w.batch.pk %}">zkontrolovat</a>{% elif w.batch %}<a class="text-sm link" href="{% url 'import_detail' w.batch.pk %}">import</a>{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-sm text-2 mt-3">Zatím žádný soubor ze složky.</p>
+    {% endif %}
+  {% else %}
+    <p class="text-sm text-2 mt-3">Nastavení (správce, na počítači laboratoře): do souboru <code>.env</code> doplňte <code>IMPORT_WATCH_DIR=</code> a cestu ke složce, kam přístroj ukládá exporty (např. <code>C:\Users\laborator\Documents\VALD exporty</code>). Při dalším spuštění přes <code>spustit.bat</code> se otevře okno „Sledovana slozka“, které složku hlídá. Soubory se nepřesouvají ani nemažou.</p>
+  {% endif %}
+</section>
+
 <section class="card p-4 mb-6" id="pristroje">
   <div class="flex flex-wrap items-center justify-between gap-3">
     <div>
@@ -93,7 +130,7 @@
             {% elif b.status == "failed" %}<span class="badge badge-bad">{{ b.get_status_display|lower }}</span>
             {% else %}<span class="badge">{{ b.get_status_display|lower }}</span>{% endif %}
           </td>
-          <td class="text-2 max-md:hidden">{{ b.uploaded_by }}</td>
+          <td class="text-2 max-md:hidden">{{ b.uploaded_by.get_full_name|default:b.uploaded_by.get_username }}</td>
           <td class="tabular-nums whitespace-nowrap text-2">{{ b.created_at|date:"d.m.Y H:i" }}</td>
           <td class="text-right whitespace-nowrap">
             {% if b.status == 'parsed' %}

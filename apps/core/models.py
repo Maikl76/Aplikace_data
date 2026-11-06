@@ -32,6 +32,9 @@ class Organization(TimeStampedModel):
     auto_draft = models.BooleanField(
         "koncept zprávy po dokončení dne", default=True,
         help_text="Jakmile mají všechny testy dne hodnoty, vznikne koncept zprávy ke kontrole.")
+    import_checked_at = models.DateTimeField(
+        "sledovaná složka naposledy zkontrolována", null=True, blank=True,
+        help_text="Zapisuje hlídač složky (hlidat_slozku); podle toho se pozná, že běží.")
 
     class Meta:
         verbose_name = "organizace"

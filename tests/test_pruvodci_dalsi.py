@@ -90,7 +90,8 @@ def test_sportovec_vede_kroky(org):
 def test_import_vede_kroky(org):
     lab, client = _user(org, Role.LAB, "laborant")
     steps, nxt = _steps(client.get(reverse("import_list")))
-    assert list(steps) == ["Přístroje", "Nahrát export", "Zkontrolovat a uložit", "Výsledky v testovacích dnech"]
+    assert list(steps) == ["Přístroje", "Nahrát export", "Zkontrolovat a uložit",
+                           "Výsledky v testovacích dnech", "Sledovaná složka"]
     assert nxt["title"] == "Nahrát export" and nxt["url"] == "#nahrat"
     assert steps["Přístroje"]["optional"]
 

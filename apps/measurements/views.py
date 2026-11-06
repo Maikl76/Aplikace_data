@@ -136,6 +136,10 @@ def today(request):
             s.zobrazeni = names.get(s.pk) or s.code
         subjects.sort(key=lambda s: s.zobrazeni.lower())
         rows = planning.day_overview(subjects, protocols, day)
+        for row in rows:
+            # vstup do režimu u přístroje: první založený test bez hodnot
+            pending = [c["run"] for c in row["cells"] if c["stav"] == "zalozeno"]
+            row["pristroj"] = pending[0] if pending else None
 
     done = sum(r["hotovo"] for r in rows)
     return render(request, "measurements/today.html", {
@@ -215,6 +219,7 @@ def session_detail(request, pk):
         "session": session,
         "unstable": unstable,
         "runs": runs,
+        "device_url": device_url(runs),
         "reports": reports,
         "steps": steps, "next_step": next_step(steps),
         "add_form": AddProtocolForm(),
@@ -374,6 +379,19 @@ def run_entry(request, pk):
     Zadávání u přístroje. Mřížka vzniká z definice protokolu, takže
     pro nový protokol není potřeba psát nový formulář.
     """
+    return _run_entry(request, pk, device=False)
+
+
+@login_required
+def run_device(request, pk):
+    """
+    Režim u přístroje: táž mřížka na jedné obrazovce bez menu, s postupem
+    baterií a velkými tlačítky – test za testem až po shrnutí dne.
+    """
+    return _run_entry(request, pk, device=True)
+
+
+def _run_entry(request, pk, *, device: bool):
     run = get_object_or_404(
         ProtocolRun.objects.select_related("protocol", "session__subject"), pk=pk)
     if run.session.organization_id != request.user.organization_id and not request.user.is_superuser:
@@ -381,10 +399,20 @@ def run_entry(request, pk):
     from apps.subjects.search import label
 
     label([run.session], request.user)
+    try:
+        columns = int(request.GET.get("pokusy") or 0)
+    except ValueError:
+        columns = 0
 
     if request.method == "POST":
         saved, flagged, deleted, invalid = _save_grid(request, run)
         message = f"Uloženo {saved} hodnot."
+        if unstable := sum(1 for row in build_grid(run) if row["warnings"]):
+            from apps.reports.narrative import plural
+
+            message += (f" U {unstable} {plural(unstable, 'ukazatele', 'ukazatelů', 'ukazatelů')} "
+                        "se pokusy liší víc než obvykle, nebo je hodnota mimo rozsah – viz "
+                        "upozornění v mřížce.")
         if saved:
             from apps.reports import auto as report_auto
 
@@ -402,11 +430,12 @@ def run_entry(request, pk):
         if flagged:
             message += (f" {flagged} mimo věrohodný rozsah – hodnoty jsou uložené "
                         f"a označené, zkontrolujte je.")
+        if flagged or unstable:
             messages.warning(request, message)
         else:
             messages.success(request, message)
         if "dalsi" in request.POST:
-            target = _next_run_url(run)
+            target = _next_run_url(run, device=device)
             if request.headers.get("HX-Request"):
                 response = HttpResponse(status=204)
                 response["HX-Redirect"] = target
@@ -414,10 +443,57 @@ def run_entry(request, pk):
             return redirect(target)
         if request.headers.get("HX-Request"):
             return render(request, "measurements/_entry_grid.html",
-                          {**_entry_context(run), "saved": saved})
+                          {**_entry_context(run, device=device), "saved": saved})
+        if device:
+            return redirect("run_device", pk=run.pk)
         return redirect("session_detail", pk=run.session_id)
 
-    return render(request, "measurements/run_entry.html", _entry_context(run))
+    template = "measurements/device_entry.html" if device else "measurements/run_entry.html"
+    return render(request, template, _entry_context(run, columns=columns, device=device))
+
+
+@login_required
+def session_device_done(request, pk):
+    """Shrnutí dne po posledním testu v režimu u přístroje; nabídne dalšího sportovce."""
+    session = get_object_or_404(
+        TestSession.objects.for_user(request.user).select_related("subject"), pk=pk)
+    from apps.reports.results import protocol_results
+    from apps.subjects.search import label
+
+    label([session], request.user)
+    runs = _session_runs(session)
+    for run in runs:
+        run.rpe_chybi = run.protocol.rpe_after and run.hodnot and not questionnaires.rpe_for_run(run)
+    unstable = [(block, row) for block in protocol_results(session) for row in block["unstable"]]
+    out_of_range = Measurement.objects.filter(
+        trial__protocol_run__session=session).exclude(quality=Measurement.Quality.OK).count()
+    pending = [r for r in runs if not r.hodnot]
+    following = _next_subject_run(session, request.user)
+    from apps.reports.narrative import plural
+
+    return render(request, "measurements/device_done.html", {
+        "session": session, "runs": runs, "pending": pending, "unstable": unstable,
+        "pending_text": (f"zbývá {len(pending)} {plural(len(pending), 'test', 'testy', 'testů')}"
+                         if pending else ""),
+        "out_of_range": out_of_range, "rpe_missing": [r for r in runs if r.rpe_chybi],
+        "reports": list(session.reports.order_by("-created_at")),
+        "next_session": following[0] if following else None,
+        "next_run": following[1] if following else None,
+    })
+
+
+def _next_subject_run(session, user):
+    """Další sportovec téhož dne s testem bez hodnot: (jeho den, první takový test)."""
+    from apps.subjects.search import label
+
+    others = list(TestSession.objects.for_user(user).filter(date=session.date)
+                  .exclude(pk=session.pk).select_related("subject"))
+    label(others, user)
+    for other in sorted(others, key=lambda s: str(getattr(s, "jmeno", s.subject.code)).lower()):
+        for run in _session_runs(other):
+            if not run.hodnot:
+                return other, run
+    return None
 
 
 @login_required
@@ -447,18 +523,26 @@ def run_conditions(request, pk):
     return redirect("run_entry", pk=pk)
 
 
-def _entry_context(run) -> dict:
+def _entry_context(run, *, columns: int | None = None, device: bool = False) -> dict:
     rpe = (questionnaires.questionnaire(questionnaires.RPE, run.session.organization)
            if run.protocol.rpe_after else None)
     answer = questionnaires.rpe_for_run(run) if rpe else None
-    return {
+    context = {
         "run": run,
-        "rows": build_grid(run),
-        "trials": trial_states(run),
+        "rows": build_grid(run, columns=columns),
+        "trials": trial_states(run, columns),
         "rpe_question": rpe.questions.first() if rpe else None,
         "rpe_value": int(answer.value) if answer and answer.value is not None else None,
         "next_run": _next_run(run),
+        "device": device,
     }
+    if device:
+        runs = _session_runs(run.session)
+        context["progress"] = [
+            {"run": r, "state": ("current" if r.pk == run.pk else "done" if r.hodnot else "todo")}
+            for r in runs]
+        context["position"] = next((i for i, r in enumerate(runs, start=1) if r.pk == run.pk), 0)
+    return context
 
 
 def _in_battery_order(session, runs) -> list:
@@ -471,9 +555,10 @@ def _in_battery_order(session, runs) -> list:
 
 
 def _session_runs(session):
-    """Měřené testy dne v pořadí, v jakém se zobrazují (a měří)."""
+    """Měřené testy dne v pořadí, v jakém se zobrazují (a měří), s počtem hodnot."""
     return _in_battery_order(session, session.protocol_runs.select_related("protocol")
-                             .exclude(protocol__code__in=planning.DERIVED_PROTOCOLS))
+                             .exclude(protocol__code__in=planning.DERIVED_PROTOCOLS)
+                             .annotate(hodnot=Count("trials__measurements")))
 
 
 def _next_run(run):
@@ -484,10 +569,20 @@ def _next_run(run):
     return None
 
 
-def _next_run_url(run) -> str:
+def _next_run_url(run, *, device: bool = False) -> str:
     following = _next_run(run)
-    return (reverse("run_entry", args=[following.pk]) if following
-            else reverse("session_detail", args=[run.session_id]))
+    if following:
+        return reverse("run_device" if device else "run_entry", args=[following.pk])
+    return reverse("session_device_done" if device else "session_detail", args=[run.session_id])
+
+
+def device_url(runs) -> str:
+    """Vstup do režimu u přístroje: první test bez hodnot, jinak první test dne."""
+    runs = [r for r in runs if r.protocol.code not in planning.DERIVED_PROTOCOLS]
+    if not runs:
+        return ""
+    first = next((r for r in runs if not getattr(r, "hodnot", 0)), runs[0])
+    return reverse("run_device", args=[first.pk])
 
 
 @transaction.atomic

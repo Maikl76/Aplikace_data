@@ -276,7 +276,9 @@
         <li><strong>Stopky</strong> {% icon "timer" "w-4 h-4 inline" %} u časových ukazatelů: Start/Stop (i mezerníkem) a <em>Zapsat</em> vloží čas do políčka.</li>
         <li><strong>Pauza mezi pokusy:</strong> má-li test nastavenou pauzu, tlačítko <em>Pauza 3:00</em> spustí odpočet; na konci pípne a na tabletu zavibruje.</li>
         <li><strong>Mimo věrohodný rozsah:</strong> hodnota se uloží, ale zbarví oranžově – zkontrolujte překlep.</li>
+        <li><strong>Kontrola hned při zadávání:</strong> když se pokusy liší víc, než je u ukazatele obvyklé (mez rozptylu v katalogu), nebo je hodnota mimo věrohodný rozsah, napíše to mřížka ještě při psaní („pokus 2 se liší o 14 % od ostatních – změřit znovu?“). Odkaz <em>+ přidat pokus</em> přidá sloupec pro opakovaný pokus.</li>
         <li><strong>Uložit hodnoty</strong> uloží a zůstane na místě; <strong>Uložit a další</strong> přejde na další test dne v pořadí baterie.</li>
+        <li><strong>Režim u přístroje:</strong> tlačítko v testovacím dni (a odkaz <em>u přístroje</em> v Dnešním testování) otevře celou obrazovku bez menu: postup baterií nahoře, velká tlačítka <em>Uložit a další test</em>, RPE po zátěžovém testu hned pod mřížkou, Enter skáče na další políčko. Po posledním testu shrnutí dne (co chybí, nestabilní pokusy, RPE) a tlačítko <em>Další sportovec</em>.</li>
         <li><strong>Importované testy</strong> jdou otevřít stejně – hodnoty lze opravit ručně.</li>
       </ul>
       <p class="text-sm text-muted">Tablet v laboratoři: viz <a class="link" href="#technika">Spuštění a technika</a>.</p>
@@ -312,6 +314,7 @@
       <ul>
         <li><strong>Párování sportovců:</strong> podle ID ve VALD, jinak podle jména a data narození, jinak podle jména (jen když je jednoznačné). Aplikace si ID zapamatuje, příště pozná sportovce sama. Noví sportovci dostanou kód a jméno se uloží šifrovaně.</li>
         <li><strong>Když ho nepozná</strong> (ve VALD je jméno napsané jinak, typicky u nového klienta z objednávky): v náhledu je u každého sportovce ze souboru výběr <em>Patří k</em>. Nabízejí se ti, kdo mají ten den naplánované testování; stejná jména v jiném pořadí aplikace navrhne sama. Po uložení si ID z VALD zapamatuje.</li>
+        <li><strong>Sledovaná složka:</strong> místo nahrávání může složku s exporty hlídat aplikace sama. Správce do <code>.env</code> doplní <code>IMPORT_WATCH_DIR</code> (složka, kam VALD Hub ukládá exporty); <code>spustit.bat</code> pak otevře okno „Sledovana slozka“, které každých 30 s projde složku. Nový export se načte do Importu a když aplikace sportovce jednoznačně pozná a má naplánovaný testovací den, rovnou se uloží; jinak čeká na kontrolu jako po ručním nahrání. Stav je v Importu (karta <em>Sledovaná složka</em>). Soubory se nepřesouvají ani nemažou.</li>
         <li><strong>Z testovacího dne:</strong> tlačítko <em>Nahrát export z přístroje</em> v testovacím dni (i v zadávání testu) nahraje soubor a v náhledu rovnou předvybere tohoto sportovce. Hodnoty se zapíšou do naplánovaných testů toho dne – datum se bere z exportu, musí tedy sedět s datem testovacího dne.</li>
         <li><strong>Opakovaný import</strong> téhož souboru nic nezdvojí – chybějící hodnoty doplní, přepočítané aktualizuje.</li>
         <li><strong>Založené testy</strong> z Dnešního testování import vyplní, nevzniknou druhé.</li>

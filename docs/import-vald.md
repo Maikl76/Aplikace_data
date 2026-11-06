@@ -23,6 +23,38 @@ Co se stane při uložení:
   (bez ohledu na diakritiku); dva lidé se stejným jménem se naslepo
   nespárují, aplikace na to upozorní.
 
+## Sledovaná složka
+
+Nahrávání odpadne, když aplikace složku s exporty hlídá sama:
+
+1. Ve VALD Hubu nastavte, kam se exporty ukládají (nebo je ukládejte do
+   jedné složky ručně).
+2. Do `.env` na počítači laboratoře doplňte `IMPORT_WATCH_DIR=` a cestu
+   k té složce (např. `C:\Users\laborator\Documents\VALD exporty`);
+   `IMPORT_WATCH_INTERVAL` je interval kontroly v sekundách (výchozí 30).
+3. Spusťte aplikaci přes `spustit.bat` – otevře se navíc minimalizované okno
+   „Sledovana slozka“ (`python manage.py hlidat_slozku`). Zavřením okna hlídání
+   skončí, aplikace běží dál.
+
+Co hlídač dělá s novým souborem (`apps/ingest/watch.py`):
+
+- načte ho do Importu stejně jako ruční nahrání (nic se nezapisuje bez kontroly),
+- když aplikace **všechny sportovce ze souboru jednoznačně pozná** (ID ve
+  VALD, nebo jméno v jiném pořadí u někoho s naplánovaným testováním) a každý
+  má na datum testu **naplánovaný testovací den** (Dnešní testování), import
+  rovnou **uloží**; hodnoty mimo rozsah se uloží označené jako jindy,
+- jinak import **čeká na kontrolu** v Importu – nepoznaný sportovec, neznámý
+  ukazatel, hodnoty bez data, nenaplánovaný den,
+- soubor, který už byl importován, přeskočí; nerozpoznaný formát ohlásí
+  jednou a víc se o něj nepokouší; rozepsaný soubor (mladší než 5 s) nechá
+  na příští kontrolu.
+
+Soubory se nikam nepřesouvají ani nemažou – složka patří přístroji. Co se
+s kterým souborem stalo, je v Importu v kartě **Sledovaná složka** (uloženo
+samo / čeká na kontrolu / přeskočeno / nešlo načíst) a v auditu pod účtem
+„Sledovaná složka“. Karta také ukazuje, zda hlídač běží (poslední kontrola).
+Ruční kontrola jednou: `python manage.py hlidat_slozku --jednou`.
+
 ## Když aplikace sportovce nepozná
 
 Typicky nový klient z objednávky, kterého VALD zná pod jinak napsaným jménem

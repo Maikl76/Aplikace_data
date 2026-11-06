@@ -1,4 +1,4 @@
-"""Kroky importu: přístroje, nahrát, zkontrolovat a uložit, kam se zapsalo."""
+"""Kroky importu: přístroje, nahrát, zkontrolovat a uložit, kam se zapsalo, sledovaná složka."""
 
 from django.db.models import Q
 from django.urls import reverse
@@ -8,7 +8,7 @@ from apps.core.steps import step
 from .models import ImportBatch
 
 
-def import_list_steps(user, batches) -> list[dict]:
+def import_list_steps(user, batches, watched=None) -> list[dict]:
     from apps.catalog.models import DeviceFormat
 
     from .device_views import can_edit
@@ -38,7 +38,26 @@ def import_list_steps(user, batches) -> list[dict]:
              (f"Poslední uložený import {committed[0].created_at:%d.%m.%Y}; hodnoty jsou "
               "v testovacích dnech sportovců." if committed else "Po uložení importu."),
              url=reverse("session_list"), button="Měření", optional=True),
+        step(5, "Sledovaná složka", bool(watched and watched["running"]),
+             _watch_text(watched), url="#slozka", button="Sledovaná složka", optional=True,
+             count=len(watched["waiting"]) if watched and watched["waiting"] else None),
     ]
+
+
+def _watch_text(watched) -> str:
+    if not watched or not watched["dir"]:
+        return ("Nahrávání odpadne: do .env doplňte IMPORT_WATCH_DIR (složka, kam přístroj ukládá "
+                "exporty); spustit.bat ji pak hlídá a jednoznačné exporty uloží sám.")
+    checked = watched["checked_at"]
+    if watched["running"]:
+        text = (f"Složka {watched['dir']} se kontroluje (naposledy "
+                f"{checked:%H:%M}). Jednoznačný export se uloží sám")
+        if watched["waiting"]:
+            return text + f"; {len(watched['waiting'])} souborů čeká na kontrolu."
+        return text + ", nejasné shody čekají na kontrolu."
+    return (f"Složka {watched['dir']} je nastavená, ale hlídač neběží (poslední kontrola "
+            + (f"{checked:%d.%m.%Y %H:%M}" if checked else "nikdy")
+            + ") – spusťte aplikaci přes spustit.bat.")
 
 
 def import_detail_steps(batch, sportovci, problems) -> list[dict]:

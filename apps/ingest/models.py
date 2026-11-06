@@ -112,3 +112,38 @@ class StagedMeasurement(models.Model):
 
     def __str__(self):
         return f"{self.subject_hint} / {self.metric_code} = {self.value}"
+
+
+class WatchedFile(models.Model):
+    """
+    Soubor ze sledované složky a co se s ním stalo. Složka se prochází znovu
+    a znovu – podle názvu, velikosti a času změny se pozná, co už bylo.
+    Soubory se nikam nepřesouvají, složka patří přístroji.
+    """
+
+    class Status(models.TextChoices):
+        COMMITTED = "ulozeno", "Uloženo samo"
+        WAITING = "ceka", "Čeká na kontrolu"
+        SKIPPED = "preskoceno", "Přeskočeno"
+        FAILED = "chyba", "Nešlo načíst"
+
+    organization = models.ForeignKey("core.Organization", verbose_name="organizace",
+                                     on_delete=models.CASCADE, related_name="watched_files")
+    name = models.CharField("soubor", max_length=255)
+    size = models.BigIntegerField("velikost", default=0)
+    modified_at = models.DateTimeField("změněn")
+    content_hash = models.CharField("otisk obsahu", max_length=64, blank=True)
+    status = models.CharField("stav", max_length=12, choices=Status.choices)
+    batch = models.ForeignKey(ImportBatch, verbose_name="import", on_delete=models.SET_NULL,
+                              null=True, blank=True, related_name="watched_files")
+    message = models.CharField("zpráva", max_length=255, blank=True)
+    created_at = models.DateTimeField("zpracováno", auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "soubor ze sledované složky"
+        verbose_name_plural = "soubory ze sledované složky"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.name} ({self.get_status_display()})"

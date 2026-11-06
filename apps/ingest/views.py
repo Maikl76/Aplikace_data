@@ -8,9 +8,9 @@ from apps.catalog.models import Protocol
 from apps.core.audit import record
 from apps.core.models import AuditLog
 
-from . import device_views, services
+from . import device_views, services, watch
 from .adapters import registry
-from .models import ImportBatch, StagedMeasurement
+from .models import ImportBatch, StagedMeasurement, WatchedFile
 
 
 @login_required
@@ -22,8 +22,18 @@ def import_list(request):
     devices = device_views.device_cards(request.user)
     from .steps import import_list_steps
 
+    org = request.user.organization
+    files = list(WatchedFile.objects.filter(organization=org).select_related("batch")[:12]) if org else []
+    watched = {
+        "dir": settings.IMPORT_WATCH_DIR,
+        "checked_at": org.import_checked_at if org else None,
+        "running": bool(org) and watch.is_running(org),
+        "files": files,
+        "waiting": [w for w in files if w.status == WatchedFile.Status.WAITING],
+    }
     return render(request, "ingest/import_list.html", {
-        "steps": import_list_steps(request.user, batches),
+        "steps": import_list_steps(request.user, batches, watched=watched),
+        "watched": watched,
         "batches": batches,
         "adapters": sorted(registry.values(), key=lambda a: a.label),
         "devices": devices,

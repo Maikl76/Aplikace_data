@@ -1,0 +1,45 @@
+{% load static ui %}
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}U přístroje – FTVS{% endblock %}</title>
+  {# Režim u přístroje: celá obrazovka bez menu – tablet u desky. Stejné knihovny jako aplikace. #}
+  <script>
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("rezim"); } catch (e) {}
+      var dark = saved === "dark" ||
+        (!saved && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+      if (dark) document.documentElement.classList.add("dark");
+    })();
+  </script>
+  <link rel="stylesheet" href="{% static_v 'vendor/tailwind.css' %}">
+  <link rel="stylesheet" href="{% static_v 'css/app.css' %}">
+  <style>[x-cloak] { display: none !important; }</style>
+  <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
+  <script src="{% static 'vendor/alpine.min.js' %}" defer></script>
+  {% block head %}{% endblock %}
+</head>
+<body class="overflow-x-hidden" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+{% if demo_mode %}
+  <div class="bg-amber-500 text-black text-sm font-medium px-4 py-2 text-center">
+    ZKUŠEBNÍ PROVOZ — data jsou smyšlená. Nevkládejte sem reálná data sportovců.
+  </div>
+{% endif %}
+<main class="min-h-screen max-w-6xl mx-auto px-4 py-4">
+  {% if messages %}
+    <div class="space-y-2 mb-4">
+      {% for message in messages %}
+        <div class="card px-4 py-3 text-sm border-l-4"
+             style="border-left-color: {% if message.tags == 'error' %}var(--bad){% elif message.tags == 'success' %}var(--good){% elif message.tags == 'warning' %}var(--warn){% else %}var(--accent){% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

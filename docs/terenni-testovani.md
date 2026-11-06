@@ -13,6 +13,41 @@ Otevřete test v testovacím dni (**Měření → den → test**).
 - **Pauza mezi pokusy** – má-li protokol v katalogu vyplněnou „pauzu mezi pokusy“,
   nahoře je tlačítko *Pauza 3:00*. Odpočet na konci pípne a na tabletu zavibruje.
 - **Uložit a další** – uloží a otevře další test dne v pořadí baterie sportu.
+- **+ přidat pokus** – další sloupec pokusu (třeba když se pokus liší a měříte
+  znovu); uložené pokusy se tím neztratí.
+
+## Kontrola hned při zadávání
+
+Mřížka hlídá dvě věci ještě při psaní, stejnými slovy jako později krok
+Kontrola:
+
+- **rozptyl pokusů** – když se platné pokusy téhož ukazatele liší víc, než
+  je mez rozptylu v katalogu (`trial_cv_limit`), napíše „Pokusy se liší
+  o 16 % (mez 10 %): pokus 3 se liší o 31 % od ostatních – změřit znovu?“,
+- **věrohodný rozsah** – hodnota mimo rozsah metriky se označí a mřížka
+  napíše „Pokus 3 mimo věrohodný rozsah (5–80 cm) – překlep, nebo chyba
+  přístroje?“.
+
+Totéž se spočítá po uložení (hláška nahoře a text pod ukazatelem), takže
+upozornění nezávisí na JavaScriptu. Neplatný pokus se do rozptylu nepočítá.
+
+## Režim u přístroje
+
+Pro měření skupiny s tabletem u desky: v testovacím dni tlačítko **Režim
+u přístroje** (nebo odkaz *u přístroje* v Dnešním testování) otevře celou
+obrazovku bez menu:
+
+- nahoře postup baterií (hotové testy zeleně, aktuální zvýrazněný, „test 2 z 5“),
+- táž mřížka pokusů, stopky a pauza, RPE po zátěžovém testu přímo pod mřížkou
+  s výzvou zeptat se, než sportovec odejde,
+- velká tlačítka *Uložit hodnoty* a *Uložit a další test: …*; Enter skáče na
+  další políčko (číselná klávesnice tabletu nemá tabulátor),
+- po posledním testu **shrnutí dne**: co má hodnoty, co chybí, nestabilní
+  pokusy, hodnoty mimo rozsah, chybějící RPE, odkaz na koncept zprávy
+  a tlačítko **Další sportovec** (první test bez hodnot u dalšího sportovce
+  téhož dne). *Opustit režim* vrátí běžnou obrazovku s menu.
+
+Adresy: `/mereni/provedeni/<id>/u-pristroje/` a `/mereni/<den>/u-pristroje/hotovo/`.
 
 ## Hodnota dne z pokusů
 

@@ -200,6 +200,11 @@ EMAIL_HOST = env("EMAIL_HOST", default="")
 # Veřejná adresa aplikace do e-mailů posílaných mimo prohlížeč (připomínky
 # dalšího měření z příkazu), např. https://ftvs.pythonanywhere.com
 PUBLIC_BASE_URL = env("PUBLIC_BASE_URL", default="").rstrip("/")
+
+# Sledovaná složka s exporty z přístroje: hlídač (hlidat_slozku, spouští ho
+# spustit.bat) nový export sám založí do importu a jednoznačný uloží.
+IMPORT_WATCH_DIR = env("IMPORT_WATCH_DIR", default="").strip().strip("\"'")
+IMPORT_WATCH_INTERVAL = env.int("IMPORT_WATCH_INTERVAL", default=30)
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")

@@ -238,7 +238,18 @@ tedy dostane obrazovku sám, bez psaní formuláře.
 Obrazovka počítá s tabletem u přístroje: velká pole, číselná klávesnice
 (`inputmode="decimal"`), čárka i tečka jako oddělovač, tlačítko pro uložení
 drží dole. Hodnota mimo věrohodný rozsah se uloží **označená**, stejně jako
-při importu.
+při importu. Rozptyl pokusů nad mezí metriky a hodnoty mimo rozsah hlásí
+mřížka už při psaní (`static/js/zadavani.js`, po uložení totéž ze serveru).
+
+**Režim u přístroje** (`/mereni/provedeni/<id>/u-pristroje/`) je táž mřížka
+na celé obrazovce bez menu: postup baterií, velká tlačítka *Uložit a další
+test*, RPE pod mřížkou, po posledním testu shrnutí dne a *Další sportovec*.
+Viz `docs/terenni-testovani.md`.
+
+**Sledovaná složka**: s `IMPORT_WATCH_DIR` v `.env` spouští `spustit.bat`
+hlídač (`manage.py hlidat_slozku`), který nové exporty z přístroje načte do
+Importu a jednoznačné (poznaný sportovec, naplánovaný den) uloží sám. Viz
+`docs/import-vald.md`.
 
 ## Grafy
 

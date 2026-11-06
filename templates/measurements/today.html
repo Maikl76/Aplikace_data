@@ -68,7 +68,7 @@
                 </td>
               {% endfor %}
               <td class="text-right whitespace-nowrap">
-                {% if row.session %}<a class="text-sm link" href="{% url 'session_detail' row.session.pk %}">den →</a>{% endif %}
+                {% if row.pristroj %}<a class="text-sm link" href="{% url 'run_device' row.pristroj.pk %}" title="Režim u přístroje: test za testem na jedné obrazovce">u přístroje</a> · {% endif %}{% if row.session %}<a class="text-sm link" href="{% url 'session_detail' row.session.pk %}">den →</a>{% endif %}
               </td>
             </tr>
           {% endfor %}

@@ -1,0 +1,55 @@
+{% extends "device_base.html" %}
+{% load ui %}
+{% block title %}Hotovo · {{ session.jmeno }} – u přístroje{% endblock %}
+{% block content %}
+<div class="flex items-center gap-3 mb-4">
+  <span class="avatar w-11 h-11">{{ session.jmeno|initials }}</span>
+  <div class="min-w-0">
+    <div class="eyebrow">Režim u přístroje · {{ session.date|date:"j. n. Y" }}</div>
+    <h1 class="text-2xl font-semibold truncate">{{ session.jmeno }} – {% if pending %}{{ pending_text }}{% else %}den změřen{% endif %}</h1>
+  </div>
+</div>
+
+<div class="grid md:grid-cols-2 gap-4 mb-4">
+  <section class="card p-4" id="testy">
+    <h2 class="card-title mb-2">Testy dne</h2>
+    <ul class="space-y-1.5 text-sm">
+      {% for r in runs %}
+        <li class="flex items-center gap-2">
+          {% if r.hodnot %}<span class="badge badge-good">{% icon "check" "w-3.5 h-3.5" %}{{ r.hodnot }} hodnot</span>{% else %}<span class="badge badge-warn">bez hodnot</span>{% endif %}
+          <a class="link flex-1 min-w-0 truncate" href="{% url 'run_device' r.pk %}">{{ r.protocol.name }}</a>
+          {% if r.rpe_chybi %}<span class="badge badge-warn" title="Po zátěžovém testu chybí RPE">chybí RPE</span>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+  <section class="card p-4" id="kontrola">
+    <h2 class="card-title mb-2">Kontrola</h2>
+    {% if unstable or out_of_range or rpe_missing %}
+      <ul class="space-y-1.5 text-sm">
+        {% for block, r in unstable %}
+          <li class="flex gap-2"><span style="color: var(--warn)">{% icon "alert" "w-4 h-4 shrink-0 mt-0.5" %}</span><span>{{ block.protocol.name }}: {{ r.metric.name }}{% if r.label %} ({{ r.label }}){% endif %} – pokusy {{ r.trials_txt }}, rozptyl {{ r.cv_txt }} % (mez {{ r.metric.trial_cv_limit|floatformat:0 }} %). Pokud je sportovec ještě tady, změřte znovu.</span></li>
+        {% endfor %}
+        {% if out_of_range %}<li class="flex gap-2"><span style="color: var(--warn)">{% icon "alert" "w-4 h-4 shrink-0 mt-0.5" %}</span><span>{{ out_of_range }} hodnot mimo věrohodný rozsah – uložené a označené, zkontrolujte je.</span></li>{% endif %}
+        {% for r in rpe_missing %}<li class="flex gap-2"><span style="color: var(--warn)">{% icon "alert" "w-4 h-4 shrink-0 mt-0.5" %}</span><span>{{ r.protocol.name }}: chybí RPE – <a class="link" href="{% url 'run_device' r.pk %}#rpe">doplnit</a>.</span></li>{% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-sm" style="color: var(--good)">{% icon "check" "w-4 h-4 inline" %} Nic k zopakování ani k doplnění.</p>
+    {% endif %}
+    {% if reports %}
+      <p class="text-sm mt-3">Zpráva: {% for r in reports %}<a class="link" href="{% url 'report_detail' r.pk %}">{{ r.report_number }}</a> ({{ r.get_status_display|lower }}){% if not forloop.last %}, {% endif %}{% endfor %}.</p>
+    {% elif not pending and session.organization.auto_draft %}
+      <p class="text-xs text-muted mt-3">Koncept zprávy vzniká sám, jakmile mají všechny testy hodnoty – najdete ho ve Zprávách.</p>
+    {% endif %}
+  </section>
+</div>
+
+<div class="flex flex-wrap gap-3">
+  {% if next_run %}
+    <a href="{% url 'run_device' next_run.pk %}" class="btn btn-primary px-6 py-4 text-lg">Další sportovec: {{ next_session.jmeno }} · {{ next_run.protocol.name }} {% icon "chevron-right" %}</a>
+  {% endif %}
+  {% if pending %}<a href="{% url 'run_device' pending.0.pk %}" class="btn px-6 py-4 text-lg">Doměřit: {{ pending.0.protocol.name }}</a>{% endif %}
+  <a href="{% url 'session_detail' session.pk %}" class="btn px-6 py-4 text-lg">Detail dne</a>
+  <a href="{% url 'today' %}?datum={{ session.date|date:'Y-m-d' }}" class="btn px-6 py-4 text-lg">Dnešní testování</a>
+</div>
+{% endblock %}
