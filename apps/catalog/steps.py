@@ -1,4 +1,4 @@
-"""Kroky nastavení testování: sporty, baterie, klíčové ukazatele, MDC, normy."""
+"""Kroky nastavení testování: sporty, baterie, klíčové ukazatele, MDC, normy (a kroky norem)."""
 
 from django.db.models import Q
 
@@ -68,6 +68,53 @@ def catalog_steps(user, status: dict | None = None) -> list[dict]:
              (f"{c['norms']} norem, {c['rules']} aktivních pravidel." if c["norms"] or c["rules"]
               else "Bez norem zpráva neukáže postavení vůči referenci; pravidla dávají nálezy "
                    "a doporučení. Zapíná je ten, kdo za práh ručí."),
-             url="/admin/catalog/norm/", button="Normy a pravidla", optional=True,
+             url=reverse("norms_settings"), button="Normy a pravidla", optional=True),
+    ]
+
+
+def norm_status(user, status: dict | None = None) -> dict:
+    from .models import Norm
+
+    c = status or catalog_status(user)
+    shared = Q(organization__isnull=True) | Q(organization=user.organization)
+    norms = list(Norm.objects.filter(shared).select_related("metric"))
+    key_ids = set(c["key_metrics"])
+    return {
+        "catalog": c, "norms": norms,
+        "key_with_norm": {n.metric_id for n in norms if n.metric_id in key_ids},
+        "no_values": [n for n in norms if (n.mean is None or not n.sd) and not n.percentiles],
+        "short_source": [n for n in norms if len(n.source_citation.strip()) < 30],
+    }
+
+
+def norm_steps(user, status: dict | None = None) -> list[dict]:
+    """Kroky norem: klíčové ukazatele s normou, použitelné hodnoty, zdroje, pravidla."""
+    from django.urls import reverse
+
+    n = norm_status(user, status)
+    c, key = n["catalog"], n["catalog"]["key_metrics"]
+    missing = len(key) - len(n["key_with_norm"])
+    return [
+        step(1, "Normy u klíčových ukazatelů", bool(key) and missing == 0,
+             (f"{len(n['key_with_norm'])} z {len(key)} klíčových ukazatelů má normu; bez ní "
+              "zpráva u ukazatele neukáže postavení vůči referenci." if key
+              else "Nejdřív klíčové ukazatele (Testy)."),
+             url=reverse("norm_new"), button="Nová norma", count=missing or None),
+        step(2, "Hodnoty", not n["no_values"],
+             (f"{len(n['no_values'])} norem bez použitelných hodnot – průměr a SD, nebo "
+              "percentily." if n["no_values"]
+              else "Každá norma má průměr a SD, nebo percentily." if n["norms"]
+              else "Zatím žádná norma."),
+             url="#normy", button="K normám", count=len(n["no_values"]) or None),
+        step(3, "Zdroje", not n["short_source"],
+             (f"{len(n['short_source'])} norem s neúplnou citací – doplňte autory, název, "
+              "časopis a rok." if n["short_source"]
+              else "Každá norma má citaci zdroje." if n["norms"] else "Zatím žádná norma."),
+             url="#normy", button="K normám", count=len(n["short_source"]) or None),
+        step(4, "Pravidla", c["rules"] > 0,
+             (f"{c['rules']} aktivních pravidel." if c["rules"]
+              else "Pravidla dávají nálezy a doporučení; zapíná je ten, kdo za práh ručí. "
+                   "Průvodce pravidly je další dávka."),
+             url="/admin/rules/rule/", button="Pravidla (administrace)", optional=True,
              admin_only=True),
     ]

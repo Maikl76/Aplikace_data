@@ -5,4 +5,6 @@
      style="border-color: {% if tab == 'testy' %}var(--accent){% else %}transparent{% endif %}">Testy</a>
   <a href="{% url 'mdc_settings' %}" class="px-3 py-2 -mb-px border-b-2 {% if tab == 'mdc' %}font-semibold{% else %}text-muted{% endif %}"
      style="border-color: {% if tab == 'mdc' %}var(--accent){% else %}transparent{% endif %}">MDC u ukazatelů</a>
+  <a href="{% url 'norms_settings' %}" class="px-3 py-2 -mb-px border-b-2 {% if tab == 'normy' %}font-semibold{% else %}text-muted{% endif %}"
+     style="border-color: {% if tab == 'normy' %}var(--accent){% else %}transparent{% endif %}">Normy</a>
 </nav>

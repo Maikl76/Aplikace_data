@@ -84,8 +84,7 @@ def workplace_steps(user) -> list[dict]:
              (f"{norms} norem, {rules} aktivních pravidel." if norms or rules else
               "Bez norem zpráva neukáže postavení vůči referenci; pravidla dávají nálezy "
               "a doporučení. Zapíná je ten, kdo za práh ručí."),
-             url="/admin/catalog/norm/", button="Normy a pravidla", optional=True,
-             admin_only=True),
+             url=reverse("norms_settings"), button="Normy a pravidla", optional=True),
         step(7, "Objednávky", offers and slots,
              ("Nabídka i volné termíny jsou vypsané." if offers and slots else
               "Klienti se objednávají sami, když je nabídka a volné termíny."),
@@ -152,8 +151,8 @@ def settings_sections(user) -> list[dict]:
         section("Normy a pravidla",
                 f"{c['norms']} norem, {c['rules']} aktivních pravidel. Bez norem zpráva neukáže "
                 "postavení vůči referenci; pravidla dávají nálezy a doporučení.",
-                url="/admin/catalog/norm/", button="Normy (administrace)", admin_only=True,
-                later="Průvodce normami a pravidly je další dávka.",
+                url=reverse("norms_settings"), button="Normy",
+                later="Průvodce pravidly je další dávka.",
                 links=[("Pravidla (administrace)", "/admin/rules/rule/")]),
         section("Dotazníky",
                 f"{questionnaires} dotazníků (RPE, únava, genetika).",

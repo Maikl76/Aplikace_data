@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}{% if norm %}Norma {{ norm.metric.name }}{% else %}Nová norma{% endif %} – FTVS{% endblock %}
+{% block content %}
+<div class="mb-5">
+  <a href="{% url 'norms_settings' %}" class="text-sm link">← Normy</a>
+  <h1 class="text-2xl font-semibold mt-1">{% if norm %}Norma: {{ norm.metric.name }}{% else %}Nová norma{% endif %}</h1>
+  <p class="text-sm text-muted mt-1 max-w-2xl">Pět částí: ukazatel, pro koho norma platí, hodnoty, zdroj, poznámka. Prázdné kritérium znamená „platí obecně“; vyplněné platí jen tam, kde sedí (norma pro národní úroveň se nepoužije na rekreačního sportovce).{% if fits is not None %} Z aktivních sportovců pracoviště dnes sedí na <strong>{{ fits }}</strong>.{% endif %}</p>
+</div>
+
+<form method="post" class="space-y-5 max-w-4xl pb-6">
+  {% csrf_token %}
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">1</span>
+      <div><h2 class="card-title">Ukazatel</h2><p class="text-sm text-muted">Ke kterému ukazateli norma patří. Klíčové ukazatele jdou na kartu sportovce a do týmového přehledu, u nich chybí norma nejvíc.</p></div>
+    </div>
+    <label class="block max-w-md">
+      <span class="text-sm font-medium">Ukazatel</span>
+      <select name="metric" required class="input mt-1" {% if norm %}disabled{% endif %}>
+        <option value="">— vyberte —</option>
+        <optgroup label="Klíčové ukazatele">{% for m in key_metrics %}<option value="{{ m.pk }}" {% if data.metric == m.pk|stringformat:"s" %}selected{% endif %}>{{ m.name }}{% if m.unit %} [{{ m.unit }}]{% endif %}</option>{% endfor %}</optgroup>
+        <optgroup label="Ostatní ukazatele">{% for m in other_metrics %}<option value="{{ m.pk }}" {% if data.metric == m.pk|stringformat:"s" %}selected{% endif %}>{{ m.name }}{% if m.unit %} [{{ m.unit }}]{% endif %}</option>{% endfor %}</optgroup>
+      </select>
+      {% if norm %}<input type="hidden" name="metric" value="{{ data.metric }}"><span class="text-xs text-muted">Ukazatel se u uložené normy nemění; pro jiný ukazatel založte novou normu.</span>{% endif %}
+    </label>
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">2</span>
+      <div><h2 class="card-title">Pro koho platí</h2><p class="text-sm text-muted">Populace ze zdroje. Co nevyplníte, norma neomezuje. Sportovec bez vyplněné úrovně na normu s úrovní nemá nárok.</p></div>
+    </div>
+    <div class="grid sm:grid-cols-3 gap-4">
+      <label class="block"><span class="text-sm font-medium">Sport</span>
+        <select name="sport" class="input mt-1"><option value="">všechny sporty</option>{% for s in sports %}<option value="{{ s.pk }}" {% if data.sport == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>{% endfor %}</select></label>
+      <label class="block"><span class="text-sm font-medium">Pohlaví</span>
+        <select name="sex" class="input mt-1">{% for value, label in sexes %}<option value="{{ value }}" {% if data.sex == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+      <label class="block"><span class="text-sm font-medium">Úroveň</span>
+        <select name="level" class="input mt-1"><option value="">všechny úrovně</option>{% for value, label in levels %}<option value="{{ value }}" {% if data.level == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+      <label class="block"><span class="text-sm font-medium">Věk od</span>
+        <input name="age_min" value="{{ data.age_min }}" inputmode="numeric" class="input mt-1" placeholder="např. 15"></label>
+      <label class="block"><span class="text-sm font-medium">Věk do</span>
+        <input name="age_max" value="{{ data.age_max }}" inputmode="numeric" class="input mt-1" placeholder="např. 18"></label>
+      <div></div>
+      <label class="block"><span class="text-sm font-medium">Strana</span>
+        <select name="side" class="input mt-1"><option value="">bez ohledu na stranu</option>{% for value, label in sides %}<option value="{{ value }}" {% if data.side == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+        <span class="text-xs text-muted">Oboustranná hodnota sedí na „Oboustranně“; norma pro dominantní stranu se nepoužije na druhou.</span></label>
+      <label class="block"><span class="text-sm font-medium">Režim</span>
+        <select name="mode" class="input mt-1"><option value="">všechny režimy</option>{% for value, label in modes %}<option value="{{ value }}" {% if data.mode == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+      <label class="block"><span class="text-sm font-medium">Rychlost (°/s)</span>
+        <input name="speed" value="{{ data.speed }}" inputmode="decimal" class="input mt-1" placeholder="jen u izokinetiky">
+        <span class="text-xs text-muted">Norma pro 210 °/s je jiná než pro 300 °/s.</span></label>
+    </div>
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">3</span>
+      <div><h2 class="card-title">Hodnoty</h2><p class="text-sm text-muted">Průměr a SD, nebo percentily – v jednotkách ukazatele. Zpráva počítá z-skóre z průměru a SD; percentily se ukládají pro budoucí použití.</p></div>
+    </div>
+    <div class="grid sm:grid-cols-3 gap-4">
+      <label class="block"><span class="text-sm font-medium">Průměr</span>
+        <input name="mean" value="{{ data.mean }}" inputmode="decimal" class="input mt-1"></label>
+      <label class="block"><span class="text-sm font-medium">SD</span>
+        <input name="sd" value="{{ data.sd }}" inputmode="decimal" class="input mt-1"></label>
+      <label class="block"><span class="text-sm font-medium">Velikost vzorku (n)</span>
+        <input name="sample_size" value="{{ data.sample_size }}" inputmode="numeric" class="input mt-1"></label>
+    </div>
+    <details class="mt-3 text-sm"{% if has_percentiles %} open{% endif %}>
+      <summary class="cursor-pointer link">Percentily (nepovinné)</summary>
+      <div class="grid grid-cols-4 sm:grid-cols-7 gap-2 mt-2">
+        {% for p, value in percentile_rows %}
+          <label class="block"><span class="text-xs text-2">P{{ p }}</span>
+            <input name="p{{ p }}" value="{{ value }}" inputmode="decimal" class="input mt-1 text-sm py-1"></label>
+        {% endfor %}
+      </div>
+    </details>
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">4</span>
+      <div><h2 class="card-title">Zdroj</h2><p class="text-sm text-muted">Bez zdroje nejde normu uložit: zpráva by neobhájila, proti čemu sportovce srovnává. Článek z knihovny předvyplní citaci a DOI.</p></div>
+    </div>
+    {% if articles %}
+      <label class="block max-w-xl mb-3"><span class="text-sm font-medium">Článek z knihovny</span> <span class="text-xs text-muted">– nepovinné</span>
+        <select id="clanek" class="input mt-1"><option value="">— vybrat a předvyplnit —</option>{% for a in articles %}<option value="{{ a.pk }}" data-citace="{{ a.citation }}" data-doi="{{ a.doi }}">{{ a.label }}</option>{% endfor %}</select></label>
+    {% endif %}
+    <div class="grid sm:grid-cols-3 gap-4">
+      <label class="block sm:col-span-2"><span class="text-sm font-medium">Citace</span>
+        <textarea name="source_citation" rows="2" required minlength="10" maxlength="500" class="input mt-1" placeholder="autoři (rok). název. časopis.">{{ data.source_citation }}</textarea></label>
+      <label class="block"><span class="text-sm font-medium">DOI</span> <span class="text-xs text-muted">– nepovinné</span>
+        <input name="source_doi" value="{{ data.source_doi }}" maxlength="120" class="input mt-1" placeholder="10.1234/abcd"></label>
+    </div>
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">5</span>
+      <div><h2 class="card-title">Poznámka</h2><p class="text-sm text-muted">Co je dobré vědět: metoda měření ve zdroji, odlišný protokol, přepočet jednotek.</p></div>
+    </div>
+    <textarea name="note" rows="2" class="input" maxlength="2000">{{ data.note }}</textarea>
+  </section>
+
+  <div class="flex flex-wrap items-center gap-2 sticky bottom-0 py-3" style="background: var(--bg)">
+    <button class="btn btn-primary">{% icon "check" %}Uložit normu</button>
+    <a href="{% url 'norms_settings' %}" class="btn">Zpět na normy</a>
+  </div>
+</form>
+{% if norm %}
+  <form method="post" action="{% url 'norm_delete' norm.pk %}" class="max-w-4xl -mt-2 mb-6" onsubmit="return confirm('Smazat normu? Zprávy u tohoto ukazatele už postavení vůči ní neukážou.')">{% csrf_token %}
+    <button class="text-xs text-muted link">Smazat normu</button>
+  </form>
+{% endif %}
+<script>
+  (function () {
+    const select = document.getElementById('clanek');
+    if (!select) return;
+    select.addEventListener('change', function () {
+      const option = this.selectedOptions[0];
+      if (!option || !option.dataset.citace) return;
+      document.querySelector('[name=source_citation]').value = option.dataset.citace;
+      document.querySelector('[name=source_doi]').value = option.dataset.doi || '';
+    });
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Normy – FTVS{% endblock %}
+{% block content %}
+{% include "catalog/_tabs.html" with tab="normy" %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <div class="eyebrow">Nastavení testování</div>
+    <h1 class="text-2xl font-semibold">Normy</h1>
+    <p class="text-sm text-muted mt-1 max-w-2xl">Referenční hodnoty, proti kterým zpráva staví výsledek: průměr ± SD (zpráva ukáže, o kolik SD se sportovec liší), případně percentily. Norma platí jen tam, kde sedí její kritéria – sport, pohlaví, věk, úroveň, strana, režim; nejspecifičtější vyhrává. Každá norma má zdroj, bez něj ji nejde uložit.</p>
+  </div>
+  {% if can_edit %}<a href="{% url 'norm_new' %}" class="btn btn-primary">{% icon "plus" %}Nová norma</a>{% endif %}
+</div>
+
+{% steps steps heading="Postup u norem" may_act=can_edit %}
+
+<div class="card overflow-x-auto" id="normy">
+  <div class="px-4 pt-4 pb-2 flex flex-wrap items-center justify-between gap-2"><h2 class="card-title">Normy podle ukazatele</h2><span class="text-xs text-muted">{{ count }} norem</span></div>
+  <table class="table text-sm">
+    <thead><tr><th>Ukazatel</th><th>Platí pro</th><th>Hodnoty</th><th class="max-md:hidden">n</th><th>Zdroj</th><th></th></tr></thead>
+    <tbody>
+      {% for g in groups %}
+        {% for n in g.norms %}
+          <tr{% if forloop.first %} id="ukazatel-{{ g.metric.pk }}"{% endif %}>
+            <td class="font-medium">{% if forloop.first %}{{ g.metric.name }}{% if g.metric.unit %} <span class="text-muted font-normal">[{{ g.metric.unit }}]</span>{% endif %}{% if g.key %} <span class="badge badge-accent">klíčový</span>{% endif %}{% endif %}</td>
+            <td class="text-2">{{ n.applies }}</td>
+            <td class="tabular-nums">{{ n.values_txt }}{% if n.incomplete %} <span class="badge badge-warn" title="Chybí hodnoty, nebo je citace neúplná">doplnit</span>{% endif %}</td>
+            <td class="tabular-nums max-md:hidden">{{ n.sample_size|default:"—" }}</td>
+            <td class="text-xs text-2 max-w-xs">{{ n.source_citation|truncatechars:90 }}{% if n.source_doi %} <a class="link" href="https://doi.org/{{ n.source_doi }}" target="_blank" rel="noopener">DOI</a>{% endif %}</td>
+            <td class="text-right whitespace-nowrap">{% if can_edit %}<a class="btn btn-sm" href="{% url 'norm_edit' n.pk %}">{% icon "edit" %}Upravit</a>{% endif %}</td>
+          </tr>
+        {% endfor %}
+      {% empty %}
+        <tr><td colspan="6" class="text-muted py-6">Zatím žádná norma. Bez normy zpráva u ukazatele neukáže postavení vůči referenci – jen hodnotu a změnu proti minulému měření.{% if can_edit %} Začněte klíčovými ukazateli: <a class="link" href="{% url 'norm_new' %}">Nová norma</a>.{% endif %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="text-xs text-muted mt-3">Jak se norma použije: zpráva k výsledku připíše průměr ± SD a z-skóre; genetická zpráva a souhrn od modelu dostanou slovní postavení vůči normě. Normy se přenášejí s katalogem (ulozit-katalog / nacist-katalog).</p>
+{% endblock %}
