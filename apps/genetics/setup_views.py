@@ -1,5 +1,5 @@
 """
-Průvodce genetikou: nastavení ve čtyřech krocích. Administrace Djanga
+Průvodce genetikou: nastavení v pěti krocích (pátý je volitelný). Administrace Djanga
 zůstává jen „pro pokročilé“ – běžná práce (garanti, karty, panel laboratoře)
 se dělá tady, jedním tlačítkem a s vysvětlením, co se po člověku chce.
 Kartu samotnou vede průvodce kartou (apps/genetics/card_wizard.py).
@@ -38,7 +38,9 @@ def _may_setup(user) -> bool:
 # --- kroky nastavení ---------------------------------------------------------------
 
 def setup_steps(user) -> list[dict]:
-    """Stav čtyř kroků nastavení pro stránku Genetika."""
+    """Stav kroků nastavení pro stránku Genetika (pátý, interakce, je volitelný)."""
+    from .interaction_views import interaction_step
+
     domains = list(_catalog(Domain, user).filter(is_active=True).prefetch_related("guarantors"))
     with_guarantor = sum(1 for d in domains if d.guarantors.exists())
     variants = list(_catalog(GeneVariant, user).prefetch_related("cards"))
@@ -67,6 +69,7 @@ def setup_steps(user) -> list[dict]:
          "text": f"{approved} z {len(variants)} karet schváleno. Do zprávy jde jen schválená "
                  "karta; každou vede průvodce kartou v osmi krocích.",
          "url": "#karty", "button": "Ke kartám"},
+        interaction_step(user),
     ]
 
 

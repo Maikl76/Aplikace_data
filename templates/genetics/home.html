@@ -5,7 +5,7 @@
 <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
   <div>
     <h1 class="text-2xl font-semibold">Genetika</h1>
-    <p class="text-sm text-muted mt-1">Nastavení ve čtyřech krocích, každou kartu vede průvodce v osmi krocích, pak práce u sportovce (karta sportovce → Genetika). Do zprávy smí jen schválená karta; schvaluje ji garant oblasti.</p>
+    <p class="text-sm text-muted mt-1">Nastavení ve čtyřech krocích (pátý, interakce variant, je volitelný), každou kartu vede průvodce v osmi krocích, pak práce u sportovce (karta sportovce → Genetika). Do zprávy smí jen schválená karta; schvaluje ji garant oblasti.</p>
   </div>
   <div class="flex flex-wrap items-center gap-2">
     {% if may_edit %}<a href="{% url 'genetics_card_new' %}" class="btn btn-primary">{% icon "plus" %}Nová karta</a>{% endif %}
@@ -76,6 +76,12 @@
       </ul>
       <p class="text-xs text-muted mt-2">Laboratoř a její zápis genotypů: krok 3 průvodce.</p>
     </section>
+    <section class="card p-4">
+      <h2 class="card-title mb-2">Interakce variant</h2>
+      <p class="text-sm">{{ interactions.interactions|length }} kombinací, {{ interactions.approved|length }} schválených{% if interactions.hypotheses %}, <span class="badge badge-warn">{{ interactions.hypotheses|length }} hypotéz k posouzení</span>{% endif %}{% if interactions.outside_panel %}, <span class="badge badge-warn">{{ interactions.outside_panel|length }} mimo panel</span>{% endif %}.</p>
+      <a href="{% url 'genetics_interactions' %}" class="btn btn-sm mt-2">Interakce variant</a>
+      <p class="text-xs text-muted mt-2">Kombinace genotypů více variant; z Wordu přicházejí jako hypotézy, schvaluje správce.</p>
+    </section>
     {% if samples %}
       <section class="card p-4">
         <h2 class="card-title mb-2">Vzorky</h2>
@@ -98,7 +104,7 @@
   </div>
 </div>
 
-{% if user.is_staff %}<p class="text-xs text-muted mb-4">Pro pokročilé: <a class="link" href="/admin/genetics/">administrace genetiky</a> (důkazy, zdroje, interakce, podmínky scénářů nad měřením). Běžná práce administraci nepotřebuje.</p>{% endif %}
+{% if user.is_staff %}<p class="text-xs text-muted mb-4">Pro pokročilé: <a class="link" href="/admin/genetics/">administrace genetiky</a> (vzorky ke čtení, technické záznamy). Běžná práce administraci nepotřebuje.</p>{% endif %}
 
 {% if vyzkum.frekvence %}
   <section class="card p-4 mt-4">

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}{% if interaction %}Kombinace variant{% else %}Nová kombinace variant{% endif %} – FTVS{% endblock %}
+{% block content %}
+<div class="mb-5">
+  <a href="{% url 'genetics_interactions' %}" class="text-sm link">← Interakce variant</a>
+  <h1 class="text-2xl font-semibold mt-1">{% if interaction %}Kombinace: {{ interaction.title|truncatechars:70 }}{% else %}Nová kombinace variant{% endif %}</h1>
+  <p class="text-sm text-muted mt-1 max-w-2xl">Čtyři části: název a oblasti, předpoklad a text, varianty kombinace, posouzení. Kombinace je hypotéza, dokud ji správce neschválí; text nesmí slibovat víc, než zdroje dokládají.{% if card %} Z karty {{ card.variant.label }}.{% endif %}</p>
+</div>
+
+<form method="post" class="space-y-5 max-w-4xl pb-6">
+  {% csrf_token %}
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">1</span>
+      <div><h2 class="card-title">Název a oblasti</h2><p class="text-sm text-muted">Název pojmenuje kombinaci a profil, oblasti říkají, kde se ve zprávě hodí.</p></div>
+    </div>
+    <label class="block"><span class="text-sm font-medium">Název</span>
+      <input name="title" value="{{ data.title }}" required maxlength="300" class="input mt-1" placeholder="např. ACE × ACTN3 – silově-vytrvalostní profil"></label>
+    <div class="mt-3"><span class="text-sm font-medium">Související oblasti</span>
+      <div class="flex flex-wrap gap-3 mt-1 text-sm">
+        {% for d in domains %}<label class="inline-flex items-center gap-1"><input type="checkbox" name="areas" value="{{ d.name }}" {% if d.name in data.areas %}checked{% endif %}> {{ d.name }}</label>{% endfor %}
+      </div></div>
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">2</span>
+      <div><h2 class="card-title">Předpoklad a text</h2><p class="text-sm text-muted">Předpoklad říká, které genotypy musí sportovec mít; text říká, co to znamená – s mírou jistoty, bez slibů a bez diagnóz.</p></div>
+    </div>
+    <label class="block"><span class="text-sm font-medium">Předpoklad</span>
+      <input name="assumption" value="{{ data.assumption }}" maxlength="2000" class="input mt-1" placeholder="např. Za předpokladu kombinace ACE DD nebo ID + ACTN3 CC nebo CT"></label>
+    <label class="block mt-3"><span class="text-sm font-medium">Text</span>
+      <textarea name="text" rows="5" required maxlength="5000" class="input mt-1" placeholder="Co kombinace pro sportovce znamená a jak jistý je podklad.">{{ data.text }}</textarea></label>
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">3</span>
+      <div><h2 class="card-title">Varianty kombinace</h2><p class="text-sm text-muted">Aspoň dvě varianty z katalogu. Varianta mimo panel laboratoře znamená, že se kombinace z výsledku nevyhodnotí.</p></div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-2 text-sm">
+      {% for v in variants %}
+        <label class="flex items-center gap-2 p-2 rounded-lg" style="background: var(--surface-2)"><input type="checkbox" name="variants" value="{{ v.rsid }}" {% if v.rsid in data.variants %}checked{% endif %}> <span>{{ v.label }}{% if v.rsid not in in_panel %} <span class="badge badge-warn" title="není v panelu laboratoře">mimo panel</span>{% endif %}</span></label>
+      {% empty %}<p class="text-muted">V katalogu zatím není žádná varianta – nejdřív založte karty.</p>{% endfor %}
+    </div>
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">4</span>
+      <div><h2 class="card-title">Posouzení</h2><p class="text-sm text-muted">Hypotéza čeká na posouzení; schválená kombinace se ukáže na kartě. Stav mění správce.</p></div>
+    </div>
+    <div class="flex flex-wrap gap-3 text-sm">
+      {% for value, label in statuses %}
+        <label class="inline-flex items-center gap-1"><input type="radio" name="status" value="{{ value }}" {% if data.status == value %}checked{% endif %} {% if not is_admin %}disabled{% endif %}> {{ label }}</label>
+      {% endfor %}
+      {% if not is_admin %}<input type="hidden" name="status" value="{{ data.status }}">{% endif %}
+    </div>
+  </section>
+
+  <div class="flex flex-wrap items-center gap-2 sticky bottom-0 py-3" style="background: var(--bg)">
+    <button class="btn btn-primary">{% icon "check" %}Uložit kombinaci</button>
+    <a href="{% url 'genetics_interactions' %}" class="btn">Zpět na interakce</a>
+  </div>
+</form>
+{% if interaction and is_admin %}
+  <form method="post" action="{% url 'genetics_interaction_delete' interaction.pk %}" class="max-w-4xl -mt-2 mb-6" onsubmit="return confirm('Smazat kombinaci variant?')">{% csrf_token %}
+    <button class="text-xs text-muted link">Smazat kombinaci</button>
+  </form>
+{% endif %}
+{% endblock %}

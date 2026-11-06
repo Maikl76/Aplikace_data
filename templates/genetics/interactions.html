@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Interakce variant – FTVS{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <a href="{% url 'genetics_home' %}" class="text-sm link">← Genetika</a>
+    <h1 class="text-2xl font-semibold mt-1">Interakce variant</h1>
+    <p class="text-sm text-muted mt-1 max-w-2xl">Kombinace genotypů více variant (např. ACE × ACTN3). Z Wordu přicházejí jako hypotézy k odbornému posouzení; schválená kombinace se ukazuje na kartě. Vyhodnotit z výsledku jde jen kombinace, jejíž všechny varianty jsou v panelu laboratoře.</p>
+  </div>
+  {% if may_edit %}<a href="{% url 'genetics_interaction_new' %}" class="btn btn-primary">{% icon "plus" %}Nová kombinace</a>{% endif %}
+</div>
+
+<div class="card p-4 mb-5 flex flex-wrap items-start gap-3">
+  <span class="krok-cislo">{% if step.done %}{% icon "check" "w-4 h-4" %}{% else %}{{ step.n }}{% endif %}</span>
+  <div class="flex-1 min-w-0"><div class="font-medium">{{ step.title }} <span class="text-xs text-muted">· krok nastavení genetiky, volitelný</span></div><p class="text-sm text-2">{{ step.text }}</p></div>
+</div>
+
+<div class="card overflow-x-auto" id="interakce">
+  <div class="px-4 pt-4 pb-2 flex flex-wrap items-center justify-between gap-2"><h2 class="card-title">Kombinace</h2><span class="text-xs text-muted">{{ interactions|length }} kombinací, {{ approved|length }} schválených{% if panel %} · panel {{ panel.name }}{% endif %}</span></div>
+  <table class="table text-sm">
+    <thead><tr><th>Kombinace</th><th>Varianty</th><th class="max-md:hidden">Oblasti</th><th>Stav</th><th></th></tr></thead>
+    <tbody>
+      {% for i in interactions %}
+        <tr id="interakce-{{ i.pk }}">
+          <td class="max-w-md"><span class="font-medium">{{ i.title }}</span>{% if i.assumption %}<div class="text-xs text-muted">{{ i.assumption|truncatechars:120 }}</div>{% endif %}{% if i.source_card %}<div class="text-xs text-muted">z karty {{ i.source_card.variant.label }}</div>{% endif %}</td>
+          <td class="text-2 whitespace-nowrap">{% for rs in i.variants %}<span class="badge {% if rs in i.missing %}badge-warn{% endif %}" {% if rs in i.missing %}title="Varianta není v panelu laboratoře"{% endif %}>{{ rs }}</span> {% endfor %}</td>
+          <td class="max-md:hidden text-2">{{ i.areas|join:", "|default:"—" }}</td>
+          <td class="whitespace-nowrap">
+            {% if i.status == "approved" %}<span class="badge badge-good">schváleno</span>{% elif i.status == "rejected" %}<span class="badge">zamítnuto</span>{% else %}<span class="badge badge-warn">hypotéza</span>{% endif %}
+            {% if i.missing and i.status != "rejected" %}<span class="badge badge-warn" title="{{ i.missing|join:', ' }}">mimo panel</span>{% endif %}
+          </td>
+          <td class="text-right whitespace-nowrap">{% if may_edit %}<a class="btn btn-sm" href="{% url 'genetics_interaction_edit' i.pk %}">{% icon "edit" %}Upravit</a>{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="text-muted py-6">Zatím žádná kombinace variant.{% if may_edit %} <a class="link" href="{% url 'genetics_interaction_new' %}">Nová kombinace</a>.{% endif %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="text-xs text-muted mt-3">Kombinace se přenášejí s katalogem (ulozit-katalog / nacist-katalog). Stav mění správce; text kombinace smí popisovat jen to, co zdroje dokládají – pravidla pro výroky platí stejně jako u karet.</p>
+{% endblock %}

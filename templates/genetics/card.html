@@ -95,13 +95,13 @@
       </section>
     {% endif %}
 
-    {% if interactions %}
+    {% if interactions or may_edit %}
       <section class="card p-4">
-        <h2 class="card-title mb-1">Navržené interakce a kombinace</h2>
-        <p class="text-xs text-muted mb-3">Hypotézy k odbornému posouzení. Kombinaci s variantou mimo panel nejde z testu vyhodnotit.</p>
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h2 class="card-title">Navržené interakce a kombinace</h2>{% if may_edit %}<a href="{% url 'genetics_interaction_new' %}?karta={{ card.pk }}" class="btn btn-sm">{% icon "plus" %}Nová kombinace</a>{% endif %}</div>
+        <p class="text-xs text-muted mb-3">Hypotézy k odbornému posouzení; schvaluje správce v <a class="link" href="{% url 'genetics_interactions' %}">Interakcích variant</a>. Kombinaci s variantou mimo panel nejde z testu vyhodnotit.</p>
         {% for i in interactions %}
-          <div class="mb-3 text-sm"><span class="badge">{{ i.get_status_display }}</span> <span class="font-medium">{{ i.title }}</span><br><span class="text-muted">{{ i.assumption }}</span><br>{{ i.text }}<br><span class="text-xs text-muted">varianty: {{ i.variants|join:", " }}</span></div>
-        {% endfor %}
+          <div class="mb-3 text-sm"><span class="badge {% if i.status == 'approved' %}badge-good{% elif i.status == 'hypothesis' %}badge-warn{% endif %}">{{ i.get_status_display }}</span> <span class="font-medium">{{ i.title }}</span>{% if may_edit %} <a class="link text-xs" href="{% url 'genetics_interaction_edit' i.pk %}">upravit</a>{% endif %}<br><span class="text-muted">{{ i.assumption }}</span><br>{{ i.text }}<br><span class="text-xs text-muted">varianty: {{ i.variants|join:", " }}</span></div>
+        {% empty %}<p class="text-sm text-muted">Žádná kombinace s touto kartou.</p>{% endfor %}
       </section>
     {% endif %}
   </div>

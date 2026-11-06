@@ -9,6 +9,8 @@ a sdílení s trenérem. Laboratoř v portálu nic nezadává.
 
 1. Laboratoř na kartě sportovce (**Účet a sdílení s trenérem**) vystaví
    **pozvánku** – pro sportovce, nebo pro zákonného zástupce nezletilého.
+   Účet jde na kartě sportovce (Účet → *odebrat*) zase odpojit, třeba když
+   zástupce končí po dosažení plnoletosti; účet bez sportovce se vypne.
 2. Pozvánka je odkaz s QR kódem; platí 30 dní a jde použít jednou. Předává
    se osobně (vytištěná, naskenovaná z obrazovky) nebo e‑mailem, pokud má
    sportovec uložený kontakt a server umí posílat e‑maily (`EMAIL_HOST`).

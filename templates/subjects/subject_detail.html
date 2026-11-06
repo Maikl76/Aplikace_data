@@ -154,8 +154,8 @@
       {% if accounts %}
         <div>
           <span class="text-muted">Účet sportovce:</span>
-          {% if accounts.athlete %}<span class="badge badge-good">{{ accounts.athlete.get_username }}</span>{% else %}<span class="text-muted">žádný</span>{% endif %}
-          {% for g in accounts.guardians %}<span class="badge" title="zákonný zástupce">zástupce {{ g.get_username }}</span>{% endfor %}
+          {% if accounts.athlete %}<span class="badge badge-good">{{ accounts.athlete.get_username }}</span>{% if may_edit %}<form method="post" action="{% url 'subject_account_remove' subject.pk %}" class="inline" onsubmit="return confirm('Odpojit účet sportovce? Účet bez sportovce se vypne.')">{% csrf_token %}<input type="hidden" name="druh" value="athlete"><input type="hidden" name="uzivatel" value="{{ accounts.athlete.pk }}"><button class="text-xs link ml-1" title="Odpojit účet od sportovce">odebrat</button></form>{% endif %}{% else %}<span class="text-muted">žádný</span>{% endif %}
+          {% for g in accounts.guardians %}<span class="badge" title="zákonný zástupce">zástupce {{ g.get_username }}</span>{% if may_edit %}<form method="post" action="{% url 'subject_account_remove' subject.pk %}" class="inline" onsubmit="return confirm('Odebrat zákonného zástupce? Účet bez sportovce se vypne.')">{% csrf_token %}<input type="hidden" name="druh" value="guardian"><input type="hidden" name="uzivatel" value="{{ g.pk }}"><button class="text-xs link ml-1" title="Odebrat zástupce (např. po dosažení plnoletosti)">odebrat</button></form>{% endif %}{% endfor %}
           {% for i in accounts.invitations %}<a class="badge badge-warn" href="{% url 'subject_invitation' subject.pk i.pk %}" title="nepoužitá pozvánka">pozvánka · {{ i.get_kind_display }}</a>{% endfor %}
         </div>
         <form method="post" action="{% url 'subject_invite' subject.pk %}" class="flex flex-wrap gap-2">{% csrf_token %}
@@ -180,6 +180,24 @@
   </section>
 
   {% include "genetics/_subject_card.html" %}
+
+  <section class="card min-w-0" id="vysetreni">
+    <div class="px-4 pt-4 pb-2 flex flex-wrap items-center justify-between gap-2"><h2 class="card-title">Externí vyšetření a omezení zátěže</h2>{% if may_edit %}<a href="{% url 'exam_new' subject.pk %}" class="btn btn-sm">{% icon "plus" %}Zapsat vyšetření</a>{% endif %}</div>
+    <ul>
+      {% for e in external_exams %}
+        <li class="border-t px-4 py-3 text-sm flex flex-wrap items-center gap-2" style="border-color: var(--border)">
+          <span class="flex-1 min-w-0"><span class="font-medium">{{ e.get_exam_type_display }}</span> · {{ e.date|date:"d.m.Y" }} · {{ e.provider }}{% if e.note %}<span class="block text-xs text-muted">{{ e.note }}</span>{% endif %}</span>
+          {% if restriction and e.pk == restriction.pk %}<span class="badge badge-warn" title="Platné omezení zátěže">{{ e.get_load_restriction_display|lower }}{% if e.restriction_valid_until %} do {{ e.restriction_valid_until|date:"d.m.Y" }}{% endif %}</span>
+          {% elif e.load_restriction == "none" %}<span class="badge badge-good">bez omezení</span>
+          {% elif e.load_restriction == "unknown" %}<span class="badge">omezení neuvedeno</span>
+          {% else %}<span class="badge" title="Omezení skončilo, nebo ho zrušilo novější vyšetření">{{ e.get_load_restriction_display|lower }}, neplatí</span>{% endif %}
+          {% if may_edit %}<a class="btn btn-sm" href="{% url 'exam_edit' subject.pk e.pk %}">{% icon "edit" %}Upravit</a>{% endif %}
+        </li>
+      {% empty %}
+        <li class="px-4 py-5 text-sm text-muted border-t" style="border-color: var(--border)">Žádný záznam. Aplikace neukládá nálezy ani diagnózy, jen zda od lékaře platí omezení zátěže – zpráva pak nevydá doporučení vyžadující zátěž.</li>
+      {% endfor %}
+    </ul>
+  </section>
 
   <section class="card min-w-0" id="zpravy">
     <div class="px-4 pt-4 pb-2"><h2 class="card-title">Zprávy</h2></div>

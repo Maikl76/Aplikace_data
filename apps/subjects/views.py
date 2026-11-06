@@ -84,8 +84,9 @@ def subject_detail(request, pk):
 
     accounts_info = accounts.accounts_of(subject) if _may_edit(request.user) else None
     sharings_list = [_with_coach_label(sh) for sh in subject.sharings.select_related("coach")]
+    exams = list(subject.external_exams.order_by("-date", "-pk"))
     steps = subject_steps(subject, sessions=sessions, accounts=accounts_info,
-                          sharings=sharings_list, may_edit=_may_edit(request.user))
+                          sharings=sharings_list, may_edit=_may_edit(request.user), exams=exams)
 
     return render(request, "subjects/subject_detail.html", {
         "steps": steps, "next_step": next_step(steps),
@@ -94,7 +95,7 @@ def subject_detail(request, pk):
         "sessions": sessions,
         "last_session": measured[0] if measured else None,
         "tiles": overview.kpi_tiles(subject),
-        "external_exams": subject.external_exams.order_by("-date"),
+        "external_exams": exams, "may_edit": _may_edit(request.user),
         # Stejná logika jako v pravidlech: karta nesmí tvrdit něco jiného než zpráva.
         "restriction": ExternalExam.active_restriction_for(subject),
         "accounts": accounts_info,
@@ -391,6 +392,33 @@ def subject_invite(request, pk):
     invitation = accounts.create_invitation(subject, kind, user=request.user)
     record(request, AuditLog.Action.CREATE, invitation, subject_code=subject.code, druh=kind)
     return redirect("subject_invitation", pk=pk, inv_pk=invitation.pk)
+
+
+@login_required
+def subject_account_remove(request, pk):
+    """Odpojí účet sportovce nebo zákonného zástupce (např. po dosažení plnoletosti)."""
+    from django.contrib import messages
+
+    from apps.core.models import User
+
+    subject = get_object_or_404(Subject.objects.for_user(request.user), pk=pk)
+    if request.method != "POST" or not _may_edit(request.user):
+        return redirect("subject_detail", pk=pk)
+    kind = request.POST.get("druh", "")
+    user = User.objects.filter(pk=request.POST.get("uzivatel") or 0).first()
+    if user is None:
+        messages.error(request, "Takový účet tu není.")
+        return redirect(reverse("subject_detail", args=[pk]) + "#ucet")
+    try:
+        deactivated = accounts.unlink(subject, kind, user)
+    except accounts.AccountError as exc:
+        messages.error(request, str(exc))
+        return redirect(reverse("subject_detail", args=[pk]) + "#ucet")
+    record(request, AuditLog.Action.UPDATE, subject, subject_code=subject.code,
+           akce="odebrat_ucet", druh=kind, ucet=user.get_username())
+    messages.success(request, f"Účet {user.get_username()} už k sportovci {subject.code} nepatří"
+                     + (" a je vypnutý – nezbyl mu žádný sportovec." if deactivated else "."))
+    return redirect(reverse("subject_detail", args=[pk]) + "#ucet")
 
 
 @login_required

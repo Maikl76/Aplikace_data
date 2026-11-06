@@ -41,7 +41,7 @@ def workplace_steps(user) -> list[dict]:
     norms, rules = c["norms"], c["rules"]
     offers = Offer.objects.for_user(user).filter(is_active=True).exists()
     slots = Slot.objects.for_user(user).filter(is_active=True, start__gte=timezone.now()).exists()
-    genetics = genetics_steps(user)
+    genetics = [g for g in genetics_steps(user) if not g.get("optional")]
     genetics_done = sum(1 for g in genetics if g["done"])
     keys_ok = bool(settings.IDENTITY_ENCRYPTION_KEY) and genetics_crypto.configured()
     model = llm.describe()
@@ -124,7 +124,7 @@ def settings_sections(user) -> list[dict]:
     questionnaires = Questionnaire.objects.filter(shared).count()
     articles = Article.objects.filter(status=Article.Status.APPROVED).count()
     remarks = Remark.objects.filter(organization=org, status=Remark.Status.OPEN).count()
-    genetics = genetics_steps(user)
+    genetics = [g for g in genetics_steps(user) if not g.get("optional")]
 
     def section(title, text, *, url="", button="", admin_only=False, later="", links=()):
         return {"title": title, "text": text, "url": url, "button": button,

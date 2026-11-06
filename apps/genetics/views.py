@@ -75,6 +75,9 @@ def home(request):
                       if crypto.configured() else []}
         except Exception:  # bez klíče nebo s jiným klíčem genotypy nejdou číst
             vyzkum = {"osob": 0, "minimum": research.MIN_SUBJECTS, "frekvence": []}
+    from apps.core.steps import next_step
+
+    from .interaction_views import interaction_status
     from .setup_views import setup_steps
 
     steps = setup_steps(user)
@@ -83,7 +86,7 @@ def home(request):
         "samples": samples, "key_missing": not crypto.configured(),
         "approved_count": sum(1 for v in variants if v.approved),
         "vyzkum": vyzkum, "steps": steps,
-        "next_step": next((s for s in steps if not s["done"]), None),
+        "next_step": next_step(steps), "interactions": interaction_status(user),
         "may_edit": user.is_superuser or user.role in (Role.ADMIN, Role.LAB),
         "is_admin": _is_admin(user),
     })

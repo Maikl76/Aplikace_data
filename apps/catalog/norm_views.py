@@ -205,15 +205,20 @@ def _parse(data: dict, metrics, sports) -> tuple[dict, list[str]]:
     return values, errors
 
 
+def citation_of(a) -> str:
+    """Citace z článku v knihovně: autoři (rok). název. časopis."""
+    return " ".join(filter(None, [
+        f"{a.authors.strip().rstrip('.')}." if a.authors else "",
+        f"({a.year})." if a.year else "", f"{a.title.strip().rstrip('.')}.",
+        f"{a.journal.strip().rstrip('.')}." if a.journal else ""]))
+
+
 def article_choices():
+    """Schválené články pro výběr ve formulářích (normy, pravidla, karty)."""
     out = []
     for a in Article.objects.filter(status=Article.Status.APPROVED).order_by("-year", "title")[:300]:
-        citation = " ".join(filter(None, [
-            f"{a.authors.strip().rstrip('.')}." if a.authors else "",
-            f"({a.year})." if a.year else "", f"{a.title.strip().rstrip('.')}.",
-            f"{a.journal.strip().rstrip('.')}." if a.journal else ""]))
         label = f"{a.authors.split(',')[0] if a.authors else a.title[:40]} {a.year or ''}: {a.title[:70]}"
-        out.append({"pk": a.pk, "label": label.strip(), "citation": citation, "doi": a.doi})
+        out.append({"pk": a.pk, "label": label.strip(), "citation": citation_of(a), "doi": a.doi})
     return out
 
 

@@ -17,9 +17,21 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from apps.catalog.models import Protocol, Question
+from apps.catalog.models import MetricDef, Protocol, Question
+from apps.catalog.norm_views import article_choices, citation_of
 from apps.core.audit import record
 from apps.core.models import AuditLog
+from apps.evidence.models import Article
+from apps.measurements.models import Mode, Side
+from apps.rules.engine import OPERATORS, RuleError, validate_condition
+from apps.rules.setup_views import (
+    EMPTY_ROW,
+    KIND_LABELS,
+    ROW_FIELDS,
+    condition_from_rows,
+    rows_from_condition,
+)
+from apps.rules.steps import describe
 
 from . import seed, services
 from .card_steps import HINTS, STEPS, TITLES, card_steps, next_slug
@@ -246,7 +258,12 @@ def _genotype_rows(card, original):
              "original": before.get(g)} for g in variant.genotypes]
 
 
-def _scenario_rows(card, original):
+def _metrics(user) -> dict:
+    """Ukazatele sdílené i pracoviště podle kódu – pro podmínky scénářů nad měřením."""
+    return {m.code: m for m in _catalog(MetricDef, user)}
+
+
+def _scenario_rows(card, original, metrics=None):
     variant = card.variant
     rows = list(card.scenarios.select_related("question").prefetch_related("texts")
                 .order_by("order", "pk"))
@@ -256,6 +273,10 @@ def _scenario_rows(card, original):
             before[s.statement.strip().lower()] = {t.genotype: t.text for t in s.texts.all()}
     for s in rows:
         s.trigger = _trigger_value(s)
+        parsed = rows_from_condition(s.condition) if s.condition else None
+        s.cond = parsed[0][0] if parsed else dict(EMPTY_ROW)
+        s.cond_nested = s.condition and parsed is None
+        s.cond_text = describe(s.condition, metrics or {}) if s.condition else ""
         texts = {t.genotype: t.text for t in s.texts.all()}
         was = before.get(s.statement.strip().lower(), {})
         s.rows = [{"code": g, "label": variant.genotype_label(g), "text": texts.get(g, ""),
@@ -291,8 +312,12 @@ def _context_doporuceni(card, request, original):
 
 
 def _context_kontext(card, request, original):
-    return {"scenarios": _scenario_rows(card, original), "triggers": _trigger_options(),
-            "genotypes": _genotype_rows(card, None), "new_rows": range(1), "nsc_count": 1}
+    metrics = _metrics(request.user)
+    return {"scenarios": _scenario_rows(card, original, metrics), "triggers": _trigger_options(),
+            "genotypes": _genotype_rows(card, None), "new_rows": range(1), "nsc_count": 1,
+            "metrics": [m for m in metrics.values() if m.is_active], "kinds": KIND_LABELS,
+            "operators": list(OPERATORS), "sides": Side.choices,
+            "modes": [c for c in Mode.choices if c[0]], "empty_cond": dict(EMPTY_ROW)}
 
 
 def _context_vyroky(card, request, original):
@@ -312,6 +337,7 @@ def _context_zdroje(card, request, original):
         "evidence": evidence, "ev_blank": range(len(evidence), len(evidence) + BLANK_ROWS),
         "ev_count": len(evidence) + BLANK_ROWS,
         "original_sources": list(original.sources.all()) if original else [],
+        "articles": article_choices(),
     }
 
 
@@ -489,15 +515,45 @@ def _activate(scenario, wanted: bool, problems: list[str]) -> bool:
         problems.append(f"Scénář „{name}…“ nejde zapnout bez odpovědi, která ho spouští.")
         return False
     if wanted and scenario.kind == ContextScenario.Kind.MEASUREMENT and not scenario.condition:
-        problems.append(f"Scénář „{name}…“ nejde zapnout bez podmínky nad měřením "
-                        "(zapisuje se v administraci).")
+        problems.append(f"Scénář „{name}…“ nejde zapnout bez podmínky nad měřením.")
         return False
     return wanted
+
+
+def _condition_from_post(post, prefix, codes) -> tuple[dict | None, str]:
+    """
+    Podmínka scénáře nad měřením z jednoho řádku stavitele (stejný zápis jako
+    u pravidel). Prázdný řádek = bez podmínky; chyba zápisu se vrací slovy.
+    """
+    row = {f: post.get(f"{prefix}_{f}", "").strip() for f in ROW_FIELDS}
+    row["mdc"] = bool(post.get(f"{prefix}_mdc"))
+    if not row["metric"] and not row["value"]:
+        return {}, ""
+    condition, errors = condition_from_rows([row], "all")
+    if errors:
+        return None, " ".join(e.removeprefix("Podmínka 1: ") for e in errors)
+    try:
+        validate_condition(condition, metrics=codes)
+    except RuleError as exc:
+        return None, str(exc)
+    return condition, ""
+
+
+def _apply_condition(scenario, post, prefix, codes, problems) -> None:
+    """Scénář s měřením: podmínka ze stavitele; vnořené podmínky zůstávají, jak jsou."""
+    if scenario.condition and rows_from_condition(scenario.condition) is None:
+        return
+    condition, error = _condition_from_post(post, prefix, codes)
+    if error:
+        problems.append(f"Scénář „{scenario.statement[:40]}…“: {error}")
+        return
+    scenario.condition = condition
 
 
 def _save_kontext(card, request) -> list[str]:
     post, problems = request.POST, []
     genotypes = card.variant.genotypes
+    codes = set(_metrics(request.user))
     for scenario in card.scenarios.select_related("question"):
         key = scenario.pk
         statement = post.get(f"sc_statement_{key}", scenario.statement).strip()
@@ -505,7 +561,9 @@ def _save_kontext(card, request) -> list[str]:
             scenario.delete()
             continue
         scenario.statement = statement
-        if not _apply_trigger(scenario, post.get(f"sc_trigger_{key}", "")):
+        if scenario.kind == ContextScenario.Kind.MEASUREMENT:
+            _apply_condition(scenario, post, f"sc_c_{key}", codes, problems)
+        elif not _apply_trigger(scenario, post.get(f"sc_trigger_{key}", "")):
             problems.append(f"Scénář „{statement[:40]}…“: neznámá otázka.")
         scenario.is_active = _activate(scenario, f"sc_active_{key}" in post, problems)
         scenario.save()
@@ -515,9 +573,12 @@ def _save_kontext(card, request) -> list[str]:
         statement = post.get(f"nsc_statement_{i}", "").strip()
         if not statement:
             continue
-        scenario = ContextScenario(card=card, kind=ContextScenario.Kind.QUESTIONNAIRE,
-                                   statement=statement, order=order + i)
-        if not _apply_trigger(scenario, post.get(f"nsc_trigger_{i}", "")):
+        kind = (ContextScenario.Kind.MEASUREMENT if post.get(f"nsc_kind_{i}") == "measurement"
+                else ContextScenario.Kind.QUESTIONNAIRE)
+        scenario = ContextScenario(card=card, kind=kind, statement=statement, order=order + i)
+        if kind == ContextScenario.Kind.MEASUREMENT:
+            _apply_condition(scenario, post, f"nsc_c_{i}", codes, problems)
+        elif not _apply_trigger(scenario, post.get(f"nsc_trigger_{i}", "")):
             problems.append(f"Scénář „{statement[:40]}…“: neznámá otázka.")
         scenario.is_active = _activate(scenario, f"nsc_active_{i}" in post, problems)
         scenario.save()
@@ -544,11 +605,29 @@ def _save_vyroky(card, request) -> list[str]:
     return []
 
 
-def _save_rows(card, post, prefix, manager, model, required, fields):
+def _article(pk):
+    """Schválený článek z knihovny podle id z výběru; prázdné = bez vazby."""
+    return Article.objects.filter(pk=pk or 0, status=Article.Status.APPROVED).first()
+
+
+def _prefill_from_article(values: dict) -> None:
+    """Zdroj s vybraným článkem a prázdnou citací dostane citaci (a DOI) z knihovny."""
+    article = values.get("article")
+    if article is not None and not values.get("citation"):
+        values["citation"] = citation_of(article)
+    if article is not None and not values.get("url") and article.doi:
+        values["url"] = f"https://doi.org/{article.doi}"
+
+
+def _save_rows(card, post, prefix, manager, model, required, fields, links=None, prefill=None):
     """Řádky zdrojů a důkazů: podle id upravit, prázdné nové přeskočit, smazat zaškrtnutím."""
     for i in range(int(post.get(f"{prefix}_count", 0) or 0)):
         values = {name: post.get(f"{prefix}_{name}_{i}", "").strip()[:limit]
                   for name, limit in fields.items()}
+        for name, resolve in (links or {}).items():
+            values[name] = resolve(post.get(f"{prefix}_{name}_{i}", ""))
+        if prefill is not None:
+            prefill(values)
         row_id = post.get(f"{prefix}_id_{i}", "")
         existing = manager.filter(pk=row_id).first() if row_id else None
         if existing is not None and (f"{prefix}_delete_{i}" in post or not values[required]):
@@ -567,10 +646,11 @@ def _save_rows(card, post, prefix, manager, model, required, fields):
 
 def _save_zdroje(card, request) -> list[str]:
     _save_rows(card, request.POST, "src", card.sources, CardSource, "citation",
-               {"label": 12, "title": 200, "citation": 10_000, "url": 500})
+               {"label": 12, "title": 200, "citation": 10_000, "url": 500},
+               links={"article": _article}, prefill=_prefill_from_article)
     _save_rows(card, request.POST, "ev", card.evidence, CardEvidence, "trait",
                {"code": 12, "trait": 200, "basis_text": 10_000, "usage": 10_000,
-                "source_labels": 120})
+                "source_labels": 120}, links={"article": _article})
     return []
 
 

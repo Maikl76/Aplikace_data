@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}{% if exam %}Vyšetření{% else %}Nové vyšetření{% endif %} – {{ display_name }} – FTVS{% endblock %}
+{% block content %}
+<div class="mb-5">
+  <a href="{% url 'subject_detail' subject.pk %}#vysetreni" class="text-sm link">← {{ display_name }}</a>
+  <h1 class="text-2xl font-semibold mt-1">{% if exam %}Vyšetření {{ exam.date|date:"d.m.Y" }}{% else %}Nové externí vyšetření{% endif %}</h1>
+  <p class="text-sm text-muted mt-1 max-w-2xl">Tři části: co a kdy, omezení zátěže, poznámka. Aplikace neukládá nález ani diagnózu – jen provozní důsledek: zda a dokdy platí omezení zátěže. Rozhoduje nejnovější vyšetření, které o omezení něco říká; novější „bez omezení“ starší omezení ruší.</p>
+  {% if restriction %}<p class="text-sm mt-2" style="color: var(--warn)">Teď platí omezení zátěže ({{ restriction.get_load_restriction_display|lower }}) z {{ restriction.date|date:"d.m.Y" }}{% if restriction.restriction_valid_until %}, do {{ restriction.restriction_valid_until|date:"d.m.Y" }}{% endif %}.</p>{% endif %}
+</div>
+
+<form method="post" class="space-y-5 max-w-3xl pb-6">
+  {% csrf_token %}
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">1</span>
+      <div><h2 class="card-title">Co a kdy</h2><p class="text-sm text-muted">Druh vyšetření, datum a poskytovatel. Reference je identifikátor u poskytovatele, nikdy obsah nálezu.</p></div>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <label class="block"><span class="text-sm font-medium">Druh vyšetření</span>
+        <select name="exam_type" class="input mt-1">{% for value, label in types %}<option value="{{ value }}" {% if data.exam_type == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+      <label class="block"><span class="text-sm font-medium">Datum</span>
+        <input type="date" name="date" value="{{ data.date }}" max="{{ today }}" required class="input mt-1"></label>
+      <label class="block"><span class="text-sm font-medium">Poskytovatel</span>
+        <input name="provider" value="{{ data.provider }}" maxlength="120" class="input mt-1" placeholder="AKESO"></label>
+      <label class="block"><span class="text-sm font-medium">Externí reference</span> <span class="text-xs text-muted">– nepovinné</span>
+        <input name="external_reference" value="{{ data.external_reference }}" maxlength="120" class="input mt-1" placeholder="číslo zprávy u poskytovatele"></label>
+    </div>
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">2</span>
+      <div><h2 class="card-title">Omezení zátěže</h2><p class="text-sm text-muted">Dokud omezení platí, pravidla s kontraindikací nevydají doporučení a karta sportovce i zpráva omezení ukážou. Bez data „platí do“ omezení trvá, dokud ho nezruší novější vyšetření.</p></div>
+    </div>
+    <div class="space-y-2 text-sm">
+      {% for value, label in restrictions %}
+        <label class="flex items-center gap-2"><input type="radio" name="load_restriction" value="{{ value }}" {% if data.load_restriction == value %}checked{% endif %}> {{ label }}{% if value == "unknown" %} <span class="text-xs text-muted">– záznam se při rozhodování přeskočí</span>{% endif %}</label>
+      {% endfor %}
+    </div>
+    <label class="block mt-4 max-w-xs"><span class="text-sm font-medium">Omezení platí do</span> <span class="text-xs text-muted">– nepovinné</span>
+      <input type="date" name="restriction_valid_until" value="{{ data.restriction_valid_until }}" class="input mt-1"></label>
+  </section>
+
+  <section class="card p-5">
+    <div class="flex items-start gap-3 mb-4">
+      <span class="krok-cislo">3</span>
+      <div><h2 class="card-title">Poznámka</h2><p class="text-sm text-muted">Provozní poznámka, např. „kontrola za 6 týdnů“. Bez diagnóz a bez popisu nálezu – ty patří poskytovateli, ne sem.</p></div>
+    </div>
+    <input name="note" value="{{ data.note }}" maxlength="255" class="input" placeholder="např. kontrola za 6 týdnů">
+  </section>
+
+  <div class="flex flex-wrap items-center gap-2 sticky bottom-0 py-3" style="background: var(--bg)">
+    <button class="btn btn-primary">{% icon "check" %}Uložit vyšetření</button>
+    <a href="{% url 'subject_detail' subject.pk %}#vysetreni" class="btn">Zpět na sportovce</a>
+  </div>
+</form>
+{% if exam %}
+  <form method="post" action="{% url 'exam_delete' subject.pk exam.pk %}" class="max-w-3xl -mt-2 mb-6" onsubmit="return confirm('Smazat záznam o vyšetření?')">{% csrf_token %}
+    <button class="text-xs text-muted link">Smazat záznam</button>
+  </form>
+{% endif %}
+{% endblock %}

@@ -258,6 +258,30 @@ def accounts_of(subject) -> dict:
     }
 
 
+@transaction.atomic
+def unlink(subject, kind: str, user) -> bool:
+    """
+    Odpojí účet od sportovce: vlastní účet (kind „athlete“), nebo zástupce
+    (kind „guardian“). Účet, kterému nezbyl žádný sportovec, se vypne –
+    vrací True. Sdílení s trenérem zůstává, potvrdil ho sportovec.
+    """
+    identity = SubjectIdentity.objects.filter(subject=subject).first()
+    if identity is None:
+        raise AccountError("Sportovec nemá žádný účet.")
+    if kind == "athlete":
+        if identity.user_id != user.pk:
+            raise AccountError("Tento účet není účtem sportovce.")
+        identity.user = None
+        identity.save(update_fields=["user", "updated_at"])
+    elif kind == "guardian":
+        deleted, _ = Guardian.objects.filter(identity=identity, user=user).delete()
+        if not deleted:
+            raise AccountError("Tento účet není zástupcem sportovce.")
+    else:
+        raise AccountError("Neznámý druh účtu.")
+    return deactivate_orphans([user]) > 0
+
+
 def deactivate_orphans(users) -> int:
     """Účty sportovce/zástupce, kterým nezbyl žádný sportovec, se vypnou."""
     from .access import subject_ids_for

@@ -1,4 +1,4 @@
-"""Kroky u sportovce: údaje a souhlasy, účet, měření, zpráva, předání nebo sdílení."""
+"""Kroky u sportovce: údaje a souhlasy, účet, měření, zpráva, předání nebo sdílení, vyšetření."""
 
 from django.urls import reverse
 
@@ -7,8 +7,10 @@ from apps.core.steps import step
 from .models import Consent, Sharing
 
 
-def subject_steps(subject, *, sessions, accounts, sharings, may_edit: bool) -> list[dict]:
+def subject_steps(subject, *, sessions, accounts, sharings, may_edit: bool,
+                  exams=()) -> list[dict]:
     """``sessions`` od nejnovějšího s anotací ``hodnot`` a načtenými zprávami."""
+    from apps.external.models import ExternalExam
     from apps.reports.models import Report, ReportDelivery
 
     missing = []
@@ -28,6 +30,8 @@ def subject_steps(subject, *, sessions, accounts, sharings, may_edit: bool) -> l
     invited = bool(accounts and accounts["invitations"])
     sharing = any(sh.status == Sharing.Status.ACTIVE for sh in sharings)
     delivered = ReportDelivery.objects.filter(report__subject=subject).exists()
+    exams = list(exams)
+    restriction = ExternalExam.active_restriction_for(subject) if exams else None
     return [
         step(1, "Údaje a souhlasy", not missing,
              ("Chybí: " + ", ".join(missing) + "." if missing
@@ -61,4 +65,16 @@ def subject_steps(subject, *, sessions, accounts, sharings, may_edit: bool) -> l
               "Předání lékaři se zaznamenává u vydané zprávy; sdílení s trenérem potvrzuje "
               "sportovec ve svém účtu."),
              url="#ucet", button="Sdílení s trenérem" if may_edit else "", optional=True),
+        step(6, "Externí vyšetření", bool(exams),
+             (f"Platné omezení zátěže ({restriction.get_load_restriction_display().lower()}) "
+              f"z {restriction.date:%d.%m.%Y}"
+              + (f", do {restriction.restriction_valid_until:%d.%m.%Y}."
+                 if restriction.restriction_valid_until else ".")
+              if restriction else
+              f"{len(exams)} záznamů, bez platného omezení zátěže." if exams else
+              "Lékařskou prohlídku nebo omezení zátěže zapište – zpráva pak nedoporučí "
+              "zátěž, kterou lékař omezil. Bez diagnóz, jen provozní důsledek."),
+             url=("#vysetreni" if exams else reverse("exam_new", args=[subject.pk])),
+             button=("Vyšetření" if exams else "Zapsat vyšetření") if may_edit else "",
+             optional=True),
     ]

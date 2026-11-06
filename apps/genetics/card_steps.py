@@ -61,8 +61,9 @@ def card_steps(card) -> list[dict]:
     no_basis = [r for r in recs if not r.basis]
     scenarios = list(card.scenarios.all())
     active = [s for s in scenarios if s.is_active]
-    broken = [s for s in active if s.kind == ContextScenario.Kind.QUESTIONNAIRE
-              and not (s.question_id and s.answer_match)]
+    broken = [s for s in active
+              if (s.kind == ContextScenario.Kind.QUESTIONNAIRE and not (s.question_id and s.answer_match))
+              or (s.kind == ContextScenario.Kind.MEASUREMENT and not s.condition)]
     forbidden = card.forbidden_statements.count()
     shared = ForbiddenStatement.objects.filter(card__isnull=True).count()
     sources, evidence = card.sources.count(), card.evidence.count()
@@ -102,7 +103,8 @@ def card_steps(card) -> list[dict]:
                    "nebo budoucí měření."),
              url=url("doporuceni"), button=button(), count=len(no_basis) or None),
         step(5, TITLES["kontext"], not broken,
-             (f"{len(broken)} zapnutých scénářů bez odpovědi, která je spouští." if broken
+             (f"{len(broken)} zapnutých scénářů bez odpovědi nebo podmínky, která je spouští."
+              if broken
               else f"{len(scenarios)} scénářů, {len(active)} zapnutých." if scenarios
               else "Bez scénářů; zpráva kontext z dotazníku neuvede."),
              url=url("kontext"), button=button(), optional=True, count=len(broken) or None),

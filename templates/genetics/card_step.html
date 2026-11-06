@@ -36,8 +36,6 @@
         {% if next %}<button name="akce" value="dalsi" class="btn btn-primary">Uložit a dál: {{ next_title }}{% icon "chevron-right" %}</button>{% endif %}
         <button name="akce" value="prehled" class="btn">Uložit a zpět na přehled</button>
       {% endif %}
-      {% if user.is_staff and slug == "zdroje" %}<a href="/admin/genetics/genecard/{{ card.pk }}/change/" class="text-xs text-muted self-center sm:ml-auto">pro pokročilé: články v knihovně (administrace)</a>{% endif %}
-      {% if user.is_staff and slug == "kontext" %}<a href="/admin/genetics/genecard/{{ card.pk }}/change/" class="text-xs text-muted self-center sm:ml-auto">pro pokročilé: scénáře nad měřením (administrace)</a>{% endif %}
     </div>
   </form>
 </div>

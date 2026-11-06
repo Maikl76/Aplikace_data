@@ -51,7 +51,8 @@ def test_sportovec_vede_kroky(org):
     subject = Subject.objects.create(organization=org, code="FTVS-0001")
     url = reverse("subject_detail", args=[subject.pk])
     steps, nxt = _steps(client.get(url))
-    assert list(steps) == ["Údaje a souhlasy", "Účet v portálu", "Měření", "Zpráva", "Předání nebo sdílení"]
+    assert list(steps) == ["Údaje a souhlasy", "Účet v portálu", "Měření", "Zpráva",
+                           "Předání nebo sdílení", "Externí vyšetření"]
     assert nxt["title"] == "Údaje a souhlasy" and "sport" in nxt["text"] and "souhlas" in nxt["text"]
     assert nxt["url"] == reverse("subject_edit", args=[subject.pk])
 

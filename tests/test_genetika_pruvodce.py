@@ -32,7 +32,8 @@ def test_prehled_vede_ctyrmi_kroky_a_ukazuje_dalsi(org):
     page = client.get(reverse("genetics_home"))
     assert page.status_code == 200
     assert [s["title"] for s in page.context["steps"]] == [
-        "Garanti oblastí", "Genové karty", "Panel a laboratoř", "Revize a schválení karet"]
+        "Garanti oblastí", "Genové karty", "Panel a laboratoř", "Revize a schválení karet",
+        "Interakce variant"]
     assert page.context["next_step"]["n"] == 1
     text = page.content.decode()
     assert "Průvodce nastavením" in text and "Další krok: Garanti oblastí" in text

@@ -1,32 +1,43 @@
 <section class="card p-4 space-y-3">
   <h2 class="card-title">Zdroje (literatura)</h2>
-  <p class="text-xs text-muted">Citace s autory, názvem, časopisem a rokem; krátká citace se v kontrole hlásí jako neúplná. Prázdná citace řádek smaže.</p>
+  <p class="text-xs text-muted">Citace s autory, názvem, časopisem a rokem; krátká citace se v kontrole hlásí jako neúplná. Článek z knihovny citaci i odkaz předvyplní a zpráva ho pak umí citovat. Prázdná citace řádek smaže.</p>
   <input type="hidden" name="src_count" value="{{ src_count }}">
   {% for s in sources %}
     {% with i=forloop.counter0 %}
-    <div class="p-3 rounded-lg text-sm space-y-2" style="background: var(--surface-2)">
+    <div class="p-3 rounded-lg text-sm space-y-2" style="background: var(--surface-2)" data-zdroj>
       <input type="hidden" name="src_id_{{ i }}" value="{{ s.pk }}">
       <div class="flex flex-wrap gap-2">
         <input name="src_label_{{ i }}" value="{{ s.label }}" maxlength="12" class="input w-20 text-sm py-1.5" placeholder="S1">
         <input name="src_title_{{ i }}" value="{{ s.title }}" maxlength="200" class="input flex-1 text-sm py-1.5" placeholder="k čemu (např. frekvence genotypů)">
       </div>
-      <textarea name="src_citation_{{ i }}" rows="2" class="input text-sm" placeholder="citace – autoři, název, časopis, rok">{{ s.citation }}</textarea>
+      {% if articles %}
+        <select name="src_article_{{ i }}" class="input text-sm py-1.5" data-clanek>
+          <option value="">— článek z knihovny (nepovinné) —</option>
+          {% for a in articles %}<option value="{{ a.pk }}" data-citace="{{ a.citation }}" data-doi="{{ a.doi }}" {% if s.article_id == a.pk %}selected{% endif %}>{{ a.label }}</option>{% endfor %}
+        </select>
+      {% elif s.article %}<p class="text-xs text-muted">článek v knihovně: {{ s.article }}</p>{% endif %}
+      <textarea name="src_citation_{{ i }}" rows="2" class="input text-sm" data-citace placeholder="citace – autoři, název, časopis, rok">{{ s.citation }}</textarea>
       <div class="flex flex-wrap items-center gap-3">
-        <input name="src_url_{{ i }}" value="{{ s.url }}" maxlength="500" class="input flex-1 text-xs py-1" placeholder="odkaz (DOI nebo URL)">
+        <input name="src_url_{{ i }}" value="{{ s.url }}" maxlength="500" class="input flex-1 text-xs py-1" data-odkaz placeholder="odkaz (DOI nebo URL)">
         <label class="inline-flex items-center gap-1 text-xs text-muted"><input type="checkbox" name="src_delete_{{ i }}"> smazat</label>
       </div>
-      {% if s.article %}<p class="text-xs text-muted">článek v knihovně: {{ s.article }}</p>{% endif %}
     </div>
     {% endwith %}
   {% endfor %}
   {% for i in src_blank %}
-    <div class="p-3 rounded-lg text-sm space-y-2 border border-dashed" style="border-color: var(--border)">
+    <div class="p-3 rounded-lg text-sm space-y-2 border border-dashed" style="border-color: var(--border)" data-zdroj>
       <div class="flex flex-wrap gap-2">
         <input name="src_label_{{ i }}" maxlength="12" class="input w-20 text-sm py-1.5" placeholder="S{{ i|add:1 }}">
         <input name="src_title_{{ i }}" maxlength="200" class="input flex-1 text-sm py-1.5" placeholder="k čemu">
       </div>
-      <textarea name="src_citation_{{ i }}" rows="2" class="input text-sm" placeholder="Nový zdroj – citace (prázdné se neuloží)"></textarea>
-      <input name="src_url_{{ i }}" maxlength="500" class="input text-xs py-1" placeholder="odkaz (DOI nebo URL)">
+      {% if articles %}
+        <select name="src_article_{{ i }}" class="input text-sm py-1.5" data-clanek>
+          <option value="">— článek z knihovny (nepovinné) – předvyplní citaci —</option>
+          {% for a in articles %}<option value="{{ a.pk }}" data-citace="{{ a.citation }}" data-doi="{{ a.doi }}">{{ a.label }}</option>{% endfor %}
+        </select>
+      {% endif %}
+      <textarea name="src_citation_{{ i }}" rows="2" class="input text-sm" data-citace placeholder="Nový zdroj – citace (prázdné se neuloží)"></textarea>
+      <input name="src_url_{{ i }}" maxlength="500" class="input text-xs py-1" data-odkaz placeholder="odkaz (DOI nebo URL)">
     </div>
   {% endfor %}
   {% if original_sources %}
@@ -37,7 +48,7 @@
 
 <section class="card p-4 space-y-3">
   <h2 class="card-title">Důkazy a přípustné závěry</h2>
-  <p class="text-xs text-muted">Řádek důkazů (E01…) říká, co zdroj dokládá, jaká má omezení a co z něj smí do zprávy. Prázdný znak řádek smaže.</p>
+  <p class="text-xs text-muted">Řádek důkazů (E01…) říká, co zdroj dokládá, jaká má omezení a co z něj smí do zprávy. Článek z knihovny napojí důkaz na citovatelný zdroj. Prázdný znak řádek smaže.</p>
   <input type="hidden" name="ev_count" value="{{ ev_count }}">
   {% for e in evidence %}
     {% with i=forloop.counter0 %}
@@ -53,7 +64,12 @@
         <textarea name="ev_usage_{{ i }}" rows="1" class="input flex-1 text-sm" placeholder="použití ve zprávě – co z toho smí do textu">{{ e.usage }}</textarea>
         <label class="inline-flex items-center gap-1 text-xs text-muted"><input type="checkbox" name="ev_delete_{{ i }}"> smazat</label>
       </div>
-      {% if e.article %}<p class="text-xs text-muted">článek v knihovně: {{ e.article }}</p>{% endif %}
+      {% if articles %}
+        <select name="ev_article_{{ i }}" class="input text-sm py-1.5">
+          <option value="">— článek z knihovny (nepovinné) —</option>
+          {% for a in articles %}<option value="{{ a.pk }}" {% if e.article_id == a.pk %}selected{% endif %}>{{ a.label }}</option>{% endfor %}
+        </select>
+      {% elif e.article %}<p class="text-xs text-muted">článek v knihovně: {{ e.article }}</p>{% endif %}
     </div>
     {% endwith %}
   {% endfor %}
@@ -66,6 +82,27 @@
       </div>
       <textarea name="ev_basis_text_{{ i }}" rows="2" class="input text-sm" placeholder="podklad a omezení"></textarea>
       <textarea name="ev_usage_{{ i }}" rows="1" class="input text-sm" placeholder="použití ve zprávě"></textarea>
+      {% if articles %}
+        <select name="ev_article_{{ i }}" class="input text-sm py-1.5">
+          <option value="">— článek z knihovny (nepovinné) —</option>
+          {% for a in articles %}<option value="{{ a.pk }}">{{ a.label }}</option>{% endfor %}
+        </select>
+      {% endif %}
     </div>
   {% endfor %}
 </section>
+<script>
+  (function () {
+    document.querySelectorAll('[data-zdroj] [data-clanek]').forEach(function (select) {
+      select.addEventListener('change', function () {
+        const option = this.selectedOptions[0];
+        const box = this.closest('[data-zdroj]');
+        if (!option || !option.dataset.citace) return;
+        const citation = box.querySelector('[data-citace]');
+        const link = box.querySelector('[data-odkaz]');
+        if (!citation.value.trim()) citation.value = option.dataset.citace;
+        if (link && !link.value.trim() && option.dataset.doi) link.value = 'https://doi.org/' + option.dataset.doi;
+      });
+    });
+  })();
+</script>

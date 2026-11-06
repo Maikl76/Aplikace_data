@@ -410,7 +410,8 @@
       <p>Genové karty (co o variantě smíme říkat), souhlas a vzorek sportovce a genetická zpráva. Hlavní riziko genetiky ve sportu je říct víc, než víme – proto jde do zprávy jen <strong>schválená karta</strong> (schvaluje garant oblasti) a každá věta má dohledatelný původ.</p>
       <ol>
         <li><strong>Nastavení</strong> ve čtyřech krocích na stránce <a class="link" href="{% url 'genetics_home' %}">Genetika</a>: garanti oblastí → genové karty → panel a laboratoř → revize a schválení. Každý krok má tlačítko a říká, co chybí.</li>
-        <li><strong>Karta</strong> vzniká v aplikaci (<em>Nová karta</em>) a <strong>průvodce kartou</strong> ji vede osmi kroky: varianta → co gen dělá → texty pro genotypy → doporučení s důvody → kontext z dotazníku → co zpráva říkat nesmí → zdroje a důkazy → kontrola a schválení. U každého kroku je připomínka, co se v něm nesmí, a vedle polí původní znění. Word s podklady je jen zkratka.</li>
+        <li><strong>Karta</strong> vzniká v aplikaci (<em>Nová karta</em>) a <strong>průvodce kartou</strong> ji vede osmi kroky: varianta → co gen dělá → texty pro genotypy → doporučení s důvody → kontext z dotazníku a měření (scénář s měřením má podmínku ze stavitele jako u pravidel) → co zpráva říkat nesmí → zdroje a důkazy (článek z knihovny předvyplní citaci) → kontrola a schválení. U každého kroku je připomínka, co se v něm nesmí, a vedle polí původní znění. Word s podklady je jen zkratka.</li>
+        <li><strong>Interakce variant</strong> (Genetika → Interakce variant, volitelný pátý krok nastavení): kombinace genotypů více variant; z Wordu přicházejí jako hypotézy, posuzuje je správce, varianta mimo panel se označí.</li>
         <li><strong>U sportovce</strong> (karta sportovce → Genetika) vede postup pěti kroky: souhlas → vzorek a výsledek → ověření → dotazník → zpráva. Trenér genetiku nevidí nikdy.</li>
         <li><strong>Zpráva</strong> se sestaví sama ze schválených karet, dotazníku a měření; model píše jen spojovací souhrn a i ten se kontroluje.</li>
       </ol>
@@ -420,7 +421,7 @@
     {# ================================================================== #}
     <section id="katalog" class="card p-5" data-kapitola>
       <h2>Nastavení</h2>
-      <p>Stránka <a class="link" href="{% url 'workplace' %}">Nastavení</a> má nahoře stav pracoviště (kroky všech částí, každý říká, co chybí) a dole kategorie: pracoviště a kolegové, sporty a baterie, testy a ukazatele (včetně MDC se zdrojem), přístroje a import (sloupce exportů), normy a pravidla, dotazníky, objednávky, články, genetika, připomínky, klíče a model. Vše, co se tu nastaví, jsou data – nic se neprogramuje. Administrace Djanga je jen pro pokročilé (odkaz dole na stránce Nastavení): audit, identity sportovců, zákonní zástupci, externí vyšetření, technické záznamy. Normy, pravidla i dotazníky mají vlastní stránky s kroky (Nastavení → Normy / Pravidla / Dotazníky).</p>
+      <p>Stránka <a class="link" href="{% url 'workplace' %}">Nastavení</a> má nahoře stav pracoviště (kroky všech částí, každý říká, co chybí) a dole kategorie: pracoviště a kolegové, sporty a baterie, testy a ukazatele (včetně MDC se zdrojem), přístroje a import (sloupce exportů), normy a pravidla, dotazníky, objednávky, články, genetika, připomínky, klíče a model. Vše, co se tu nastaví, jsou data – nic se neprogramuje. Administrace Djanga je jen pro pokročilé (odkaz dole na stránce Nastavení): audit, identity sportovců, zákonní zástupci, externí vyšetření, technické záznamy. Normy, pravidla i dotazníky mají vlastní stránky s kroky (Nastavení → Normy / Pravidla / Dotazníky); externí vyšetření a účty zástupců se řeší na kartě sportovce, interakce variant a scénáře s měřením v Genetice.</p>
       <div class="overflow-x-auto">
         <table class="table napoveda-tabulka">
           <thead><tr><th>Položka</th><th>K čemu</th></tr></thead>
@@ -434,8 +435,8 @@
             <tr><td class="font-medium">Profily importu</td><td>Který sloupec exportu z přístroje je která metrika. Přístroje přidané průvodcem se upravují v Importu → Přístroje.</td></tr>
             <tr><td class="font-medium">Uživatelé</td><td>Účty, role, organizace (jen správce).</td></tr>
             <tr><td class="font-medium">Souhlasy</td><td>U sportovce (úprava údajů): testování, sledování v čase, předání zprávy poskytovateli zdravotních služeb, výzkum. Bez souhlasu s předáním nejde zprávu předat.</td></tr>
-            <tr><td class="font-medium">Externí vyšetření</td><td>Omezení zátěže z lékařského vyšetření (bez diagnóz). Dokud platí, doporučení vyžadující zátěž se negenerují.</td></tr>
-            <tr><td class="font-medium">Identity sportovců</td><td>Šifrovaná jména a data narození – upravuje jen superuživatel.</td></tr>
+            <tr><td class="font-medium">Externí vyšetření</td><td>Pohodlněji na kartě sportovce (Externí vyšetření a omezení zátěže): druh a datum vyšetření, poskytovatel, omezení zátěže a dokdy platí – bez diagnóz a nálezů. Dokud omezení platí, karta i zpráva ho ukážou a doporučení vyžadující zátěž se nevydají; novější „bez omezení“ starší omezení ruší.</td></tr>
+            <tr><td class="font-medium">Identity sportovců a účty</td><td>Jména, data narození a kontakty se zapisují na kartě sportovce (Upravit údaje); účty sportovce a zákonného zástupce vznikají z pozvánky a na kartě sportovce (Účet) jdou zase odebrat, třeba po dosažení plnoletosti. V administraci je trezor identit jen pro superuživatele.</td></tr>
           </tbody>
         </table>
       </div>

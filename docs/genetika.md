@@ -40,7 +40,8 @@ fáze (viz konec).
 | **Genetika → Jak to funguje** | `/genetika/navod/`: obsah – lidé – zpráva, kdo co dělá, stav nastavení |
 | **karta sportovce → Genetika** | postup v pěti krocích (souhlas → vzorek → ověření → dotazník → zpráva) s *Další krok*; zápis podepsaného souhlasu / odvolání, dotazník, vzorky, genotypy, *Ověřit příslušnost* výsledku, nový vzorek, sestavení genetické zprávy |
 | **portál sportovce → Souhlasy a sdílení → Genetika** | sportovec souhlas uděluje a odvolává sám, vyplňuje dotazník; vydanou zprávu pro sportovce vidí v Mých výsledcích |
-| **administrace → Genetika** (pro pokročilé) | totéž co průvodce plus interakce, podmínky scénářů nad měřením, napojení zdrojů a důkazů na články v knihovně, vzorky (jen ke čtení) |
+| **Genetika → Interakce variant** | `/genetika/interakce/`: kombinace genotypů více variant (hypotéza → schváleno / zamítnuto), formulář ve čtyřech částech, varianta mimo panel se označí; volitelný pátý krok nastavení |
+| **administrace → Genetika** (pro pokročilé) | totéž co průvodce; navíc jen vzorky ke čtení a technické záznamy |
 
 ## Postup
 
@@ -48,9 +49,9 @@ Běžná práce se dělá v aplikaci: stránka **Genetika** vede čtyřmi kroky
 nastavení, u každého říká, co chybí, a tlačítko *Další krok* otevře to, co je
 na řadě. Stránka **Genetika → Jak to funguje** (`/genetika/navod/`) vysvětluje
 celek (obsah – lidé – zpráva, kdo co dělá). Administrace Djanga je jen „pro
-pokročilé“ (důkazy, zdroje, interakce, podmínky scénářů nad měřením); účet pro
-ni potřebuje „Stav týmu“ (is_staff) a skupiny oprávnění srovná `seed_roles`
-(spustit.bat i aktualizace serveru ho volají samy).
+pokročilé“ (vzorky ke čtení, technické záznamy); účet pro ni potřebuje „Stav
+týmu“ (is_staff) a skupiny oprávnění srovná `seed_roles` (spustit.bat
+i aktualizace serveru ho volají samy).
 
 1. **Garanti oblastí** (správce; `/genetika/nastaveni/garanti/`). Ke každé
    oblasti aspoň jeden metodik z účtů správce / diagnostik. Bez garanta nejde
@@ -96,7 +97,9 @@ ni potřebuje „Stav týmu“ (is_staff) a skupiny oprávnění srovná `seed_r
       důvodu kartu nejde schválit.
    5. *Kontext z dotazníku* – scénáře: odpověď sportovce, která je spouští,
       text pro každý genotyp, zapnutí (jde jen se spouštěcí odpovědí), nové
-      scénáře; scénář nad měřením potřebuje podmínku z administrace.
+      scénáře; scénář s měřením má podmínku ze stavitele (druh, ukazatel,
+      operátor, práh, strana / režim / rychlost – stejný zápis jako u pravidel)
+      a zapnout jde jen s podmínkou.
    6. *Co zpráva říkat nesmí* – výroky karty (jeden na řádek); společné výroky
       pro všechny karty mění správce.
    7. *Zdroje a důkazy* – citace s odkazem a řádky důkazů (E01…: znak, podklad
@@ -174,10 +177,11 @@ dokončí v administraci; seed existující otázky nepřepisuje.
   Dotazník (s volbou, zda odpovědi dával sportovec sám). Každé vyplnění je
   nový záznam; zpráva bere nejnovější.
 - **Scénáře karet** („Výstup odpovědi: …“) se napojují na otázku a odpověď
-  (v editoru karty volba *spouští odpověď…*; v administraci pole *otázka* a *shoda odpovědi*, např.
+  (v průvodci kartou volba *spouští odpověď…*; uloženo jako *otázka* a *shoda odpovědi*, např.
   `{"choices": ["vytrvalost"]}`). Převod z Wordu napojí ty, jejichž znění
-  je známé; zapnout je (*aktivní*) může až garant po revizi. Scénáře
-  s měřením zůstávají vypnuté – měření genotyp nepotvrzuje.
+  je známé; zapnout je (*aktivní*) může až garant po revizi. Scénář
+  s měřením se zapíná až s podmínkou ze stavitele – a i pak text mluví
+  o výsledku vedle genotypu, měření genotyp nepotvrzuje.
 
 ## Genetická zpráva
 

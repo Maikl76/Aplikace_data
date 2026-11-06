@@ -22,6 +22,7 @@ urlpatterns = [
     path("trener/", include("apps.portal.coach_urls")),
     path("", include("apps.core.urls")),
     path("sportovci/", include("apps.subjects.urls")),
+    path("sportovci/<int:pk>/vysetreni/", include("apps.external.urls")),
     path("sporty/", include("apps.catalog.urls")),
     path("testovani/", measurement_views.today, name="today"),
     path("tym/", measurement_views.team, name="team"),
