@@ -25,6 +25,11 @@ class Sex(models.TextChoices):
 class Sport(OrgScopedModel):
     name = models.CharField("název", max_length=100)
     code = models.SlugField("kód", max_length=32)
+    # Od tohoto měsíce se počítá „od začátku sezóny“ (florbal září, atletika
+    # listopad). Prázdné = kalendářní rok.
+    season_start_month = models.PositiveSmallIntegerField(
+        "začátek sezóny (měsíc)", null=True, blank=True,
+        help_text="1–12; od tohoto měsíce se srovnává „od začátku sezóny“. Prázdné = leden.")
 
     class Meta:
         verbose_name = "sport"
@@ -263,6 +268,39 @@ class Guardian(TimeStampedModel):
 
     def __str__(self):
         return f"zástupce {self.identity.subject.code}"
+
+
+class Goal(TimeStampedModel):
+    """
+    Cíl klíčového ukazatele domluvený diagnostikem s trenérem: cílová
+    hodnota a dokdy. Postup k cíli se počítá z hodnoty dne téže řady, jakou
+    mají dlaždice a grafy (celek / obě strany), a posuzuje se proti MDC.
+    """
+
+    subject = models.ForeignKey(Subject, verbose_name="sportovec", on_delete=models.CASCADE,
+                                related_name="goals")
+    metric = models.ForeignKey("catalog.MetricDef", verbose_name="ukazatel",
+                               on_delete=models.PROTECT, related_name="goals")
+    target_value = models.FloatField("cílová hodnota")
+    due_date = models.DateField("dokdy", null=True, blank=True)
+    note = models.CharField("poznámka", max_length=200, blank=True,
+                            help_text="Např. s kým je cíl domluvený. Bez zdravotních údajů.")
+    # Výchozí bod pro ukazatel postupu: hodnota a datum posledního měření
+    # ve chvíli, kdy cíl vznikl.
+    start_value = models.FloatField("výchozí hodnota", null=True, blank=True)
+    start_date = models.DateField("výchozí měření", null=True, blank=True)
+    set_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="nastavil",
+                               on_delete=models.SET_NULL, null=True, blank=True,
+                               related_name="+")
+    is_active = models.BooleanField("platí", default=True)
+
+    class Meta:
+        verbose_name = "cíl"
+        verbose_name_plural = "cíle"
+        ordering = ["due_date", "-created_at"]
+
+    def __str__(self):
+        return f"{self.subject.code}: {self.metric.name} → {self.target_value:g}"
 
 
 class RetestReminder(TimeStampedModel):

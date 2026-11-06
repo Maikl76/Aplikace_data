@@ -20,14 +20,15 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 
-from apps.analytics import charts, overview, queries
+from apps.analytics import overview, queries
+from apps.analytics.compare import season_phrase
 from apps.core.audit import record
 from apps.core.models import AuditLog, Role
 from apps.measurements import questionnaires
 from apps.measurements.models import QuestionnaireResponse, TestSession
 from apps.reports import notify as report_notify
 from apps.reports.models import Audience, Report
-from apps.subjects import accounts
+from apps.subjects import accounts, goals
 from apps.subjects.access import subjects_for
 from apps.subjects.models import Sharing
 
@@ -83,10 +84,14 @@ def consents_home(request):
     return render(request, "portal/home.html", {"subjects": rows, "souhlasy": True})
 
 
+def _tests_text(sessions) -> list:
+    """Testy, které sportovec absolvoval a mají popis pro klienta (Jak testy probíhají)."""
+    protocols = {run.protocol.pk: run.protocol for s in sessions for run in s.protocol_runs.all()}
+    return sorted((p for p in protocols.values() if p.athlete_text), key=lambda p: p.name)
+
+
 @athlete_required
 def subject(request, pk):
-    from apps.subjects.views import _both_themes
-
     subject = _subject(request, pk)
     record(request, AuditLog.Action.VIEW, subject, subject_code=subject.code)
     sessions = list(TestSession.objects.filter(subject=subject)
@@ -95,11 +100,9 @@ def subject(request, pk):
                     .order_by("-date"))
     for s in sessions:
         s.protokoly = sorted({run.protocol.name for run in s.protocol_runs.all()})
-    trends = [
-        _both_themes(lambda theme, s=s: charts.trend_chart(
-            s["metric"], s["points"], qualifiers=s["qualifiers"], norm=s["norm"], theme=theme))
-        for s in queries.primary_metric_series(subject)
-    ]
+    goal_progress = goals.goals_for(subject)
+    goals_by_metric = goals.by_metric(goal_progress)
+    trends = overview.trend_specs(subject, goals=goals_by_metric)
     reports = (Report.objects.filter(subject=subject, status=Report.Status.RELEASED,
                                      audience=Audience.ATHLETE)
                .select_related("session").order_by("-released_at"))
@@ -120,7 +123,9 @@ def subject(request, pk):
         "steps": steps, "next_step": next_step(steps),
         "subject": subject, "plan": retest.plan_for(subject),
         "booking_url": reverse("booking_form") if booking.enabled() else "",
-        "tiles": overview.kpi_tiles(subject),
+        "tiles": overview.kpi_tiles(subject, goals=goals_by_metric),
+        "goals": goal_progress, "tests": _tests_text(sessions),
+        "season_month": season_phrase(subject.sport, case="v") if subject.sport_id else "",
         "trends": trends,
         "sessions": sessions,
         "reports": reports,
@@ -390,8 +395,6 @@ def _coach_request(request):
 
 @coach_required
 def coach_subject(request, pk):
-    from apps.subjects.views import _both_themes
-
     subject = _coach_subject(request, pk)
     record(request, AuditLog.Action.VIEW, subject, subject_code=subject.code)
     sessions = list(TestSession.objects.filter(subject=subject)
@@ -400,18 +403,19 @@ def coach_subject(request, pk):
                     .order_by("-date"))
     for s in sessions:
         s.protokoly = sorted({run.protocol.name for run in s.protocol_runs.all()})
-    trends = [
-        _both_themes(lambda theme, s=s: charts.trend_chart(
-            s["metric"], s["points"], qualifiers=s["qualifiers"], norm=s["norm"], theme=theme))
-        for s in queries.primary_metric_series(subject)
-    ]
+    goal_progress = goals.goals_for(subject)
+    goals_by_metric = goals.by_metric(goal_progress)
+    trends = overview.trend_specs(subject, goals=goals_by_metric)
     posledni, asymetrie = queries.latest_asymmetries(subject)
     reports = (Report.objects.filter(subject=subject, status=Report.Status.RELEASED,
                                      audience=Audience.COACH)
                .select_related("session").order_by("-released_at"))
     sharing = Sharing.objects.filter(subject=subject, coach=request.user).first()
     return render(request, "portal/coach_subject.html", {
-        "subject": subject, "tiles": overview.kpi_tiles(subject), "trends": trends,
+        "subject": subject, "tiles": overview.kpi_tiles(subject, goals=goals_by_metric),
+        "goals": goal_progress, "tests": _tests_text(sessions),
+        "season_month": season_phrase(subject.sport, case="v") if subject.sport_id else "",
+        "trends": trends,
         "sessions": sessions, "reports": reports, "asymetrie": asymetrie,
         "asymetrie_session": posledni, "sharing": sharing,
     })

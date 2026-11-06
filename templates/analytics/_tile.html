@@ -1,0 +1,39 @@
+{% load ui %}
+{% comment %}Dlaždice klíčového ukazatele: hodnota, změna proti minule, srovnání se sezónou
+a maximem, cíl. reader = "lab" | "sportovec" | "trener" – podle čtenáře se ukáže popis ukazatele.{% endcomment %}
+<div class="card p-4 flex flex-col gap-2">
+  <div class="flex items-start justify-between gap-2">
+    <div class="text-sm text-2 leading-snug">{{ t.metric.name }}{% if t.label %}<span class="text-muted"> · {{ t.label }}</span>{% endif %}</div>
+    {% if t.verdict %}<span class="badge {{ t.verdict.css }} whitespace-nowrap">{% icon t.verdict.icon "w-3.5 h-3.5" %}{{ t.verdict.text }}</span>{% endif %}
+  </div>
+  <div class="flex items-end justify-between gap-3">
+    <div>
+      <span class="kpi-value tabular-nums">{{ t.value_txt }}</span><span class="kpi-unit">{{ t.unit }}</span>
+      <div class="text-xs text-muted mt-1 tabular-nums">{% if t.delta_txt %}{{ t.delta_txt }} {{ t.unit }} proti minule · {% endif %}{{ t.date|date:"d.m.Y" }}</div>
+    </div>
+    <div class="w-28 shrink-0" title="Vývoj za posledních {{ t.count }} měření">{{ t.spark }}</div>
+  </div>
+  {% with c=t.compare %}
+    {% if c.season or c.season_first or c.best or c.period %}
+      <ul class="text-xs text-2 space-y-0.5 tabular-nums">
+        {% if c.season %}<li>od začátku sezóny <span class="font-medium">{{ c.season.delta_txt }} {{ t.unit }}</span> <span class="text-muted">({{ c.season.date|date:"d.m.Y" }}) · {{ c.season.verdict }}</span></li>
+        {% elif c.season_first and t.count > 1 %}<li class="text-muted">první měření v sezóně</li>{% endif %}
+        {% if c.best %}<li>{% if c.best.is_current %}<span class="badge badge-good">{% icon "arrow-up" "w-3.5 h-3.5" %}{{ c.best.state }}</span>{% else %}{{ c.best.label }} <span class="font-medium">{{ c.best.value_txt }} {{ t.unit }}</span> <span class="text-muted">({{ c.best.date|date:"d.m.Y" }}) · {{ c.best.state }}</span>{% endif %}</li>{% endif %}
+        {% if c.period %}<li>za {{ c.period.months }} měsíců <span class="font-medium">{{ c.period.delta_txt }} {{ t.unit }}</span>{% if c.period.pct_txt %} <span class="text-muted">({{ c.period.pct_txt }})</span>{% endif %} <span class="text-muted">· {{ c.period.count }} měření</span></li>{% endif %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+  {% if t.goal %}
+    {% with g=t.goal %}
+      <div class="text-xs" id="cil-dlazdice-{{ g.goal.pk }}">
+        <div class="flex items-center justify-between gap-2"><span class="text-2">cíl <span class="font-medium tabular-nums">{{ g.target_txt }}</span>{% if g.goal.due_date %} <span class="text-muted">do {{ g.goal.due_date|date:"d.m.Y" }}</span>{% endif %}</span>{% with b=g.badge %}<span class="badge {{ b.0 }}">{{ b.1 }}</span>{% endwith %}</div>
+        {% if g.percent is not None %}<div class="mt-1 h-1.5 rounded-full overflow-hidden" style="background: var(--surface-2)" title="postup od hodnoty při nastavení cíle k cíli"><div class="h-full rounded-full" style="width: {{ g.percent }}%; background: var(--accent)"></div></div>{% endif %}
+      </div>
+    {% endwith %}
+  {% endif %}
+  {% if reader == "sportovec" and t.metric.athlete_text %}
+    <p class="text-xs text-2 leading-snug pt-1.5 border-t" style="border-color: var(--border)">{{ t.metric.athlete_text }}</p>
+  {% elif reader == "trener" %}{% with text=t.metric.coach_text|default:t.metric.athlete_text %}{% if text %}
+    <p class="text-xs text-2 leading-snug pt-1.5 border-t" style="border-color: var(--border)">{{ text }}</p>
+  {% endif %}{% endwith %}{% endif %}
+</div>

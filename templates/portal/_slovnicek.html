@@ -1,0 +1,14 @@
+{# Slovníček pojmů pro sportovce a trenéra – totéž, co vysvětluje zpráva, bez odkazu jinam. #}
+<details class="card px-4 py-3 mt-6 text-sm" id="slovnicek">
+  <summary class="cursor-pointer font-medium">Co znamenají pojmy</summary>
+  <dl class="mt-2 grid sm:grid-cols-2 gap-x-6 gap-y-2 text-xs">
+    <div><dt class="font-medium">Proti minule</dt><dd class="text-2">Rozdíl proti předchozímu měření téhož ukazatele.</dd></div>
+    <div><dt class="font-medium">V pásmu chyby měření</dt><dd class="text-2">Rozdíl je menší než MDC – nejmenší změna, kterou měření odliší od své vlastní nepřesnosti. Není to zlepšení ani zhoršení.</dd></div>
+    <div><dt class="font-medium">Zlepšení / zhoršení</dt><dd class="text-2">Změna větší než MDC ve směru, který je u ukazatele žádoucí (většinou vyšší hodnota, u časů nižší).</dd></div>
+    <div><dt class="font-medium">Od začátku sezóny</dt><dd class="text-2">Rozdíl proti prvnímu měření v této sezóně{% if season_month %} (sezóna začíná {{ season_month }}){% endif %}.</dd></div>
+    <div><dt class="font-medium">Osobní maximum / rekord</dt><dd class="text-2">Dosud nejlepší hodnota a jak daleko od ní je poslední měření.</dd></div>
+    <div><dt class="font-medium">Za 12 měsíců</dt><dd class="text-2">Změna proti nejstaršímu měření v posledním roce a počet měření za tu dobu.</dd></div>
+    <div><dt class="font-medium">Cíl</dt><dd class="text-2">Hodnota domluvená s laboratoří a trenérem; ukazatel postupu vede od hodnoty při nastavení cíle k cílové.</dd></div>
+    <div><dt class="font-medium">Norma</dt><dd class="text-2">Pásmo hodnot referenční skupiny (sport, pohlaví, věk) z publikovaného zdroje.</dd></div>
+  </dl>
+</details>

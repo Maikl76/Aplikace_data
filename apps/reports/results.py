@@ -338,6 +338,28 @@ def trend_series(session, *, limit: int = 8, norms=None) -> list[dict]:
     return useful[:limit]
 
 
+def long_term(session, *, norms=None, limit: int = 12) -> list[dict]:
+    """
+    Dlouhodobé srovnání klíčových ukazatelů dne: od začátku sezóny, osobní
+    maximum, vývoj za 12 měsíců. Jen řady, které mají hodnotu z tohoto dne
+    a aspoň jedno starší měření.
+    """
+    from apps.analytics.compare import compare
+
+    out = []
+    for s in trend_series(session, limit=limit, norms=norms):
+        metric = s["metric"]
+        cmp = compare(metric, s["points"], sport=session.subject.sport)
+        if not (cmp["season"] or cmp["season_first"] or cmp["best"] or cmp["period"]):
+            continue
+        out.append({
+            "metric": metric, "label": qualifier_label(s["qualifiers"]),
+            "unit": "" if metric.unit in ("", "-") else metric.unit,
+            "value_txt": cz(s["points"][-1][1], metric.decimals), "compare": cmp,
+        })
+    return out
+
+
 def asymmetries(session) -> list[dict]:
     rows = queries.session_asymmetries(session, threshold_pct=ASYMMETRY_THRESHOLD_PCT)
     rows.sort(key=lambda r: abs(r["index_pct"]), reverse=True)

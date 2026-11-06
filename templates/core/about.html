@@ -134,7 +134,8 @@
               <td><span class="badge badge-good">vidí</span></td>
               <td>
                 Vlastní portál (<code>/trener/</code>): jen sportovci, kteří mu sdílení potvrdili
-                ve svém účtu – jménem, s klíčovými ukazateli, trendy, stranovými rozdíly, přehledem
+                ve svém účtu – jménem, s klíčovými ukazateli (i od začátku sezóny, osobní maximum,
+                za 12 měsíců, popis pro trenéra), cíli, trendy, stranovými rozdíly, přehledem
                 skupiny a vydanými zprávami pro trenéra. O sdílení žádá kódem sportovce; dokud
                 sportovec nepotvrdí, nevidí nic. Účet trenéra zakládá správce na stránce <em>Kolegové</em>.
               </td>
@@ -144,8 +145,9 @@
               <td class="font-medium whitespace-nowrap">Sportovec / zákonný zástupce</td>
               <td><span class="badge badge-good">vidí</span></td>
               <td>
-                Vlastní portál (<code>/muj/</code>): své výsledky, trendy, vydané zprávy pro sportovce,
-                dotazník k dnešnímu měření, souhlasy a kdo se na data díval. Sdílení s trenérem
+                Vlastní portál (<code>/muj/</code>): své výsledky (s popisem, co ukazatel znamená,
+                srovnáním od začátku sezóny a s osobním maximem), cíle, trendy, slovníček pojmů,
+                vydané zprávy pro sportovce, dotazník k dnešnímu měření, souhlasy a kdo se na data díval. Sdílení s trenérem
                 potvrzuje nebo odvolává sám. Rodič zastupuje nezletilé děti, i víc najednou.
                 Účet vzniká z pozvánky (na kartě sportovce, nebo automaticky v potvrzení
                 objednávky) a přes e‑mail uložený v laboratoři: přihlášení odkazem bez hesla.
@@ -190,7 +192,7 @@
           <tbody>
             <tr><td class="font-medium whitespace-nowrap"><a class="link" href="{% url 'dashboard' %}">Přehled</a></td><td>dnes: kdo přijde, hodnoty, kontrola, zprávy, předání</td></tr>
             <tr><td class="font-medium whitespace-nowrap"><a class="link" href="{% url 'workplace' %}">Nastavení</a></td><td>nastavení všech částí: kolegové, sporty a baterie, testy a klíčové ukazatele, MDC, přístroje, normy a pravidla, objednávky, genetika, klíče a model</td></tr>
-            <tr><td class="font-medium whitespace-nowrap">Karta sportovce</td><td>údaje a souhlasy, účet v portálu, měření, zpráva, předání nebo sdílení</td></tr>
+            <tr><td class="font-medium whitespace-nowrap">Karta sportovce</td><td>údaje a souhlasy, účet v portálu, měření, zpráva, předání nebo sdílení, externí vyšetření, cíle</td></tr>
             <tr><td class="font-medium whitespace-nowrap">Testovací den</td><td>testy podle baterie, prostředí a únava, hodnoty, RPE, kontrola, zpráva</td></tr>
             <tr><td class="font-medium whitespace-nowrap">Zpráva</td><td>koncept, souhrn, doporučení, kontrola, vydání, předání</td></tr>
             <tr><td class="font-medium whitespace-nowrap">Import</td><td>přístroje, nahrát, zkontrolovat a uložit, výsledky v testovacích dnech; u souboru nahráno, sportovci rozpoznáni, vyžaduje pozornost, uložit, kam se zapsalo</td></tr>
@@ -212,7 +214,8 @@
       <h2>Sportovci</h2>
       <ul>
         <li><strong>Hledání:</strong> pole nahoře (nebo klávesa <kbd>/</kbd>) hledá podle jména i kódu, bez ohledu na diakritiku. V <a class="link" href="{% url 'subject_list' %}">Sportovcích</a> jde filtrovat i podle sportu.</li>
-        <li><strong>Karta sportovce:</strong> dlaždice s posledními hodnotami klíčových ukazatelů, šipka změny proti minulému měření, minigraf, grafy vývoje, stranové rozdíly a seznam testovacích dnů.</li>
+        <li><strong>Karta sportovce:</strong> dlaždice s posledními hodnotami klíčových ukazatelů, šipka změny proti minulému měření, minigraf, grafy vývoje, stranové rozdíly a seznam testovacích dnů. Dlaždice srovnávají i <strong>od začátku sezóny</strong> (měsíc začátku sezóny je u sportu), s <strong>osobním maximem</strong> a <strong>za 12 měsíců</strong>; posouzení vždy proti MDC jako u změny proti minule.</li>
+        <li><strong>Cíle:</strong> cílová hodnota klíčového ukazatele domluvená s trenérem (a dokdy) se nastavuje na kartě sportovce (<em>Cíle → Nastavit cíl</em>). Karta, portál sportovce i trenéra a zpráva pak ukážou postup k cíli: kolik zbývá a zda je rozdíl nad chybou měření; v grafech vývoje je cíl čárkovaná čára. Podrobně v dokumentaci <em>srovnani-a-cile.md</em>.</li>
         <li><strong>Další měření:</strong> termín plyne z posledního měření a intervalu (u baterie sportu, nebo vlastní plán u sportovce; konkrétní termín má přednost). Přehled ukazuje <em>Kdo je na řadě</em>, seznam sportovců má filtr <em>jen na řadě</em>, portál sportovce <em>Příští měření</em>. Připomínky e‑mailem odcházejí samy 14 dní před termínem (Přehled je kontroluje jednou denně, nebo příkaz <code>pripomenout_mereni</code>), ručně tlačítkem na kartě sportovce. Podrobně v dokumentaci <em>opakovane-mereni.md</em>.</li>
         <li><strong>Tlačítka na kartě:</strong> <em>Nové měření</em> (testy předvyplní baterie), <em>Zpráva z posledního měření</em>, ikona QR (karta pro tablet) a tužka (úprava údajů).</li>
         <li><strong>Úprava údajů</strong> (jméno, datum narození, kontakt, sport, kategorie, úroveň, dominantní strana, souhlasy): tužka na kartě sportovce.</li>
@@ -431,6 +434,7 @@
           <thead><tr><th>Položka</th><th>K čemu</th></tr></thead>
           <tbody>
             <tr><td class="font-medium">Metriky</td><td>Název, jednotka, žádoucí směr (vyšší/nižší je lepší), <strong>MDC a SWC</strong> (bez MDC aplikace neřekne „zlepšení“), věrohodný rozsah, <strong>hodnota dne z pokusů</strong> (průměr / nejlepší / poslední), mez rozptylu pokusů, role v ODS.</td></tr>
+            <tr><td class="font-medium">Popisy pro klienta</td><td>Nastavení → <a class="link" href="{% url 'client_texts' %}">Popisy pro klienta</a>: jedna věta „co to znamená“ ke každému ukazateli pro sportovce a pro trenéra a u testu, jak probíhá. Ukazují se v portálu u klíčových ukazatelů, v seznamu měření a ve vysvětlivkách zprávy. Model je může navrhnout (dostane jen katalog), správce návrh zkontroluje a uloží. U sportu se nastavuje <strong>měsíc začátku sezóny</strong> (Sporty a baterie).</td></tr>
             <tr><td class="font-medium">Protokoly</td><td>Pohodlněji v Sporty a testy → Testy. Testy a jejich ukazatele (strany, režimy, rychlosti), počet pokusů, <strong>pauza mezi pokusy</strong>, zda se po testu zaznamenává <strong>RPE</strong>, klíčové metriky (dlaždice, týmový přehled).</td></tr>
             <tr><td class="font-medium">Normy</td><td>Pohodlněji v Nastavení → Normy (formulář v pěti částech, náhled kolika sportovcům norma sedí). Referenční hodnoty (průměr ± SD, percentily) podle sportu, pohlaví a věku – vždy s citací zdroje.</td></tr>
             <tr><td class="font-medium">Pravidla</td><td>Pohodlněji v Nastavení → Pravidla: podmínka se skládá z řádků (hodnota ukazatele, asymetrie stran, změna proti minulému měření, z-skóre vůči normě; strana, režim, rychlost), texty nálezu a doporučení používají jen pole, která podmínka nabídne, a <strong>zkouška na datech</strong> ukáže u posledních testovacích dnů, kde pravidlo sedlo a proč ne. Zakládají se <strong>neaktivní</strong>; zapíná je ten, kdo za práh ručí, a připojí článek. Kontraindikace (omezení zátěže od lékaře) doporučení potlačí. Změna podmínky nebo textů zvýší verzi pravidla.</td></tr>
@@ -469,6 +473,14 @@
         <dd>Výkon a práce na kg tělesné hmotnosti (TH) i beztukové hmoty (ATH), dopočítané ze složení těla téhož dne.</dd>
         <dt>Norma a z-skóre</dt>
         <dd>Je-li v katalogu norma pro sport, pohlaví a věk, zpráva ukáže průměr ± SD a o kolik SD se sportovec liší.</dd>
+        <dt>Od začátku sezóny</dt>
+        <dd>Změna proti prvnímu měření v této sezóně; sezóna začíná měsícem nastaveným u sportu (bez něj lednem). Posouzení proti MDC jako u změny proti minule.</dd>
+        <dt>Osobní maximum (u časů rekord)</dt>
+        <dd>Nejlepší dosud naměřená hodnota dne podle žádoucího směru. Poslední měření je „nové maximum“, „na úrovni maxima“ (rozdíl pod MDC), nebo „o X pod maximem“.</dd>
+        <dt>Za 12 měsíců</dt>
+        <dd>Změna proti nejstaršímu měření v posledním roce (i v procentech) a počet měření za tu dobu.</dd>
+        <dt>Cíl</dt>
+        <dd>Cílová hodnota klíčového ukazatele. Zbývá = rozdíl aktuální hodnoty a cíle; pod MDC je cíl „prakticky splněn“, jinak „zbývá více než chyba měření“. Ukazatel postupu vede od hodnoty při nastavení cíle k cílové.</dd>
       </dl>
     </section>
 

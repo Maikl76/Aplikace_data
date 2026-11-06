@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Popisy pro klienta – FTVS{% endblock %}
+{% block content %}
+{% include "catalog/_tabs.html" with tab="popisy" %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <div class="eyebrow">Nastavení testování</div>
+    <h1 class="text-2xl font-semibold">Popisy pro klienta</h1>
+    <p class="text-sm text-muted mt-1 max-w-2xl">Jedna věta „co to znamená“ ke každému ukazateli – pro sportovce laicky, pro trenéra odborněji – a u testu, jak probíhá. Ukazují se v portálu u klíčových ukazatelů, v seznamu měření („Jak testy probíhají“) a ve vysvětlivkách zprávy. Bez popisu portál ukáže jen číslo. Model může popisy navrhnout; v portálu se objeví až po uložení.</p>
+  </div>
+</div>
+
+{% steps steps heading="Postup nastavení testování" may_act=can_edit %}
+
+{% if drafts %}
+  <div class="card px-4 py-3 mb-4 text-sm border-l-4" style="border-left-color: var(--accent)">
+    Model ({{ drafts.model }}) navrhl popisy pro <strong>{{ drafts.ukazatele|length }}</strong> ukazatelů a <strong>{{ drafts.testy|length }}</strong> testů – jsou předvyplněné a <strong>zatím neuložené</strong>. Projděte je, opravte a uložte.
+  </div>
+{% endif %}
+
+<form method="post">{% csrf_token %}
+  <div class="card overflow-x-auto mb-4">
+    <div class="px-4 pt-4 pb-2 flex flex-wrap items-center justify-between gap-2"><h2 class="card-title">Ukazatele testů v bateriích</h2><span class="text-xs text-muted">{% if key_total %}{{ key_total }} klíčových, {{ key_missing }} bez popisu pro sportovce{% endif %}</span></div>
+    <table class="table text-sm">
+      <thead><tr><th style="width: 22%">Ukazatel</th><th>Pro sportovce</th><th>Pro trenéra</th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+          <tr{% if r.draft %} style="background: var(--surface-2)"{% endif %}>
+            <td class="font-medium">{{ r.metric.name }}{% if r.metric.unit %} <span class="text-muted font-normal">[{{ r.metric.unit }}]</span>{% endif %}{% if r.key %} <span class="badge badge-accent" title="Klíčový ukazatel: jde na kartu sportovce a do portálu">klíčový</span>{% endif %}{% if r.draft %}<span class="block text-xs text-muted">návrh modelu</span>{% endif %}<span class="block text-xs text-muted">{{ r.tests|join:", " }}</span></td>
+            <td><textarea name="s_{{ r.metric.pk }}" rows="2" maxlength="300" class="input text-sm py-1" placeholder="Co ukazatel vyjadřuje, laicky." {% if not can_edit %}readonly{% endif %}>{{ r.text_s }}</textarea></td>
+            <td><textarea name="t_{{ r.metric.pk }}" rows="2" maxlength="300" class="input text-sm py-1" placeholder="K čemu v tréninku slouží." {% if not can_edit %}readonly{% endif %}>{{ r.text_t }}</textarea></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="3" class="text-muted py-6">Zatím žádný test v baterii – nejdřív sestavte baterie (Sporty a baterie).</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card overflow-x-auto mb-4">
+    <div class="px-4 pt-4 pb-2"><h2 class="card-title">Jak testy probíhají</h2></div>
+    <table class="table text-sm">
+      <thead><tr><th style="width: 22%">Test</th><th>Pro sportovce</th></tr></thead>
+      <tbody>
+        {% for p in protocols %}
+          <tr{% if p.draft %} style="background: var(--surface-2)"{% endif %}>
+            <td class="font-medium">{{ p.name }}{% if p.device %}<span class="block text-xs text-muted">{{ p.device }}</span>{% endif %}{% if p.draft %}<span class="block text-xs text-muted">návrh modelu</span>{% endif %}</td>
+            <td><textarea name="p_{{ p.pk }}" rows="2" maxlength="300" class="input text-sm py-1" placeholder="Co sportovec při testu dělá a co se měří." {% if not can_edit %}readonly{% endif %}>{{ p.text_p }}</textarea></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="2" class="text-muted py-6">Zatím žádný test v baterii.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if others %}
+    <details class="card mb-4">
+      <summary class="px-4 py-3 cursor-pointer card-title">Ostatní ukazatele katalogu ({{ others|length }})</summary>
+      <div class="overflow-x-auto">
+        <table class="table text-sm">
+          <thead><tr><th style="width: 22%">Ukazatel</th><th>Pro sportovce</th><th>Pro trenéra</th></tr></thead>
+          <tbody>
+            {% for r in others %}
+              <tr{% if r.draft %} style="background: var(--surface-2)"{% endif %}>
+                <td class="font-medium">{{ r.metric.name }}{% if r.metric.unit %} <span class="text-muted font-normal">[{{ r.metric.unit }}]</span>{% endif %}{% if r.draft %}<span class="block text-xs text-muted">návrh modelu</span>{% endif %}</td>
+                <td><textarea name="s_{{ r.metric.pk }}" rows="2" maxlength="300" class="input text-sm py-1" {% if not can_edit %}readonly{% endif %}>{{ r.text_s }}</textarea></td>
+                <td><textarea name="t_{{ r.metric.pk }}" rows="2" maxlength="300" class="input text-sm py-1" {% if not can_edit %}readonly{% endif %}>{{ r.text_t }}</textarea></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
+  {% endif %}
+
+  {% if can_edit %}
+    <div class="flex flex-wrap items-center gap-3 sticky bottom-0 py-3" style="background: var(--bg)">
+      <button class="btn btn-primary" name="akce" value="ulozit">{% icon "check" %}Uložit popisy</button>
+      {% if llm_on %}
+        <button class="btn" name="akce" value="navrhnout" title="Model navrhne popisy tam, kde chybí; nic se neuloží, dokud návrh nezkontrolujete.">{% icon "edit" %}Navrhnout chybějící modelem</button>
+        <span class="text-xs text-muted">Model dostane jen katalog (názvy, jednotky, popisy testů), žádná data sportovců. Návrh se uloží až tlačítkem Uložit.</span>
+      {% else %}
+        <span class="text-xs text-muted">Jazykový model není zapnutý – popisy napište ručně.</span>
+      {% endif %}
+    </div>
+  {% else %}
+    <p class="text-xs text-muted">Popisy doplňuje správce.</p>
+  {% endif %}
+</form>
+{% endblock %}

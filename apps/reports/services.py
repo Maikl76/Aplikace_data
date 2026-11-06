@@ -304,15 +304,33 @@ def report_context(report) -> dict:
     if session is None:
         return context
 
+    from apps.analytics import compare
+    from apps.subjects import goals as goals_module
+
     norms = NormIndex()     # jednou pro celou zprávu
     context["results"] = results.protocol_results(session, norms=norms)
     context["conditions"] = results.session_conditions(session)
+    context["metric_texts"] = _metric_texts(report, context["results"])
+    # dlouhodobě: od začátku sezóny, osobní maximum, za 12 měsíců; cíle k datu měření
+    context["long_term"] = results.long_term(session, norms=norms)
+    context["season_phrase"] = compare.season_phrase(session.subject.sport)
+    goal_progress = goals_module.goals_for(session.subject, until=session.date, today=session.date)
+    context["goals"] = [p for p in goal_progress if p.current is not None]
+    goals_by = goals_module.by_metric(goal_progress)
+    season_from = compare.season_start(session.date, session.subject.sport)
+
+    def goal_of(s):
+        progress = goals_by.get(s["metric"].pk)
+        return (progress.target if progress is not None
+                and s["qualifiers"]["side"] in ("B", "") else None)
+
     context["trends"] = [
         {
             "title": s["metric"].name,
             "label": results.qualifier_label(s["qualifiers"]),
             "unit": s["metric"].unit,
-            "svg": svg.trend_svg(s["metric"], s["points"], norm=s["norm"]),
+            "svg": svg.trend_svg(s["metric"], s["points"], norm=s["norm"], goal=goal_of(s),
+                                 season_from=season_from),
             "caption": svg.trend_caption(s["metric"], s["points"]),
             "norm": s["norm"],
         }
@@ -325,6 +343,24 @@ def report_context(report) -> dict:
             asymmetries[:12], threshold_pct=results.ASYMMETRY_THRESHOLD_PCT)
     context["asymmetries_over"] = sum(r["exceeds_threshold"] for r in asymmetries)
     return context
+
+
+def _metric_texts(report, blocks) -> list[tuple[str, str]]:
+    """Co klíčové ukazatele znamenají – pro sportovce, nebo pro trenéra; lékaři nic."""
+    if report.audience == Audience.CLINICIAN:
+        return []
+    out, seen = [], set()
+    for block in blocks:
+        for row in block["rows"]:
+            metric = row["metric"]
+            if not row["is_primary"] or metric.pk in seen:
+                continue
+            text = (metric.athlete_text if report.audience == Audience.ATHLETE
+                    else metric.coach_text or metric.athlete_text)
+            if text:
+                seen.add(metric.pk)
+                out.append((metric.name, text))
+    return out
 
 
 def _snapshot(context: dict) -> dict:

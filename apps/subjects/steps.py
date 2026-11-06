@@ -1,4 +1,4 @@
-"""Kroky u sportovce: údaje a souhlasy, účet, měření, zpráva, předání nebo sdílení, vyšetření."""
+"""Kroky u sportovce: údaje a souhlasy, účet, měření, zpráva, předání nebo sdílení, vyšetření, cíle."""
 
 from django.urls import reverse
 
@@ -8,10 +8,11 @@ from .models import Consent, Sharing
 
 
 def subject_steps(subject, *, sessions, accounts, sharings, may_edit: bool,
-                  exams=(), plan=None) -> list[dict]:
+                  exams=(), plan=None, goals=()) -> list[dict]:
     """``sessions`` od nejnovějšího s anotací ``hodnot`` a načtenými zprávami."""
     from apps.external.models import ExternalExam
     from apps.reports.models import Report, ReportDelivery
+    from apps.reports.narrative import plural
 
     missing = []
     if not subject.sport_id:
@@ -32,6 +33,7 @@ def subject_steps(subject, *, sessions, accounts, sharings, may_edit: bool,
     delivered = ReportDelivery.objects.filter(report__subject=subject).exists()
     exams = list(exams)
     restriction = ExternalExam.active_restriction_for(subject) if exams else None
+    goals = list(goals)
     return [
         step(1, "Údaje a souhlasy", not missing,
              ("Chybí: " + ", ".join(missing) + "." if missing
@@ -78,5 +80,13 @@ def subject_steps(subject, *, sessions, accounts, sharings, may_edit: bool,
               "zátěž, kterou lékař omezil. Bez diagnóz, jen provozní důsledek."),
              url=("#vysetreni" if exams else reverse("exam_new", args=[subject.pk])),
              button=("Vyšetření" if exams else "Zapsat vyšetření") if may_edit else "",
+             optional=True),
+        step(7, "Cíle", bool(goals),
+             (f"{len(goals)} {plural(len(goals), 'cíl', 'cíle', 'cílů')}: " + "; ".join(
+                 f"{g.metric.name} {g.target_txt} ({g.badge()[1]})" for g in goals[:2]) + "."
+              if goals else
+              "Cílová hodnota klíčového ukazatele domluvená s trenérem – karta, portál i zpráva "
+              "pak ukážou, kolik zbývá a zda je rozdíl nad chybou měření."),
+             url="#cile", button=("Cíle" if goals else "Nastavit cíl") if may_edit else "",
              optional=True),
     ]

@@ -52,25 +52,7 @@
     {% if last_session %}<span class="text-xs text-muted">poslední měření {{ last_session.date|date:"d.m.Y" }}</span>{% endif %}
   </div>
   <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
-    {% for t in tiles %}
-      <div class="card p-4 flex flex-col gap-2">
-        <div class="flex items-start justify-between gap-2">
-          <div class="text-sm text-2 leading-snug">{{ t.metric.name }}{% if t.label %}<span class="text-muted"> · {{ t.label }}</span>{% endif %}</div>
-          {% if t.verdict %}
-            <span class="badge {{ t.verdict.css }} whitespace-nowrap">{% icon t.verdict.icon "w-3.5 h-3.5" %}{{ t.verdict.text }}</span>
-          {% endif %}
-        </div>
-        <div class="flex items-end justify-between gap-3">
-          <div>
-            <span class="kpi-value tabular-nums">{{ t.value_txt }}</span><span class="kpi-unit">{{ t.unit }}</span>
-            <div class="text-xs text-muted mt-1 tabular-nums">
-              {% if t.delta_txt %}{{ t.delta_txt }} {{ t.unit }} proti minule · {% endif %}{{ t.date|date:"d.m.Y" }}
-            </div>
-          </div>
-          <div class="w-28 shrink-0" title="Vývoj za posledních {{ t.count }} měření">{{ t.spark }}</div>
-        </div>
-      </div>
-    {% endfor %}
+    {% for t in tiles %}{% include "analytics/_tile.html" with reader="lab" %}{% endfor %}
   </div>
 {% endif %}
 
@@ -199,6 +181,39 @@
       {% endif %}
       <p class="text-xs text-muted">Sdílení potvrzuje sportovec nebo zákonný zástupce ve svém účtu; trenér pak vidí jen jeho výsledky, trendy a zprávy pro trenéra.</p>
     </div>
+  </section>
+
+  <section class="card min-w-0" id="cile">
+    <div class="px-4 pt-4 pb-2 flex flex-wrap items-center justify-between gap-2"><h2 class="card-title">Cíle</h2><span class="text-xs text-muted">{{ goals|length }}</span></div>
+    <ul>
+      {% for g in goals %}
+        <li class="border-t px-4 py-3 text-sm" style="border-color: var(--border)">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="flex-1 min-w-0"><span class="font-medium">{{ g.metric.name }}</span> → <span class="tabular-nums">{{ g.target_txt }}</span>{% if g.goal.due_date %} <span class="text-muted">do {{ g.goal.due_date|date:"d.m.Y" }}</span>{% endif %}</span>
+            {% with b=g.badge %}<span class="badge {{ b.0 }}">{{ b.1 }}</span>{% endwith %}
+            {% if may_edit %}<form method="post" action="{% url 'subject_goal_delete' subject.pk g.goal.pk %}" class="inline" onsubmit="return confirm('Zrušit cíl? Zůstane v historii jako neplatný.')">{% csrf_token %}<button class="text-xs link">zrušit</button></form>{% endif %}
+          </div>
+          {% if g.percent is not None %}<div class="mt-1.5 h-1.5 rounded-full overflow-hidden" style="background: var(--surface-2)" title="postup od hodnoty při nastavení cíle k cíli"><div class="h-full rounded-full" style="width: {{ g.percent }}%; background: var(--accent)"></div></div>{% endif %}
+          <p class="text-xs text-2 mt-1">{{ g.text }}{% if g.goal.note %} <span class="text-muted">· {{ g.goal.note }}</span>{% endif %}</p>
+        </li>
+      {% empty %}
+        <li class="px-4 py-5 text-sm text-muted border-t" style="border-color: var(--border)">Žádný cíl. Cílovou hodnotu klíčového ukazatele domluvenou s trenérem uvidí sportovec i trenér v portálu a zpráva napíše, kolik zbývá.</li>
+      {% endfor %}
+    </ul>
+    {% if may_edit and goal_metrics %}
+      <details class="px-4 pb-4 text-sm border-t" style="border-color: var(--border)">
+        <summary class="cursor-pointer link text-xs pt-3">Nastavit cíl</summary>
+        <form method="post" action="{% url 'subject_goal' subject.pk %}" class="mt-2 grid gap-2 p-3 rounded-lg" style="background: var(--surface-2)">{% csrf_token %}
+          <label class="text-xs">Klíčový ukazatel<select name="metrika" class="input text-sm py-1 mt-0.5" required>{% for m in goal_metrics %}<option value="{{ m.pk }}">{{ m.name }}{% if m.unit and m.unit != "-" %} [{{ m.unit }}]{% endif %}</option>{% endfor %}</select></label>
+          <div class="flex flex-wrap gap-2">
+            <label class="text-xs">Cílová hodnota<input name="cil" required inputmode="decimal" class="input text-sm py-1 mt-0.5" style="width: 7rem" placeholder="40"></label>
+            <label class="text-xs">Dokdy<input type="date" name="do" class="input text-sm py-1 mt-0.5" style="width: 11rem"></label>
+          </div>
+          <label class="text-xs">Poznámka<input name="poznamka" maxlength="200" class="input text-sm py-1 mt-0.5" placeholder="např. domluveno s trenérem"></label>
+          <div><button class="btn btn-sm btn-primary">Uložit cíl</button> <span class="text-xs text-muted">Výchozím bodem postupu je poslední naměřená hodnota.</span></div>
+        </form>
+      </details>
+    {% endif %}
   </section>
 
   {% include "genetics/_subject_card.html" %}

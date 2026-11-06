@@ -93,6 +93,84 @@ def mdc_settings(request):
     })
 
 
+# --- popisy pro klienta ----------------------------------------------------------------
+
+def _text(post, name: str) -> str:
+    return " ".join(post.get(name, "").split())[:300]
+
+
+@login_required
+def client_texts(request):
+    """Co ukazatel znamená (pro sportovce, pro trenéra) a jak test probíhá; návrh modelem."""
+    from apps.reports import llm
+
+    from . import client_texts as texts
+
+    can_edit = setup.can_edit(request.user)
+    status, in_batteries, others = _metric_rows(request.user)
+    protocols = sorted(status["protocols"].values(), key=lambda p: p.name)
+    for p in protocols:
+        p.text_p, p.draft = p.athlete_text, False
+    for row in in_batteries + others:
+        row["text_s"], row["text_t"], row["draft"] = row["metric"].athlete_text, row["metric"].coach_text, False
+    drafts = None
+
+    if request.method == "POST":
+        if not can_edit:
+            return _denied(request, "Popisy pro klienta doplňuje správce.")
+        if request.POST.get("akce") == "navrhnout":
+            wanted = [(r["metric"], r["tests"]) for r in in_batteries + others
+                      if not (r["metric"].athlete_text and r["metric"].coach_text)]
+            wanted_tests = [p for p in protocols if not p.athlete_text]
+            if not wanted and not wanted_tests:
+                messages.info(request, "Všechny ukazatele i testy už popis mají.")
+                return redirect("client_texts")
+            try:
+                drafts = texts.suggest(wanted, wanted_tests)
+            except texts.SuggestError as exc:
+                messages.error(request, f"Model popisy nenavrhl: {exc}")
+                return redirect("client_texts")
+            for row in in_batteries + others:
+                if d := drafts["ukazatele"].get(row["metric"].code):
+                    row["text_s"] = row["text_s"] or d["sportovec"]
+                    row["text_t"] = row["text_t"] or d["trener"]
+                    row["draft"] = True
+            for p in protocols:
+                if d := drafts["testy"].get(p.code):
+                    p.text_p, p.draft = d["sportovec"], True
+            record(request, AuditLog.Action.UPDATE, request.user.organization or request.user,
+                   nastaveni="popisy", navrh=len(drafts["ukazatele"]) + len(drafts["testy"]))
+        else:
+            changed = 0
+            with transaction.atomic():
+                for row in in_batteries + others:
+                    m = row["metric"]
+                    athlete, coach = _text(request.POST, f"s_{m.pk}"), _text(request.POST, f"t_{m.pk}")
+                    if (m.athlete_text, m.coach_text) != (athlete, coach):
+                        changed += (m.athlete_text != athlete) + (m.coach_text != coach)
+                        m.athlete_text, m.coach_text = athlete, coach
+                        m.save(update_fields=["athlete_text", "coach_text", "updated_at"])
+                for p in protocols:
+                    text = _text(request.POST, f"p_{p.pk}")
+                    if p.athlete_text != text:
+                        p.athlete_text = text
+                        p.save(update_fields=["athlete_text", "updated_at"])
+                        changed += 1
+            record(request, AuditLog.Action.UPDATE, request.user.organization or request.user,
+                   nastaveni="popisy", zmeneno=changed)
+            messages.success(request, f"Uloženo: {changed} popisů změněno." if changed
+                             else "Uloženo, beze změn.")
+            return redirect("client_texts")
+
+    key = list(status["key_metrics"].values())
+    return render(request, "catalog/client_texts.html", {
+        "rows": in_batteries, "others": others, "protocols": protocols, "can_edit": can_edit,
+        "drafts": drafts, "llm_on": llm.is_enabled(),
+        "steps": catalog_steps(request.user, status),
+        "key_total": len(key), "key_missing": sum(1 for m in key if not m.athlete_text),
+    })
+
+
 # --- profily importu vestavěných přístrojů ---------------------------------------------
 
 def _builtin_profiles(user):

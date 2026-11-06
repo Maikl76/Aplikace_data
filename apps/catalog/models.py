@@ -63,6 +63,9 @@ class Protocol(CatalogModel):
     rest_seconds = models.PositiveSmallIntegerField(
         "pauza mezi pokusy (s)", null=True, blank=True,
         help_text="Při zadávání se nabídne odpočet pauzy. Prázdné = bez odpočtu.")
+    athlete_text = models.TextField(
+        "jak test probíhá – pro sportovce", blank=True,
+        help_text="Jedna až dvě věty laicky: co sportovec dělá a co test měří. Ukazuje se v portálu.")
     rpe_after = models.BooleanField(
         "po testu zaznamenat RPE", default=False,
         help_text="Při zadávání se nabídne škála RPE (subjektivně vnímané úsilí). "
@@ -108,6 +111,11 @@ class MetricDef(CatalogModel):
                                  default=Direction.HIGHER)
     description = models.TextField("popis", blank=True,
                                    help_text="Text do legendy zprávy.")
+    # Co ukazatel znamená pro laika – do portálu a do vysvětlivek zprávy.
+    # Jedna věta pro sportovce, jedna pro trenéra; model je může navrhnout,
+    # laboratoř schválí (Nastavení → Popisy pro klienta).
+    athlete_text = models.TextField("co to znamená – pro sportovce", blank=True)
+    coach_text = models.TextField("co to znamená – pro trenéra", blank=True)
 
     # Rozlišení skutečné změny od šumu měření. Bez těchto dvou čísel
     # nelze u opakovaného měření říct, jestli "o 2,31 vyšší" něco znamená.

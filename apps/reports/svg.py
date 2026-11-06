@@ -51,14 +51,19 @@ def _text(x, y, content, *, size=11, color=None, anchor="start", weight="normal"
             f'text-anchor="{anchor}" font-weight="{weight}">{escape(content)}</text>')
 
 
-def trend_svg(metric, points, *, norm=None) -> str:
-    """Vývoj jedné metriky v čase; poslední bod je měření, o kterém je zpráva."""
+def trend_svg(metric, points, *, norm=None, goal=None, season_from=None) -> str:
+    """
+    Vývoj jedné metriky v čase; poslední bod je měření, o kterém je zpráva.
+    ``goal`` je čárkovaná čára cíle, ``season_from`` tečkovaná svislá čára
+    začátku sezóny (jen když leží uvnitř zobrazeného období).
+    """
     width, height = 340, 180
     left, right, top, bottom = 46, 16, 20, 28
     plot_w, plot_h = width - left - right, height - top - bottom
 
     values = [v for _, v in points]
-    low, high = _y_range(metric, values, norm) or [min(values) - 1, max(values) + 1]
+    with_goal = values + ([goal] if goal is not None else [])
+    low, high = _y_range(metric, with_goal, norm) or [min(with_goal) - 1, max(with_goal) + 1]
 
     first, last = points[0][0], points[-1][0]
     days = max((last - first).days, 1)
@@ -89,6 +94,23 @@ def trend_svg(metric, points, *, norm=None) -> str:
                      f'y2="{y(norm.mean):.1f}" stroke="{C["muted"]}" stroke-width="1" '
                      f'stroke-dasharray="2 3"/>')
 
+    unit = f" {metric.unit}" if metric.unit and metric.unit != "-" else ""
+    # cíl: čárkovaná čára s popiskem vpravo
+    if goal is not None and low <= goal <= high:
+        parts.append(f'<line x1="{left}" x2="{width - right}" y1="{y(goal):.1f}" '
+                     f'y2="{y(goal):.1f}" stroke="{C["text_secondary"]}" stroke-width="1.2" '
+                     f'stroke-dasharray="5 3"/>')
+        parts.append(_text(width - right, y(goal) - 4, f"cíl {cz(goal, metric.decimals)}{unit}",
+                           size=10, color=C["text_secondary"], anchor="end"))
+    # začátek sezóny: tečkovaná svislá čára
+    if season_from is not None and first < season_from <= last:
+        parts.append(f'<line x1="{x(season_from):.1f}" x2="{x(season_from):.1f}" y1="{top}" '
+                     f'y2="{top + plot_h}" stroke="{C["muted"]}" stroke-width="1" '
+                     f'stroke-dasharray="2 3"/>')
+        # popisek dole u osy, aby se nepotkal s popiskem cíle nahoře
+        parts.append(_text(x(season_from) + 3, top + plot_h - 5, "začátek sezóny", size=9,
+                           color=C["muted"]))
+
     # osa x: data měření
     parts.append(f'<line x1="{left}" x2="{width - right}" y1="{top + plot_h}" '
                  f'y2="{top + plot_h}" stroke="{C["axis"]}" stroke-width="1"/>')
@@ -103,7 +125,6 @@ def trend_svg(metric, points, *, norm=None) -> str:
                     for i, (d, v) in enumerate(points))
     parts.append(f'<path d="{path}" fill="none" stroke="{C["series_1"]}" stroke-width="2" '
                  f'stroke-linejoin="round" stroke-linecap="round"/>')
-    unit = f" {metric.unit}" if metric.unit and metric.unit != "-" else ""
     for i, (d, v) in enumerate(points):
         is_last = i == len(points) - 1
         parts.append(

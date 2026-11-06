@@ -79,6 +79,16 @@ def compose(session, findings, citations, facts: dict | None = None) -> str:
     if nove := _names(m for m in klicove if "zmena" not in m):
         parts.append(f"Poprvé měřeno: {nove}.")
 
+    # dlouhodobě: od začátku sezóny, nové osobní maximum, cíle
+    if sezona := [m for m in klicove if isinstance(m.get("od_zacatku_sezony"), dict)]:
+        parts.append("Od začátku sezóny:\n" + "\n".join(_season_line(m) for m in sezona))
+    nova = [m for m in klicove if str(m.get("osobni_maximum", {}).get("stav", "")).startswith("nov")]
+    if nova:
+        rekordy = all(m["osobni_maximum"]["stav"].startswith("nový") for m in nova)
+        parts.append(f"{'Nový osobní rekord' if rekordy else 'Nové osobní maximum'}: {_names(nova)}.")
+    if cile := facts.get("cile"):
+        parts.append("Cíle:\n" + "\n".join(_goal_line(c) for c in cile))
+
     if over := [a for a in facts.get("asymetrie", []) if a["nad_prahem"]]:
         prah = over[0]["prah_procent"]
         parts.append(
@@ -141,6 +151,26 @@ def _metric_line(m: dict) -> str:
     sign = "+" if zmena > 0 else ""
     return (f"• {name}: {_cz(m['hodnota'])}{unit}; minule {_cz(m['predchozi_hodnota'])}{unit}, "
             f"změna {sign}{_cz(zmena)}{unit} – {m['zmena_posouzeni']}")
+
+
+def _season_line(m: dict) -> str:
+    unit = f" {m['jednotka']}" if m["jednotka"] and m["jednotka"] != "-" else ""
+    name = m["metrika"] + (f" ({m['upresneni']})" if m["upresneni"] else "")
+    c = m["od_zacatku_sezony"]
+    sign = "+" if c["zmena"] > 0 else ""
+    return (f"• {name}: {sign}{_cz(c['zmena'])}{unit} od prvního měření v sezóně "
+            f"{c['prvni_mereni']} ({_cz(c['hodnota'])}{unit}) – {c['posouzeni']}")
+
+
+def _goal_line(c: dict) -> str:
+    unit = f" {c['jednotka']}" if c["jednotka"] and c["jednotka"] != "-" else ""
+    due = f", do {c['do']}" if c.get("do") else ""
+    if c["posouzeni"] == "splněno":
+        when = f" {c['splneno']}" if c.get("splneno") else ""
+        return (f"• {c['metrika']}: cíl {_cz(c['cil'])}{unit} splněn{when} "
+                f"(aktuálně {_cz(c['aktualni'])}{unit})")
+    return (f"• {c['metrika']}: cíl {_cz(c['cil'])}{unit}{due}, aktuálně {_cz(c['aktualni'])}{unit}, "
+            f"zbývá {_cz(c['zbyva'])}{unit} – {c['posouzeni']}")
 
 
 def recommendations(findings) -> list[str]:

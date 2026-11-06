@@ -27,6 +27,7 @@ def catalog_status(user) -> dict:
         "sports": sports, "sports_without": [s for s in sports if s.pk not in with_battery],
         "protocols": protocols, "no_metrics": no_metrics, "no_key": no_key,
         "key_metrics": key_metrics, "no_mdc": [m for m in key_metrics.values() if m.mdc is None],
+        "no_text": [m for m in key_metrics.values() if not m.athlete_text],
         "norms": Norm.objects.filter(shared).count(),
         "rules": Rule.objects.filter(shared, is_active=True).count(),
     }
@@ -69,6 +70,13 @@ def catalog_steps(user, status: dict | None = None) -> list[dict]:
               else "Bez norem zpráva neukáže postavení vůči referenci; pravidla dávají nálezy "
                    "a doporučení. Zapíná je ten, kdo za práh ručí."),
              url=reverse("norms_settings"), button="Normy a pravidla", optional=True),
+        step(6, "Popisy pro klienta", bool(key_metrics) and not c["no_text"],
+             (f"{len(c['no_text'])} z {len(key_metrics)} klíčových ukazatelů nemá popis pro "
+              "sportovce – portál ukáže jen číslo." if c["no_text"] else
+              (f"Všech {len(key_metrics)} klíčových ukazatelů má popis pro sportovce."
+               if key_metrics else "Nejdřív klíčové ukazatele.")),
+             url=reverse("client_texts"), button="Doplnit popisy", admin_only=True,
+             optional=True, count=len(c["no_text"]) or None),
     ]
 
 

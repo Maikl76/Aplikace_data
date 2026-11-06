@@ -52,7 +52,7 @@ def test_sportovec_vede_kroky(org):
     url = reverse("subject_detail", args=[subject.pk])
     steps, nxt = _steps(client.get(url))
     assert list(steps) == ["Údaje a souhlasy", "Účet v portálu", "Měření", "Zpráva",
-                           "Předání nebo sdílení", "Externí vyšetření"]
+                           "Předání nebo sdílení", "Externí vyšetření", "Cíle"]
     assert nxt["title"] == "Údaje a souhlasy" and "sport" in nxt["text"] and "souhlas" in nxt["text"]
     assert nxt["url"] == reverse("subject_edit", args=[subject.pk])
 
@@ -118,7 +118,8 @@ def test_import_vede_kroky(org):
 def test_sporty_a_testy_vedou_kroky(org):
     admin, client = _user(org, Role.ADMIN, "spravce")
     steps, nxt = _steps(client.get(reverse("sport_list")))
-    assert list(steps) == ["Sporty", "Baterie testů", "Klíčové ukazatele", "MDC u klíčových ukazatelů", "Normy a pravidla"]
+    assert list(steps) == ["Sporty", "Baterie testů", "Klíčové ukazatele", "MDC u klíčových ukazatelů",
+                           "Normy a pravidla", "Popisy pro klienta"]
     assert nxt["title"] == "Sporty"
 
     sport = Sport.objects.create(organization=org, name="Florbal", code="florbal")

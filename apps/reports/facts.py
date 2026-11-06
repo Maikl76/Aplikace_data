@@ -46,6 +46,7 @@ def build(session, findings, citations, *, audience=None) -> dict:
         ],
         "doporuceni_z_pravidel": narrative.recommendations(findings),
         "klicove_metriky": _key_metrics(session),
+        "cile": _goals(session),
         "vyvoj": _trends(session),
         "asymetrie": _asymmetries(session),
         "cmj_ods": _ods(session),
@@ -175,13 +176,85 @@ def _rpe(session) -> list[dict]:
     return out
 
 
+def _assessment(metric, delta: float) -> str:
+    """Slovní posouzení změny proti MDC – stejná slova pro minule, sezónu i období."""
+    if metric.mdc is None:
+        return "nelze posoudit, metrika nemá stanovenou MDC"
+    if metric.change_is_real(delta):
+        smer, _ = change_verdict(metric, delta)
+        smer = "posun" if smer == "skutečný posun" else smer
+        return f"{smer} přesahující chybu měření"
+    return "v pásmu chyby měření, bez prokazatelného posunu"
+
+
+def _series_of_day(session) -> dict:
+    """Řady klíčových metrik končící tímto dnem – pro srovnání se sezónou a maximem."""
+    out = {}
+    for s in queries.primary_metric_series(session.subject, limit_metrics=50, until=session.date):
+        if s["points"][-1][0] != session.date:
+            continue
+        q = s["qualifiers"]
+        out[(s["metric"].code, q["side"], q["mode"], q["speed"], q["segment"])] = s["points"]
+    return out
+
+
+def _long_term(metric, points, value, sport) -> dict:
+    """Od začátku sezóny, osobní maximum a vývoj za 12 měsíců – do položky klíčové metriky."""
+    from apps.analytics.compare import compare
+
+    d = metric.decimals
+    cmp = compare(metric, points, sport=sport)
+    item = {}
+    if cmp["season"]:
+        c = cmp["season"]
+        item["od_zacatku_sezony"] = {
+            "prvni_mereni": c["date"].strftime("%d. %m. %Y"), "hodnota": round(c["value"], d),
+            "zmena": round(round(value, d) - round(c["value"], d), d),
+            "posouzeni": _assessment(metric, value - c["value"]),
+        }
+    elif cmp["season_first"]:
+        item["od_zacatku_sezony"] = "první měření v sezóně"
+    if cmp["best"]:
+        b = cmp["best"]
+        item["osobni_maximum"] = {"hodnota": round(b["value"], d),
+                                  "datum": b["date"].strftime("%d. %m. %Y"), "stav": b["state"]}
+    if cmp["period"]:
+        pr = cmp["period"]
+        item["za_12_mesicu"] = {
+            "zmena": round(round(value, d) - round(pr["value"], d), d), "procent": pr["pct"],
+            "pocet_mereni": pr["count"], "posouzeni": _assessment(metric, value - pr["value"]),
+        }
+    return item
+
+
+def _goals(session) -> list[dict]:
+    """Cíle sportovce k datu měření: cíl, aktuální hodnota, kolik zbývá a posouzení proti MDC."""
+    from apps.subjects import goals as goals_module
+
+    out = []
+    for p in goals_module.goals_for(session.subject, until=session.date, today=session.date):
+        if p.current is None:
+            continue
+        d = p.metric.decimals
+        item = {"metrika": p.metric.name, "jednotka": p.metric.unit, "cil": round(p.target, d),
+                "aktualni": round(p.current, d), "zbyva": p.remaining_shown,
+                "posouzeni": p.verdict()}
+        if p.goal.due_date:
+            item["do"] = p.goal.due_date.strftime("%d. %m. %Y")
+        if p.reached_on:
+            item["splneno"] = p.reached_on.strftime("%d. %m. %Y")
+        out.append(item)
+    return out
+
+
 def _key_metrics(session) -> list[dict]:
-    """Klíčové metriky dne: hodnota, změna proti minule a srovnání s normou."""
+    """Klíčové metriky dne: hodnota, změna proti minule, sezóna a maximum, srovnání s normou."""
     primary = set(
         ProtocolMetric.objects.filter(is_primary=True).values_list("metric__code", flat=True)
     )
     current = queries.session_metric_values(session)
     previous = queries.previous_session_values(session)
+    series = _series_of_day(session)
     norms = NormIndex()
 
     out = []
@@ -204,16 +277,11 @@ def _key_metrics(session) -> list[dict]:
             # Rozdíl zaokrouhlených hodnot, ne zaokrouhlený rozdíl: čtenář
             # si ho ověří odečtením čísel, která vidí (37,5 − 36,9 = 0,6).
             item["zmena"] = round(item["hodnota"] - item["predchozi_hodnota"], d)
-            if metric.mdc is None:
-                item["zmena_posouzeni"] = "nelze posoudit, metrika nemá stanovenou MDC"
-            elif metric.change_is_real(delta):
-                smer, _ = change_verdict(metric, delta)
-                smer = "posun" if smer == "skutečný posun" else smer
-                item["zmena_posouzeni"] = f"{smer} přesahující chybu měření"
+            item["zmena_posouzeni"] = _assessment(metric, delta)
+            if metric.mdc is not None:
                 item["mdc"] = round(metric.mdc, d)
-            else:
-                item["zmena_posouzeni"] = "v pásmu chyby měření, bez prokazatelného posunu"
-                item["mdc"] = round(metric.mdc, d)
+        if (points := series.get(key)) and len(points) > 1:
+            item.update(_long_term(metric, points, entry["value"], session.subject.sport))
 
         norm = find_norm(metric, session.subject, side=entry["side"],
                          mode=entry["mode"], speed=entry["speed"], day=session.date,

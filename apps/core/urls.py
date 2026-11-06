@@ -14,6 +14,7 @@ urlpatterns = [
     path("stav/", RedirectView.as_view(url="/nastaveni/", permanent=True)),  # starý odkaz
     path("nastaveni/pracoviste/", views.organization_settings, name="workplace_org"),
     path("nastaveni/mdc/", settings_views.mdc_settings, name="mdc_settings"),
+    path("nastaveni/popisy/", settings_views.client_texts, name="client_texts"),
     path("nastaveni/import/", settings_views.import_profiles, name="import_profiles"),
     path("nastaveni/normy/", norm_views.norm_list, name="norms_settings"),
     path("nastaveni/normy/nova/", norm_views.norm_edit, name="norm_new"),

@@ -22,10 +22,19 @@
 <div class="grid lg:grid-cols-2 gap-4">
   {% for sport in sports %}
     <section class="card p-4 min-w-0">
-      <div class="flex items-baseline justify-between mb-3">
+      <div class="flex items-baseline justify-between mb-2">
         <h2 class="text-lg font-semibold">{{ sport.name }}</h2>
         <a class="text-sm link" href="{% url 'subject_list' %}?sport={{ sport.pk }}">{{ sport.pocet_sportovcu }} sportovců</a>
       </div>
+      <form method="post" action="{% url 'sport_season' sport.pk %}" class="flex flex-wrap items-center gap-2 text-xs mb-3" title="Od tohoto měsíce se na kartě sportovce, v portálu i ve zprávě srovnává „od začátku sezóny“.">
+        {% csrf_token %}
+        <span class="text-muted">Sezóna začíná</span>
+        <select name="mesic" class="input text-xs py-1 w-auto">
+          <option value="">v lednu (kalendářní rok)</option>
+          {% for n, name in months %}<option value="{{ n }}" {% if sport.season_start_month == n %}selected{% endif %}>v {{ name }}</option>{% endfor %}
+        </select>
+        <button type="submit" class="btn btn-sm">Uložit</button>
+      </form>
       <div class="space-y-3">
         {% for battery in sport.baterie %}{% include "catalog/_battery.html" %}{% endfor %}
         {% if not sport.ma_obecnou %}

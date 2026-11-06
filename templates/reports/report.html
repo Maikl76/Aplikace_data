@@ -155,9 +155,64 @@
     Norma = průměr ± směrodatná odchylka referenční skupiny, z = odchylka od průměru
     v násobcích směrodatné odchylky.
   </p>
+  {% if metric_texts %}
+    <p class="vysvetlivka"><strong>Co ukazatele znamenají:</strong>
+      {% for name, text in metric_texts %}<em>{{ name }}</em> – {{ text }}{% if not forloop.last %} {% endif %}{% endfor %}
+    </p>
+  {% endif %}
 {% endif %}
 
 <h2>3. Vývoj v čase</h2>
+{% if long_term %}
+  <table class="vysledky">
+    <thead>
+      <tr>
+        <th style="width:28%">Klíčový ukazatel</th>
+        <th>Od začátku sezóny</th>
+        <th>Osobní maximum</th>
+        <th>Za 12 měsíců</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for r in long_term %}
+      <tr>
+        <td><span class="klicova">{{ r.metric.name }}</span>{% if r.label %}<br><span class="upresneni">{{ r.label }}</span>{% endif %}<br><span class="pokusy">nyní {{ r.value_txt }} {{ r.unit }}</span></td>
+        <td>{% with c=r.compare.season %}{% if c %}{{ c.delta_txt }} {{ r.unit }} <span class="pokusy">od {{ c.date|date:"d.m.y" }} ({{ c.value_txt }})</span><br><span class="pokusy">{{ c.verdict }}</span>{% elif r.compare.season_first %}<span class="pokusy">první měření v sezóně</span>{% else %}—{% endif %}{% endwith %}</td>
+        <td>{% with b=r.compare.best %}{% if b %}{{ b.value_txt }} {{ r.unit }} <span class="pokusy">({{ b.date|date:"d.m.y" }})</span><br><span class="pokusy">{% if b.is_current %}<strong>{{ b.state }}</strong>{% else %}{{ b.state }}{% endif %}</span>{% else %}—{% endif %}{% endwith %}</td>
+        <td>{% with p=r.compare.period %}{% if p %}{{ p.delta_txt }} {{ r.unit }}{% if p.pct_txt %} ({{ p.pct_txt }}){% endif %}<br><span class="pokusy">{{ p.count }} měření · {{ p.verdict }}</span>{% else %}—{% endif %}{% endwith %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <p class="vysvetlivka">Od začátku sezóny = změna proti prvnímu měření v této sezóně (sezóna {{ season_phrase }});
+    osobní maximum (u časů rekord) = nejlepší dosud naměřená hodnota; za 12 měsíců = změna proti
+    nejstaršímu měření v posledním roce. Posouzení proti MDC stejně jako u změny proti minule.</p>
+{% endif %}
+{% if goals %}
+  <div class="protokol">Cíle</div>
+  <table class="vysledky">
+    <thead>
+      <tr>
+        <th style="width:30%">Ukazatel</th>
+        <th class="cislo" style="text-align:right">Cíl</th>
+        <th class="cislo" style="text-align:right">Aktuálně</th>
+        <th class="cislo" style="text-align:right">Zbývá</th>
+        <th>Posouzení</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for g in goals %}
+      <tr>
+        <td>{{ g.metric.name }}{% if g.goal.due_date %}<br><span class="pokusy">do {{ g.goal.due_date|date:"d.m.Y" }}</span>{% endif %}</td>
+        <td class="cislo">{{ g.target_txt }}</td>
+        <td class="cislo">{{ g.current_txt }}<br><span class="pokusy">{{ g.current_date|date:"d.m.y" }}</span></td>
+        <td class="cislo">{% if g.status == "reached" %}—{% else %}{{ g.remaining_txt }}{% endif %}</td>
+        <td class="posouzeni {% if g.status == 'reached' %}better{% elif g.status == 'near' %}noise{% endif %}">{% if g.status == "reached" %}✓ {% endif %}{{ g.verdict }}{% if g.reached_on and g.status == "reached" %} {{ g.reached_on|date:"d.m.Y" }}{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
 {% if trends %}
   <div class="grafy">
     {% for t in trends %}

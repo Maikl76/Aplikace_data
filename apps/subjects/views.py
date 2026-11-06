@@ -13,8 +13,8 @@ from apps.external.models import ExternalExam
 from apps.genetics import services as genetics
 from apps.measurements.models import TestSession
 
-from . import accounts, retest, search
-from .models import AccountInvitation, Sport, Subject, Team
+from . import accounts, goals, retest, search
+from .models import AccountInvitation, Goal, Sport, Subject, Team
 
 
 @login_required
@@ -57,11 +57,7 @@ def subject_search(request):
     })
 
 
-def _both_themes(build):
-    """Graf pro světlý i tmavý režim – prohlížeč si vybere podle přepínače."""
-    spec = build("light")
-    spec.figure_dark = build("dark").figure
-    return spec
+_both_themes = charts.both_themes
 
 
 @login_required
@@ -83,11 +79,9 @@ def subject_detail(request, pk):
     # naplánovaný podle baterie (zatím prázdný) se nepočítá.
     measured = [s for s in sessions if s.hodnot]
 
-    trends = [
-        _both_themes(lambda theme, s=s: charts.trend_chart(
-            s["metric"], s["points"], qualifiers=s["qualifiers"], norm=s["norm"], theme=theme))
-        for s in queries.primary_metric_series(subject)
-    ]
+    goal_progress = goals.goals_for(subject)
+    goals_by_metric = goals.by_metric(goal_progress)
+    trends = overview.trend_specs(subject, goals=goals_by_metric)
     posledni, asymetrie = queries.latest_asymmetries(subject)
 
     from apps.core.steps import next_step
@@ -100,7 +94,7 @@ def subject_detail(request, pk):
     plan = retest.plan_for(subject)
     steps = subject_steps(subject, sessions=sessions, accounts=accounts_info,
                           sharings=sharings_list, may_edit=_may_edit(request.user), exams=exams,
-                          plan=plan)
+                          plan=plan, goals=goal_progress)
 
     return render(request, "subjects/subject_detail.html", {
         "steps": steps, "next_step": next_step(steps),
@@ -108,7 +102,9 @@ def subject_detail(request, pk):
         "display_name": subject.display_for(request.user),
         "sessions": sessions,
         "last_session": measured[0] if measured else None,
-        "tiles": overview.kpi_tiles(subject),
+        "tiles": overview.kpi_tiles(subject, goals=goals_by_metric),
+        "goals": goal_progress,
+        "goal_metrics": goals.metric_choices(subject) if _may_edit(request.user) else [],
         "external_exams": exams, "may_edit": _may_edit(request.user),
         "plan": plan, "reminders": list(subject.retest_reminders.all()[:3]),
         "email_enabled": bool(settings.EMAIL_HOST),
@@ -456,6 +452,56 @@ def subject_retest(request, pk):
     subject.save(update_fields=["retest_weeks", "next_test_date", "updated_at"])
     record(request, AuditLog.Action.UPDATE, subject, subject_code=subject.code, plan=mode)
     messages.success(request, "Plán opakování je uložený. " + retest.plan_for(subject).text())
+    return redirect(back)
+
+
+@login_required
+def subject_goal(request, pk):
+    """Nový cíl klíčového ukazatele: cílová hodnota, dokdy, poznámka."""
+    from django.contrib import messages
+
+    subject = get_object_or_404(Subject.objects.for_user(request.user), pk=pk)
+    back = reverse("subject_detail", args=[pk]) + "#cile"
+    if request.method != "POST" or not _may_edit(request.user):
+        return redirect(back)
+    choices = {m.pk: m for m in goals.metric_choices(subject)}
+    try:
+        metric = choices[int(request.POST.get("metrika", ""))]
+        target = float(request.POST.get("cil", "").strip().replace(",", ".").replace(" ", ""))
+        raw = request.POST.get("do", "").strip()
+        due = date.fromisoformat(raw) if raw else None
+    except (KeyError, ValueError):
+        messages.error(request, "Vyberte klíčový ukazatel a zadejte cílovou hodnotu jako číslo "
+                                "(dokdy jako datum).")
+        return redirect(back)
+    if not metric.is_plausible(target):
+        messages.error(request, f"Cíl {target:g} je mimo věrohodný rozsah ukazatele {metric.name}.")
+        return redirect(back)
+    if Goal.objects.filter(subject=subject, metric=metric, is_active=True).exists():
+        messages.error(request, f"Ukazatel {metric.name} už cíl má – nejdřív ho zrušte.")
+        return redirect(back)
+    goal = goals.create(subject, metric, target, due_date=due,
+                        note=request.POST.get("poznamka", "").strip(), user=request.user)
+    record(request, AuditLog.Action.CREATE, goal, subject_code=subject.code, ukazatel=metric.code,
+           cil=target)
+    progress = goals.Progress(goal, goals.series_for(subject, metric))
+    messages.success(request, f"Cíl uložen: {metric.name} {progress.target_txt}. {progress.text()}")
+    return redirect(back)
+
+
+@login_required
+def subject_goal_delete(request, pk, gpk):
+    """Zrušení cíle – zůstane v databázi jako neplatný, kvůli historii."""
+    from django.contrib import messages
+
+    subject = get_object_or_404(Subject.objects.for_user(request.user), pk=pk)
+    back = reverse("subject_detail", args=[pk]) + "#cile"
+    if request.method == "POST" and _may_edit(request.user):
+        goal = get_object_or_404(Goal, pk=gpk, subject=subject)
+        goal.is_active = False
+        goal.save(update_fields=["is_active", "updated_at"])
+        record(request, AuditLog.Action.DELETE, goal, subject_code=subject.code)
+        messages.success(request, f"Cíl {goal.metric.name} zrušen.")
     return redirect(back)
 
 

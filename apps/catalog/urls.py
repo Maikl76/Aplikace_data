@@ -13,6 +13,7 @@ urlpatterns = [
     path("testy/novy/", protocol_views.test_new, name="test_new"),
     path("testy/<int:pk>/", protocol_views.test_edit, name="test_edit"),
     path("<int:sport_pk>/baterie/", views.battery_add, name="battery_add"),
+    path("<int:sport_pk>/sezona/", views.sport_season, name="sport_season"),
     path("baterie/<int:pk>/smazat/", views.battery_delete, name="battery_delete"),
     path("baterie/<int:pk>/opakovani/", views.battery_interval, name="battery_interval"),
     path("baterie/<int:pk>/pridat/", views.battery_item_add, name="battery_item_add"),

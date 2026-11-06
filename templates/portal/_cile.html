@@ -1,0 +1,13 @@
+{# Cíle sportovce v portálu (jen ke čtení): cílová hodnota, postup, slovy kolik zbývá. #}
+{% if goals %}
+  <h2 class="eyebrow mb-2">Cíle</h2>
+  <div class="grid sm:grid-cols-2 gap-4 mb-8" id="cile">
+    {% for g in goals %}
+      <div class="card p-4 text-sm">
+        <div class="flex flex-wrap items-center justify-between gap-2"><span><span class="font-medium">{{ g.metric.name }}</span> → <span class="tabular-nums">{{ g.target_txt }}</span>{% if g.goal.due_date %} <span class="text-muted">do {{ g.goal.due_date|date:"d.m.Y" }}</span>{% endif %}</span>{% with b=g.badge %}<span class="badge {{ b.0 }}">{{ b.1 }}</span>{% endwith %}</div>
+        {% if g.percent is not None %}<div class="mt-2 h-2 rounded-full overflow-hidden" style="background: var(--surface-2)"><div class="h-full rounded-full" style="width: {{ g.percent }}%; background: var(--accent)"></div></div>{% endif %}
+        <p class="text-xs text-2 mt-1.5">{{ g.text }}</p>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}

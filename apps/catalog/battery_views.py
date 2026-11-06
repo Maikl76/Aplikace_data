@@ -62,10 +62,35 @@ def sport_list(request):
     for sport in sports:
         sport.baterie = by_sport.get(sport.pk, [])
         sport.ma_obecnou = any(not b.category for b in sport.baterie)
+    from apps.analytics.compare import MONTHS_LOCATIVE
+
     from .steps import catalog_steps
 
-    return render(request, "catalog/sports.html", {"sports": sports,
-                                                   "steps": catalog_steps(request.user)})
+    return render(request, "catalog/sports.html", {
+        "sports": sports, "steps": catalog_steps(request.user),
+        "months": list(enumerate(MONTHS_LOCATIVE, start=1))})
+
+
+@login_required
+@require_POST
+def sport_season(request, sport_pk):
+    """Měsíc začátku sezóny – od něj se srovnává „od začátku sezóny“."""
+    from apps.analytics.compare import season_phrase
+
+    sport = get_object_or_404(Sport.objects.for_user(request.user), pk=sport_pk)
+    raw = request.POST.get("mesic", "").strip()
+    try:
+        month = int(raw) if raw else None
+        if month is not None and not 1 <= month <= 12:
+            raise ValueError
+    except ValueError:
+        messages.error(request, "Měsíc začátku sezóny vyberte ze seznamu.")
+        return redirect("sport_list")
+    sport.season_start_month = month
+    sport.save(update_fields=["season_start_month", "updated_at"])
+    record(request, AuditLog.Action.UPDATE, sport, sezona_od=month)
+    messages.success(request, f"{sport.name}: sezóna začíná {season_phrase(sport, case='v')}.")
+    return redirect("sport_list")
 
 
 @login_required

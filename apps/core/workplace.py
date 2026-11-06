@@ -143,7 +143,8 @@ def settings_sections(user) -> list[dict]:
                 f"{len(c['protocols'])} testů v bateriích; {len(c['key_metrics']) - len(c['no_mdc'])} "
                 f"z {len(c['key_metrics'])} klíčových ukazatelů má MDC.",
                 url=reverse("test_list"), button="Testy",
-                links=[("MDC u ukazatelů", reverse("mdc_settings"))]),
+                links=[("MDC u ukazatelů", reverse("mdc_settings")),
+                       ("Popisy pro klienta", reverse("client_texts"))]),
         section("Přístroje a import",
                 f"{profiles} profilů importu (které sloupce exportu jsou které ukazatele).",
                 url=reverse("import_list"), button="Import a přístroje",

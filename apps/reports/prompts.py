@@ -46,18 +46,23 @@ Změnu výsledku vysvětluj jen změnami příčin a strategie, které mají pos
 10. Vlastní doporučení nevymýšlej. Doporučení z pole doporuceni_z_pravidel \
 zpráva uvádí ve zvláštní části; v souhrnu na ně můžeš jen odkázat.
 11. Pole „kontext“ (cíl testování, tréninkové období, uvedené zranění) \
-použij k tomu, na co se v textu zaměřit. Zranění nehodnoť a nic o něm nevyvozuj."""
+použij k tomu, na co se v textu zaměřit. Zranění nehodnoť a nic o něm nevyvozuj.
+12. Pole od_zacatku_sezony, osobni_maximum a za_12_mesicu u klíčových \
+ukazatelů a pole cile (cíle sportovce) přebírej i s jejich posouzením; o cíli \
+piš jen to, co říká jeho pole posouzeni, a nové osobní maximum zmiň."""
 
 DEFAULT_STYLES = {
     Audience.ATHLETE: """Čtenář: sportovec (může být i mladistvý), ne odborník.
 • Piš srozumitelně, vykej. Bez zkratek; odborný pojem, který je nutný, vysvětli jednou krátkou větou.
 • Začni tím, co se povedlo, pak co je potřeba zlepšit. Motivuj, ale nic nezkresluj.
+• Je-li v poli cile nějaký cíl, napiš, kolik k němu zbývá (podle faktů); nové osobní maximum zmiň.
 • Ber ohled na cíl testování (pole kontext), např. návrat po zranění nebo příprava na sezónu.
 Struktura: shrnutí 3–4 věty, pak „Co z měření vyplývá:“ s odrážkami.
 Rozsah nejvýš 200 slov.""",
     Audience.COACH: """Čtenář: trenér.
 • Věcně a prakticky: co výsledky znamenají pro trénink, co se proti minulému měření skutečně změnilo, stranové rozdíly nad prahem a vývoj za víc měření.
 • Pojmy z diagnostiky (RSI, DSI, asymetrie) používej bez vysvětlování.
+• Zmiň vývoj od začátku sezóny, osobní maximum a postup k cíli, pokud jsou ve faktech.
 • Vztahuj výsledky k cíli testování a tréninkovému období (pole kontext).
 Struktura: celkové zhodnocení 3–5 vět (co se měřilo, jak si sportovec stojí, co se skutečně změnilo), pak „Hlavní zjištění:“ s odrážkami.
 Rozsah nejvýš 250 slov.""",

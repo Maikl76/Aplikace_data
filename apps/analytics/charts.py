@@ -66,6 +66,13 @@ class ChartSpec:
     figure_dark: dict | None = None   # táž figura v barvách tmavého režimu
 
 
+def both_themes(build):
+    """Graf pro světlý i tmavý režim – prohlížeč si vybere podle přepínače."""
+    spec = build("light")
+    spec.figure_dark = build("dark").figure
+    return spec
+
+
 def _base_layout(colors: dict, *, height: int, y_title: str = "") -> dict:
     return {
         "height": height,
@@ -128,7 +135,7 @@ def _element_id(prefix: str, metric, qualifiers: dict | None) -> str:
     return "-".join(p for p in parts if p)
 
 
-def trend_chart(metric, points, *, qualifiers=None, norm=None,
+def trend_chart(metric, points, *, qualifiers=None, norm=None, goal=None, season_from=None,
                 theme: str = "light") -> ChartSpec:
     """
     Vývoj jedné metriky v čase proti normě.
@@ -136,6 +143,8 @@ def trend_chart(metric, points, *, qualifiers=None, norm=None,
     ``points`` je seznam (datum, hodnota) seřazený od nejstaršího.
     Norma se kreslí jako pásmo průměr ± SD za čarou – je to kontext,
     ne druhá série, takže zůstává neutrálně šedá a nesoupeří o pozornost.
+    ``goal`` (cílová hodnota) je čárkovaná vodorovná čára s popiskem,
+    ``season_from`` (datum) tečkovaná svislá čára „začátek sezóny“.
     """
     colors = PALETTE[theme]
     dates = [d.isoformat() for d, _ in points]
@@ -144,6 +153,31 @@ def trend_chart(metric, points, *, qualifiers=None, norm=None,
 
     traces = []
     note = ""
+    shapes, annotations = [], []
+
+    if goal is not None:
+        traces.append({
+            "type": "scatter", "x": [dates[0], dates[-1]], "y": [goal, goal], "mode": "lines",
+            "line": {"color": colors["text_secondary"], "width": 1.5, "dash": "dash"},
+            "hovertemplate": f"cíl {cz(goal, metric.decimals)}{unit}<extra></extra>",
+            "name": "cíl", "showlegend": False,
+        })
+        annotations.append({
+            "x": dates[-1], "y": goal, "xanchor": "right", "yanchor": "bottom", "showarrow": False,
+            "text": f"cíl {cz(goal, metric.decimals)}{unit}",
+            "font": {"size": 11, "color": colors["text_secondary"]},
+        })
+    if season_from is not None and len(points) > 1 and points[0][0] < season_from <= points[-1][0]:
+        shapes.append({
+            "type": "line", "xref": "x", "yref": "paper", "x0": season_from.isoformat(),
+            "x1": season_from.isoformat(), "y0": 0, "y1": 1,
+            "line": {"color": colors["muted"], "width": 1, "dash": "dot"},
+        })
+        annotations.append({
+            "x": season_from.isoformat(), "y": 1, "xref": "x", "yref": "paper", "xanchor": "left",
+            "yanchor": "top", "showarrow": False, "text": "začátek sezóny",
+            "font": {"size": 10, "color": colors["muted"]},
+        })
 
     if norm is not None and norm.mean is not None and norm.sd:
         low, high = norm.mean - norm.sd, norm.mean + norm.sd
@@ -183,7 +217,11 @@ def trend_chart(metric, points, *, qualifiers=None, norm=None,
     span_days = (points[-1][0] - points[0][0]).days if len(points) > 1 else 0
     layout["xaxis"]["tickformat"] = "%d.%m." if span_days < 90 else "%m/%Y"
     layout["xaxis"]["nticks"] = 6
-    layout["yaxis"]["range"] = _y_range(metric, values, norm)
+    layout["yaxis"]["range"] = _y_range(metric, values + ([goal] if goal is not None else []), norm)
+    if shapes:
+        layout["shapes"] = shapes
+    if annotations:
+        layout["annotations"] = annotations
     label = qualifier_label(qualifiers)
     return ChartSpec(
         element_id=_element_id("trend", metric, qualifiers),

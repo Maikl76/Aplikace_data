@@ -8,7 +8,8 @@ MDC – a vždy je napsaný slovy, ne jen barvou.
 
 from django.utils.safestring import mark_safe
 
-from .charts import cz, qualifier_label
+from .charts import both_themes, cz, qualifier_label, trend_chart
+from .compare import compare, season_start
 from .queries import primary_metric_series
 
 VERDICTS = {
@@ -45,9 +46,13 @@ def sparkline(values: list[float], *, width: int = 120, height: int = 36) -> str
     )
 
 
-def kpi_tiles(subject, *, limit: int = 6) -> list[dict]:
+def kpi_tiles(subject, *, limit: int = 6, goals=None) -> list[dict]:
+    """``goals`` = {pk metriky: postup k cíli}; bez něj se cíle načtou."""
     from apps.reports.results import change_verdict, signed
+    from apps.subjects import goals as goals_module
 
+    if goals is None:
+        goals = goals_module.by_metric(goals_module.goals_for(subject))
     series = primary_metric_series(subject, limit_metrics=30)
     # jedna dlaždice na metriku: přednost má celek / oboustranně
     chosen = {}
@@ -74,6 +79,10 @@ def kpi_tiles(subject, *, limit: int = 6) -> list[dict]:
             "spark": sparkline([v for _, v in points[-8:]]),
             "delta_txt": "",
             "verdict": None,
+            # srovnání se začátkem sezóny, osobním maximem a za 12 měsíců
+            "compare": compare(metric, points, sport=subject.sport),
+            # postup k cíli, je-li u ukazatele nastavený
+            "goal": goals.get(metric.pk),
         }
         if len(points) >= 2:
             previous = points[-2][1]
@@ -83,4 +92,22 @@ def kpi_tiles(subject, *, limit: int = 6) -> list[dict]:
             tile["verdict"] = {"css": css, "icon": icon, "text": text}
         tiles.append(tile)
     return tiles
+
+
+def trend_specs(subject, *, goals=None) -> list:
+    """Grafy vývoje klíčových ukazatelů s čarou cíle a začátkem sezóny (oba režimy)."""
+    from apps.subjects import goals as goals_module
+
+    if goals is None:
+        goals = goals_module.by_metric(goals_module.goals_for(subject))
+    specs = []
+    for s in primary_metric_series(subject):
+        progress = goals.get(s["metric"].pk)
+        goal = (progress.target if progress is not None
+                and s["qualifiers"]["side"] in ("B", "") else None)
+        since = season_start(s["points"][-1][0], subject.sport) if len(s["points"]) > 1 else None
+        specs.append(both_themes(lambda theme, s=s, goal=goal, since=since: trend_chart(
+            s["metric"], s["points"], qualifiers=s["qualifiers"], norm=s["norm"], goal=goal,
+            season_from=since, theme=theme)))
+    return specs
 

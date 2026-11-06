@@ -62,8 +62,13 @@ jako dosud, se záznamem o předání a souhlasem.
 
 ## Co sportovec vidí
 
-- klíčové ukazatele s posouzením proti pásmu chyby měření, trendy,
-  seznam měření,
+- klíčové ukazatele s posouzením proti pásmu chyby měření, srovnáním od
+  začátku sezóny, s osobním maximem a za 12 měsíců, s větou „co to znamená“
+  (když ji laboratoř doplnila v Nastavení → Popisy pro klienta), trendy
+  s čarou cíle, seznam měření a „Jak testy probíhají“,
+- cíle domluvené s laboratoří a trenérem: cílová hodnota, dokdy, postup
+  a kolik zbývá (viz `docs/srovnani-a-cile.md`),
+- slovníček pojmů (MDC, zlepšení, sezóna, maximum, cíl, norma),
 - vydané zprávy **pro sportovce** (zprávy pro trenéra a lékaře ne), včetně
   zprávy z genetického vyšetření,
 - dotazník RPE k dnešnímu měření (stejný formulář jako přes QR kód),
