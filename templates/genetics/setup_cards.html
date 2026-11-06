@@ -4,8 +4,8 @@
 {% block content %}
 <div class="max-w-3xl">
   <a href="{% url 'genetics_home' %}" class="text-sm link">← Genetika</a>
-  <h1 class="text-2xl font-semibold leading-tight">Krok 2 · Karty z podkladů</h1>
-  <p class="text-sm text-2 mt-1 mb-4">Nahrajte Word s genovými kartami (dokument „Genové karty – úplné podklady k odborné revizi“). Z každé karty vznikne <strong>původní znění</strong> (jen ke čtení, aby šlo vždy dohledat, co se změnilo) a <strong>návrh</strong>, který garant upraví a schválí. Varianty, které v katalogu už jsou, se nepřepíší.</p>
+  <h1 class="text-2xl font-semibold leading-tight">Karty z podkladů <span class="text-base font-normal text-muted">(zkratka ke kroku 2)</span></h1>
+  <p class="text-sm text-2 mt-1 mb-4">Běžně se karta zakládá tlačítkem <a class="link" href="{% url 'genetics_card_new' %}">Nová karta</a> a průvodce ji vede osmi kroky. Máte-li Word s genovými kartami (dokument „Genové karty – úplné podklady k odborné revizi“), založí je tahle stránka najednou: z každé karty vznikne <strong>původní znění</strong> (jen ke čtení, aby šlo vždy dohledat, co se změnilo) a <strong>návrh</strong>, který garant v průvodci upraví a schválí. Varianty, které v katalogu už jsou, se nepřepíší.</p>
   <section class="card p-4">
     <p class="text-sm mb-3">V katalogu je teď <strong>{{ variants }}</strong> variant.</p>
     <form method="post" enctype="multipart/form-data" class="flex flex-wrap items-end gap-2">{% csrf_token %}

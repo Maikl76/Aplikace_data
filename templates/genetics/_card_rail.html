@@ -1,0 +1,6 @@
+{# Lišta kroků průvodce kartou: hotové zeleně, aktuální zvýrazněný, každý je odkaz (steps, n) #}
+<ol class="flex flex-wrap gap-1.5 my-3">
+  {% for s in steps %}
+    <li><a href="{{ s.url }}" class="badge {% if s.n == n %}badge-accent{% elif s.done %}badge-good{% endif %}" title="{{ s.text }}">{% if s.done and s.n != n %}✓{% else %}{{ s.n }}{% endif %} {{ s.title }}{% if s.count %} · {{ s.count }}{% endif %}</a></li>
+  {% endfor %}
+</ol>

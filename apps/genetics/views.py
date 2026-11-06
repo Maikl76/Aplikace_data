@@ -167,8 +167,8 @@ def card_action(request, pk):
                                       "které smí do zpráv.")
         elif action == "nova_verze":
             new = services.new_version(card, by=user)
-            messages.success(request, f"Vznikla verze {new.version} jako návrh – upravte ji "
-                                      "a pošlete k revizi.")
+            messages.success(request, f"Vznikla verze {new.version} jako návrh – projděte "
+                                      "kroky průvodce a pošlete ji k revizi.")
             return redirect("genetics_card_edit", pk=new.pk)
         elif action == "vyradit":
             if not _is_admin(user):

@@ -1,0 +1,2 @@
+{# Původní znění vedle pole (text; original a original_label jsou v kontextu kroku) #}
+{% if original and text %}<details class="mt-1 text-xs"><summary class="cursor-pointer text-muted">{{ original_label }}</summary><p class="mt-1 p-2 rounded whitespace-pre-line text-2" style="background: var(--surface)">{{ text }}</p></details>{% endif %}

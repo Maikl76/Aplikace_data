@@ -35,11 +35,12 @@ fáze (viz konec).
 | menu **Genetika** | průvodce nastavením (4 kroky s tlačítkem *Další krok*), přehled variant a karet s *Upravit* / *Schválit*, fronta „čeká na garanta“, garanti, panely, počet vzorků, výzkum; odkaz *Jak to funguje* |
 | **Genetika → nastavení** | `/genetika/nastaveni/garanti/` (správce), `/genetika/nastaveni/karty/` (nahrání Wordu), `/genetika/nastaveni/panel/` (laboratoř, zápis genotypů, vypnutí variant) |
 | **Genetika → karta** | čitelná verze karty, kontrola před schválením, tlačítka *Upravit*, *Poslat k revizi*, *Schválit*, *Vrátit k úpravě*, *Nová verze*, *Vyřadit* |
-| **Genetika → karta → Upravit** | editor karty v aplikaci: biologie, texty pro genotypy, doporučení s důvody, scénáře z dotazníku, nepřípustné výroky, revizní záznamy; *Uložit a poslat k revizi* |
+| **Genetika → Nová karta** | `/genetika/karta/nova/`: gen, rsID, oblast, genotypy (a jiné zápisy); vznikne varianta, návrh karty v1 a položka panelu; dál vede průvodce kartou |
+| **Genetika → karta → Upravit** | průvodce kartou (`/genetika/karta/<id>/upravit/`): přehled osmi kroků se stavem z dat a stránka pro každý krok (`…/upravit/<krok>/`): varianta, co gen dělá, texty pro genotypy, doporučení s důvody, kontext z dotazníku (scénáře i jejich texty), co zpráva říkat nesmí, zdroje a důkazy, kontrola a schválení (revizní záznamy, *Poslat k revizi*, *Schválit*) |
 | **Genetika → Jak to funguje** | `/genetika/navod/`: obsah – lidé – zpráva, kdo co dělá, stav nastavení |
 | **karta sportovce → Genetika** | postup v pěti krocích (souhlas → vzorek → ověření → dotazník → zpráva) s *Další krok*; zápis podepsaného souhlasu / odvolání, dotazník, vzorky, genotypy, *Ověřit příslušnost* výsledku, nový vzorek, sestavení genetické zprávy |
 | **portál sportovce → Souhlasy a sdílení → Genetika** | sportovec souhlas uděluje a odvolává sám, vyplňuje dotazník; vydanou zprávu pro sportovce vidí v Mých výsledcích |
-| **administrace → Genetika** (pro pokročilé) | totéž co editor plus důkazy, zdroje, interakce, podmínky scénářů nad měřením, vzorky (jen ke čtení) |
+| **administrace → Genetika** (pro pokročilé) | totéž co průvodce plus interakce, podmínky scénářů nad měřením, napojení zdrojů a důkazů na články v knihovně, vzorky (jen ke čtení) |
 
 ## Postup
 
@@ -54,14 +55,18 @@ ni potřebuje „Stav týmu“ (is_staff) a skupiny oprávnění srovná `seed_r
 1. **Garanti oblastí** (správce; `/genetika/nastaveni/garanti/`). Ke každé
    oblasti aspoň jeden metodik z účtů správce / diagnostik. Bez garanta nejde
    karta oblasti schválit.
-2. **Karty z podkladů** (správce nebo laborant; `/genetika/nastaveni/karty/`).
-   Nahrajte Word s genovými kartami. Pro každou variantu vznikne verze 1
-   *původní znění* (jen ke čtení) a verze 2 *návrh*; pozdější revizní texty
-   z podkladů (ACTN3 v0.2, LCT) jsou rovnou v návrhu a rozdíl je zapsaný
-   v revizních záznamech. Karty bez původního obsahu (SLC16A1, FTO, TCF7L2)
-   vzniknou jako návrh s úkoly k doplnění. Zároveň vznikne panel „Panel
-   variant z podkladů“. Varianty, které v katalogu už jsou, se nepřepíší.
-   Totéž umí příkaz:
+2. **Genové karty** (správce nebo laborant). Tlačítko *Nová karta*
+   (`/genetika/karta/nova/`) založí variantu – gen, rsID, oblast, genotypy
+   přesně jak je píše laboratoř, případně jiné zápisy (`CC=RR, CT=RX`) –
+   a první návrh karty; varianta se rovnou přidá do panelu. Dál vede
+   *průvodce kartou* (bod 4). Zkratka pro víc karet najednou: *Načíst
+   z Wordu* (`/genetika/nastaveni/karty/`) – pro každou kartu z dokumentu
+   vznikne verze 1 *původní znění* (jen ke čtení) a verze 2 *návrh*; pozdější
+   revizní texty z podkladů (ACTN3 v0.2, LCT) jsou rovnou v návrhu a rozdíl je
+   zapsaný v revizních záznamech, karty bez původního obsahu (SLC16A1, FTO,
+   TCF7L2) vzniknou jako návrh s úkoly k doplnění, zároveň vznikne panel
+   „Panel variant z podkladů“. Varianty, které v katalogu už jsou, se
+   nepřepíší. Totéž umí příkaz:
 
        python manage.py nacist_genove_karty "C:\cesta\01_Genove_karty_plne_zneni_v02.docx"
 
@@ -71,16 +76,34 @@ ni potřebuje „Stav týmu“ (is_staff) a skupiny oprávnění srovná `seed_r
    (předvyplněno z jiných zápisů varianty). Aplikace zápis nikdy nehádá: co
    nejde převést, uloží jako *nejasný zápis*. Není-li žádný panel, vznikne
    „Panel laboratoře“ se všemi variantami.
-4. **Revize a schválení.** V tabulce karet otevře *Upravit* editor karty
-   v aplikaci (`/genetika/karta/<id>/upravit/`): co gen dělá, text pro každý
-   genotyp, doporučení s *důvodem* (doložená interpretace varianty / dotazník
-   / obecný postup / budoucí měření – bez důvodu kartu nejde schválit),
-   scénáře z dotazníku (zapnout jde jen s odpovědí, která je spouští; scénář
-   s měřením jen s podmínkou z administrace), nepřípustné výroky (jeden na
-   řádek) a rozhodnutí revizních záznamů. *Uložit a poslat k revizi* předá
-   kartu garantovi; ten ji na stránce karty *schválí*, jen když kontrola před
-   schválením nic neblokuje. Schválené znění je neměnné; *Nová verze* otevře
-   rovnou editor nové verze.
+4. **Revize a schválení.** V tabulce karet otevře *Upravit* průvodce
+   kartou (`/genetika/karta/<id>/upravit/`): přehled osmi kroků, u každého
+   stav z dat („chybí text pro CT“, „2 doporučení bez důvodu“) a tlačítko
+   *Další krok*. Každý krok je jedna stránka s jedním formulářem, připomínkou,
+   co se v něm nesmí (včetně nepřípustných výroků karty), a vedle polí
+   původním zněním z podkladů nebo předchozí verzí:
+   1. *Varianta* – gen, rsID, oblast, genotypy (u varianty se schválenou
+      kartou nebo uloženými výsledky jde zápis genotypů jen číst), jiné zápisy,
+      zdroj frekvencí.
+   2. *Co gen dělá* – pro klienta, omezení interpretace, odborně.
+   3. *Texty pro genotypy* – text pro klienta ke každému genotypu (povinný),
+      frekvence se zdrojem, odborné znění.
+   4. *Doporučení s důvody* – doložená interpretace varianty / odpověď
+      v dotazníku / obecný postup / budoucí měření s testem z katalogu; bez
+      důvodu kartu nejde schválit.
+   5. *Kontext z dotazníku* – scénáře: odpověď sportovce, která je spouští,
+      text pro každý genotyp, zapnutí (jde jen se spouštěcí odpovědí), nové
+      scénáře; scénář nad měřením potřebuje podmínku z administrace.
+   6. *Co zpráva říkat nesmí* – výroky karty (jeden na řádek); společné výroky
+      pro všechny karty mění správce.
+   7. *Zdroje a důkazy* – citace s odkazem a řádky důkazů (E01…: znak, podklad
+      a omezení, použití ve zprávě, zdroje).
+   8. *Kontrola a schválení* – kontrolní seznam (blokující / k doplnění),
+      rozhodnutí revizních záznamů, *Poslat k revizi garantovi*; garant tu
+      kartu *schválí* (jen bez blokujících nedostatků) nebo *vrátí k úpravě*.
+
+   Schválené znění je neměnné; *Nová verze* na stránce karty otevře průvodce
+   nové verze s předchozím zněním vedle polí.
 5. **U sportovce** (karta sportovce → Genetika) vede postup pěti kroky:
    souhlas (v portálu, nebo laboratoř zapíše převzatý podepsaný) → vzorek
    a výsledek (opsané genotypy) → ověření příslušnosti (výsledek patří tomuto

@@ -1,0 +1,41 @@
+<section class="card p-4">
+  <p class="text-xs text-muted mb-3">„Obecný postup“ platí každému bez ohledu na genotyp; „budoucí měření“ = zpráva řekne, co by bylo vhodné změřit (vyberte test z katalogu). Prázdný text řádek smaže.</p>
+  <input type="hidden" name="rec_count" value="{{ rec_count }}">
+  <div class="space-y-3">
+    {% for r in recommendations %}
+      {% with i=forloop.counter0 %}
+      <div class="p-3 rounded-lg" style="background: var(--surface-2)">
+        <input type="hidden" name="rec_id_{{ i }}" value="{{ r.pk }}">
+        <div class="grid sm:grid-cols-4 gap-2 mb-2 text-sm">
+          <select name="rec_genotype_{{ i }}" class="input text-sm py-1.5"><option value="">všechny genotypy</option>{% for g in genotypes %}<option value="{{ g.code }}" {% if r.genotype == g.code %}selected{% endif %}>{{ g.label }}</option>{% endfor %}</select>
+          <select name="rec_kind_{{ i }}" class="input text-sm py-1.5">{% for value, label in kinds %}<option value="{{ value }}" {% if r.kind == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+          <select name="rec_basis_{{ i }}" class="input text-sm py-1.5"><option value="">— důvod (povinný) —</option>{% for value, label in bases %}<option value="{{ value }}" {% if r.basis == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+          <select name="rec_protocol_{{ i }}" class="input text-sm py-1.5"><option value="">test k posouzení (jen u měření)</option>{% for p in protocols %}<option value="{{ p.pk }}" {% if r.protocol_id == p.pk %}selected{% endif %}>{{ p.name }}</option>{% endfor %}</select>
+        </div>
+        <textarea name="rec_text_{{ i }}" rows="2" class="input text-sm">{{ r.text }}</textarea>
+        <div class="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted">
+          <label>klíč pro slučování <input name="rec_key_{{ i }}" value="{{ r.merge_key }}" class="input w-40 text-xs py-1 inline-block" placeholder="např. plyometrie"></label>
+          <label class="inline-flex items-center gap-1"><input type="checkbox" name="rec_delete_{{ i }}"> smazat</label>
+        </div>
+      </div>
+      {% endwith %}
+    {% endfor %}
+    {% for i in blank_rows %}
+      <div class="p-3 rounded-lg border border-dashed" style="border-color: var(--border)">
+        <div class="grid sm:grid-cols-4 gap-2 mb-2 text-sm">
+          <select name="rec_genotype_{{ i }}" class="input text-sm py-1.5"><option value="">všechny genotypy</option>{% for g in genotypes %}<option value="{{ g.code }}">{{ g.label }}</option>{% endfor %}</select>
+          <select name="rec_kind_{{ i }}" class="input text-sm py-1.5">{% for value, label in kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+          <select name="rec_basis_{{ i }}" class="input text-sm py-1.5"><option value="">— důvod (povinný) —</option>{% for value, label in bases %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+          <select name="rec_protocol_{{ i }}" class="input text-sm py-1.5"><option value="">test k posouzení (jen u měření)</option>{% for p in protocols %}<option value="{{ p.pk }}">{{ p.name }}</option>{% endfor %}</select>
+        </div>
+        <textarea name="rec_text_{{ i }}" rows="2" class="input text-sm" placeholder="Nové doporučení (prázdné se neuloží)"></textarea>
+        <label class="text-xs text-muted mt-1 block">klíč pro slučování <input name="rec_key_{{ i }}" class="input w-40 text-xs py-1 inline-block"></label>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% if original_recs %}
+  <details class="card px-4 py-3 text-sm"><summary class="cursor-pointer link">{{ original_label }}: {{ original_recs|length }} doporučení</summary>
+    <ul class="mt-2 space-y-1">{% for r in original_recs %}<li><span class="badge mr-1">{{ r.genotype|default:"všechny" }}</span><span class="text-xs text-muted mr-1">{{ r.get_kind_display }}</span>{{ r.text }}</li>{% endfor %}</ul>
+  </details>
+{% endif %}

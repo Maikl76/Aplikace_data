@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Průvodce kartou {{ card }} – FTVS{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+  <div class="min-w-0">
+    <a href="{% url 'genetics_home' %}" class="text-sm link">← Genetika</a>
+    <h1 class="text-2xl font-semibold leading-tight">Průvodce kartou {{ variant.gene }} <span class="text-muted font-normal">/ {{ variant.rsid }} · verze {{ card.version }}</span></h1>
+    <div class="mt-1 flex flex-wrap gap-1.5 text-sm">
+      <span class="badge {% if card.status == 'review' %}badge-warn{% endif %}">{{ card.get_status_display }}</span>
+      <span class="badge">{{ variant.domain }}</span>
+      {% if variant.subtitle %}<span class="badge">{{ variant.subtitle }}</span>{% endif %}
+    </div>
+    <p class="text-sm text-2 mt-2">Osm kroků, každý s jedním formulářem. Stav kroku plyne z toho, co je v kartě. {% if original %}Vedle polí je vidět {{ original_label|lower }}, aby bylo vidět, co se při revizi mění.{% endif %} Do zprávy jde jen schválená karta.</p>
+  </div>
+  <a href="{% url 'genetics_card' card.pk %}" class="btn">Zobrazit kartu</a>
+</div>
+
+{% steps steps heading="Kroky karty" done_label="karta je schválená" %}
+
+{% if card.review_priorities or open_revisions or card.import_note %}
+  <div class="grid lg:grid-cols-2 gap-4">
+    {% if card.review_priorities %}
+      <section class="card p-4">
+        <h2 class="card-title mb-1">Revizní priority z podkladů</h2>
+        <p class="text-sm whitespace-pre-line">{{ card.review_priorities }}</p>
+      </section>
+    {% endif %}
+    {% if open_revisions %}
+      <section class="card p-4">
+        <h2 class="card-title mb-1">Revizní záznamy k rozhodnutí <span class="badge badge-warn">{{ open_revisions }}</span></h2>
+        <p class="text-sm">Sporná tvrzení a úkoly k doplnění z podkladů. Rozhodují se v kroku 8 (Kontrola a schválení); otevřený záznam schválení neblokuje, ale zůstává v historii karty.</p>
+        <a href="{% url 'genetics_card_step' card.pk 'kontrola' %}" class="btn btn-sm mt-2">Ke kontrole</a>
+      </section>
+    {% endif %}
+    {% if card.import_note %}
+      <section class="card p-4">
+        <h2 class="card-title mb-1">Poznámka z podkladů</h2>
+        <p class="text-xs text-muted whitespace-pre-line">{{ card.import_note }}</p>
+      </section>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

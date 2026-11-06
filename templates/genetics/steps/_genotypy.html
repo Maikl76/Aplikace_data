@@ -1,0 +1,23 @@
+<section class="card p-4 space-y-4">
+  {% for g in genotypes %}
+    <div class="p-3 rounded-lg" style="background: var(--surface-2)">
+      <div class="flex flex-wrap items-center gap-2 mb-1"><span class="badge badge-accent">{{ g.label }}</span>
+        <input name="freq_{{ g.code }}" value="{{ g.text.frequency|default:'' }}" maxlength="200" class="input w-auto text-xs py-1" placeholder="frekvence s populací, např. 18 % (Evropané)"></div>
+      <textarea name="text_{{ g.code }}" rows="4" class="input text-sm" placeholder="Pro klienta – povinné. Co studie u genotypu popisují a co z výsledku určit nejde.">{{ g.text.client_text|default:'' }}</textarea>
+      {% include "genetics/steps/_puvodni.html" with text=g.original.client_text %}
+      <details class="mt-1 text-sm"><summary class="cursor-pointer link">odborné znění pro lékaře (nepovinné)</summary>
+        <textarea name="expert_{{ g.code }}" rows="3" class="input text-sm mt-1">{{ g.text.expert_text|default:'' }}</textarea>
+        {% include "genetics/steps/_puvodni.html" with text=g.original.expert_text %}
+      </details>
+    </div>
+  {% empty %}
+    <p class="text-sm text-muted">Varianta nemá genotypy – doplňte je v kroku 1.</p>
+  {% endfor %}
+  <div class="grid sm:grid-cols-2 gap-3 text-sm">
+    <label class="block"><span class="text-xs text-2">Zdroj frekvencí (např. gnomAD v4, Evropané)</span>
+      <input name="frequency_source" value="{{ variant.frequency_source }}" maxlength="500" class="input text-sm py-1.5"></label>
+    <label class="block"><span class="text-xs text-2">Poznámka k frekvencím (nepovinné)</span>
+      <textarea name="frequency_note" rows="2" class="input text-sm">{{ card.frequency_note }}</textarea></label>
+  </div>
+  {% include "genetics/steps/_puvodni.html" with text=original.frequency_note %}
+</section>

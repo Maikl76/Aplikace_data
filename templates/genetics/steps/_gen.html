@@ -1,0 +1,16 @@
+<section class="card p-4 space-y-3">
+  <label class="block text-sm"><span class="text-xs text-2">Co gen dělá – pro klienta (jde do zprávy doslova)</span>
+    <textarea name="biology_client" rows="4" class="input text-sm" placeholder="např. Gen ACTN3 nese návod na bílkovinu, která se vyskytuje v rychlých svalových vláknech…">{{ card.biology_client }}</textarea></label>
+  {% include "genetics/steps/_puvodni.html" with text=original.biology_client %}
+  <label class="block text-sm"><span class="text-xs text-2">Omezení interpretace – co z výsledku určit nejde (objeví se ve zprávě v části Omezení)</span>
+    <textarea name="limitations" rows="3" class="input text-sm" placeholder="např. Výsledek neříká, kolik rychlých vláken máte ani jaký sport vám sedí.">{{ card.limitations }}</textarea></label>
+  {% include "genetics/steps/_puvodni.html" with text=original.limitations %}
+  <details class="text-sm"><summary class="cursor-pointer link">Odborně, pro lékaře (nepovinné)</summary>
+    <label class="block mt-2"><span class="text-xs text-2">Biologická funkce – odborně</span>
+      <textarea name="biology_expert" rows="4" class="input text-sm">{{ card.biology_expert }}</textarea></label>
+    {% include "genetics/steps/_puvodni.html" with text=original.biology_expert %}
+    <label class="block mt-2"><span class="text-xs text-2">Účinek varianty</span>
+      <textarea name="effect" rows="3" class="input text-sm">{{ card.effect }}</textarea></label>
+    {% include "genetics/steps/_puvodni.html" with text=original.effect %}
+  </details>
+</section>

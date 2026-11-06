@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import setup_views, views
+from . import card_wizard, setup_views, views
 
 urlpatterns = [
     path("", views.home, name="genetics_home"),
@@ -9,7 +9,9 @@ urlpatterns = [
     path("nastaveni/garanti/", setup_views.setup_guarantors, name="genetics_setup_guarantors"),
     path("nastaveni/karty/", setup_views.setup_cards, name="genetics_setup_cards"),
     path("nastaveni/panel/", setup_views.setup_panel, name="genetics_setup_panel"),
-    path("karta/<int:pk>/upravit/", setup_views.card_edit, name="genetics_card_edit"),
+    path("karta/nova/", card_wizard.card_new, name="genetics_card_new"),
+    path("karta/<int:pk>/upravit/", card_wizard.card_wizard, name="genetics_card_edit"),
+    path("karta/<int:pk>/upravit/<slug:krok>/", card_wizard.card_step, name="genetics_card_step"),
     path("karta/<int:pk>/", views.card, name="genetics_card"),
     path("karta/<int:pk>/akce/", views.card_action, name="genetics_card_action"),
     path("sportovec/<int:pk>/", views.subject, name="genetics_subject"),

@@ -1,0 +1,71 @@
+<section class="card p-4 space-y-3">
+  <h2 class="card-title">Zdroje (literatura)</h2>
+  <p class="text-xs text-muted">Citace s autory, názvem, časopisem a rokem; krátká citace se v kontrole hlásí jako neúplná. Prázdná citace řádek smaže.</p>
+  <input type="hidden" name="src_count" value="{{ src_count }}">
+  {% for s in sources %}
+    {% with i=forloop.counter0 %}
+    <div class="p-3 rounded-lg text-sm space-y-2" style="background: var(--surface-2)">
+      <input type="hidden" name="src_id_{{ i }}" value="{{ s.pk }}">
+      <div class="flex flex-wrap gap-2">
+        <input name="src_label_{{ i }}" value="{{ s.label }}" maxlength="12" class="input w-20 text-sm py-1.5" placeholder="S1">
+        <input name="src_title_{{ i }}" value="{{ s.title }}" maxlength="200" class="input flex-1 text-sm py-1.5" placeholder="k čemu (např. frekvence genotypů)">
+      </div>
+      <textarea name="src_citation_{{ i }}" rows="2" class="input text-sm" placeholder="citace – autoři, název, časopis, rok">{{ s.citation }}</textarea>
+      <div class="flex flex-wrap items-center gap-3">
+        <input name="src_url_{{ i }}" value="{{ s.url }}" maxlength="500" class="input flex-1 text-xs py-1" placeholder="odkaz (DOI nebo URL)">
+        <label class="inline-flex items-center gap-1 text-xs text-muted"><input type="checkbox" name="src_delete_{{ i }}"> smazat</label>
+      </div>
+      {% if s.article %}<p class="text-xs text-muted">článek v knihovně: {{ s.article }}</p>{% endif %}
+    </div>
+    {% endwith %}
+  {% endfor %}
+  {% for i in src_blank %}
+    <div class="p-3 rounded-lg text-sm space-y-2 border border-dashed" style="border-color: var(--border)">
+      <div class="flex flex-wrap gap-2">
+        <input name="src_label_{{ i }}" maxlength="12" class="input w-20 text-sm py-1.5" placeholder="S{{ i|add:1 }}">
+        <input name="src_title_{{ i }}" maxlength="200" class="input flex-1 text-sm py-1.5" placeholder="k čemu">
+      </div>
+      <textarea name="src_citation_{{ i }}" rows="2" class="input text-sm" placeholder="Nový zdroj – citace (prázdné se neuloží)"></textarea>
+      <input name="src_url_{{ i }}" maxlength="500" class="input text-xs py-1" placeholder="odkaz (DOI nebo URL)">
+    </div>
+  {% endfor %}
+  {% if original_sources %}
+    <details class="text-xs"><summary class="cursor-pointer text-muted">{{ original_label }}: {{ original_sources|length }} zdrojů</summary>
+      <ul class="list-disc pl-5 mt-1 text-2">{% for s in original_sources %}<li>{% if s.label %}<strong>{{ s.label }}</strong> {% endif %}{{ s.citation }}</li>{% endfor %}</ul></details>
+  {% endif %}
+</section>
+
+<section class="card p-4 space-y-3">
+  <h2 class="card-title">Důkazy a přípustné závěry</h2>
+  <p class="text-xs text-muted">Řádek důkazů (E01…) říká, co zdroj dokládá, jaká má omezení a co z něj smí do zprávy. Prázdný znak řádek smaže.</p>
+  <input type="hidden" name="ev_count" value="{{ ev_count }}">
+  {% for e in evidence %}
+    {% with i=forloop.counter0 %}
+    <div class="p-3 rounded-lg text-sm space-y-2" style="background: var(--surface-2)">
+      <input type="hidden" name="ev_id_{{ i }}" value="{{ e.pk }}">
+      <div class="flex flex-wrap gap-2">
+        <input name="ev_code_{{ i }}" value="{{ e.code }}" maxlength="12" class="input w-20 text-sm py-1.5" placeholder="E01">
+        <input name="ev_trait_{{ i }}" value="{{ e.trait }}" maxlength="200" class="input flex-1 text-sm py-1.5" placeholder="znak (např. sprinterský výkon)">
+        <input name="ev_source_labels_{{ i }}" value="{{ e.source_labels }}" maxlength="120" class="input w-28 text-sm py-1.5" placeholder="zdroje S1, S2">
+      </div>
+      <textarea name="ev_basis_text_{{ i }}" rows="2" class="input text-sm" placeholder="podklad a omezení – co studie ukazují a na jakém vzorku">{{ e.basis_text }}</textarea>
+      <div class="flex flex-wrap items-center gap-3">
+        <textarea name="ev_usage_{{ i }}" rows="1" class="input flex-1 text-sm" placeholder="použití ve zprávě – co z toho smí do textu">{{ e.usage }}</textarea>
+        <label class="inline-flex items-center gap-1 text-xs text-muted"><input type="checkbox" name="ev_delete_{{ i }}"> smazat</label>
+      </div>
+      {% if e.article %}<p class="text-xs text-muted">článek v knihovně: {{ e.article }}</p>{% endif %}
+    </div>
+    {% endwith %}
+  {% endfor %}
+  {% for i in ev_blank %}
+    <div class="p-3 rounded-lg text-sm space-y-2 border border-dashed" style="border-color: var(--border)">
+      <div class="flex flex-wrap gap-2">
+        <input name="ev_code_{{ i }}" maxlength="12" class="input w-20 text-sm py-1.5" placeholder="E{{ i|add:1|stringformat:'02d' }}">
+        <input name="ev_trait_{{ i }}" maxlength="200" class="input flex-1 text-sm py-1.5" placeholder="Nový řádek – znak (prázdné se neuloží)">
+        <input name="ev_source_labels_{{ i }}" maxlength="120" class="input w-28 text-sm py-1.5" placeholder="zdroje S1, S2">
+      </div>
+      <textarea name="ev_basis_text_{{ i }}" rows="2" class="input text-sm" placeholder="podklad a omezení"></textarea>
+      <textarea name="ev_usage_{{ i }}" rows="1" class="input text-sm" placeholder="použití ve zprávě"></textarea>
+    </div>
+  {% endfor %}
+</section>

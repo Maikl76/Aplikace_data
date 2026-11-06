@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}{{ n }} · {{ title }} – {{ card }} – FTVS{% endblock %}
+{% block content %}
+<div class="max-w-5xl">
+  <a href="{% url 'genetics_card_edit' card.pk %}" class="text-sm link">← Průvodce kartou {{ card }}</a>
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <h1 class="text-2xl font-semibold leading-tight">Krok {{ n }} · {{ title }} <span class="text-base font-normal text-muted">{{ variant.gene }} / {{ variant.rsid }} · verze {{ card.version }}</span></h1>
+    <a href="{% url 'genetics_card' card.pk %}" class="btn btn-sm">Zobrazit kartu</a>
+  </div>
+  {% include "genetics/_card_rail.html" %}
+
+  <div class="card px-4 py-3 mb-3 text-sm border-l-4 flex gap-3 items-start" style="border-left-color: var(--accent)">
+    <span style="color: var(--accent-strong)">{% icon "info" "w-5 h-5" %}</span>
+    <div>{{ hint }}
+      {% if forbidden_all %}<div class="mt-1 text-xs text-muted">Nesmí se objevit: {% for f in forbidden_all %}<span class="badge mr-1">„{{ f }}“</span>{% endfor %}</div>{% endif %}
+    </div>
+  </div>
+  {% if card.review_priorities and slug != "varianta" and slug != "kontrola" %}
+    <details class="card px-4 py-2 mb-3 text-sm"><summary class="cursor-pointer link">Revizní priority z podkladů</summary><p class="mt-1 whitespace-pre-line text-2">{{ card.review_priorities }}</p></details>
+  {% endif %}
+
+  <form method="post" class="space-y-4">{% csrf_token %}
+    {% include step_template %}
+    <div class="flex flex-wrap gap-2 sticky bottom-0 py-3" style="background: var(--bg)">
+      {% if slug == "kontrola" %}
+        {% if revisions %}<button name="akce" value="ulozit" class="btn">{% icon "check" %}Uložit rozhodnutí</button>{% endif %}
+        {% if card.status == "draft" %}<button name="akce" value="k_revizi" class="btn btn-primary" onclick="return confirm('Poslat kartu garantovi oblasti ke schválení?')">{% icon "check" %}Poslat k revizi garantovi</button>{% endif %}
+        {% if card.status == "review" %}
+          <button name="akce" value="vratit" class="btn">Vrátit k úpravě</button>
+          {% if may_approve %}<button name="akce" value="schvalit" class="btn btn-primary" {% if not checklist.ok %}disabled title="Nejdřív odstraňte blokující nedostatky"{% endif %} onclick="return confirm('Schválit kartu? Schválené znění je neměnné; další změna je nová verze.')">{% icon "check" %}Schválit</button>{% else %}<span class="btn" style="opacity:.6" title="Schvaluje jen garant oblasti">Schvaluje garant oblasti</span>{% endif %}
+        {% endif %}
+        <a href="{% url 'genetics_card_edit' card.pk %}" class="btn">Zpět na přehled</a>
+      {% else %}
+        <button name="akce" value="ulozit" class="btn">{% icon "check" %}Uložit</button>
+        {% if next %}<button name="akce" value="dalsi" class="btn btn-primary">Uložit a dál: {{ next_title }}{% icon "chevron-right" %}</button>{% endif %}
+        <button name="akce" value="prehled" class="btn">Uložit a zpět na přehled</button>
+      {% endif %}
+      {% if user.is_staff and slug == "zdroje" %}<a href="/admin/genetics/genecard/{{ card.pk }}/change/" class="text-xs text-muted self-center sm:ml-auto">pro pokročilé: články v knihovně (administrace)</a>{% endif %}
+      {% if user.is_staff and slug == "kontext" %}<a href="/admin/genetics/genecard/{{ card.pk }}/change/" class="text-xs text-muted self-center sm:ml-auto">pro pokročilé: scénáře nad měřením (administrace)</a>{% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

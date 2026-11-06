@@ -1,0 +1,46 @@
+<section class="card p-4 space-y-3">
+  <p class="text-xs text-muted">Scénář se ve zprávě použije jen zapnutý a jen když ho spustí odpověď sportovce v dotazníku. Text pro genotyp mluví o zkušenosti sportovce vedle genotypu – nikdy „odpověď potvrzuje profil“. Prázdná odpověď scénář smaže.</p>
+  {% for s in scenarios %}
+    <div class="p-3 rounded-lg text-sm space-y-2" style="background: var(--surface-2)">
+      <div class="flex flex-wrap items-center gap-2"><span class="badge">{{ s.get_kind_display }}</span>{% if s.is_active %}<span class="badge badge-good">zapnuto</span>{% else %}<span class="badge">vypnuto</span>{% endif %}{% if s.title %}<span class="text-xs text-muted">{{ s.title }}</span>{% endif %}</div>
+      <label class="block"><span class="text-xs text-2">Odpověď sportovce (jak ji uvidí ve zprávě)</span>
+        <input name="sc_statement_{{ s.pk }}" value="{{ s.statement }}" class="input text-sm py-1.5"></label>
+      <div class="flex flex-wrap items-center gap-3">
+        <label class="inline-flex items-center gap-1"><input type="checkbox" name="sc_active_{{ s.pk }}" {% if s.is_active %}checked{% endif %}> zapnout</label>
+        {% if s.kind == "questionnaire" %}
+          <select name="sc_trigger_{{ s.pk }}" class="input w-auto text-sm py-1.5 max-w-full">
+            <option value="">— spouští odpověď… —</option>
+            {% for value, label in triggers %}<option value="{{ value }}" {% if s.trigger == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+        {% else %}
+          <span class="text-xs text-muted">podmínka nad měřením: {{ s.condition|default:"není – zapisuje se v administraci (pro pokročilé)" }}</span>
+        {% endif %}
+        <label class="inline-flex items-center gap-1 text-xs text-muted"><input type="checkbox" name="sc_delete_{{ s.pk }}"> smazat</label>
+      </div>
+      <div class="grid sm:grid-cols-3 gap-2">
+        {% for g in s.rows %}
+          <label class="block"><span class="badge badge-accent">{{ g.label }}</span>
+            <textarea name="sc_text_{{ s.pk }}_{{ g.code }}" rows="3" class="input text-sm mt-1" placeholder="text pro tento genotyp">{{ g.text }}</textarea>
+            {% include "genetics/steps/_puvodni.html" with text=g.original %}</label>
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+  <input type="hidden" name="nsc_count" value="{{ nsc_count }}">
+  {% for i in new_rows %}
+    <div class="p-3 rounded-lg text-sm space-y-2 border border-dashed" style="border-color: var(--border)">
+      <label class="block"><span class="text-xs text-2">Nový scénář – odpověď sportovce (prázdné se neuloží)</span>
+        <input name="nsc_statement_{{ i }}" class="input text-sm py-1.5" placeholder="např. Po kofeinu před delším výkonem cítím lepší soustředění."></label>
+      <div class="flex flex-wrap items-center gap-3">
+        <label class="inline-flex items-center gap-1"><input type="checkbox" name="nsc_active_{{ i }}"> zapnout</label>
+        <select name="nsc_trigger_{{ i }}" class="input w-auto text-sm py-1.5 max-w-full">
+          <option value="">— spouští odpověď… —</option>
+          {% for value, label in triggers %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="grid sm:grid-cols-3 gap-2">
+        {% for g in genotypes %}<label class="block"><span class="badge badge-accent">{{ g.label }}</span><textarea name="nsc_text_{{ i }}_{{ g.code }}" rows="3" class="input text-sm mt-1" placeholder="text pro tento genotyp"></textarea></label>{% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+</section>

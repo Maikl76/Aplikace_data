@@ -1,0 +1,18 @@
+<section class="card p-4 space-y-3">
+  <label class="block text-sm"><span class="text-xs text-2">Výroky nepřípustné u této karty – jeden na řádek</span>
+    <textarea name="forbidden" rows="6" class="input text-sm" placeholder="např. máte více rychlých vláken&#10;jste sprinterský typ&#10;potenciál se projevil">{{ forbidden }}</textarea></label>
+  {% if original_forbidden %}
+    <details class="text-xs"><summary class="cursor-pointer text-muted">{{ original_label }}: {{ original_forbidden|length }} výroků</summary>
+      <ul class="list-disc pl-5 mt-1 text-2">{% for f in original_forbidden %}<li>„{{ f.text }}“</li>{% endfor %}</ul></details>
+  {% endif %}
+</section>
+<section class="card p-4">
+  <h2 class="card-title mb-1">Společné pro všechny karty</h2>
+  {% if is_admin %}
+    <textarea name="shared" rows="4" class="input text-sm" placeholder="např. jste univerzální typ">{{ shared_text }}</textarea>
+    <p class="text-xs text-muted mt-1">Platí pro každou kartu a každou zprávu; mění je jen správce.</p>
+  {% else %}
+    <ul class="text-sm list-disc pl-5">{% for s in shared %}<li>„{{ s.text }}“</li>{% empty %}<li class="text-muted">zatím žádné</li>{% endfor %}</ul>
+    <p class="text-xs text-muted mt-1">Společné výroky mění správce.</p>
+  {% endif %}
+</section>

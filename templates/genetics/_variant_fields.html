@@ -1,0 +1,29 @@
+{# Pole varianty – společná pro Novou kartu a krok 1 průvodce kartou (form, domains, locked) #}
+<section class="card p-4 space-y-3">
+  <div class="grid sm:grid-cols-2 gap-3 text-sm">
+    <label class="block"><span class="text-xs text-2">Gen</span>
+      <input name="gene" value="{{ form.gene }}" maxlength="32" required class="input text-sm py-1.5" placeholder="např. ACTN3"></label>
+    <label class="block"><span class="text-xs text-2">rsID varianty</span>
+      <input name="rsid" value="{{ form.rsid }}" maxlength="32" required class="input text-sm py-1.5" placeholder="např. rs1815739"></label>
+    <label class="block"><span class="text-xs text-2">Plný název genu (nepovinné)</span>
+      <input name="full_name" value="{{ form.full_name }}" maxlength="200" class="input text-sm py-1.5" placeholder="např. alfa-aktinin 3"></label>
+    <label class="block"><span class="text-xs text-2">Oblast – podle ní se najde garant, který kartu schvaluje</span>
+      <select name="domain" required class="input text-sm py-1.5">
+        {% if not form.domain %}<option value="">— vyberte oblast —</option>{% endif %}
+        {% for d in domains %}<option value="{{ d.pk }}" {% if form.domain == d.pk|stringformat:"s" %}selected{% endif %}>{{ d.name }}</option>{% endfor %}
+      </select></label>
+    <label class="block"><span class="text-xs text-2">Genotypy – přesně jak je bude psát laboratoř, oddělené čárkou</span>
+      <input name="genotypes" value="{{ form.genotypes }}" {% if locked %}readonly{% else %}required{% endif %} class="input text-sm py-1.5" placeholder="např. CC, CT, TT"></label>
+    <label class="block"><span class="text-xs text-2">Jiné zápisy genotypů (nepovinné)</span>
+      <input name="aliases" value="{{ form.aliases }}" class="input text-sm py-1.5" placeholder="např. CC=RR, CT=RX, TT=XX"></label>
+    <label class="block"><span class="text-xs text-2">Zápis varianty (nepovinné)</span>
+      <input name="notation" value="{{ form.notation }}" maxlength="200" class="input text-sm py-1.5" placeholder="např. rs1815739 (c.1729C>T; p.Arg577Ter; R577X)"></label>
+    <label class="block"><span class="text-xs text-2">Podtitul (nepovinné)</span>
+      <input name="subtitle" value="{{ form.subtitle }}" maxlength="200" class="input text-sm py-1.5" placeholder="např. Síla a výbušnost"></label>
+  </div>
+  <label class="block text-sm"><span class="text-xs text-2">Poznámka k zápisu – strand, vztah k jinému rsID, konvence písmen (nepovinné)</span>
+    <textarea name="strand_note" rows="2" class="input text-sm">{{ form.strand_note }}</textarea></label>
+  <label class="block text-sm"><span class="text-xs text-2">Zdroj frekvencí genotypů (nepovinné, např. gnomAD v4, Evropané)</span>
+    <input name="frequency_source" value="{{ form.frequency_source }}" maxlength="500" class="input text-sm py-1.5"></label>
+  {% if locked %}<p class="text-xs text-muted">Genotypy nejde měnit: varianta má schválenou kartu nebo uložené výsledky sportovců. Jiný zápis laboratoře se mění v kroku 3 nastavení genetiky (panel).</p>{% endif %}
+</section>
