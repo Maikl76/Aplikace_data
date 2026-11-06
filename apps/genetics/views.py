@@ -206,7 +206,10 @@ class SampleForm(forms.Form):
         for item in self.items:
             self.fields[f"g_{item.variant_id}"] = forms.CharField(
                 label=item.variant.label, max_length=16, required=False,
-                help_text=", ".join(item.variant.genotype_label(g) for g in item.variant.genotypes))
+                help_text=", ".join(item.variant.genotype_label(g) for g in item.variant.genotypes),
+                widget=forms.TextInput(attrs={"placeholder": "zápis laboratoře"}))
+        for field in self.fields.values():
+            field.widget.attrs.setdefault("class", "input mt-1")
 
     def genotype_fields(self):
         return [(item, self[f"g_{item.variant_id}"]) for item in self.items]
