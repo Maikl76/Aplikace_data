@@ -62,17 +62,22 @@ def applies_to(norm) -> str:
     if norm.mode:
         parts.append(norm.get_mode_display().lower())
     if norm.speed is not None:
-        parts.append(f"{norm.speed:g} °/s")
+        parts.append(f"{_cz(norm.speed)} °/s")
     return ", ".join(parts) or "všichni sportovci"
+
+
+def _cz(value) -> str:
+    """Číslo s desetinnou čárkou, jak se píše ve zprávách."""
+    return f"{value:g}".replace(".", ",")
 
 
 def values_text(norm) -> str:
     out = []
     if norm.mean is not None:
-        out.append(f"{norm.mean:g}" + (f" ± {norm.sd:g}" if norm.sd else " (bez SD)"))
+        out.append(_cz(norm.mean) + (f" ± {_cz(norm.sd)}" if norm.sd else " (bez SD)"))
     if norm.percentiles:
         keys = sorted(norm.percentiles, key=lambda k: float(k))
-        out.append("percentily " + ", ".join(f"P{k} {norm.percentiles[k]:g}" for k in keys))
+        out.append("percentily " + ", ".join(f"P{k} {_cz(norm.percentiles[k])}" for k in keys))
     return "; ".join(out) or "bez hodnot"
 
 

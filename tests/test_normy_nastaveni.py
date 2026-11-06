@@ -127,7 +127,7 @@ def test_norma_se_zalozi_se_zdrojem_upravi_a_smaze(org):
     assert norm.percentiles == {"10": 24.0, "50": 30.0, "90": 36.0}
     assert norm.source_doi == "10.1234/abcd" and norm.organization == org
     text = client.get(reverse("norms_settings")).content.decode()
-    assert "sedí na 1" in text and "ženy, národní úroveň" in text and "30.5 ± 4.2" in text
+    assert "sedí na 1" in text and "ženy, národní úroveň" in text and "30,5 ± 4,2" in text
     assert "percentily P10 24, P50 30, P90 36" in text
     # výběr normy ve zprávě: sedí na sportovkyni národní úrovně, ne na trénovaného muže
     woman, man = Subject.objects.order_by("code")
