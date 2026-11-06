@@ -10,6 +10,7 @@ Zásady, které tu platí bez výjimky:
   oblasti a jen bez blokujících nedostatků.
 """
 
+import re
 from dataclasses import dataclass, field
 
 from django.db import transaction
@@ -226,6 +227,18 @@ def forbidden_in(card, text: str) -> list[str]:
     return [s.text for s in statements if _normalized(s.text) and _normalized(s.text) in haystack]
 
 
+# Značky v návrhu textu – [OVĚŘIT …], [S3, OVĚŘIT], [DOPLNIT …]: co garant ještě
+# neověřil nebo nedoplnil. Do zprávy nesmí – schválení s nimi neprojde,
+# v řádcích důkazů jen upozorní.
+MARKER = re.compile(r"\[[^\]]*\b(OVĚŘIT|DOPLNIT)\b[^\]]*\]")
+
+
+def marker_in(text: str) -> str:
+    """„[OVĚŘIT]“ nebo „[DOPLNIT]“, když text značku obsahuje; jinak prázdné."""
+    match = MARKER.search(text or "")
+    return f"[{match.group(1)}]" if match else ""
+
+
 def checklist(card) -> Checklist:
     """Co kartě chybí ke schválení. Blokující nedostatky schválení zastaví."""
     out = Checklist()
@@ -234,6 +247,11 @@ def checklist(card) -> Checklist:
         out.issues.append(Issue("Varianta nemá definované genotypy."))
     if not card.biology_client.strip():
         out.issues.append(Issue("Chybí vysvětlení biologické funkce pro klienta."))
+    for label, text in (("Vysvětlení pro klienta", card.biology_client),
+                        ("Omezení interpretace", card.limitations)):
+        if marker := marker_in(text):
+            out.issues.append(Issue(f"{label} obsahuje značku k ověření {marker} – nahraďte ji "
+                                    "ověřeným údajem."))
     texts = {t.genotype: t for t in card.genotype_texts.all()}
     for genotype in variant.genotypes:
         text = texts.get(genotype)
@@ -242,11 +260,26 @@ def checklist(card) -> Checklist:
         elif hits := forbidden_in(card, text.client_text):
             out.issues.append(Issue(f"Interpretace genotypu {genotype} obsahuje nepřípustný "
                                     f"výrok: „{hits[0]}“."))
+        elif marker := marker_in(text.client_text):
+            out.issues.append(Issue(f"Interpretace genotypu {genotype} obsahuje značku k ověření "
+                                    f"{marker}."))
     for rec in card.recommendations.all():
         if not rec.basis:
             out.issues.append(Issue(f"Doporučení „{rec.text[:50]}…“ nemá uvedený důvod."))
         elif hits := forbidden_in(card, rec.text):
             out.issues.append(Issue(f"Doporučení obsahuje nepřípustný výrok: „{hits[0]}“."))
+        elif marker := marker_in(rec.text):
+            out.issues.append(Issue(f"Doporučení „{rec.text[:50]}…“ obsahuje značku k ověření "
+                                    f"{marker}."))
+    for scenario in card.scenarios.filter(is_active=True).prefetch_related("texts"):
+        for text in scenario.texts.all():
+            if marker := marker_in(text.text):
+                out.issues.append(Issue(f"Text scénáře „{scenario.statement[:40]}…“ pro "
+                                        f"{text.genotype} obsahuje značku k ověření {marker}."))
+    for row in card.evidence.all():
+        if marker := marker_in(row.basis_text + row.usage):
+            out.issues.append(Issue(f"Řádek důkazů {row.code or row.trait} má značku k ověření "
+                                    f"{marker}.", blocking=False))
     if not card.evidence.exists():
         out.issues.append(Issue("Karta nemá žádný řádek důkazů (E01…).", blocking=False))
     if not card.sources.exists():

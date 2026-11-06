@@ -70,6 +70,9 @@ ni potřebuje „Stav týmu“ (is_staff) a skupiny oprávnění srovná `seed_r
 
        python manage.py nacist_genove_karty "C:\cesta\01_Genove_karty_plne_zneni_v02.docx"
 
+   Návrhy karet uložené v repozitáři (`katalog/karty/*.json`) se načtou samy
+   při aktualizaci – viz *Návrhy karet ze souboru*.
+
 3. **Panel a laboratoř** (`/genetika/nastaveni/panel/`). Která laboratoř
    genotypizuje; u každé varianty *Použít* (vypnutá varianta zmizí ze zpráv,
    uložené genotypy zůstanou) a zápis laboratoře ve tvaru `RR=CC, RX=CT, XX=TT`
@@ -123,6 +126,32 @@ a interakce se přenáší s katalogem (`ulozit-katalog.bat` / `nacist-katalog.b
 Garanti jsou účty a nepřenáší se; vzorky a genotypy do katalogu nepatří
 nikdy. Načtení nahradí obsah karty se stejnou variantou a verzí obsahem ze
 souboru.
+
+## Návrhy karet ze souboru
+
+Kartu připravenou mimo aplikaci nese soubor `katalog/karty/<gen>.json`:
+varianta a její verze – původní znění z podkladů (v1, jen ke čtení) a návrh
+(v2). Příkaz
+
+    python manage.py nacist_navrhy_karet
+
+ho načte do katalogu; běží sám při každé aktualizaci (`spustit.bat`,
+`deploy/pa-update.sh`) a založí jen varianty, které v katalogu ještě nejsou –
+existující kartu nikdy nepřepíše. Karta vznikne jako návrh, přidá se do
+panelu laboratoře a dál ji vede průvodce kartou; schválení je na garantovi.
+
+Značky **[OVĚŘIT …]** a **[DOPLNIT …]** (i ve tvaru `[S3, OVĚŘIT]`) v textech
+pro klienta, v omezení interpretace, v doporučeních a v zapnutých scénářích
+schválení zastaví – kontrola je hlásí jako blokující; v řádcích důkazů jen
+upozorní. Garant je nahradí ověřeným údajem, nebo větu smaže.
+
+První takový soubor je `katalog/karty/cyp1a2.json` (CYP1A2 / rs762551, oblast
+Kofein): v1 je původní karta z podkladů v02 převedená aplikací, v2 návrh
+podle revizního pokynu karty (žádná dávka ani zaručený účinek kofeinu
+z genotypu) – nové texty pro genotypy, čtyři obecná doporučení včetně pokusu
+s kofeinem jako budoucího měření (spiroergometrie), texty scénářů pro odpověď
+o účinku kofeinu (vypnuté, zapne garant), nepřípustné výroky, řádky důkazů
+E01–E05 a šest revizních záznamů s tím, co ověřit před odesláním k revizi.
 
 ## Dotazník ke genetickému vyšetření
 

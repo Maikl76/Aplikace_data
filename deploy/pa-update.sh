@@ -145,6 +145,8 @@ main() {
     "$PY" manage.py seed_roles --verbosity 0
 
     if [ "$MODE" != "--obnovit" ]; then
+        # Návrhy genových karet z repozitáře (katalog/karty/*.json) – jen varianty, které chybí.
+        "$PY" manage.py nacist_navrhy_karet
         # Ukázkové zprávy od AI uložené z laboratorního počítače (demo/ukazkove_zpravy/).
         "$PY" manage.py nacist_ukazky_zprav
         # Ukázkový přístroj DEXA pro průvodce „Nový přístroj“.

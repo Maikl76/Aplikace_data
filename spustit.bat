@@ -20,6 +20,7 @@ python manage.py zajisti_klic || goto chyba
 python manage.py migrate || goto chyba
 rem Doplni do katalogu nove metriky a protokoly; vase upravy neprepise.
 python manage.py seed_catalog --jen-chybejici || goto chyba
+python manage.py nacist_navrhy_karet || goto chyba
 python manage.py seed_roles --verbosity 0 || goto chyba
 python manage.py prepocitat_odvozene || goto chyba
 

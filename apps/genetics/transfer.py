@@ -73,12 +73,14 @@ def _card(card) -> dict:
         "nahrazuje": _card_ref(card.supersedes),
         **_plain(card),
         "texty": [_plain(t) for t in card.genotype_texts.all()],
-        "doporuceni": [_plain(r) for r in card.recommendations.all()],
+        "doporuceni": [{**_plain(r), "protokol": r.protocol.code if r.protocol_id else None}
+                       for r in card.recommendations.select_related("protocol")],
         "dukazy": [_plain(e) for e in card.evidence.all()],
         "zdroje": [_plain(s) for s in card.sources.all()],
         "nepripustne": [_plain(f) for f in card.forbidden_statements.all()],
-        "scenare": [{**_plain(s), "texty": [_plain(t) for t in s.texts.all()]}
-                    for s in card.scenarios.prefetch_related("texts")],
+        "scenare": [{**_plain(s), "otazka": s.question.code if s.question_id else None,
+                     "texty": [_plain(t) for t in s.texts.all()]}
+                    for s in card.scenarios.select_related("question").prefetch_related("texts")],
         "revize": [_plain(r) for r in card.revisions.all()],
     }
 
@@ -146,6 +148,26 @@ def _variant(rsid: str) -> GeneVariant:
         raise ValueError(f"Varianta {rsid} v souboru chybí.") from exc
 
 
+def _protocol(code):
+    """Test z katalogu podle kódu; neznámý kód doporučení nezastaví, jen bez testu."""
+    if not code:
+        return None
+    from apps.catalog.models import Protocol
+
+    return Protocol.objects.filter(code=code).order_by("-version", "organization_id").first()
+
+
+def _question(code):
+    """Otázka dotazníku genetiky podle kódu; bez ní scénář zůstane nenapojený (a vypnutý)."""
+    if not code:
+        return None
+    from apps.catalog.models import Question
+
+    from .seed import QUESTIONNAIRE_CODE
+
+    return Question.objects.filter(questionnaire__code=QUESTIONNAIRE_CODE, code=code).first()
+
+
 def _children(card, item: dict) -> None:
     for related in (card.genotype_texts, card.recommendations, card.evidence, card.sources,
                     card.forbidden_statements, card.scenarios, card.revisions):
@@ -153,7 +175,8 @@ def _children(card, item: dict) -> None:
     for row in item.get("texty", []):
         GenotypeText.objects.create(card=card, **row)
     for row in item.get("doporuceni", []):
-        Recommendation.objects.create(card=card, **row)
+        Recommendation.objects.create(card=card, protocol=_protocol(row.get("protokol")),
+                                      **_fields(row, "protokol"))
     for row in item.get("dukazy", []):
         CardEvidence.objects.create(card=card, **row)
     for row in item.get("zdroje", []):
@@ -161,7 +184,8 @@ def _children(card, item: dict) -> None:
     for row in item.get("nepripustne", []):
         ForbiddenStatement.objects.create(card=card, **row)
     for row in item.get("scenare", []):
-        scenario = ContextScenario.objects.create(card=card, **_fields(row, "texty"))
+        scenario = ContextScenario.objects.create(card=card, question=_question(row.get("otazka")),
+                                                  **_fields(row, "texty", "otazka"))
         for text in row.get("texty", []):
             ScenarioText.objects.create(scenario=scenario, **text)
     for row in item.get("revize", []):

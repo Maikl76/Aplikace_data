@@ -1,0 +1,658 @@
+{
+ "format": "navrh-karty/1",
+ "popis": "CYP1A2 / rs762551 (kofein): v1 původní znění z podkladů v02, v2 návrh znění k revizi garantem oblasti Kofein. Načítá příkaz nacist_navrhy_karet.",
+ "varianty": [
+  {
+   "organizace": null,
+   "oblast": "kofein",
+   "gene": "CYP1A2",
+   "full_name": "Cytochrome P450 1A2 (Cytochrom P450 1A2)",
+   "rsid": "rs762551",
+   "notation": "rs762551 (-163C>A; intron/promotorová regulační oblast)",
+   "subtitle": "Kofein a individuální odezva",
+   "genotypes": [
+    "AA",
+    "AC",
+    "CC"
+   ],
+   "genotype_aliases": {},
+   "strand_note": "",
+   "frequency_source": "https://www.ncbi.nlm.nih.gov/snp/rs762551#frequency_tab",
+   "order": 4,
+   "is_active": true
+  }
+ ],
+ "karty": [
+  {
+   "organizace": null,
+   "varianta": "rs762551",
+   "nahrazuje": null,
+   "version": 1,
+   "status": "original",
+   "review_priorities": "Neurčovat bezpečnou dávku ani zaručený účinek kofeinu pouze z genotypu.",
+   "biology_expert": "CYP1A2 kóduje jaterní enzym ze skupiny cytochromu P450, který se podílí na biotransformaci celé řady xenobiotik. Ve sportovní a nutriční genomice je zvláště důležitý tím, že zprostředkovává hlavní část metabolismu kofeinu a významně se podílí na interindividuálních rozdílech v rychlosti jeho odbourávání, biologickém poločasu a následném ergogenním i nežádoucím účinku.",
+   "biology_client": "Gen CYP1A2 ovlivňuje, jak rychle Vaše tělo odbourává kofein. To může rozhodovat o tom, zda Vám kofein před výkonem pomůže, nebude mít výrazný efekt nebo naopak zvýší riziko nervozity, bušení srdce či poruchy spánku.",
+   "effect": "Polymorfismus rs762551 (-163C>A) ovlivňuje expresi a aktivitu enzymu CYP1A2. Alela A bývá spojována s rychlejší indukovatelnou aktivitou enzymu a rychlejším odbouráváním kofeinu, zatímco alela C je obvykle spojována s pomalejším metabolismem kofeinu. Ve sportovní literatuře je tento polymorfismus nejčastěji interpretován ve vztahu k individuální odpovědi na akutní suplementaci kofeinem před vytrvalostním nebo intervalovým výkonem. Současná evidence podporuje příznivější ergogenní odpověď zejména u genotypu AA, zatímco u genotypu CC je efekt slabší, nejednotný nebo při vyšších dávkách i nepříznivý.",
+   "limitations": "",
+   "frequency_note": "Převzaté frekvence: před schválením doložit konkrétní populační soubor a zdroj. Samotné označení „evropská populace“ nestačí.",
+   "related_areas": [
+    "Metabolismus kofeinu",
+    "Ergogenní účinek kofeinu u vytrvalostního výkonu",
+    "Tolerance kofeinu",
+    "Citlivost na vyšší dávky kofeinu",
+    "Regenerace a spánek po příjmu kofeinu"
+   ],
+   "import_note": "Původní návrh k revizi. Zachováno 64 neprázdných odstavců včetně identifikačního nadpisu; původní anglické názvy polí jsou nahrazeny českými nadpisy. Textová tvrzení nejsou nově ověřena.\n\nNásledují původní návrhy doporučení, včetně případných dávek. Nejsou návodem k použití; jejich vazba na genotyp a použitelnost čekají na odbornou revizi.\n\nPůvodní scénáře k posouzení. Odpověď ani měření samy nepotvrzují genetickou příčinu. Scénáře založené na měření nejsou aktivní ve V1.\n\nPůvodní hypotézy k samostatnému posouzení. Kombinace obsahující varianty mimo panel nelze vyhodnotit z aktuálního testu.",
+   "change_summary": "",
+   "approved_at": null,
+   "texty": [
+    {
+     "genotype": "AA",
+     "client_text": "Váš genetický profil odpovídá rychlejšímu metabolismu kofeinu. Je pravděpodobnější, že kofein před výkonem podpoří bdělost, vnímání energie a u vytrvalostní či týmové zátěže i samotný výkon, zejména pokud je dávka dobře zvolena a časována.",
+     "expert_text": "",
+     "frequency": "51,0 % (evropská populace)",
+     "order": 0
+    },
+    {
+     "genotype": "AC",
+     "client_text": "Váš genetický profil představuje přechodný, méně jednoznačný fenotyp. Účinek kofeinu u Vás může být individuální: někdy se projeví mírný výkonový benefit, jindy jen zvýšená bdělost bez měřitelného zlepšení výkonu. Praktická odpověď je proto vhodná k ověření v tréninku.",
+     "expert_text": "",
+     "frequency": "40,6 % (evropská populace)",
+     "order": 1
+    },
+    {
+     "genotype": "CC",
+     "client_text": "Váš genetický profil odpovídá pomalejšímu metabolismu kofeinu. Vyšší dávky kofeinu se u Vás mohou kumulovat, zvyšovat riziko nervozity, palpitací, gastrointestinálních obtíží nebo zhoršení spánku a ergogenní efekt může být malý nebo i negativní.",
+     "expert_text": "",
+     "frequency": "8,4 % (evropská populace)",
+     "order": 2
+    }
+   ],
+   "doporuceni": [
+    {
+     "genotype": "AA",
+     "kind": "sport",
+     "text": "Tento profil je příznivější pro využití kofeinu jako ergogenní pomoci zejména u vytrvalostních, intervalových a některých týmových sportů, kde jsou důležité bdělost, oddálení únavy a udržení výkonu.",
+     "basis": "",
+     "merge_key": "",
+     "order": 0,
+     "protokol": null
+    },
+    {
+     "genotype": "AA",
+     "kind": "training",
+     "text": "Doporučujeme testovat kofein cíleně v tréninku, obvykle v dávce přibližně 2-4 mg/kg tělesné hmotnosti 30-60 minut před výkonem. Vyšší dávky nemusí přinášet další benefit. Sledujte individuální toleranci, hydrataci a zejména vliv na večerní spánek.",
+     "basis": "",
+     "merge_key": "",
+     "order": 1,
+     "protokol": null
+    },
+    {
+     "genotype": "AA",
+     "kind": "risk",
+     "text": "Přestože je Váš profil příznivější pro odbourávání kofeinu, neznamená to neomezenou toleranci. Příliš vysoké dávky mohou i u tohoto genotypu vyvolat třes, neklid, gastrointestinální obtíže nebo zhoršit regeneraci při nevhodném načasování.",
+     "basis": "",
+     "merge_key": "",
+     "order": 2,
+     "protokol": null
+    },
+    {
+     "genotype": "AC",
+     "kind": "sport",
+     "text": "Máte střední, méně jednoznačný profil. Kofein může být využitelný, ale jeho účinek je vhodné chápat jako individuální a ověřovat ho v konkrétním typu zátěže.",
+     "basis": "",
+     "merge_key": "",
+     "order": 3,
+     "protokol": null
+    },
+    {
+     "genotype": "AC",
+     "kind": "training",
+     "text": "Doporučujeme začínat nižší dávkou, přibližně 1-3 mg/kg, a sledovat, zda dochází ke zlepšení výkonu nebo pouze ke zvýšené stimulaci bez výkonového benefitu. Zásadní je netestovat nové dávkování poprvé při soutěži a vyhnout se pozdnímu příjmu kofeinu před spánkem.",
+     "basis": "",
+     "merge_key": "",
+     "order": 4,
+     "protokol": null
+    },
+    {
+     "genotype": "AC",
+     "kind": "risk",
+     "text": "Riziko nežádoucích účinků je vyšší než u genotypu AA, zejména při vyšším denním příjmu kofeinu nebo při kombinaci více kofeinových zdrojů. Je vhodné sledovat nervozitu, tachykardii, gastrointestinální toleranci a kvalitu spánku.",
+     "basis": "",
+     "merge_key": "",
+     "order": 5,
+     "protokol": null
+    },
+    {
+     "genotype": "CC",
+     "kind": "sport",
+     "text": "Tento profil není typicky příznivý pro rutinní využívání vyšších dávek kofeinu jako ergogenní pomoci. Pokud kofein používáte, mělo by jít o opatrně individualizovaný postup s důrazem na toleranci a bezpečnost.",
+     "basis": "",
+     "merge_key": "",
+     "order": 6,
+     "protokol": null
+    },
+    {
+     "genotype": "CC",
+     "kind": "training",
+     "text": "Doporučujeme zvažovat spíše nízké dávky kofeinu nebo jeho omezení. Pokud se kofein používá, je vhodné jej zkoušet pouze v tréninku, s delším předstihem a při pečlivém sledování subjektivních i objektivních reakcí. U citlivých jedinců může být vhodnější využít jiné nutriční strategie než kofein.",
+     "basis": "",
+     "merge_key": "",
+     "order": 7,
+     "protokol": null
+    },
+    {
+     "genotype": "CC",
+     "kind": "risk",
+     "text": "Vyšší dávky kofeinu mohou vést ke kumulaci a k výraznějším nežádoucím účinkům, jako jsou neklid, palpitace, úzkost, zhoršení spánku, prodloužená regenerace nebo paradoxně i zhoršení výkonu. Zvláštní opatrnost je vhodná při odpoledním a večerním příjmu kofeinu.",
+     "basis": "",
+     "merge_key": "",
+     "order": 8,
+     "protokol": null
+    }
+   ],
+   "dukazy": [],
+   "zdroje": [
+    {
+     "label": "",
+     "title": "",
+     "citation": "National Center for Biotechnology Information. CYP1A2 cytochrome P450 family 1 subfamily A member 2 [Homo sapiens]. NCBI Gene.",
+     "url": "",
+     "order": 0
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "National Center for Biotechnology Information. rs762551, dbSNP / ClinVar summary for CYP1A2 -163C>A.",
+     "url": "",
+     "order": 1
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Guest, N., Corey, P., Vescovi, J., & El-Sohemy, A. (2018). Caffeine, CYP1A2 Genotype, and Endurance Performance in Athletes. Medicine & Science in Sports & Exercise, 50(8), 1570-1578.",
+     "url": "",
+     "order": 2
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Messenburger, G. P., et al. (2025). Influence of the CYP1A2 genotype on the exercise performance of athletes and physically active individuals with caffeine supplementation: a systematic review. Journal of Nutritional Biochemistry.",
+     "url": "",
+     "order": 3
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Silva, H., et al. (2025). Caffeine and Sports Performance: The Conflict between Ergogenic Benefits and Personalized Responses. Sports Medicine.",
+     "url": "",
+     "order": 4
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Wong, O., et al. (2021). CYP1A2 Genotype Modifies the Effects of Caffeine on Resistance Exercise, Jumping, and Sprinting Performance. International Journal of Sport Nutrition and Exercise Metabolism, 31(5), 420-428.",
+     "url": "",
+     "order": 5
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Kazan, H. H., et al. (2024). Exploring the relationship between caffeine metabolism-related CYP1A2 rs762551 polymorphism and team sport athlete status and training adaptations. Molecular Biology Reports.",
+     "url": "",
+     "order": 6
+    },
+    {
+     "label": "",
+     "title": "",
+     "citation": "Rahimi, M. R., et al. (2024). Effect of ADORA2A Gene Polymorphism and Acute Caffeine Supplementation on Exercise and Cognitive Performance: A Systematic Review. Nutrients, 16(12), 1803.",
+     "url": "",
+     "order": 7
+    }
+   ],
+   "nepripustne": [],
+   "scenare": [
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Po kofeinu před delším výkonem cítím lepší soustředění, menší únavu a zároveň nemám výrazné nežádoucí účinky.",
+     "answer_match": {
+      "choices": [
+       "pozitivni"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 0,
+     "otazka": "kofein_ucinek",
+     "texty": [
+      {
+       "genotype": "AA",
+       "text": "Vaše odpověď velmi dobře odpovídá genetickému profilu rychlejšího metabolizéra. Je pravděpodobné, že u Vás kofein skutečně představuje funkční ergogenní pomůcku, pokud je dávkován rozumně a ve správném čase."
+      },
+      {
+       "genotype": "AC",
+       "text": "Vaše odpověď naznačuje, že Váš střední genetický profil se v praxi může chovat příznivěji. Má smysl zachovat individualizovaný přístup a používat pouze takovou dávku, která je prokazatelně přínosná."
+      },
+      {
+       "genotype": "CC",
+       "text": "Vaše odpověď ukazuje, že navzdory méně příznivému genetickému profilu můžete kofein tolerovat lépe, než by se očekávalo. Přesto doporučujeme opatrnost, protože při vyšších dávkách nebo nevhodném načasování se mohou negativní účinky projevit opožděně."
+      }
+     ]
+    },
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Po kofeinu bývám nervózní, mám bušení srdce, horší spánek nebo nepozoruji žádné zlepšení výkonu.",
+     "answer_match": {
+      "choices": [
+       "negativni"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 1,
+     "otazka": "kofein_ucinek",
+     "texty": [
+      {
+       "genotype": "AA",
+       "text": "Vaše odpověď ukazuje, že ani geneticky příznivější profil nezaručuje dobrou toleranci kofeinu. Na výsledku se mohou podílet další genetické faktory, habituální příjem kofeinu, dávka, načasování i psychosomatická citlivost."
+      },
+      {
+       "genotype": "AC",
+       "text": "Vaše odpověď dobře odpovídá tomu, že u středního profilu může převažovat stimulace nad skutečným výkonovým benefitem. Doporučujeme snížit dávku nebo zvážit nepoužívání kofeinu před výkonem."
+      },
+      {
+       "genotype": "CC",
+       "text": "Vaše odpověď velmi dobře odpovídá očekávanému profilu pomalejšího metabolizéra. Kofein u Vás pravděpodobně nepředstavuje ideální ergogenní strategii, zejména ve vyšších dávkách nebo v pozdějších hodinách."
+      }
+     ]
+    },
+    {
+     "kind": "measurement",
+     "title": "Kontext 2: zdroj zátěžový test – standardizovaný pokus s kofeinem / tréninková praxe",
+     "statement": "Po dávce 2-4 mg/kg kofeinu před vytrvalostním testem dosahuji lepšího času nebo nižšího vnímaného úsilí než bez kofeinu.",
+     "answer_match": {},
+     "condition": {},
+     "is_active": false,
+     "order": 2,
+     "otazka": null,
+     "texty": [
+      {
+       "genotype": "AA",
+       "text": "Váš výsledek velmi dobře potvrzuje očekávaný profil AA. Takový nález je v souladu s publikovanými pracemi, které právě u tohoto genotypu popisují nejčastější ergogenní benefit kofeinu u vytrvalostního výkonu."
+      },
+      {
+       "genotype": "AC",
+       "text": "Váš výsledek naznačuje, že Váš intermediární profil může z kofeinu profitovat, pokud je dobře zvolena dávka i načasování. Praktické ověření je v tomto případě cennější než samotný genetický předpoklad."
+      },
+      {
+       "genotype": "CC",
+       "text": "Váš výsledek ukazuje, že ani méně příznivý profil nevylučuje individuální benefit v konkrétní situaci. Doporučujeme ale zachovat velmi obezřetný přístup a pravidelně sledovat vedlejší účinky i spánek po výkonu."
+      }
+     ]
+    },
+    {
+     "kind": "measurement",
+     "title": "Kontext 2: zdroj zátěžový test – standardizovaný pokus s kofeinem / tréninková praxe",
+     "statement": "Po kofeinu nevidím zlepšení výkonu, případně mám horší toleranci, vyšší tep nebo zhoršený spánek po testu.",
+     "answer_match": {},
+     "condition": {},
+     "is_active": false,
+     "order": 3,
+     "otazka": null,
+     "texty": [
+      {
+       "genotype": "AA",
+       "text": "Vaše odpověď naznačuje, že u Vás pravděpodobně hrají větší roli jiné faktory než samotný CYP1A2 genotyp, například dávka, čas podání, zvyklost na kofein, typ výkonu nebo citlivost centrální nervové soustavy."
+      },
+      {
+       "genotype": "AC",
+       "text": "Váš výsledek dobře odpovídá méně jednoznačnému profilu AC. Doporučujeme dále nepředpokládat automatický přínos kofeinu a rozhodování opřít o skutečnou tréninkovou odezvu."
+      },
+      {
+       "genotype": "CC",
+       "text": "Vaše odpověď je v souladu s tím, že profil CC bývá častěji spojován s menším přínosem a vyšším rizikem nežádoucích účinků. Pro tento profil je rozumné držet se nízkého příjmu kofeinu nebo jej před výkonem vůbec nepoužívat."
+      }
+     ]
+    }
+   ],
+   "revize": []
+  },
+  {
+   "organizace": null,
+   "varianta": "rs762551",
+   "nahrazuje": {
+    "varianta": "rs762551",
+    "verze": 1
+   },
+   "version": 2,
+   "status": "draft",
+   "review_priorities": "Neurčovat bezpečnou dávku ani zaručený účinek kofeinu pouze z genotypu.",
+   "biology_expert": "CYP1A2 kóduje jaterní enzym cytochromu P450 zodpovědný za hlavní část metabolismu kofeinu. Varianta rs762551 (-163C>A, intron 1) ovlivňuje indukovatelnost enzymu; alela A je spojována s vyšší indukovatelnou aktivitou, alela C s nižší [S2, OVĚŘIT]. Rozdíly v rychlosti odbourávání jsou interindividuální a závisí také na kouření, léčivech a habituálním příjmu kofeinu.",
+   "biology_client": "Gen CYP1A2 řídí jaterní enzym, který odbourává většinu kofeinu. Varianta rs762551 souvisí s tím, jak rychle se kofein z těla ztrácí. Jak na vás kofein před výkonem zapůsobí, ale určuje i dávka, načasování, zvyk na kofein, kouření a spánek, a ty z genotypu vyčíst nejde.",
+   "effect": "Varianta rs762551 (-163C>A) ovlivňuje indukovatelnost enzymu CYP1A2; alela A je spojována s vyšší indukovatelnou aktivitou [S2, OVĚŘIT]. Souvislost genotypu s odezvou výkonu na kofein je populační a mezi studiemi nejednotná [S3–S6, OVĚŘIT].",
+   "limitations": "Z genotypu CYP1A2 nelze určit bezpečnou dávku kofeinu ani zaručit jeho účinek. Studie popisují rozdíly mezi skupinami lidí, ne odezvu jednoho člověka. Zda vám kofein před výkonem pomáhá, ukáže jen vlastní zkušenost a pokus v tréninku; genotyp je k tomu dílčí informace.",
+   "frequency_note": "Frekvence doplnit z dbSNP s názvem souboru a populace (např. „gnomAD, evropská populace bez Finska“). Původní hodnoty 51,0 / 40,6 / 8,4 % bez uvedeného souboru se nepřebírají.",
+   "related_areas": [
+    "Metabolismus kofeinu",
+    "Ergogenní účinek kofeinu u vytrvalostního výkonu",
+    "Tolerance kofeinu",
+    "Citlivost na vyšší dávky kofeinu",
+    "Regenerace a spánek po příjmu kofeinu"
+   ],
+   "import_note": "Původní návrh k revizi. Zachováno 64 neprázdných odstavců včetně identifikačního nadpisu; původní anglické názvy polí jsou nahrazeny českými nadpisy. Textová tvrzení nejsou nově ověřena.\n\nNásledují původní návrhy doporučení, včetně případných dávek. Nejsou návodem k použití; jejich vazba na genotyp a použitelnost čekají na odbornou revizi.\n\nPůvodní scénáře k posouzení. Odpověď ani měření samy nepotvrzují genetickou příčinu. Scénáře založené na měření nejsou aktivní ve V1.\n\nPůvodní hypotézy k samostatnému posouzení. Kombinace obsahující varianty mimo panel nelze vyhodnotit z aktuálního testu.",
+   "change_summary": "Návrh znění podle revizního pokynu karty: žádná dávka ani zaručený účinek kofeinu z genotypu. Texty pro genotypy popisují, co studie uvádějí a co z výsledku určit nejde; doporučení podle genotypu nahrazena čtyřmi obecnými (zkouška v tréninku, rozmezí dávek, spánek, pokus s kofeinem jako budoucí měření); scénáře nad měřením odstraněny; doplněny nepřípustné výroky a řádky důkazů E01–E05. Místa označená [OVĚŘIT] a [DOPLNIT] garant ověří před schválením – kontrola je s nimi nepustí.",
+   "approved_at": null,
+   "texty": [
+    {
+     "genotype": "AA",
+     "client_text": "Byl zjištěn genotyp AA varianty CYP1A2 rs762551. Ve studiích bývá tento genotyp spojován s rychlejším odbouráváním kofeinu a v některých pracích s lepší odezvou výkonu na kofein před vytrvalostní zátěží [S3, OVĚŘIT]. Výsledek neurčuje, zda kofein pomůže právě vám: o tom rozhoduje dávka, načasování, zvyk na kofein a spánek. Ověřit to lze jen pokusem v tréninku.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 0
+    },
+    {
+     "genotype": "AC",
+     "client_text": "Byl zjištěn genotyp AC varianty CYP1A2 rs762551. Nesete jednu kopii každé alely. Studie u této skupiny nenacházejí jednoznačný rozdíl v odezvě na kofein [S3, S6, OVĚŘIT]. Výsledek sám o sobě neříká, jak na kofein reagujete; vodítkem je vaše zkušenost a případný pokus v tréninku.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 1
+    },
+    {
+     "genotype": "CC",
+     "client_text": "Byl zjištěn genotyp CC varianty CYP1A2 rs762551. Ve studiích bývá spojován s pomalejším odbouráváním kofeinu; v některých pracích byly vyšší dávky u této skupiny spojené s horším výkonem a častějšími nežádoucími účinky, například nervozitou nebo horším spánkem [S3, OVĚŘIT]. Neznamená to, že kofein nesmíte. Je to důvod být opatrný s vyššími dávkami a sledovat, jak na ně reagujete.",
+     "expert_text": "",
+     "frequency": "",
+     "order": 2
+    }
+   ],
+   "doporuceni": [
+    {
+     "genotype": "",
+     "kind": "nutrition",
+     "text": "Kofein před výkonem zkoušejte jen v tréninku, nikdy poprvé v soutěži. Začněte nízkou dávkou a zvyšujte ji jen tehdy, když vidíte přínos ve výkonu, ne jen pocit nabuzení.",
+     "basis": "general",
+     "merge_key": "kofein-zkouska",
+     "order": 9,
+     "protokol": null
+    },
+    {
+     "genotype": "",
+     "kind": "nutrition",
+     "text": "Běžně používaná rozmezí dávek jsou [DOPLNIT rozmezí v mg/kg a zdroj, např. stanovisko ISSN ke kofeinu 2021]; vyšší dávky další přínos nepřinášejí a zvyšují nežádoucí účinky. Rozmezí platí bez ohledu na genotyp.",
+     "basis": "general",
+     "merge_key": "kofein-davka",
+     "order": 10,
+     "protokol": null
+    },
+    {
+     "genotype": "",
+     "kind": "risk",
+     "text": "Sčítejte všechny zdroje kofeinu za den (káva, energetické nápoje, gely, doplňky). Nepijte ho v pozdních odpoledních a večerních hodinách: horší spánek zhorší regeneraci víc, než kofein pomůže.",
+     "basis": "general",
+     "merge_key": "kofein-spanek",
+     "order": 11,
+     "protokol": null
+    },
+    {
+     "genotype": "",
+     "kind": "nutrition",
+     "text": "Zda vám kofein skutečně pomáhá, ukáže pokus: stejný test jednou bez kofeinu a jednou s obvyklou dávkou. Dávka se zapíše v podmínkách provedení testu a zpráva obě provedení porovná.",
+     "basis": "measurement",
+     "merge_key": "pokus-kofein",
+     "order": 12,
+     "protokol": "spiro_ramp"
+    }
+   ],
+   "dukazy": [
+    {
+     "code": "E01",
+     "trait": "Identita varianty",
+     "basis_text": "dbSNP rs762551, CYP1A2 -163C>A, intron 1 [S1, S2]. [OVĚŘIT transkript a souřadnice]",
+     "usage": "Jen identifikace; žádný výkonový závěr.",
+     "source_labels": "S1, S2",
+     "order": 0
+    },
+    {
+     "code": "E02",
+     "trait": "Rychlost odbourávání kofeinu",
+     "basis_text": "Alela A spojována s vyšší indukovatelnou aktivitou enzymu [S2]. [DOPLNIT primární zdroj, např. Sachse et al. 1999, Br J Clin Pharmacol; OVĚŘIT]",
+     "usage": "Uvést jako biologickou souvislost; nedělat z ní „rychlý/pomalý metabolizér“ u osoby.",
+     "source_labels": "S2",
+     "order": 1
+    },
+    {
+     "code": "E03",
+     "trait": "Odezva výkonu na kofein",
+     "basis_text": "Guest 2018: 10km cyklistická časovka, 101 sportovců; u AA zlepšení po kofeinu, u CC zhoršení při vyšší dávce [S3]. [OVĚŘIT dávky a velikost účinku] Wong 2021: silový výkon, skok, sprint [S6]. [OVĚŘIT směr nálezu po genotypech] Přehledy 2025 [S4, S5]: [OVĚŘIT závěr; podle názvu jsou nálezy rozporné]",
+     "usage": "Populační asociace: „v některých studiích“. Žádná predikce účinku u klienta, žádná dávka podle genotypu.",
+     "source_labels": "S3, S4, S5, S6",
+     "order": 2
+    },
+    {
+     "code": "E04",
+     "trait": "Obecné dávkování a nežádoucí účinky",
+     "basis_text": "[DOPLNIT zdroj: stanovisko ISSN ke kofeinu 2021 nebo jiné aktuální doporučení]",
+     "usage": "Obecná doporučení 1 až 3, stejná pro všechny genotypy.",
+     "source_labels": "",
+     "order": 3
+    },
+    {
+     "code": "E05",
+     "trait": "Interakce s ADORA2A",
+     "basis_text": "Rahimi 2024 [S8]; ADORA2A není v panelu.",
+     "usage": "Nic; hypotéza k posouzení.",
+     "source_labels": "S8",
+     "order": 4
+    }
+   ],
+   "zdroje": [
+    {
+     "label": "S1",
+     "title": "Gen CYP1A2 (NCBI Gene)",
+     "citation": "National Center for Biotechnology Information. CYP1A2 cytochrome P450 family 1 subfamily A member 2 [Homo sapiens]. NCBI Gene.",
+     "url": "",
+     "order": 0
+    },
+    {
+     "label": "S2",
+     "title": "Varianta rs762551 (dbSNP / ClinVar)",
+     "citation": "National Center for Biotechnology Information. rs762551, dbSNP / ClinVar summary for CYP1A2 -163C>A.",
+     "url": "",
+     "order": 1
+    },
+    {
+     "label": "S3",
+     "title": "Guest 2018 – kofein a vytrvalostní výkon",
+     "citation": "Guest, N., Corey, P., Vescovi, J., & El-Sohemy, A. (2018). Caffeine, CYP1A2 Genotype, and Endurance Performance in Athletes. Medicine & Science in Sports & Exercise, 50(8), 1570-1578.",
+     "url": "",
+     "order": 2
+    },
+    {
+     "label": "S4",
+     "title": "Messenburger 2025 – systematický přehled",
+     "citation": "Messenburger, G. P., et al. (2025). Influence of the CYP1A2 genotype on the exercise performance of athletes and physically active individuals with caffeine supplementation: a systematic review. Journal of Nutritional Biochemistry.",
+     "url": "",
+     "order": 3
+    },
+    {
+     "label": "S5",
+     "title": "Silva 2025 – přehled",
+     "citation": "Silva, H., et al. (2025). Caffeine and Sports Performance: The Conflict between Ergogenic Benefits and Personalized Responses. Sports Medicine.",
+     "url": "",
+     "order": 4
+    },
+    {
+     "label": "S6",
+     "title": "Wong 2021 – silový výkon, skok, sprint",
+     "citation": "Wong, O., et al. (2021). CYP1A2 Genotype Modifies the Effects of Caffeine on Resistance Exercise, Jumping, and Sprinting Performance. International Journal of Sport Nutrition and Exercise Metabolism, 31(5), 420-428.",
+     "url": "",
+     "order": 5
+    },
+    {
+     "label": "S7",
+     "title": "Kazan 2024 – status týmových sportovců",
+     "citation": "Kazan, H. H., et al. (2024). Exploring the relationship between caffeine metabolism-related CYP1A2 rs762551 polymorphism and team sport athlete status and training adaptations. Molecular Biology Reports.",
+     "url": "",
+     "order": 6
+    },
+    {
+     "label": "S8",
+     "title": "Rahimi 2024 – ADORA2A (mimo panel)",
+     "citation": "Rahimi, M. R., et al. (2024). Effect of ADORA2A Gene Polymorphism and Acute Caffeine Supplementation on Exercise and Cognitive Performance: A Systematic Review. Nutrients, 16(12), 1803.",
+     "url": "",
+     "order": 7
+    }
+   ],
+   "nepripustne": [
+    {
+     "text": "kofein vám pomůže",
+     "note": ""
+    },
+    {
+     "text": "kofein u vás nefunguje",
+     "note": ""
+    },
+    {
+     "text": "bezpečná dávka pro váš genotyp",
+     "note": ""
+    },
+    {
+     "text": "jste rychlý metabolizér",
+     "note": ""
+    },
+    {
+     "text": "jste pomalý metabolizér",
+     "note": ""
+    },
+    {
+     "text": "váš genetický profil odpovídá rychlejšímu metabolismu",
+     "note": ""
+    },
+    {
+     "text": "váš genetický profil odpovídá pomalejšímu metabolismu",
+     "note": ""
+    },
+    {
+     "text": "odpověď potvrzuje genetický profil",
+     "note": ""
+    }
+   ],
+   "scenare": [
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Po kofeinu před delším výkonem cítím lepší soustředění, menší únavu a zároveň nemám výrazné nežádoucí účinky.",
+     "answer_match": {
+      "choices": [
+       "pozitivni"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 0,
+     "otazka": "kofein_ucinek",
+     "texty": [
+      {
+       "genotype": "AA",
+       "text": "Vaše dobrá zkušenost s kofeinem je nejlepší vodítko, které máte; genotyp ji nepotvrzuje ani nevyvrací. Držte se dávky a času, které vám fungují, a po večerních výkonech sledujte spánek."
+      },
+      {
+       "genotype": "AC",
+       "text": "Vaše dobrá zkušenost s kofeinem je nejlepší vodítko, které máte; genotyp ji nepotvrzuje ani nevyvrací. Držte se dávky a času, které vám fungují, a po večerních výkonech sledujte spánek."
+      },
+      {
+       "genotype": "CC",
+       "text": "Vaše dobrá zkušenost s kofeinem je nejlepší vodítko, které máte; genotyp ji nepotvrzuje ani nevyvrací. Držte se dávky a času, které vám fungují, a po večerních výkonech sledujte spánek."
+      }
+     ]
+    },
+    {
+     "kind": "questionnaire",
+     "title": "Kontext 1: zdroj dotazník",
+     "statement": "Po kofeinu bývám nervózní, mám bušení srdce, horší spánek nebo nepozoruji žádné zlepšení výkonu.",
+     "answer_match": {
+      "choices": [
+       "negativni"
+      ]
+     },
+     "condition": {},
+     "is_active": false,
+     "order": 1,
+     "otazka": "kofein_ucinek",
+     "texty": [
+      {
+       "genotype": "AA",
+       "text": "Nervozita, bušení srdce nebo horší spánek po kofeinu jsou důvod kofein před výkonem omezit nebo vynechat, bez ohledu na genotyp. Pokud ho chcete zkoušet dál, jen v tréninku, s nízkou dávkou a nejpozději dopoledne."
+      },
+      {
+       "genotype": "AC",
+       "text": "Nervozita, bušení srdce nebo horší spánek po kofeinu jsou důvod kofein před výkonem omezit nebo vynechat, bez ohledu na genotyp. Pokud ho chcete zkoušet dál, jen v tréninku, s nízkou dávkou a nejpozději dopoledne."
+      },
+      {
+       "genotype": "CC",
+       "text": "Nervozita, bušení srdce nebo horší spánek po kofeinu jsou důvod kofein před výkonem omezit nebo vynechat, bez ohledu na genotyp. Pokud ho chcete zkoušet dál, jen v tréninku, s nízkou dávkou a nejpozději dopoledne."
+      }
+     ]
+    }
+   ],
+   "revize": [
+    {
+     "part": "Důkaz E03 – Guest 2018",
+     "original": "",
+     "proposal": "",
+     "reason": "Ověřit skutečně popsané dávky, velikost a směr účinku u AA, AC a CC; zda jde o vytrvalostní výkon mužů cyklistů.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Důkaz E03 – Wong 2021",
+     "original": "",
+     "proposal": "",
+     "reason": "Ověřit, u kterých genotypů a výkonů byl rozdíl, zda vůbec.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Důkaz E03 – přehledy 2025 (Messenburger, Silva)",
+     "original": "",
+     "proposal": "",
+     "reason": "Ověřit závěr k použitelnosti genotypu pro individuální doporučení. Pokud říkají „nelze doporučit“, texty pro genotypy ještě zkrátit.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Doporučení – rozmezí dávek",
+     "original": "",
+     "proposal": "",
+     "reason": "Doplnit rozmezí dávek v mg/kg a zdroj (např. stanovisko ISSN ke kofeinu 2021); pak odstranit značku [DOPLNIT] z textu doporučení a řádku E04.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Frekvence genotypů",
+     "original": "",
+     "proposal": "",
+     "reason": "Buď doplnit se souborem a zdrojem (dbSNP, gnomAD, populace), nebo nechat prázdné; původní hodnoty bez souboru se nepřebírají.",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    },
+    {
+     "part": "Scénáře z dotazníku",
+     "original": "",
+     "proposal": "",
+     "reason": "Texty pro odpověď „pozitivní“ a „negativní“ jsou stejné pro všechny genotypy; po kontrole scénáře zapnout (krok 5).",
+     "source": "návrh znění",
+     "decision": "open",
+     "decided_at": null
+    }
+   ]
+  }
+ ]
+}
