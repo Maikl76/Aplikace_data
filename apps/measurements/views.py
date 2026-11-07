@@ -151,19 +151,23 @@ def today(request):
 @login_required
 def team(request):
     """Týmový přehled: sportovci skupiny × klíčové ukazatele její baterie testů."""
+    from apps.analytics.reference import ReferenceIndex
     from apps.analytics.team import MIN_GROUP, STALE_DAYS, columns_for, team_table
     from apps.subjects.search import label
 
     batteries, battery = _pick_battery(request)
     context = {"batteries": batteries, "battery": battery, "rows": [], "columns": [],
-               "min_group": MIN_GROUP, "stale_days": STALE_DAYS}
+               "min_group": MIN_GROUP, "stale_days": STALE_DAYS, "reference": None}
     if battery:
         subjects = label(_battery_subjects(request, battery), request.user, subject=lambda s: s)
         subjects.sort(key=lambda s: s.jmeno.lower())
         columns = columns_for(battery.protocols())
-        table = team_table(subjects, columns, today=timezone.localdate())
-        context.update(columns=columns, rows=table["rows"],
-                       summary=list(zip(columns, table["summary"], strict=True)))
+        reference = ReferenceIndex(request.user.organization)
+        table = team_table(subjects, columns, today=timezone.localdate(), reference=reference)
+        summary = list(zip(columns, table["summary"], strict=True))
+        bands = [s["ref"] for _, s in summary if s["ref"] is not None]
+        context.update(columns=columns, rows=table["rows"], summary=summary,
+                       reference=bands[0] if bands else None)
         if request.GET.get("format") == "csv":
             # Tabulka odchází z aplikace (se jmény, pokud je uživatel vidí) – do auditu.
             record(request, AuditLog.Action.EXPORT, battery, baterie=battery.label,

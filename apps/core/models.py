@@ -36,6 +36,30 @@ class Organization(TimeStampedModel):
         "sledovaná složka naposledy zkontrolována", null=True, blank=True,
         help_text="Zapisuje hlídač složky (hlidat_slozku); podle toho se pozná, že běží.")
 
+    # Interní referenční hodnoty: z vlastních měření pracoviště, jen pro
+    # orientaci laboratoře (necitovatelné, nikdy do zprávy ani do portálu).
+    class ReferenceSource(models.TextChoices):
+        RESEARCH = "vyzkum", "jen sportovci s platným souhlasem s výzkumem"
+        ALL = "vsichni", "všichni aktivní sportovci pracoviště"
+
+    reference_enabled = models.BooleanField(
+        "interní referenční hodnoty", default=True,
+        help_text="Šedé pásmo P25–P75 z vlastních měření v grafech a v týmovém přehledu.")
+    reference_min_subjects = models.PositiveSmallIntegerField(
+        "nejméně sportovců ve skupině", default=8,
+        help_text="Pod tento počet se skupina (sport, pohlaví, věk) nepoužije.")
+    reference_source = models.CharField(
+        "z koho se reference počítají", max_length=10, choices=ReferenceSource.choices,
+        default=ReferenceSource.RESEARCH)
+
+    # Denní údržba (záloha, úklid, připomínky, týdenní stav správci) – co
+    # a kdy naposledy proběhlo; ukazuje to Nastavení → Provoz a zálohy.
+    maintenance_at = models.DateTimeField("denní údržba naposledy", null=True, blank=True)
+    maintenance_log = models.JSONField("výsledek poslední údržby", default=dict, blank=True)
+    backup_at = models.DateTimeField("záloha naposledy", null=True, blank=True)
+    backup_note = models.CharField("záloha – kam, nebo proč ne", max_length=300, blank=True)
+    status_mailed_on = models.DateField("stav správci naposledy odeslán", null=True, blank=True)
+
     class Meta:
         verbose_name = "organizace"
         verbose_name_plural = "organizace"

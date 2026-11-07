@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Interní reference – FTVS{% endblock %}
+{% block content %}
+{% include "catalog/_tabs.html" with tab="reference" %}
+<div class="mb-5">
+  <div class="eyebrow">Nastavení testování</div>
+  <h1 class="text-2xl font-semibold">Interní referenční hodnoty</h1>
+  <p class="text-sm text-muted mt-1 max-w-3xl">Pásmo P25–P75 a medián z vlastních měření pracoviště: pro každý klíčový ukazatel a skupinu sportovců stejného sportu, pohlaví a věkového pásma, z poslední hodnoty dne každého sportovce. Ukazuje se jen v laboratoři – v dlaždicích a grafech na kartě sportovce (v grafu jen tam, kde ukazatel nemá normu) a v týmovém přehledu. Není to norma: nemá zdroj, nejde citovat a <strong>nikdy nejde do zprávy ani do portálu</strong>. Skupina se použije až od nastaveného počtu sportovců; menší skupina padne na tentýž sport a pohlaví bez rozlišení věku.</p>
+</div>
+
+{% steps steps heading="Postup u interních referencí" may_act=is_admin %}
+
+<div class="grid lg:grid-cols-3 gap-4 mb-5">
+  <section class="card p-4 lg:col-span-1" id="nastaveni">
+    <h2 class="card-title mb-2">Nastavení</h2>
+    {% if is_admin %}
+      <form method="post" class="space-y-3 text-sm">{% csrf_token %}
+        <label class="flex items-start gap-2"><input type="checkbox" name="zapnuto" class="mt-1" {% if org.reference_enabled %}checked{% endif %}> <span><strong>Ukazovat interní reference</strong> v laboratoři (karta sportovce, týmový přehled).</span></label>
+        <fieldset>
+          <legend class="text-xs text-2 mb-1">Z koho se počítají</legend>
+          {% for value, label in sources %}
+            <label class="flex items-start gap-2 mb-1"><input type="radio" name="zdroj" value="{{ value }}" class="mt-1" {% if org.reference_source == value %}checked{% endif %}> <span>{{ label }}</span></label>
+          {% endfor %}
+          <p class="text-xs text-muted mt-1">Výchozí je bezpečnější volba: jen sportovci s platným souhlasem se sekundárním použitím pro výzkum. Všechny aktivní sportovce zapněte jen tehdy, když souhlas s testováním vašeho pracoviště interní srovnání výslovně pokrývá – za to ručí správce.</p>
+        </fieldset>
+        <label class="block"><span class="text-xs text-2">Nejméně sportovců ve skupině ({{ floor }}–{{ ceiling }})</span>
+          <input type="number" name="minimum" min="{{ floor }}" max="{{ ceiling }}" value="{{ org.reference_min_subjects }}" class="input text-sm py-1 mt-0.5" style="width: 7rem"></label>
+        <button class="btn btn-primary btn-sm">{% icon "check" %}Uložit</button>
+      </form>
+    {% else %}
+      <dl class="text-sm space-y-1">
+        <div><dt class="text-xs text-2">Stav</dt><dd>{% if org.reference_enabled %}zapnuto{% else %}vypnuto{% endif %}</dd></div>
+        <div><dt class="text-xs text-2">Z koho</dt><dd>{{ org.get_reference_source_display }}</dd></div>
+        <div><dt class="text-xs text-2">Nejméně sportovců ve skupině</dt><dd>{{ org.reference_min_subjects }}</dd></div>
+      </dl>
+      <p class="text-xs text-muted mt-2">Nastavuje správce.</p>
+    {% endif %}
+  </section>
+  <section class="card p-4 lg:col-span-2">
+    <h2 class="card-title mb-2">Co se počítá</h2>
+    <ul class="text-sm text-2 space-y-1 list-disc pl-5">
+      <li><strong>Hodnota sportovce</strong> = hodnota dne z jeho posledního měření ukazatele (průměr nebo nejlepší pokus podle ukazatele, platné pokusy, hlavní provedení). Každý sportovec vstupuje jednou, bez ohledu na to, kolikrát byl měřen.</li>
+      <li><strong>Skupina</strong> = sport × pohlaví × věkové pásmo v den měření (do 14, 15–17, 18–23, 24–34, 35 a více let). Sportovci bez sportu nebo s pohlavím „jiné / neuvedeno“ do skupin nevstupují a pásmo u nich nevidíte.</li>
+      <li><strong>Pásmo</strong> = 25. a 75. percentil, medián jako čára. Žádný průměr ± SD – u malých skupin jsou percentily odolnější vůči jedné odlehlé hodnotě.</li>
+      <li><strong>Čtení:</strong> „nad P75“ u ukazatele, kde je vyšší lepší, je zelené; „pod P25“ oranžové. U ukazatelů bez „lepší–horší“ (hmotnost) jen modrá odchylka.</li>
+      <li>{{ summary.included }} z {{ summary.candidates }} aktivních sportovců vstupuje do výpočtu; {{ summary.usable }} z {{ summary.groups }} skupin má aspoň {{ summary.min }} sportovců.</li>
+    </ul>
+  </section>
+</div>
+
+<div class="card overflow-x-auto" id="skupiny">
+  <div class="px-4 pt-4 pb-2 flex flex-wrap items-center justify-between gap-2"><h2 class="card-title">Skupiny a jejich pásma</h2><span class="text-xs text-muted">{{ summary.usable }} použitelných z {{ summary.groups }}</span></div>
+  <table class="table text-sm">
+    <thead><tr><th>Ukazatel</th><th>Sport</th><th>Pohlaví</th><th>Věk</th><th class="text-right">n</th><th class="text-right">P25</th><th class="text-right">medián</th><th class="text-right">P75</th><th></th></tr></thead>
+    <tbody>
+      {% for r in rows %}
+        <tr class="{% if not r.ok %}text-muted{% endif %}">
+          <td class="font-medium">{{ r.metric.name }}{% if r.label %} <span class="text-muted font-normal">· {{ r.label }}</span>{% endif %}{% if r.metric.unit %} <span class="text-muted font-normal">[{{ r.metric.unit }}]</span>{% endif %}</td>
+          <td>{{ r.sport }}</td>
+          <td>{{ r.sex }}</td>
+          <td>{{ r.age_band }}</td>
+          <td class="text-right tabular-nums">{{ r.n }}</td>
+          <td class="text-right tabular-nums">{{ r.p25|default:"—" }}</td>
+          <td class="text-right tabular-nums">{{ r.p50|default:"—" }}</td>
+          <td class="text-right tabular-nums">{{ r.p75|default:"—" }}</td>
+          <td>{% if r.ok %}<span class="badge badge-good">používá se</span>{% else %}<span class="badge" title="Skupina má méně než {{ summary.min }} sportovců">málo sportovců</span>{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="9" class="text-muted py-6">Zatím žádná skupina: buď do výpočtu nevstupuje žádný sportovec (souhlasy), nebo chybí měření klíčových ukazatelů.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="text-xs text-muted mt-3">Interní reference se nepřenášejí s katalogem a nejsou v žádném exportu – jsou to jen výpočty nad daty pracoviště. Citovatelné srovnání dává jen <a class="link" href="{% url 'norms_settings' %}">norma se zdrojem</a>.</p>
+{% endblock %}

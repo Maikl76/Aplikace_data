@@ -44,18 +44,20 @@ Kdy se posílá:
 
 - **Sama, jednou denně** – při prvním otevření Přehledu v daný den
   (laborant nebo správce). Nic není třeba nastavovat.
-- **Při startu `spustit.bat`** – příkaz `pripomenout_mereni` se spustí
-  po aktualizaci katalogu; opakované spuštění nic nepošle dvakrát.
-- **Plánovanou úlohou** tam, kde Přehled nikdo neotvírá, např. na
-  PythonAnywhere (*Tasks* → denní úloha):
+- **Denní údržbou** – na laboratorním počítači ji spouští `spustit.bat`
+  (okno *Denni udrzba*), na PythonAnywhere plánovaná úloha (*Tasks* →
+  denní úloha):
 
   ```
-  ~/.virtualenvs/ftvs/bin/python ~/Aplikace_data/manage.py pripomenout_mereni
+  ~/.virtualenvs/ftvs/bin/python ~/Aplikace_data/manage.py udrzba --jednou
   ```
 
-  Volby: `--jen-vypsat` (jen vypíše, komu by šla), `--dny 21` (jiný
-  předstih), `--odkaz https://…` (adresa aplikace do odkazu na objednání;
-  výchozí je `PUBLIC_BASE_URL` z `.env`).
+  Připomínky jsou jedním z jejích kroků (viz `docs/provoz.md`); opakované
+  spuštění nic nepošle dvakrát.
+- **Příkazem `pripomenout_mereni`** samostatně, např. pro zkoušku. Volby:
+  `--jen-vypsat` (jen vypíše, komu by šla), `--dny 21` (jiný předstih),
+  `--odkaz https://…` (adresa aplikace do odkazu na objednání; výchozí je
+  `PUBLIC_BASE_URL` z `.env`).
 - **Ručně** z karty sportovce tlačítkem *Připomenout e‑mailem*.
 
 Bez poštovního serveru (`EMAIL_HOST` v `.env`, viz

@@ -449,7 +449,9 @@ def test_souhlas_jen_dospely_a_genotypy_sifrovane(org, settings):
     assert sample.consent == adult.consents.get(scope=Consent.Scope.GENETICS)
     first = sample.genotypes.get(variant=actn3)
     assert first.value == "CT" and first.raw == "rx" and first.quality == Genotype.Quality.OK
-    assert "CT" not in first.value_enc and "rx" not in first.raw_enc
+    # šifrované tokeny (Fernet), ne otevřený text – podřetězec „CT“ se v base64 může objevit náhodou
+    assert first.value_enc.startswith("gAAAA") and first.raw_enc.startswith("gAAAA")
+    assert first.value_enc != first.value and first.raw_enc != first.raw
     second = sample.genotypes.get(variant=ace)
     assert second.value == "" and second.quality == Genotype.Quality.UNCLEAR
     assert "CT (RX)" in page and "Nejasný zápis" in page and "1× nejasný" in page

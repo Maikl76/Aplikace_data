@@ -9,6 +9,8 @@
      style="border-color: {% if tab == 'popisy' %}var(--accent){% else %}transparent{% endif %}">Popisy pro klienta</a>
   <a href="{% url 'norms_settings' %}" class="px-3 py-2 -mb-px border-b-2 {% if tab == 'normy' %}font-semibold{% else %}text-muted{% endif %}"
      style="border-color: {% if tab == 'normy' %}var(--accent){% else %}transparent{% endif %}">Normy</a>
+  <a href="{% url 'reference_settings' %}" class="px-3 py-2 -mb-px border-b-2 {% if tab == 'reference' %}font-semibold{% else %}text-muted{% endif %}"
+     style="border-color: {% if tab == 'reference' %}var(--accent){% else %}transparent{% endif %}">Interní reference</a>
   <a href="{% url 'rules_settings' %}" class="px-3 py-2 -mb-px border-b-2 {% if tab == 'pravidla' %}font-semibold{% else %}text-muted{% endif %}"
      style="border-color: {% if tab == 'pravidla' %}var(--accent){% else %}transparent{% endif %}">Pravidla</a>
   <a href="{% url 'questionnaires_settings' %}" class="px-3 py-2 -mb-px border-b-2 {% if tab == 'dotazniky' %}font-semibold{% else %}text-muted{% endif %}"

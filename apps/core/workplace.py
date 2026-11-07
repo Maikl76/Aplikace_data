@@ -44,6 +44,9 @@ def workplace_steps(user) -> list[dict]:
     genetics = [g for g in genetics_steps(user) if not g.get("optional")]
     genetics_done = sum(1 for g in genetics if g["done"])
     keys_ok = bool(settings.IDENTITY_ENCRYPTION_KEY) and genetics_crypto.configured()
+    from . import maintenance
+
+    provoz = maintenance.status(org) if org is not None else {"warnings": ["Účet bez pracoviště."]}
     model = llm.describe()
     model_text = (model["blocked"] if model["blocked"] else
                   f"Jazykový model: cloudový ({model['host']}), jen pro zkušební provoz "
@@ -96,7 +99,29 @@ def workplace_steps(user) -> list[dict]:
              (("Šifrovací klíče jsou nastavené. " if keys_ok else
                "Chybí šifrovací klíč – jména nebo genotypy se neuloží. ") + model_text),
              url=reverse("about") + "#technika", button="Jak nastavit", admin_only=True),
+        step(10, "Provoz a zálohy", not provoz["warnings"],
+             (" ".join(provoz["warnings"]) if provoz["warnings"] else operations_text(provoz)),
+             url=reverse("operations"), button="Provoz a zálohy",
+             count=len(provoz["warnings"]) or None),
     ]
+
+
+def operations_text(info: dict) -> str:
+    """Jedna věta o provozu: záloha, údržba, disk."""
+    from django.utils import timezone as tz
+
+    parts = []
+    b = info["backup"]
+    if info["sqlite"]:
+        parts.append(f"Záloha {tz.localtime(b['at']):%d.%m.%Y %H:%M}" if b["at"]
+                     else "Záloha zatím neproběhla")
+    else:
+        parts.append("Databáze na serveru, zálohuje ji deploy/backup.sh")
+    m = info["maintenance"]
+    parts.append(f"údržba {tz.localtime(m['at']):%d.%m.%Y %H:%M}" if m["at"] else "údržba neběžela")
+    if info["disk"]["free_gb"] is not None:
+        parts.append(f"{info['disk']['free_gb']:.1f} GB volných".replace(".", ","))
+    return ", ".join(parts) + "."
 
 
 def pending_count(user) -> int:
@@ -153,7 +178,8 @@ def settings_sections(user) -> list[dict]:
                 f"{c['norms']} norem, {c['rules']} aktivních pravidel. Bez norem zpráva neukáže "
                 "postavení vůči referenci; pravidla dávají nálezy a doporučení.",
                 url=reverse("norms_settings"), button="Normy",
-                links=[("Pravidla", reverse("rules_settings"))]),
+                links=[("Pravidla", reverse("rules_settings")),
+                       ("Interní reference", reverse("reference_settings"))]),
         section("Dotazníky",
                 f"{questionnaires} dotazníků: RPE po testu, dotazník genetiky, vlastní dotazníky "
                 "k testovacímu dni.",
@@ -171,4 +197,8 @@ def settings_sections(user) -> list[dict]:
         section("Klíče a model",
                 "Šifrovací klíče a jazykový model; nastavuje se v souboru .env.",
                 url=reverse("about") + "#technika", button="Jak nastavit", admin_only=True),
+        section("Provoz a zálohy",
+                "Denní záloha a úklid, týdenní stav správci e-mailem, místo na disku; "
+                "co a kdy naposledy proběhlo.",
+                url=reverse("operations"), button="Provoz a zálohy"),
     ]

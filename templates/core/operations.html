@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Provoz a zálohy – FTVS{% endblock %}
+{% block content %}
+<div class="max-w-4xl">
+  <a href="{% url 'workplace' %}" class="text-sm link">← Nastavení</a>
+  <h1 class="text-2xl font-semibold leading-tight">Provoz a zálohy</h1>
+  <p class="text-sm text-2 mt-1 mb-4">Jednou denně proběhne sama <strong>údržba</strong>: záloha databáze, nahraných souborů a <code>.env</code> s klíči (jen u databáze SQLite – na laboratorním počítači a ve zkušebním provozu), úklid nedokončených importů starších než 30 dní, připomínky dalšího měření a v {{ info.status_mail.weekday }} e‑mail správci se stavem pracoviště. Na laboratorním počítači ji spouští <code>spustit.bat</code> (okno „Denni udrzba“), na serveru plánovaná úloha <code>manage.py udrzba --jednou</code>{% if in_web %}; když ani jedno neběží, spustí ji první otevření Přehledu v daný den{% endif %}.</p>
+
+  {% if info.warnings %}
+    <div class="card p-4 mb-4" style="border-color: var(--warn)">
+      <div class="flex items-center gap-2 font-medium">{% icon "alert" "w-5 h-5" %}Co nesedí</div>
+      <ul class="text-sm mt-1 list-disc pl-5">{% for w in info.warnings %}<li>{{ w }}</li>{% endfor %}</ul>
+    </div>
+  {% endif %}
+
+  <div class="grid sm:grid-cols-2 gap-3 mb-4">
+    <section class="card p-4">
+      <h2 class="card-title mb-1">Záloha</h2>
+      {% if info.sqlite %}
+        <p class="text-sm">Naposledy: <strong>{% if info.backup.at %}{{ info.backup.at|date:"d.m.Y H:i" }}{% else %}nikdy{% endif %}</strong>{% if info.backup_age_text %} <span class="text-muted">({{ info.backup_age_text }})</span>{% endif %}</p>
+        {% if info.backup.note %}<p class="text-xs text-2 mt-1 break-all">{{ info.backup.note }}</p>{% endif %}
+        <p class="text-xs text-muted mt-2">Denní zálohy: <code>{{ info.backup.dir }}</code>, nechává se posledních {{ keep }}. Složku kopírujte i mimo tento počítač (šifrovaný disk, síťové úložiště) – obsahuje jména sportovců. Zálohy před aktualizací leží o složku výš.</p>
+      {% else %}
+        <p class="text-sm text-2">Databáze běží na serveru – zálohuje ji <code>deploy/backup.sh</code> z cronu (viz dokumentace serveru).</p>
+      {% endif %}
+    </section>
+    <section class="card p-4">
+      <h2 class="card-title mb-1">Místo na disku</h2>
+      {% if info.disk.free_gb is not None %}
+        <p class="text-sm"><strong>{{ info.disk.free_gb|floatformat:1 }} GB</strong> volných z {{ info.disk.total_gb|floatformat:0 }} GB ({{ info.disk.pct_free|floatformat:0 }} %)</p>
+        <div class="mt-2 h-1.5 rounded-full overflow-hidden" style="background: var(--surface-2)"><div class="h-full rounded-full" style="width: {{ info.disk.pct_free|floatformat:0 }}%; background: var(--accent)"></div></div>
+      {% else %}<p class="text-sm text-muted">Nejde zjistit.</p>{% endif %}
+      <p class="text-xs text-muted mt-2">Varování pod 2 GB. Místo berou hlavně zálohy a nahrané soubory (exporty, PDF).</p>
+    </section>
+    <section class="card p-4">
+      <h2 class="card-title mb-1">Denní údržba</h2>
+      <p class="text-sm">Naposledy: <strong>{% if info.maintenance.at %}{{ info.maintenance.at|date:"d.m.Y H:i" }}{% else %}nikdy{% endif %}</strong>{% if info.maintenance_age_text %} <span class="text-muted">({{ info.maintenance_age_text }})</span>{% endif %}</p>
+      {% with log=info.maintenance.log %}{% if log %}
+        <ul class="text-xs text-2 mt-1 space-y-0.5">
+          {% if log.zaloha %}<li>záloha: {% if log.zaloha.ok and log.zaloha.cesta %}ok ({{ log.zaloha.mb }} MB){% elif log.zaloha.ok %}netýká se{% else %}neproběhla – {{ log.zaloha.chyba }}{% endif %}</li>{% endif %}
+          <li>starých importů smazáno: {{ log.importy_smazano|default:"0" }}</li>
+          {% if log.pripominky.odeslano is not None %}<li>připomínky měření: odesláno {{ log.pripominky.odeslano }}, na řadě {{ log.pripominky.na_rade }}</li>{% elif log.pripominky %}<li>připomínky měření: {{ log.pripominky }}</li>{% endif %}
+          {% if log.stav_spravci %}<li>stav správci: {% if log.stav_spravci.odeslano %}odeslán ({{ log.stav_spravci.odeslano }} adres){% else %}{{ log.stav_spravci }}{% endif %}</li>{% endif %}
+        </ul>
+      {% endif %}{% endwith %}
+      <p class="text-xs text-muted mt-2">Sledovaná složka: {% if info.folder.running %}hlídač běží{% elif info.folder.configured %}nastavená, hlídač neběží{% else %}není nastavená{% endif %}. Jazykový model: {{ info.model }}.</p>
+    </section>
+    <section class="card p-4">
+      <h2 class="card-title mb-1">Stav správci e‑mailem</h2>
+      <p class="text-sm">Každé {{ info.status_mail.weekday }}; naposledy <strong>{% if info.status_mail.last %}{{ info.status_mail.last|date:"d.m.Y" }}{% else %}nikdy{% endif %}</strong>.</p>
+      <p class="text-xs text-muted mt-1">{% if not info.mail %}Poštovní server není nastavený (EMAIL_HOST) – e‑mail neodejde, stav je jen tady.{% elif not info.status_mail.recipients %}Žádný správce nemá e‑mail – doplňte ho v Kolegové.{% else %}Příjemci: {{ info.status_mail.recipients|length }} (správci pracoviště s e‑mailem).{% endif %} Bez jmen a výsledků sportovců – jen počty a stav.</p>
+    </section>
+  </div>
+
+  {% if is_admin %}
+    <form method="post" class="flex flex-wrap gap-2 mb-4">{% csrf_token %}
+      {% if info.sqlite %}<button class="btn btn-primary" name="akce" value="zaloha">{% icon "download" %}Zálohovat teď</button>{% endif %}
+      <button class="btn" name="akce" value="udrzba">{% icon "timer" %}Spustit údržbu teď</button>
+      <button class="btn" name="akce" value="stav" {% if not info.mail %}disabled title="Poštovní server není nastavený"{% endif %}>{% icon "inbox" %}Poslat stav správci teď</button>
+    </form>
+  {% else %}
+    <p class="text-xs text-muted mb-4">Zálohu nebo stav správci spouští ručně správce.</p>
+  {% endif %}
+
+  <details class="card p-4">
+    <summary class="cursor-pointer card-title">Co správce dostane e‑mailem (náhled)</summary>
+    <p class="text-xs text-muted mt-2">Předmět: {{ mail_subject }}</p>
+    <pre class="text-xs mt-2 whitespace-pre-wrap">{{ mail_body }}</pre>
+  </details>
+
+  <h2 class="card-title mt-6 mb-2">Za posledních 7 dní</h2>
+  <div class="grid sm:grid-cols-4 gap-3 text-sm">
+    <div class="card p-3"><div class="kpi-value tabular-nums">{{ info.week.sessions }}</div><div class="text-xs text-muted">testovacích dnů ({{ info.week.measured }} s hodnotami)</div></div>
+    <div class="card p-3"><div class="kpi-value tabular-nums">{{ info.week.released }}</div><div class="text-xs text-muted">vydaných zpráv</div></div>
+    <div class="card p-3"><div class="kpi-value tabular-nums">{{ info.week.subjects }}</div><div class="text-xs text-muted">nových sportovců</div></div>
+    <div class="card p-3"><div class="kpi-value tabular-nums">{{ info.week.imports }}</div><div class="text-xs text-muted">uložených importů</div></div>
+  </div>
+  <p class="text-sm text-2 mt-3">Čeká: {{ info.waiting_text }}. Chyby za týden: {% if info.errors %}{{ info.errors|join:"; " }}{% else %}žádné{% endif %}.</p>
+</div>
+{% endblock %}

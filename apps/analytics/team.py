@@ -12,6 +12,11 @@ Každá buňka nese dvě informace, které se nesmí plést:
 Postavení v týmu je jen orientační: srovnává se to, co skupina naposledy
 naměřila, a při malém počtu sportovců nic neříká – proto se počítá až
 od MIN_GROUP hodnot.
+
+Třetí, volitelná informace je **interní reference laboratoře** (pásmo
+P25–P75 ze všech sportovců pracoviště téhož sportu, pohlaví a věku, viz
+reference.py): v popisku buňky, kde v pásmu hodnota leží, a v patičce
+pásmo nejčastější skupiny. Jen pro orientaci, nikdy do zprávy.
 """
 
 import statistics
@@ -63,11 +68,17 @@ def _key(protocol_id, metric_id, side, mode, speed, segment):
             float(speed) if speed is not None else None, segment or "")
 
 
-def team_table(subjects, columns, *, today) -> dict:
-    """Řádky (sportovec a buňky) a souhrn sloupců (průměr, SD, počet)."""
+def team_table(subjects, columns, *, today, reference=None) -> dict:
+    """
+    Řádky (sportovec a buňky) a souhrn sloupců (průměr, SD, počet).
+    S ``reference`` (ReferenceIndex) navíc postavení vůči internímu pásmu
+    v buňkách a pásmo nejčastější skupiny v souhrnu sloupce.
+    """
     from apps.reports.results import change_verdict, signed
 
     from .overview import VERDICTS
+
+    group = reference.dominant_group(subjects) if reference is not None else None
 
     wanted = {_key(c["protocol"].pk, c["metric"].pk, c["side"], c["mode"], c["speed"],
                    c["segment"]): i
@@ -102,7 +113,12 @@ def team_table(subjects, columns, *, today) -> dict:
                 continue
             day, value = history[-1]
             cell = {"value": value, "value_txt": cz(value, metric.decimals), "date": day,
-                    "stale": (today - day).days > STALE_DAYS, "verdict": None, "z": None}
+                    "stale": (today - day).days > STALE_DAYS, "verdict": None, "z": None,
+                    "reference": None}
+            if reference is not None:
+                band = reference.band_for(subject, metric, _qualifiers(col))
+                if band is not None:
+                    cell["reference"] = {"band": band, "position": band.position(value)}
             if len(history) >= 2:
                 delta = round(value, metric.decimals) - round(history[-2][1], metric.decimals)
                 text, kind = change_verdict(metric, value - history[-2][1])
@@ -117,7 +133,9 @@ def team_table(subjects, columns, *, today) -> dict:
     summary = []
     for index, col in enumerate(columns):
         values = [r["cells"][index]["value"] for r in rows if r["cells"][index]]
-        info = {"n": len(values), "mean_txt": "", "sd_txt": ""}
+        info = {"n": len(values), "mean_txt": "", "sd_txt": "", "ref": None}
+        if group is not None:
+            info["ref"] = reference.band(col["metric"], _qualifiers(col), *group)
         if len(values) >= 2:
             mean, sd = statistics.fmean(values), statistics.stdev(values)
             d = col["metric"].decimals
@@ -126,6 +144,11 @@ def team_table(subjects, columns, *, today) -> dict:
                 _rank(rows, index, col["metric"], mean, sd)
         summary.append(info)
     return {"rows": rows, "summary": summary}
+
+
+def _qualifiers(col) -> dict:
+    return {"side": col["side"] if col["side"] != "B" else "", "mode": col["mode"],
+            "speed": col["speed"], "segment": col["segment"]}
 
 
 def _rank(rows, index, metric, mean, sd):

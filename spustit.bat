@@ -23,8 +23,9 @@ python manage.py seed_catalog --jen-chybejici || goto chyba
 python manage.py nacist_navrhy_karet || goto chyba
 python manage.py seed_roles --verbosity 0 || goto chyba
 python manage.py prepocitat_odvozene || goto chyba
-rem Pripomene e-mailem dalsi mereni, kdyz se blizi termin (jen s nastavenym postovnim serverem).
-python manage.py pripomenout_mereni
+rem Denni udrzba ve vlastnim okne: zaloha, uklid starych importu, pripominky mereni,
+rem jednou tydne e-mail spravci se stavem pracoviste. Kazdy den probehne jednou.
+start "Denni udrzba" /min python manage.py udrzba
 rem Hlida slozku s exporty z pristroje (jen kdyz je v .env IMPORT_WATCH_DIR); bezi ve vlastnim okne.
 start "Sledovana slozka" /min python manage.py hlidat_slozku
 

@@ -136,7 +136,7 @@ def _element_id(prefix: str, metric, qualifiers: dict | None) -> str:
 
 
 def trend_chart(metric, points, *, qualifiers=None, norm=None, goal=None, season_from=None,
-                theme: str = "light") -> ChartSpec:
+                band=None, theme: str = "light") -> ChartSpec:
     """
     Vývoj jedné metriky v čase proti normě.
 
@@ -145,6 +145,9 @@ def trend_chart(metric, points, *, qualifiers=None, norm=None, goal=None, season
     ne druhá série, takže zůstává neutrálně šedá a nesoupeří o pozornost.
     ``goal`` (cílová hodnota) je čárkovaná vodorovná čára s popiskem,
     ``season_from`` (datum) tečkovaná svislá čára „začátek sezóny“.
+    ``band`` je interní reference laboratoře (apps/analytics/reference.Band):
+    kreslí se stejně šedě jako norma, ale jen když ukazatel normu nemá –
+    dvě pásma přes sebe by nešla číst. Patří jen do laboratoře, ne do zprávy.
     """
     colors = PALETTE[theme]
     dates = [d.isoformat() for d, _ in points]
@@ -184,7 +187,7 @@ def trend_chart(metric, points, *, qualifiers=None, norm=None, goal=None, season
         traces.append({
             "type": "scatter", "x": dates + dates[::-1],
             "y": [high] * len(dates) + [low] * len(dates),
-            "fill": "toself", "fillcolor": colors["band"],
+            "mode": "lines", "fill": "toself", "fillcolor": colors["band"],
             "line": {"width": 0}, "hoverinfo": "skip",
             "name": "pásmo normy", "showlegend": False,
         })
@@ -196,6 +199,23 @@ def trend_chart(metric, points, *, qualifiers=None, norm=None, goal=None, season
             "name": "norma",
         })
         note = f"Pásmo = průměr ± SD normy. Zdroj: {norm.source_citation}"
+    elif band is not None:
+        traces.append({
+            "type": "scatter", "x": dates + dates[::-1],
+            "y": [band.p75] * len(dates) + [band.p25] * len(dates),
+            "mode": "lines", "fill": "toself", "fillcolor": colors["band"],
+            "line": {"width": 0}, "hoverinfo": "skip",
+            "name": "interní pásmo", "showlegend": False,
+        })
+        traces.append({
+            "type": "scatter", "x": dates, "y": [band.p50] * len(dates),
+            "mode": "lines",
+            "line": {"color": colors["muted"], "width": 1, "dash": "dot"},
+            "hovertemplate": f"medián laboratoře {band.median_txt}{unit}<extra></extra>",
+            "name": "medián laboratoře",
+        })
+        note = (f"Šedé pásmo = interní reference laboratoře (P25–P75, tečkovaně medián): "
+                f"{band.group_text}, n = {band.n}. Jen pro orientaci, necitovatelné.")
 
     traces.append({
         "type": "scatter", "x": dates, "y": values, "mode": "lines+markers+text",
@@ -217,7 +237,8 @@ def trend_chart(metric, points, *, qualifiers=None, norm=None, goal=None, season
     span_days = (points[-1][0] - points[0][0]).days if len(points) > 1 else 0
     layout["xaxis"]["tickformat"] = "%d.%m." if span_days < 90 else "%m/%Y"
     layout["xaxis"]["nticks"] = 6
-    layout["yaxis"]["range"] = _y_range(metric, values + ([goal] if goal is not None else []), norm)
+    layout["yaxis"]["range"] = _y_range(metric, values + ([goal] if goal is not None else []), norm,
+                                        band=band)
     if shapes:
         layout["shapes"] = shapes
     if annotations:
@@ -232,7 +253,7 @@ def trend_chart(metric, points, *, qualifiers=None, norm=None, goal=None, season
     )
 
 
-def _y_range(metric, values: list, norm) -> list | None:
+def _y_range(metric, values: list, norm, band=None) -> list | None:
     """
     Rozsah svislé osy.
 
@@ -244,6 +265,8 @@ def _y_range(metric, values: list, norm) -> list | None:
     if norm is not None and norm.mean is not None and norm.sd:
         low = min(low, norm.mean - norm.sd)
         high = max(high, norm.mean + norm.sd)
+    elif band is not None:
+        low, high = min(low, band.p25), max(high, band.p75)
 
     span = high - low
     minimum_span = (metric.mdc or 0) * 3

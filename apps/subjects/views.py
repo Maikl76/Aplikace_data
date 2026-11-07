@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.analytics import charts, compare, overview, queries
+from apps.analytics import charts, compare, overview, queries, reference
 from apps.core.audit import record
 from apps.core.models import AuditLog
 from apps.external.models import ExternalExam
@@ -82,7 +82,9 @@ def subject_detail(request, pk):
 
     goal_progress = goals.goals_for(subject)
     goals_by_metric = goals.by_metric(goal_progress)
-    trends = overview.trend_specs(subject, goals=goals_by_metric)
+    # Interní reference laboratoře jen tady, v laboratoři – portál ani zpráva je nedostanou.
+    reference_index = reference.ReferenceIndex(subject.organization)
+    trends = overview.trend_specs(subject, goals=goals_by_metric, reference=reference_index)
     posledni, asymetrie = queries.latest_asymmetries(subject)
 
     from apps.core.steps import next_step
@@ -103,7 +105,7 @@ def subject_detail(request, pk):
         "display_name": subject.display_for(request.user),
         "sessions": sessions,
         "last_session": measured[0] if measured else None,
-        "tiles": overview.kpi_tiles(subject, goals=goals_by_metric),
+        "tiles": overview.kpi_tiles(subject, goals=goals_by_metric, reference=reference_index),
         "goals": goal_progress,
         "goal_metrics": goals.metric_choices(subject) if _may_edit(request.user) else [],
         "external_exams": exams, "may_edit": _may_edit(request.user),

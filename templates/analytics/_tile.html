@@ -31,6 +31,12 @@ a maximem, cíl. reader = "lab" | "sportovec" | "trener" – podle čtenáře se
       </div>
     {% endwith %}
   {% endif %}
+  {% if reader == "lab" and t.reference %}{% with r=t.reference %}
+    <div class="text-xs text-2 tabular-nums leading-snug" title="Interní reference laboratoře z vlastních měření (P25–P75, medián) – jen pro orientaci, necitovatelná; nejde do zprávy ani do portálu.">
+      <span class="badge">interní</span> {{ r.band.range_txt }} {{ t.unit }} <span class="text-muted">(medián {{ r.band.median_txt }}) · {{ r.band.group_text }} · n = {{ r.band.n }}</span>
+      · <span class="badge {% if r.position.tier == "top" %}badge-good{% elif r.position.tier == "low" %}badge-warn{% elif r.position.tier == "far" %}badge-accent{% endif %}">{{ r.position.text }}</span>
+    </div>
+  {% endwith %}{% endif %}
   {% if reader == "sportovec" and t.metric.athlete_text %}
     <p class="text-xs text-2 leading-snug pt-1.5 border-t" style="border-color: var(--border)">{{ t.metric.athlete_text }}</p>
   {% elif reader == "trener" %}{% with text=t.metric.coach_text|default:t.metric.athlete_text %}{% if text %}

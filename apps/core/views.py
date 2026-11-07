@@ -59,8 +59,13 @@ def dashboard(request):
 
     pripominky = None
     if request.user.sees_identity or request.user.is_superuser:
-        pripominky = retest.daily_check(request.user.organization,
-                                        booking_url=retest.booking_link(request.build_absolute_uri("/")))
+        # Jednou denně (pojistka za příkaz udrzba): záloha, úklid, připomínky, stav správci.
+        from apps.core import maintenance
+
+        udrzba = maintenance.ensure_today(
+            request.user.organization,
+            booking_url=retest.booking_link(request.build_absolute_uri("/")))
+        pripominky = udrzba.reminders if udrzba is not None else None
     na_rade = retest.due_plans(request.user)
     na_rade_names = names_for([p.subject for p in na_rade[:8]], request.user)
     for p in na_rade[:8]:
@@ -306,6 +311,64 @@ def organization_settings(request):
         messages.success(request, "Pracoviště a týmy jsou uložené.")
         return redirect("workplace_org")
     return render(request, "core/organization.html", {"org": org, "sports": sports, "teams": teams})
+
+
+@login_required
+def operations(request):
+    """Provoz a zálohy: stav údržby, záloh a disku; správce může zálohovat nebo poslat stav hned."""
+    from django.contrib import messages
+    from django.shortcuts import redirect
+
+    from apps.core import backup, maintenance
+    from apps.core.audit import record
+    from apps.core.models import AuditLog
+    from apps.subjects import retest
+
+    user = request.user
+    org = user.organization
+    if org is None:
+        messages.error(request, "Účet nemá pracoviště – přiřadí ho superuživatel v administraci.")
+        return redirect("workplace")
+    if request.method == "POST":
+        if not _is_admin(user):
+            return render(request, "core/odepreno.html", {"duvod": "Provoz a zálohy řídí správce."},
+                          status=403)
+        action = request.POST.get("akce", "")
+        if action == "zaloha":
+            try:
+                result = backup.backup_sqlite(root=maintenance.daily_backup_dir(),
+                                              keep=settings.BACKUP_KEEP_DAILY, label="rucni")
+            except backup.BackupError as exc:
+                messages.error(request, f"Záloha se nepovedla: {exc}")
+            else:
+                org.backup_at = timezone.now()
+                org.backup_note = result.text
+                org.save(update_fields=["backup_at", "backup_note", "updated_at"])
+                messages.success(request, f"Záloha hotová: {result.text}. Složku uložte i mimo "
+                                          "tento počítač.")
+        elif action == "udrzba":
+            out = maintenance.daily(org, force=True,
+                                    booking_url=retest.booking_link(request.build_absolute_uri("/")))
+            z = (out.log.get("zaloha") or {}) if out else {}
+            messages.success(request, "Denní údržba proběhla: záloha "
+                             + ("ok" if z.get("ok") else f"neproběhla ({z.get('chyba', '')})")
+                             + f", starých importů smazáno {out.log.get('importy_smazano') or 0}.")
+        elif action == "stav":
+            sent = maintenance.send_status(org, force=True, base_url=request.build_absolute_uri("/"))
+            if sent:
+                messages.success(request, f"Stav pracoviště odešel správci ({sent} adres).")
+            else:
+                messages.warning(request, "Stav neodešel: poštovní server není nastavený, nebo "
+                                          "žádný správce nemá e-mail.")
+        record(request, AuditLog.Action.UPDATE, org, nastaveni="provoz", akce=action)
+        return redirect("operations")
+    info = maintenance.status(org)
+    subject, body = maintenance.status_message(org, info, base_url=request.build_absolute_uri("/"))
+    return render(request, "core/operations.html", {
+        "org": org, "info": info, "mail_subject": subject, "mail_body": body,
+        "is_admin": _is_admin(user), "keep": settings.BACKUP_KEEP_DAILY,
+        "in_web": settings.MAINTENANCE_IN_WEB,
+    })
 
 
 @login_required

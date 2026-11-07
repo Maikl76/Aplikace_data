@@ -63,7 +63,7 @@
               {% if cell %}
                 <td class="text-right whitespace-nowrap tym-{{ cell.tier|default:'nic' }}{% if cell.stale %} tym-stare{% endif %}"
                     data-v="{{ cell.value|stringformat:'f' }}"
-                    title="naměřeno {{ cell.date|date:'j. n. Y' }}{% if cell.z_txt %} · {{ cell.z_txt }} SD od průměru týmu{% endif %}{% if cell.verdict %} · proti {{ cell.verdict.previous_date|date:'j. n. Y' }}: {{ cell.verdict.delta_txt }} ({{ cell.verdict.text }}){% endif %}{% if cell.stale %} · starší než {{ stale_days }} dní{% endif %}">
+                    title="naměřeno {{ cell.date|date:'j. n. Y' }}{% if cell.z_txt %} · {{ cell.z_txt }} SD od průměru týmu{% endif %}{% if cell.verdict %} · proti {{ cell.verdict.previous_date|date:'j. n. Y' }}: {{ cell.verdict.delta_txt }} ({{ cell.verdict.text }}){% endif %}{% if cell.stale %} · starší než {{ stale_days }} dní{% endif %}{% if cell.reference %} · interní pásmo {{ cell.reference.band.range_txt }} ({{ cell.reference.band.group_text }}, n = {{ cell.reference.band.n }}): {{ cell.reference.position.text }}{% endif %}">
                   <span class="tabular-nums font-medium">{{ cell.value_txt }}</span>
                   {% if cell.verdict %}
                     <span class="badge {{ cell.verdict.css }} ml-1 px-1" aria-label="{{ cell.verdict.text }}">{% icon cell.verdict.icon "w-3 h-3" %}</span>
@@ -85,6 +85,16 @@
             </td>
           {% endfor %}
         </tr>
+        {% if reference %}
+        <tr id="interni-reference">
+          <td class="tym-prvni text-xs text-muted whitespace-nowrap"><span class="badge">interní</span> P25–P75 (n) · {{ reference.group_text }}</td>
+          {% for c, s in summary %}
+            <td class="text-right text-xs text-muted whitespace-nowrap tabular-nums" title="{% if s.ref %}medián {{ s.ref.median_txt }} · {{ s.ref.group_text }}{% endif %}">
+              {% if s.ref %}{{ s.ref.range_txt }} ({{ s.ref.n }}){% else %}—{% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+        {% endif %}
       </tfoot>
     </table>
   </div>
@@ -102,6 +112,7 @@
     Ukazuje se poslední hlavní měření každého sportovce; podrobnosti po najetí myší na hodnotu.
     Srovnání s týmem je orientační a počítá se až od {{ min_group }} změřených sportovců.
     Klepnutím na záhlaví sloupce se řadí.
+    {% if reference %}Řádek <em>interní</em> je referenční pásmo laboratoře (P25–P75 z vlastních měření všech sportovců pracoviště stejného sportu, pohlaví a věku); kde v něm sportovec leží, říká popisek buňky. Jen pro orientaci, necitovatelné – nikdy do zprávy. Nastavení: <a class="link" href="{% url 'reference_settings' %}">Interní reference</a>.{% endif %}
   </p>
 
   <script>

@@ -46,8 +46,12 @@ def sparkline(values: list[float], *, width: int = 120, height: int = 36) -> str
     )
 
 
-def kpi_tiles(subject, *, limit: int = 6, goals=None) -> list[dict]:
-    """``goals`` = {pk metriky: postup k cíli}; bez něj se cíle načtou."""
+def kpi_tiles(subject, *, limit: int = 6, goals=None, reference=None) -> list[dict]:
+    """
+    ``goals`` = {pk metriky: postup k cíli}; bez něj se cíle načtou.
+    ``reference`` = interní reference pracoviště (ReferenceIndex) – jen pro
+    kartu v laboratoři; portál ho nedostane, pásmo je interní.
+    """
     from apps.reports.results import change_verdict, signed
     from apps.subjects import goals as goals_module
 
@@ -83,7 +87,12 @@ def kpi_tiles(subject, *, limit: int = 6, goals=None) -> list[dict]:
             "compare": compare(metric, points, sport=subject.sport),
             # postup k cíli, je-li u ukazatele nastavený
             "goal": goals.get(metric.pk),
+            # interní pásmo laboratoře a kde v něm poslední hodnota leží
+            "reference": None,
         }
+        band = reference.band_for(subject, metric, s["qualifiers"]) if reference is not None else None
+        if band is not None:
+            tile["reference"] = {"band": band, "position": band.position(last)}
         if len(points) >= 2:
             previous = points[-2][1]
             tile["delta_txt"] = signed(round(last, d) - round(previous, d), d)
@@ -94,8 +103,11 @@ def kpi_tiles(subject, *, limit: int = 6, goals=None) -> list[dict]:
     return tiles
 
 
-def trend_specs(subject, *, goals=None) -> list:
-    """Grafy vývoje klíčových ukazatelů s čarou cíle a začátkem sezóny (oba režimy)."""
+def trend_specs(subject, *, goals=None, reference=None) -> list:
+    """
+    Grafy vývoje klíčových ukazatelů s čarou cíle a začátkem sezóny (oba režimy).
+    S ``reference`` (jen v laboratoři) dostane graf bez normy šedé interní pásmo.
+    """
     from apps.subjects import goals as goals_module
 
     if goals is None:
@@ -106,8 +118,10 @@ def trend_specs(subject, *, goals=None) -> list:
         goal = (progress.target if progress is not None
                 and s["qualifiers"]["side"] in ("B", "") else None)
         since = season_start(s["points"][-1][0], subject.sport) if len(s["points"]) > 1 else None
-        specs.append(both_themes(lambda theme, s=s, goal=goal, since=since: trend_chart(
+        band = (reference.band_for(subject, s["metric"], s["qualifiers"])
+                if reference is not None else None)
+        specs.append(both_themes(lambda theme, s=s, goal=goal, since=since, band=band: trend_chart(
             s["metric"], s["points"], qualifiers=s["qualifiers"], norm=s["norm"], goal=goal,
-            season_from=since, theme=theme)))
+            season_from=since, band=band, theme=theme)))
     return specs
 

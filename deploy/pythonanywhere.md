@@ -201,6 +201,21 @@ cokoli jste v ukázce zadali. Pak v prohlížeči **Ctrl+F5**.
 `git pull` zvlášť předem je důležitý: skript se při stahování sám mění
 a bash by jinak dojel starou verzi.
 
+### Denní údržba (plánovaná úloha)
+
+Na záložce **Tasks** založte denní úlohu (čas podle sebe, třeba 03:00):
+
+```
+~/.virtualenvs/ftvs/bin/python ~/Aplikace_data/manage.py udrzba --jednou
+```
+
+Jednou denně zazálohuje databázi a nahrané soubory do `~/Zalohy-FTVS/denni`
+(posledních 7), smaže staré nedokončené importy, rozešle připomínky měření
+a v pondělí pošle správci e‑mail se stavem (jen s nastaveným poštovním
+serverem). Bez úlohy to jako pojistka udělá první otevření Přehledu v daný
+den. Stav je v aplikaci v *Nastavení → Provoz a zálohy*. Volné účty mají
+jednu plánovanou úlohu – tahle nahrazuje dřívější `pripomenout_mereni`.
+
 Pozor na **šipku nahoru** v konzoli: vrátí poslední příkaz i s přepínačem
 (třeba `--nova-data`).
 

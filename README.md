@@ -59,8 +59,8 @@ aplikace poběží i v ostrém nasazení. Reálná data sem nepatří.
 | Soubor | Kdy |
 |---|---|
 | `zalozit.bat` | jednou na novém počítači: prostředí, knihovny, `.env`, databáze, ukázková data |
-| `spustit.bat` | pokaždé: stáhne novou verzi (`git pull`), upraví databázi a spustí aplikaci |
-| `zalohovat.bat` | záloha databáze, nahraných souborů a `.env` s klíči do `Zalohy-FTVS` (nebo do složky zadané jako parametr) |
+| `spustit.bat` | pokaždé: stáhne novou verzi (`git pull`), upraví databázi, spustí aplikaci a ve vlastních oknech hlídač sledované složky a denní údržbu (záloha, úklid, připomínky, týdenní stav správci) |
+| `zalohovat.bat` | záloha navíc, mimo denní: databáze, nahrané soubory a `.env` s klíči do `Zalohy-FTVS` (nebo do složky zadané jako parametr) |
 | `ulozit-katalog.bat` | po změně katalogu v administraci: uloží ho do repozitáře a nahraje |
 | `nacist-katalog.bat` | na druhém počítači: načte uložený katalog |
 
@@ -250,6 +250,18 @@ Viz `docs/terenni-testovani.md`.
 hlídač (`manage.py hlidat_slozku`), který nové exporty z přístroje načte do
 Importu a jednoznačné (poznaný sportovec, naplánovaný den) uloží sám. Viz
 `docs/import-vald.md`.
+
+**Denní údržba** (`manage.py udrzba`, spouští ji `spustit.bat`, na serveru
+plánovaná úloha s `--jednou`): záloha SQLite do `Zalohy-FTVS/denni`, úklid
+starých importů, připomínky měření a jednou týdně e‑mail správci se stavem
+pracoviště (bez jmen). Stav je v Nastavení → Provoz a zálohy. Viz
+`docs/provoz.md`.
+
+**Interní referenční hodnoty** (`apps/analytics/reference.py`): pásmo
+P25–P75 z vlastních měření pracoviště podle sportu, pohlaví a věku, od
+minimálního počtu sportovců a podle souhlasů; jen v laboratoři (karta
+sportovce, týmový přehled), nikdy do zprávy ani do portálu. Viz
+`docs/interni-reference.md`.
 
 ## Grafy
 

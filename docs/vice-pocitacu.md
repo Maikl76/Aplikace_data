@@ -64,7 +64,9 @@ Jednou týdně (a před každou větší změnou) dvakrát klikněte na
 s klíči do složky `Zalohy-FTVS` ve vašem profilu; jinam ji uloží
 `zalohovat.bat "E:\zalohy"`. Složku pak zkopírujte mimo počítač – na
 šifrovaný disk nebo síťové úložiště fakulty; obsahuje jména sportovců.
-Nechává se posledních deset záloh, starší se mažou samy.
+Nechává se posledních deset záloh, starší se mažou samy. Kromě toho
+se jednou denně zálohuje samo – do podsložky `Zalohy-FTVS\denni`
+(posledních sedm), viz `docs/provoz.md` a Nastavení → Provoz a zálohy.
 
 Bez `.env` jsou jména v záloze databáze nečitelná (klíč
 `IDENTITY_ENCRYPTION_KEY`), proto patří do zálohy i on.

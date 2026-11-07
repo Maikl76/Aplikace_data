@@ -205,6 +205,15 @@ PUBLIC_BASE_URL = env("PUBLIC_BASE_URL", default="").rstrip("/")
 # spustit.bat) nový export sám založí do importu a jednoznačný uloží.
 IMPORT_WATCH_DIR = env("IMPORT_WATCH_DIR", default="").strip().strip("\"'")
 IMPORT_WATCH_INTERVAL = env.int("IMPORT_WATCH_INTERVAL", default=30)
+
+# Denní údržba (apps/core/maintenance.py, příkaz udrzba): záloha SQLite do
+# BACKUP_DIR/denni (výchozí ~/Zalohy-FTVS), úklid starých importů, připomínky
+# měření a jednou týdně e-mail správci se stavem pracoviště. Bez běžícího
+# příkazu ji jako pojistku spustí první otevření Přehledu v daný den.
+BACKUP_DIR = env("BACKUP_DIR", default="").strip().strip("\"'")
+BACKUP_KEEP_DAILY = env.int("BACKUP_KEEP_DAILY", default=7)
+STATUS_MAIL_WEEKDAY = env.int("STATUS_MAIL_WEEKDAY", default=0)   # 0 = pondělí … 6 = neděle
+MAINTENANCE_IN_WEB = env.bool("MAINTENANCE_IN_WEB", default=True)
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")

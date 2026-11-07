@@ -1,6 +1,7 @@
 from django.urls import path
 from django.views.generic import RedirectView
 
+from apps.analytics import reference_views
 from apps.catalog import norm_views, questionnaire_views, settings_views
 from apps.rules import setup_views as rule_views
 
@@ -13,10 +14,12 @@ urlpatterns = [
     path("nastaveni/", views.workplace, name="workplace"),
     path("stav/", RedirectView.as_view(url="/nastaveni/", permanent=True)),  # starý odkaz
     path("nastaveni/pracoviste/", views.organization_settings, name="workplace_org"),
+    path("nastaveni/provoz/", views.operations, name="operations"),
     path("nastaveni/mdc/", settings_views.mdc_settings, name="mdc_settings"),
     path("nastaveni/popisy/", settings_views.client_texts, name="client_texts"),
     path("nastaveni/import/", settings_views.import_profiles, name="import_profiles"),
     path("nastaveni/normy/", norm_views.norm_list, name="norms_settings"),
+    path("nastaveni/reference/", reference_views.reference_settings, name="reference_settings"),
     path("nastaveni/normy/nova/", norm_views.norm_edit, name="norm_new"),
     path("nastaveni/normy/<int:pk>/", norm_views.norm_edit, name="norm_edit"),
     path("nastaveni/normy/<int:pk>/smazat/", norm_views.norm_delete, name="norm_delete"),
