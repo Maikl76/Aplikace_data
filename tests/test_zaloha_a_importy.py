@@ -94,7 +94,11 @@ def test_vyzkumnik_ma_v_auditu_jen_cteni(tym):  # noqa: F811
     org, battery, hraci, _ = tym
     from django.test import Client
 
+    from apps.core import access
+
     c = Client()
-    c.force_login(User.objects.create(username="v", organization=org, role=Role.RESEARCHER))
+    researcher = User.objects.create(username="v", organization=org, role=Role.RESEARCHER)
+    access.grant(researcher, exports=True)   # export mu zapnul správce; jinak jen čte
+    c.force_login(researcher)
     assert c.get(f"/tym/?baterie={battery.pk}&format=csv").status_code == 200
     assert AuditLog.objects.filter(action=AuditLog.Action.EXPORT, user__username="v").exists()

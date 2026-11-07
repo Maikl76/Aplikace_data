@@ -93,11 +93,18 @@ def subject_detail(request, pk):
 
     accounts_info = accounts.accounts_of(subject) if _may_edit(request.user) else None
     sharings_list = [_with_coach_label(sh) for sh in subject.sharings.select_related("coach")]
-    exams = list(subject.external_exams.order_by("-date", "-pk"))
+    from apps.core import access as core_access
+
+    may_see_exams = core_access.can(request.user, "exams")
+    exams = list(subject.external_exams.order_by("-date", "-pk")) if may_see_exams else []
     plan = retest.plan_for(subject)
     steps = subject_steps(subject, sessions=sessions, accounts=accounts_info,
                           sharings=sharings_list, may_edit=_may_edit(request.user), exams=exams,
                           plan=plan, goals=goal_progress)
+    if not may_see_exams:   # bez přístupu k vyšetřením krok nenabízet
+        steps = [s for s in steps if s["title"] != "Externí vyšetření"]
+        for n, s in enumerate(steps, start=1):
+            s["n"] = n
 
     return render(request, "subjects/subject_detail.html", {
         "steps": steps, "next_step": next_step(steps),
@@ -109,6 +116,7 @@ def subject_detail(request, pk):
         "goals": goal_progress,
         "goal_metrics": goals.metric_choices(subject) if _may_edit(request.user) else [],
         "external_exams": exams, "may_edit": _may_edit(request.user),
+        "may_see_exams": may_see_exams,
         "plan": plan, "reminders": list(subject.retest_reminders.all()[:3]),
         "email_enabled": bool(settings.EMAIL_HOST),
         # Stejná logika jako v pravidlech: karta nesmí tvrdit něco jiného než zpráva.
@@ -190,8 +198,17 @@ def subject_today(request, pk):
 
 # --- ruční založení a úprava -------------------------------------------------------
 
+def _may_add_sport(user) -> bool:
+    from apps.core import access
+
+    return access.can(user, "settings_sports")
+
+
 def _may_edit(user) -> bool:
-    return user.is_superuser or user.sees_identity
+    """Sportovce zakládá a upravuje účet s oprávněním (přístup účtu: sportovci)."""
+    from apps.core import access
+
+    return access.can(user, "subjects_edit")
 
 
 def _form_page(request, form, subject=None, duplicates=None):
@@ -285,12 +302,16 @@ def subject_new(request):
                                 "u uživatele vyberte organizaci.")
         return redirect("subject_list")
     sports = Sport.objects.for_user(request.user).order_by("name")
-    teams = Team.objects.filter(organization=organization).select_related("sport").order_by("name")
+    teams = Team.objects.for_user(request.user).select_related("sport").order_by("name")
     form = SubjectForm(request.POST or None, sports=sports, teams=teams)
     if request.method == "POST":
         if not settings.IDENTITY_ENCRYPTION_KEY:
             messages.error(request, "Chybí šifrovací klíč – jméno nejde uložit. Spusťte "
                                     "aplikaci přes spustit.bat, klíč se doplní sám.")
+            return _form_page(request, form)
+        if form.is_valid() and form.cleaned_data.get("new_sport") and not _may_add_sport(request.user):
+            form.add_error("new_sport", "Nový sport zakládá správce nebo metodik sportu – vyberte "
+                                        "sport ze seznamu.")
             return _form_page(request, form)
         duplicates = _check(request, form, organization)
         if duplicates is not None and "exact" not in duplicates:
@@ -321,10 +342,13 @@ def subject_edit(request, pk):
         messages.error(request, "Chybí šifrovací klíč – jméno nejde přečíst ani uložit.")
         return redirect("subject_detail", pk=pk)
     sports = Sport.objects.for_user(request.user).order_by("name")
-    teams = (Team.objects.filter(organization=subject.organization).select_related("sport")
-             .order_by("name"))
+    teams = Team.objects.for_user(request.user).select_related("sport").order_by("name")
     if request.method == "POST":
         form = SubjectForm(request.POST, sports=sports, teams=teams)
+        if form.is_valid() and form.cleaned_data.get("new_sport") and not _may_add_sport(request.user):
+            form.add_error("new_sport", "Nový sport zakládá správce nebo metodik sportu – vyberte "
+                                        "sport ze seznamu.")
+            return _form_page(request, form, subject=subject)
         duplicates = _check(request, form, subject.organization, subject)
         if duplicates is not None and "exact" not in duplicates:
             services.update_subject(subject, form.cleaned_data)

@@ -188,12 +188,17 @@ příjmení, role → vznikne účet bez hesla a jednorázový odkaz (platí 7 d
 kterým si kolega heslo nastaví sám. Odkaz mu správce předá jakkoli,
 poštovní server není potřeba; *Odkaz na heslo* u účtu slouží i jako
 „zapomenuté heslo“. Skupina oprávnění se přiřadí podle role sama
-(administrace → *Uživatelé* je pro pokročilé):
+(administrace → *Uživatelé* je pro pokročilé, jen pro správce):
 
-| Role | Co smí |
+Role je šablona: skutečný přístup (na které sporty účet vidí, zda vidí
+jména a genetiku, co smí) nastaví správce u každého účtu v *Kolegové →
+Přístup*; viz [docs/pristupy.md](docs/pristupy.md). Výchozí šablony:
+
+| Role | Co smí (výchozí) |
 |---|---|
-| **Správce** | vše včetně uživatelů |
-| **Diagnostik** | zadávat a opravovat měření, importovat, vydávat zprávy; **nesmí mazat** |
+| **Správce** | vše včetně uživatelů, přístupů a provozu |
+| **Laborant / diagnostik** | zadávat a opravovat měření, importovat, sportovci, koncepty zpráv – pro přidělené sporty, se jmény; **nevydává a nesmí mazat** |
+| **Metodik** | odpovídá za sporty a metodiky měření: baterie, normy, pravidla, testy a MDC, vydává zprávy pro své sporty; bez jmen |
 | **Výzkumník** | jen číst; identitu sportovců nevidí. Aplikace mu každé uložení odmítne. |
 | **Sportovec / zákonný zástupce** | vlastní portál `/muj/`: své výsledky, zprávy pro sportovce, dotazníky, souhlasy a sdílení s trenérem; účet vzniká z pozvánky (karta sportovce, potvrzení objednávky) nebo odkazem na e‑mail uložený v laboratoři (viz [docs/portal.md](docs/portal.md)) |
 | **Trenér** | vlastní portál `/trener/`: jen sportovci, kteří mu sdílení potvrdili, jménem; trendy, přehled skupiny, zprávy pro trenéra; o sdílení žádá kódem sportovce |

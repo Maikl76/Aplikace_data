@@ -44,9 +44,10 @@ def workplace_steps(user) -> list[dict]:
     genetics = [g for g in genetics_steps(user) if not g.get("optional")]
     genetics_done = sum(1 for g in genetics if g["done"])
     keys_ok = bool(settings.IDENTITY_ENCRYPTION_KEY) and genetics_crypto.configured()
-    from . import maintenance
+    from . import access, maintenance
 
     provoz = maintenance.status(org) if org is not None else {"warnings": ["Účet bez pracoviště."]}
+    pending_access = access.unconfigured(org) if org is not None else []
     model = llm.describe()
     model_text = (model["blocked"] if model["blocked"] else
                   f"Jazykový model: cloudový ({model['host']}), jen pro zkušební provoz "
@@ -103,6 +104,12 @@ def workplace_steps(user) -> list[dict]:
              (" ".join(provoz["warnings"]) if provoz["warnings"] else operations_text(provoz)),
              url=reverse("operations"), button="Provoz a zálohy",
              count=len(provoz["warnings"]) or None),
+        step(11, "Přístupy kolegů", not pending_access,
+             (f"{len(pending_access)} účtů má přístup jen podle výchozí šablony role – nastavte "
+              "sporty, jména a oprávnění a potvrďte." if pending_access else
+              "Každý účet kolegy má přístup nastavený správcem: na co vidí a co smí."),
+             url=reverse("colleagues"), button="Kolegové", admin_only=True,
+             count=len(pending_access) or None),
     ]
 
 
@@ -157,9 +164,10 @@ def settings_sections(user) -> list[dict]:
 
     return [
         section("Pracoviště a kolegové",
-                f"{org.name if org else 'bez pracoviště'}; {colleagues} účtů kolegů, {teams} týmů.",
+                f"{org.name if org else 'bez pracoviště'}; {colleagues} účtů kolegů, {teams} týmů. "
+                "U každého účtu správce nastaví, na co vidí (sporty, jména, genetika) a co smí.",
                 url=reverse("workplace_org"), button="Pracoviště a týmy", admin_only=True,
-                links=[("Kolegové a role", reverse("colleagues"))]),
+                links=[("Kolegové a přístupy", reverse("colleagues"))]),
         section("Sporty a baterie testů",
                 f"{len(c['sports'])} sportů, {len(c['sports']) - len(c['sports_without'])} "
                 "s baterií testů.",

@@ -8,7 +8,7 @@
   </div>
   <div class="flex flex-wrap gap-2">
     <a href="{% url 'today' %}" class="btn">{% icon "calendar" %}Dnešní testování</a>
-    <a href="{% url 'session_create' %}" class="btn btn-primary">{% icon "plus" %}Nový testovací den</a>
+    {% if pristup.measure %}<a href="{% url 'session_create' %}" class="btn btn-primary">{% icon "plus" %}Nový testovací den</a>{% endif %}
   </div>
 </div>
 

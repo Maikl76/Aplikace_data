@@ -11,6 +11,7 @@ urlpatterns = [
     path("", views.dashboard, name="dashboard"),
     path("o-aplikaci/", views.about, name="about"),
     path("kolegove/", views.colleagues, name="colleagues"),
+    path("kolegove/<int:pk>/pristup/", views.colleague_access, name="colleague_access"),
     path("nastaveni/", views.workplace, name="workplace"),
     path("stav/", RedirectView.as_view(url="/nastaveni/", permanent=True)),  # starý odkaz
     path("nastaveni/pracoviste/", views.organization_settings, name="workplace_org"),

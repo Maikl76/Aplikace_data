@@ -72,6 +72,7 @@ class Organization(TimeStampedModel):
 class Role(models.TextChoices):
     ADMIN = "admin", "Správce"
     LAB = "lab", "Laborant / diagnostik"
+    METHODOLOGIST = "metodik", "Metodik (sporty a metodiky měření)"
     RESEARCHER = "researcher", "Výzkumník (anonymizovaný pohled)"
     COACH = "coach", "Trenér (vlastní tým)"
     ATHLETE = "athlete", "Sportovec / zákonný zástupce (vlastní výsledky)"
@@ -90,8 +91,10 @@ class User(AbstractUser):
 
     @property
     def sees_identity(self) -> bool:
-        """Jen tyto role smějí vidět jméno sportovce, ne jen pseudonym."""
-        return self.role in {Role.ADMIN, Role.LAB}
+        """Smí účet vidět jméno sportovce, ne jen pseudonym? Rozhoduje přístup účtu (access.py)."""
+        from . import access
+
+        return access.can(self, "names")
 
     def save(self, *args, **kwargs):
         # Účet bez pracoviště by v aplikaci neviděl nic a založení sportu nebo
@@ -134,7 +137,10 @@ class OrgScopedQuerySet(models.QuerySet):
             if any(f.name == "subject" for f in self.model._meta.fields):
                 return qs.filter(subject_id__in=ids)
             return qs.none()
-        return qs
+        # Laboratoř: rozsah dat podle přístupu účtu (sporty, týmy) – access.scope_queryset.
+        from . import access
+
+        return access.scope_queryset(self.model, qs, user)
 
 
 class OrgScopedManager(models.Manager.from_queryset(OrgScopedQuerySet)):
@@ -187,6 +193,56 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"{self.timestamp:%Y-%m-%d %H:%M} {self.user} {self.action} {self.object_type}"
+
+
+class Access(TimeStampedModel):
+    """
+    Přístup účtu kolegy: na co vidí (rozsah dat) a co smí (oprávnění).
+
+    Role je jen šablona výchozích hodnot (access.PRESETS); správce položky
+    upraví u konkrétního účtu v Kolegové → Přístup. Správce má vždy vše,
+    portálové role (sportovec, trenér) záznam nemají – jejich rozsah určuje
+    účet a sdílení (apps.subjects.access). O všem rozhoduje apps/core/access.py.
+    """
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, verbose_name="účet",
+                                on_delete=models.CASCADE, related_name="access")
+    configured = models.BooleanField(
+        "přístup potvrdil správce", default=False,
+        help_text="Dokud ne, platí výchozí šablona podle role; Stav pracoviště na to upozorní.")
+    # rozsah dat
+    all_sports = models.BooleanField("všechny sporty", default=True)
+    sports = models.ManyToManyField("subjects.Sport", verbose_name="sporty", blank=True,
+                                    related_name="+")
+    teams = models.ManyToManyField("subjects.Team", verbose_name="jen týmy", blank=True,
+                                   related_name="+",
+                                   help_text="Užší než sporty; prázdné = všechny týmy sportů.")
+    all_families = models.BooleanField("všechny metodiky měření", default=True)
+    families = models.JSONField("metodiky měření (rodiny testů)", default=list, blank=True)
+    names = models.BooleanField("jména sportovců", default=True)
+    genetics = models.BooleanField("genetika", default=False)
+    exams = models.BooleanField("externí vyšetření", default=True)
+    bookings = models.BooleanField("objednávky", default=True)
+    # oprávnění
+    measure = models.BooleanField("zadávat a importovat měření", default=True)
+    subjects_edit = models.BooleanField("sportovci, souhlasy, účty a sdílení", default=True)
+    reports_draft = models.BooleanField("koncepty zpráv", default=True)
+    reports_release = models.BooleanField("vydávat a předávat zprávy", default=False)
+    settings_sports = models.BooleanField("sporty, baterie, normy, pravidla, dotazníky",
+                                          default=False)
+    settings_tests = models.BooleanField("testy, ukazatele, MDC, přístroje", default=False)
+    exports = models.BooleanField("exporty dat", default=False)
+    articles = models.BooleanField("úpravy knihovny článků", default=False)
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="naposledy nastavil",
+                                   on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name="+")
+
+    class Meta:
+        verbose_name = "přístup účtu"
+        verbose_name_plural = "přístupy účtů"
+
+    def __str__(self):
+        return f"přístup {self.user}"
 
 
 class Remark(TimeStampedModel):

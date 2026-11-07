@@ -15,8 +15,12 @@ def lab(db, settings):
     settings.IDENTITY_ENCRYPTION_KEY = Fernet.generate_key().decode()
     org = Organization.objects.create(name="FTVS", short_name="ftvs")
     sport = Sport.objects.create(organization=org, name="Tenis", code="tenis")
+    from apps.core import access
+
+    user = User.objects.create(username="lab", organization=org, role=Role.LAB)
+    access.grant(user, settings_sports=True)   # nový sport u sportovce zakládá metodik/správce
     client = Client()
-    client.force_login(User.objects.create(username="lab", organization=org, role=Role.LAB))
+    client.force_login(user)
     return org, sport, client
 
 

@@ -15,7 +15,10 @@ from apps.subjects.models import Sport, Subject
 def lab(db, client):
     call_command("seed_catalog", verbosity=0)
     org = Organization.objects.create(name="FTVS", short_name="ftvs")
+    from apps.core import access
+
     user = User.objects.create(username="lab", organization=org, role=Role.LAB)
+    access.grant(user, settings_sports=True)   # baterie upravuje metodik sportu nebo správce
     hokej = Sport.objects.create(organization=org, code="hokej", name="Lední hokej")
     client.force_login(user)
     return org, user, hokej, client

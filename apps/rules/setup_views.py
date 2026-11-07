@@ -113,7 +113,7 @@ def rule_list(request):
     status = rule_status(user)
     return render(request, "rules/list.html", {
         "rules": status["rules"], "steps": rule_steps(user, status),
-        "can_edit": setup.can_edit(user), "active": len(status["active"]),
+        "can_edit": setup.can_edit_sports(user), "active": len(status["active"]),
     })
 
 
@@ -323,8 +323,8 @@ def _bump_version(rule, values) -> bool:
 @login_required
 def rule_edit(request, pk=None):
     user = request.user
-    if not setup.can_edit(user):
-        return _denied(request, "Pravidla zapisuje správce.")
+    if not setup.can_edit_sports(user):
+        return _denied(request, "Pravidla zapisuje správce nebo metodik sportu.")
     rule = get_object_or_404(Rule.objects.filter(_shared(user)), pk=pk) if pk else None
     metrics = {m.code: m for m in MetricDef.objects.filter(_shared(user)).order_by("family", "name")}
     sports = list(Sport.objects.for_user(user).order_by("name"))
@@ -375,8 +375,8 @@ def rule_edit(request, pk=None):
 @login_required
 @require_POST
 def rule_delete(request, pk):
-    if not setup.can_edit(request.user):
-        return _denied(request, "Pravidla maže správce.")
+    if not setup.can_edit_sports(request.user):
+        return _denied(request, "Pravidla maže správce nebo metodik sportu.")
     rule = get_object_or_404(Rule.objects.filter(_shared(request.user)), pk=pk)
     findings = rule.findings.count()
     if findings:
@@ -445,8 +445,8 @@ def why_not(rule, session, metrics: dict) -> str:
 @login_required
 def rule_test(request, pk=None):
     user = request.user
-    if not setup.can_edit(user):
-        return _denied(request, "Zkoušku pravidel spouští správce.")
+    if not setup.can_edit_sports(user):
+        return _denied(request, "Zkoušku pravidel spouští správce nebo metodik sportu.")
     status = rule_status(user)
     rule = None
     if pk:

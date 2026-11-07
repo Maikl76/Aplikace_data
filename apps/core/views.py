@@ -45,8 +45,10 @@ def dashboard(request):
     for r in draft_list:
         r.jmeno = draft_names.get(r.subject_id) or r.subject.code
 
+    from apps.core import access
+
     objednavky = []
-    if request.user.sees_identity:
+    if access.can(request.user, "bookings"):
         from apps.booking.models import BookingRequest
 
         objednavky = list(BookingRequest.objects.for_user(request.user)
@@ -58,7 +60,7 @@ def dashboard(request):
     from apps.subjects import retest
 
     pripominky = None
-    if request.user.sees_identity or request.user.is_superuser:
+    if access.can(request.user, "measure"):
         # Jednou denně (pojistka za příkaz udrzba): záloha, úklid, připomínky, stav správci.
         from apps.core import maintenance
 
@@ -153,7 +155,7 @@ def colleagues(request):
     from apps.core import colleagues as service
     from apps.core.audit import record
     from apps.core.forms import ColleagueForm
-    from apps.core.models import AuditLog, User, default_organization
+    from apps.core.models import AuditLog, Role, User, default_organization
     from apps.core.roles import COLLEAGUE_ROLES
 
     if not _is_admin(request.user):
@@ -201,9 +203,121 @@ def colleagues(request):
         if link_for is not None:
             link = request.build_absolute_uri(
                 reverse("password_setup", args=[service.password_link_token(link_for)]))
+    from apps.core import access
+
+    rows = list(people.select_related("access")
+                .order_by("-is_active", "last_name", "first_name", "username"))
+    for person in rows:
+        person.pristup = access.summary(person) if person.role != Role.COACH else "portál trenéra"
+        person.pristup_potvrzen = (person.role in (Role.ADMIN, Role.COACH) or person.is_superuser
+                                   or getattr(getattr(person, "access", None), "configured", False))
     return render(request, "core/colleagues.html", {
-        "people": people.order_by("-is_active", "last_name", "first_name", "username"),
-        "form": form, "link": link, "link_for": link_for, "link_days": service.LINK_DAYS,
+        "people": rows, "form": form, "link": link, "link_for": link_for,
+        "link_days": service.LINK_DAYS, "link_new": link_for is not None and not link_for.pristup_potvrzen
+        if link_for is not None and hasattr(link_for, "pristup_potvrzen") else False,
+    })
+
+
+@login_required
+def colleague_access(request, pk):
+    """
+    Přístup účtu kolegy (správce): role jako šablona, rozsah dat (sporty,
+    týmy, metodiky) a oprávnění po položkách. Uložení přístup potvrdí.
+    """
+    from django.contrib import messages
+    from django.shortcuts import get_object_or_404, redirect
+
+    from apps.catalog.models import TestFamily
+    from apps.core import access
+    from apps.core.audit import record
+    from apps.core.models import AuditLog, Role, User, default_organization
+    from apps.core.roles import COLLEAGUE_ROLES, STAFF_ROLES, sync_groups
+    from apps.subjects.models import Sport, Team
+
+    if not _is_admin(request.user):
+        return render(request, "core/odepreno.html", {"duvod": "Přístupy nastavuje správce."},
+                      status=403)
+    org = request.user.organization or default_organization()
+    target = get_object_or_404(User.objects.filter(organization=org, role__in=COLLEAGUE_ROLES),
+                               pk=pk)
+    if target.role == Role.COACH:
+        messages.info(request, "Trenér má vlastní portál; na koho vidí, určuje sdílení potvrzené "
+                               "sportovcem.")
+        return redirect("colleagues")
+    profile = access.profile(target)
+    sports = list(Sport.objects.filter(organization=org).order_by("name"))
+    teams = list(Team.objects.filter(organization=org).select_related("sport")
+                 .order_by("sport__name", "name"))
+    lab_roles = [(r, Role(r).label) for r in (Role.ADMIN, Role.LAB, Role.METHODOLOGIST,
+                                              Role.RESEARCHER)]
+    is_self = target.pk == request.user.pk
+
+    if request.method == "POST":
+        post = request.POST
+        changes = {}
+        role = post.get("role", target.role)
+        if role != target.role and role in dict(lab_roles):
+            if is_self:
+                messages.error(request, "Vlastní roli si tady nezměníte – požádejte jiného správce.")
+                return redirect("colleague_access", pk=pk)
+            changes["role"] = f"{target.role} → {role}"
+            target.role = role
+            target.is_staff = role in STAFF_ROLES
+            target.save(update_fields=["role", "is_staff"])
+            sync_groups(target)
+            access.apply_preset(profile, role)
+        if post.get("akce") == "podle_role":
+            access.apply_preset(profile, target.role)
+            profile.updated_by = request.user
+            profile.save()
+            access.forget(target)
+            record(request, AuditLog.Action.UPDATE, target, kolega=target.get_username(),
+                   nastaveni="pristup", akce="podle role", **changes)
+            messages.info(request, f"Oprávnění účtu {target.get_username()} jsou podle šablony role "
+                                   f"{target.get_role_display()}. Rozsah sportů zůstal.")
+            return redirect("colleague_access", pk=pk)
+
+        before = {key: getattr(profile, key) for key in access.FLAGS}
+        before.update(all_sports=profile.all_sports, all_families=profile.all_families)
+        profile.all_sports = post.get("rozsah", "vse") == "vse"
+        chosen_sports = [s for s in sports if str(s.pk) in post.getlist("sporty")]
+        sport_ids = {s.pk for s in chosen_sports}
+        chosen_teams = [t for t in teams if str(t.pk) in post.getlist("tymy")
+                        and (profile.all_sports or t.sport_id in sport_ids)]
+        profile.all_families = post.get("metodiky", "vse") == "vse"
+        wanted = set(post.getlist("rodiny"))
+        profile.families = [code for code, _ in TestFamily.choices if code in wanted]
+        for key in access.FLAGS:
+            setattr(profile, key, bool(post.get(key)))
+        profile.configured = True
+        profile.updated_by = request.user
+        profile.save()
+        profile.sports.set(chosen_sports)
+        profile.teams.set(chosen_teams)
+        access.forget(target)
+        after = {key: getattr(profile, key) for key in access.FLAGS}
+        after.update(all_sports=profile.all_sports, all_families=profile.all_families)
+        changes.update({key: after[key] for key in after if after[key] != before.get(key)})
+        record(request, AuditLog.Action.UPDATE, target, kolega=target.get_username(),
+               nastaveni="pristup", sporty=[s.name for s in chosen_sports],
+               tymy=[t.name for t in chosen_teams], **changes)
+        if not profile.all_sports and not chosen_sports and target.role != Role.ADMIN:
+            messages.warning(request, "Účet nemá žádný sport – kolega neuvidí žádného sportovce. "
+                                      "Vyberte sporty, nebo všechny sporty.")
+        messages.success(request, f"Přístup účtu {target.get_username()} je uložený.")
+        return redirect("colleagues")
+
+    chosen_sports = set(profile.sports.values_list("pk", flat=True))
+    chosen_teams = set(profile.teams.values_list("pk", flat=True))
+    groups = [(title, [(key, label, help_text, getattr(profile, key))
+                       for key, label, help_text in items]) for title, items in access.GROUPS]
+    return render(request, "core/colleague_access.html", {
+        "target": target, "profile": profile, "sports": sports, "teams": teams,
+        "chosen_sports": chosen_sports, "chosen_teams": chosen_teams,
+        "families": TestFamily.choices, "chosen_families": set(profile.families or []),
+        "groups": groups, "roles": lab_roles, "is_self": is_self,
+        "is_admin_target": target.role == Role.ADMIN or target.is_superuser,
+        "summary": access.summary(target), "preset": access.preset(target.role),
     })
 
 

@@ -150,6 +150,9 @@ def import_commit(request, pk):
                    for name, value in request.POST.items() if name.startswith("prirazeni_")}
     if assignments and batch.status == ImportBatch.Status.PARSED:
         services.apply_assignments(batch, assignments, request.user)
+    if problem := services.scope_problem(batch, request.user):
+        messages.error(request, problem)
+        return redirect("import_detail", pk=pk)
     try:
         result = services.commit_batch(
             batch, user=request.user, default_date=default_date,

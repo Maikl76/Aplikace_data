@@ -38,3 +38,13 @@ def remark_counts(request):
         return {}
     return {"nove_pripominky": Remark.objects.filter(organization=user.organization,
                                                      status=Remark.Status.OPEN).count()}
+
+
+def access_flags(request):
+    """Co účet smí a na co vidí – pro menu a tlačítka (apps.core.access)."""
+    from . import access
+
+    user = getattr(request, "user", None)
+    if not user or not user.is_authenticated or not access.is_lab(user):
+        return {"pristup": {}}
+    return {"pristup": access.flags(user)}

@@ -134,8 +134,11 @@ def test_koncept_vznikne_sam_po_dokonceni_dne(org):
 
 
 def test_vydani_upozorni_ucty_a_otevreni_v_portalu(org, settings):
+    from apps.core import access
+
     settings.EMAIL_HOST = "smtp.test"
     lab, client = _user(org, Role.LAB, "laborant")
+    access.grant(lab, reports_release=True)   # vydávání zapnul správce (jinak vydává metodik)
     d = _day(org)
     _measure(d["run_cmj"], d["cmj_m"], 30)
     identity, athlete = _account(d["subject"])

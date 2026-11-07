@@ -70,7 +70,7 @@ def questionnaire_list(request):
         q.used = where_used(q)
     return render(request, "catalog/questionnaires.html", {
         "questionnaires": status["questionnaires"], "steps": questionnaire_steps(user, status),
-        "can_edit": setup.can_edit(user), "active": len(status["active"]),
+        "can_edit": setup.can_edit_sports(user), "active": len(status["active"]),
     })
 
 
@@ -96,8 +96,8 @@ def _questions(questionnaire) -> list:
 @login_required
 def questionnaire_edit(request, pk=None):
     user = request.user
-    if not setup.can_edit(user):
-        return _denied(request, "Dotazníky upravuje správce.")
+    if not setup.can_edit_sports(user):
+        return _denied(request, "Dotazníky upravuje správce nebo metodik sportu.")
     questionnaire = _questionnaire(user, pk) if pk else None
     questions = _questions(questionnaire) if questionnaire else []
     if request.method == "POST":
@@ -161,8 +161,8 @@ def questionnaire_edit(request, pk=None):
 @require_POST
 def questionnaire_delete(request, pk):
     user = request.user
-    if not setup.can_edit(user):
-        return _denied(request, "Dotazníky maže správce.")
+    if not setup.can_edit_sports(user):
+        return _denied(request, "Dotazníky maže správce nebo metodik sportu.")
     questionnaire = _questionnaire(user, pk)
     if questionnaire.code in (questionnaires.RPE, *questionnaires.STANDALONE):
         messages.error(request, f"Dotazník {questionnaire.name} aplikace potřebuje (RPE a genetika); "
@@ -302,8 +302,8 @@ def _preview(question, values: dict | None, questionnaire):
 @login_required
 def question_edit(request, pk, qpk=None):
     user = request.user
-    if not setup.can_edit(user):
-        return _denied(request, "Otázky dotazníků upravuje správce.")
+    if not setup.can_edit_sports(user):
+        return _denied(request, "Otázky dotazníků upravuje správce nebo metodik sportu.")
     questionnaire = _questionnaire(user, pk)
     question = get_object_or_404(questionnaire.questions, pk=qpk) if qpk else None
     values = None
@@ -342,8 +342,8 @@ def question_edit(request, pk, qpk=None):
 @require_POST
 def question_delete(request, pk, qpk):
     user = request.user
-    if not setup.can_edit(user):
-        return _denied(request, "Otázky dotazníků maže správce.")
+    if not setup.can_edit_sports(user):
+        return _denied(request, "Otázky dotazníků maže správce nebo metodik sportu.")
     questionnaire = _questionnaire(user, pk)
     question = get_object_or_404(questionnaire.questions, pk=qpk)
     if question.answers.exists() or question.gene_scenarios.exists():

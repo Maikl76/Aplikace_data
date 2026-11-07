@@ -95,7 +95,7 @@ def _parse(data: dict) -> tuple[dict, list[str]]:
 def exam_edit(request, pk, epk=None):
     user = request.user
     if not _may_edit(user):
-        return _denied(request, "Vyšetření zapisuje laborant nebo správce.")
+        return _denied(request, "Vyšetření zapisuje účet s přístupem k vyšetřením.")
     subject = get_object_or_404(Subject.objects.for_user(user), pk=pk)
     exam = get_object_or_404(subject.external_exams, pk=epk) if epk else None
     if request.method == "POST":
@@ -135,7 +135,7 @@ def exam_edit(request, pk, epk=None):
 def exam_delete(request, pk, epk):
     user = request.user
     if not _may_edit(user):
-        return _denied(request, "Vyšetření maže laborant nebo správce.")
+        return _denied(request, "Vyšetření maže účet s přístupem k vyšetřením.")
     subject = get_object_or_404(Subject.objects.for_user(user), pk=pk)
     exam = get_object_or_404(subject.external_exams, pk=epk)
     record(request, AuditLog.Action.DELETE, exam, subject_code=subject.code)

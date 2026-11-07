@@ -99,6 +99,7 @@ TEMPLATES = [
                 "apps.core.context_processors.read_only",
                 "apps.core.context_processors.booking_counts",
                 "apps.core.context_processors.remark_counts",
+                "apps.core.context_processors.access_flags",
             ],
         },
     },

@@ -37,8 +37,10 @@ def _is_admin(user) -> bool:
 
 
 def _may_research(user) -> bool:
-    """Anonymizovaný export a frekvence: správce, laborant a výzkumník."""
-    return user.is_superuser or user.role in (Role.ADMIN, Role.LAB, Role.RESEARCHER)
+    """Anonymizovaný export a frekvence: správce, nebo účet s oprávněním k exportům."""
+    from apps.core import access
+
+    return access.manage(user) or access.can(user, "exports")
 
 
 def _denied(request, reason):
@@ -87,7 +89,7 @@ def home(request):
         "approved_count": sum(1 for v in variants if v.approved),
         "vyzkum": vyzkum, "steps": steps,
         "next_step": next_step(steps), "interactions": interaction_status(user),
-        "may_edit": user.is_superuser or user.role in (Role.ADMIN, Role.LAB),
+        "may_edit": user.is_superuser or user.role in (Role.ADMIN, Role.LAB, Role.METHODOLOGIST),
         "is_admin": _is_admin(user),
     })
 

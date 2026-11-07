@@ -394,6 +394,33 @@ def summarize(batch) -> dict:
     }
 
 
+def scope_problem(batch, user) -> str:
+    """
+    Účet s rozsahem po sportech nesmí importem uložit sportovce mimo rozsah
+    ani založit nového (nový by neměl sport a vypadl by z každého rozsahu).
+    Vrací větu pro uživatele, nebo prázdný řetězec.
+    """
+    from apps.core import access
+
+    if access.scope(user) is None:
+        return ""
+    staged = batch.staged.all()
+    new_keys = set(staged.filter(subject__isnull=True)
+                   .exclude(subject_key="").values_list("subject_key", flat=True))
+    visible = Subject.objects.for_user(user).values_list("pk", flat=True)
+    outside = set(staged.filter(subject__isnull=False).exclude(subject__in=visible)
+                  .values_list("subject_key", flat=True))
+    if not new_keys and not outside:
+        return ""
+    parts = []
+    if outside:
+        parts.append(f"{len(outside)} sportovců mimo váš rozsah sportů")
+    if new_keys:
+        parts.append(f"{len(new_keys)} nových sportovců, které účet s omezeným rozsahem nezakládá")
+    return ("Import nejde uložit: " + " a ".join(parts) + ". V náhledu je přiřaďte ke sportovcům "
+            "ve svém rozsahu, nebo import předejte kolegovi s přístupem ke všem sportům.")
+
+
 def assignment_choices(batch, user) -> list[dict]:
     """
     Sportovci ze souboru a koho jim lze v náhledu přiřadit.

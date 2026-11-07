@@ -15,10 +15,11 @@ ROLE_GROUPS = {
     Role.LAB: "Diagnostik",
     Role.RESEARCHER: "Výzkumník",
 }
-# Role, které dostanou i přístup do administrace („Stav týmu“) – pro pokročilé.
-STAFF_ROLES = {Role.ADMIN, Role.LAB}
+# Do administrace Djanga smí jen správce: administrace neumí rozsah dat po
+# sportech, laborant s omezeným rozsahem by v ní viděl celé pracoviště.
+STAFF_ROLES = {Role.ADMIN}
 # Role zakládané jako účet kolegy. Sportovec vzniká z pozvánky na své kartě.
-COLLEAGUE_ROLES = (Role.ADMIN, Role.LAB, Role.RESEARCHER, Role.COACH)
+COLLEAGUE_ROLES = (Role.ADMIN, Role.LAB, Role.METHODOLOGIST, Role.RESEARCHER, Role.COACH)
 
 
 def sync_groups(user) -> None:

@@ -42,7 +42,12 @@ def org(db, settings):
 
 
 def _user(org, role, username):
+    from apps.core import access
+
     user = User.objects.create(username=username, organization=org, role=role)
+    if role == Role.LAB:
+        # laborant genetiky: genetiku, vydávání a exporty mu zapne správce (Kolegové → Přístup)
+        access.grant(user, genetics=True, reports_release=True, exports=True)
     client = Client()
     client.force_login(user)
     return user, client

@@ -36,10 +36,10 @@ SEGMENTS = ["paze", "noha", "trup", "hlava"]
 
 
 def can_edit(user) -> bool:
-    """Přístroje nastavuje správce – role Správce nebo oprávnění ke katalogu."""
-    from apps.core.models import Role
+    """Přístroje nastavuje správce nebo metodik měření (přístup účtu: testy a přístroje)."""
+    from apps.core import access
 
-    return getattr(user, "role", "") == Role.ADMIN or user.has_perm("catalog.change_importprofile")
+    return access.can(user, "settings_tests")
 
 
 def _devices(user):

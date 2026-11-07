@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Přístup účtu – FTVS{% endblock %}
+{% block content %}
+<div class="max-w-4xl">
+  <a href="{% url 'colleagues' %}" class="text-sm link">← Kolegové</a>
+  <h1 class="text-2xl font-semibold leading-tight">Přístup: {{ target.get_full_name|default:target.get_username }}</h1>
+  <p class="text-sm text-2 mt-1 mb-4">Role je šablona výchozích hodnot; tady nastavíte přesně, <strong>na co účet vidí</strong> (sporty, případně jen týmy; jména; genetika) a <strong>co smí</strong>. Platí to všude: v seznamech, hledání, Přehledu, týmovém přehledu, importu i exportech. Každá změna je v auditu.{% if not profile.configured %} <span class="badge badge-warn">přístup zatím nepotvrzen – platí výchozí šablona</span>{% endif %}</p>
+
+  <form method="post" class="space-y-3">{% csrf_token %}
+    <section class="card p-4">
+      <h2 class="card-title mb-2">Role</h2>
+      <div class="grid sm:grid-cols-2 gap-3 text-sm items-start">
+        <label class="block"><span class="text-xs text-2">Role (šablona)</span>
+          <select name="role" class="input text-sm py-1.5" {% if is_self %}disabled{% endif %}>{% for value, label in roles %}<option value="{{ value }}" {% if target.role == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+          {% if is_self %}<span class="block text-xs text-muted">Vlastní roli si nezměníte.</span>{% endif %}</label>
+        <p class="text-xs text-muted">Změna role přepíše oprávnění níže šablonou nové role; rozsah sportů zůstane. Tlačítko <em>Podle role</em> vrátí oprávnění na šablonu kdykoli.{% if is_admin_target %} <strong>Správce má vždy vše</strong> – položky níže se u něj nepoužijí.{% endif %}</p>
+      </div>
+    </section>
+
+    <section class="card p-4" id="rozsah">
+      <h2 class="card-title mb-1">Na které sporty vidí</h2>
+      <p class="text-xs text-muted mb-2">Sportovci, měření, zprávy, Dnešní testování a týmový přehled se omezí na vybrané sporty. Účet bez sportů neuvidí žádného sportovce.</p>
+      <div class="text-sm space-y-2">
+        <label class="flex items-center gap-2"><input type="radio" name="rozsah" value="vse" {% if profile.all_sports %}checked{% endif %}> všechny sporty pracoviště</label>
+        <label class="flex items-center gap-2"><input type="radio" name="rozsah" value="sporty" {% if not profile.all_sports %}checked{% endif %}> jen vybrané sporty:</label>
+        <div class="flex flex-wrap gap-x-4 gap-y-1 pl-6">
+          {% for s in sports %}<label class="inline-flex items-center gap-1"><input type="checkbox" name="sporty" value="{{ s.pk }}" {% if s.pk in chosen_sports %}checked{% endif %}> {{ s.name }}</label>{% empty %}<span class="text-muted">Zatím žádný sport.</span>{% endfor %}
+        </div>
+        {% if teams %}
+          <p class="text-xs text-muted pt-1">Volitelně jen některé týmy (užší než sporty; nic nevybráno = všechny týmy sportů):</p>
+          <div class="flex flex-wrap gap-x-4 gap-y-1 pl-6">
+            {% for t in teams %}<label class="inline-flex items-center gap-1"><input type="checkbox" name="tymy" value="{{ t.pk }}" {% if t.pk in chosen_teams %}checked{% endif %}> {{ t.name }} <span class="text-muted">({{ t.sport.name }})</span></label>{% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="card p-4" id="metodiky">
+      <h2 class="card-title mb-1">Metodiky měření, které nastavuje</h2>
+      <p class="text-xs text-muted mb-2">Platí pro oprávnění <em>Testy, ukazatele, MDC, popisy, přístroje</em>: metodik měření upravuje jen testy své rodiny (silová plošina, izokinetika, spiroergometrie, složení těla…).</p>
+      <div class="text-sm space-y-2">
+        <label class="flex items-center gap-2"><input type="radio" name="metodiky" value="vse" {% if profile.all_families %}checked{% endif %}> všechny metodiky</label>
+        <label class="flex items-center gap-2"><input type="radio" name="metodiky" value="rodiny" {% if not profile.all_families %}checked{% endif %}> jen vybrané:</label>
+        <div class="flex flex-wrap gap-x-4 gap-y-1 pl-6">
+          {% for code, label in families %}<label class="inline-flex items-center gap-1"><input type="checkbox" name="rodiny" value="{{ code }}" {% if code in chosen_families %}checked{% endif %}> {{ label }}</label>{% endfor %}
+        </div>
+      </div>
+    </section>
+
+    {% for title, items in groups %}
+      <section class="card p-4">
+        <h2 class="card-title mb-2">{{ title }}</h2>
+        <div class="grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+          {% for key, label, help, checked in items %}
+            <label class="flex items-start gap-2"><input type="checkbox" name="{{ key }}" class="mt-1" {% if checked %}checked{% endif %}> <span><strong>{{ label }}</strong><span class="block text-xs text-muted">{{ help }}</span></span></label>
+          {% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+
+    <div class="flex flex-wrap items-center gap-2">
+      <button class="btn btn-primary" name="akce" value="ulozit">{% icon "check" %}Uložit a potvrdit přístup</button>
+      <button class="btn" name="akce" value="podle_role" title="Vrátí oprávnění na šablonu role; sporty a týmy zůstanou">Podle role</button>
+      <span class="text-xs text-muted">Teď: {{ summary }}</span>
+    </div>
+  </form>
+</div>
+{% endblock %}

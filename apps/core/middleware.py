@@ -9,6 +9,8 @@ aplikace mu přihlášení odmítne. Výzkumník má „jen čtení“: každý 
 něco uložit se odmítne tady, na jednom místě, ne v každém pohledu zvlášť.
 """
 
+import re
+
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.shortcuts import redirect, render
@@ -33,6 +35,43 @@ PORTAL_PREFIXES = {
 NOT_READY_MESSAGE = ("Tento typ účtu zatím není v provozu. Přihlaste se účtem laboranta, "
                      "nebo požádejte správce.")
 
+# Celé sekce a zapisující akce podle přístupu účtu (apps.core.access): vzor
+# adresy, metody (None = všechny, WRITE = jen zapisující) a klíč oprávnění.
+# První shoda rozhoduje; správce projde vždy.
+WRITE = ("POST", "PUT", "PATCH", "DELETE")
+SECTION_RULES = [
+    # genové karty (znalostní báze) vidí každý v laboratoři; data sportovců jen s genetikou
+    (r"^/genetika/sportovec/", None, "genetics"),
+    (r"^/objednavky/", None, "bookings"),
+    (r"^/import/", None, "measure"),
+    (r"^/kolegove/", None, "manage"),
+    (r"^/nastaveni/pracoviste/", None, "manage"),
+    (r"^/zpravy/ai/", None, "manage"),
+    # nastavení testování: číst může každý v laboratoři, měnit jen s oprávněním
+    (r"^/nastaveni/(mdc|import|popisy)/", WRITE, "settings_tests"),
+    (r"^/nastaveni/(normy|pravidla|dotazniky|reference)/", WRITE, "settings_sports"),
+    (r"^/sporty/testy/", WRITE, "settings_tests"),
+    (r"^/sporty/", WRITE, "settings_sports"),
+    (r"^/sportovci/\d+/vysetreni/", None, "exams"),
+    (r"^/sportovci/\d+/dnes/", WRITE, "measure"),
+    (r"^/sportovci/", WRITE, "subjects_edit"),
+    (r"^/mereni/\d+/doporuceni-minule/", WRITE, "reports_draft"),
+    (r"^/mereni/", WRITE, "measure"),
+    (r"^/testovani/", WRITE, "measure"),
+    (r"^/zpravy/\d+/(vydat|predat|upozornit|nova-verze)/", WRITE, "reports_release"),
+    (r"^/zpravy/", WRITE, "reports_draft"),
+    (r"^/clanky/", WRITE, "articles"),
+]
+_COMPILED = [(re.compile(pattern), methods, key) for pattern, methods, key in SECTION_RULES]
+
+
+def section_rule(path: str, method: str) -> str | None:
+    """Klíč oprávnění, které adresa vyžaduje; None = nic zvláštního."""
+    for pattern, methods, key in _COMPILED:
+        if pattern.match(path) and (methods is None or method in methods):
+            return key
+    return None
+
 
 class RoleAccessMiddleware:
     def __init__(self, get_response):
@@ -51,4 +90,11 @@ class RoleAccessMiddleware:
             if (user.role in PORTAL_HOME and not request.path.startswith("/static/")
                     and not request.path.startswith(PORTAL_PREFIXES[user.role])):
                 return redirect(PORTAL_HOME[user.role])
+            if user.role != Role.ADMIN and user.role not in PORTAL_HOME:
+                from . import access
+
+                key = section_rule(request.path, request.method)
+                if key is not None and not access.can(user, key):
+                    return render(request, "core/odepreno.html", {"duvod": access.reason(key)},
+                                  status=403)
         return self.get_response(request)

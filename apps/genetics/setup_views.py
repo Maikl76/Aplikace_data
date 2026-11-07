@@ -32,7 +32,7 @@ PANEL_CODE = "panel-laboratore"
 
 
 def _may_setup(user) -> bool:
-    return user.is_superuser or user.role in (Role.ADMIN, Role.LAB)
+    return user.is_superuser or user.role in (Role.ADMIN, Role.LAB, Role.METHODOLOGIST)
 
 
 # --- kroky nastavení ---------------------------------------------------------------
@@ -82,7 +82,8 @@ def setup_guarantors(request):
     domains = list(_catalog(Domain, request.user).filter(is_active=True)
                    .prefetch_related("guarantors").order_by("order"))
     people = list(User.objects.filter(organization=request.user.organization, is_active=True,
-                                      role__in=(Role.ADMIN, Role.LAB)).order_by("last_name", "username"))
+                                      role__in=(Role.ADMIN, Role.LAB, Role.METHODOLOGIST))
+                  .order_by("last_name", "username"))
     if request.method == "POST":
         for domain in domains:
             chosen = request.POST.getlist(f"garant_{domain.pk}")

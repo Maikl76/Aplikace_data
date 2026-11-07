@@ -183,7 +183,7 @@ def test_zkusebni_sada_a_statistika(mereni, model):  # noqa: F811
 
     lab = Client()
     lab.force_login(user)
-    assert lab.get("/zpravy/ai/").url == "/zpravy/"
+    assert lab.get("/zpravy/ai/").status_code == 403   # pokyny pro model spravuje správce
 
     call_command("porovnat_modely", "--model", "dalsi-model", verbosity=0)
     assert ModelTrial.objects.filter(model="dalsi-model").exists()

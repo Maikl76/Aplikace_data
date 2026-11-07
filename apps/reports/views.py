@@ -317,10 +317,9 @@ def report_pdf(request, pk):
 
 def can_manage_ai(user) -> bool:
     """Pokyny pro model a zkušební sadu spravuje správce."""
-    from apps.core.models import Role
+    from apps.core import access
 
-    return (user.is_superuser or getattr(user, "role", "") == Role.ADMIN
-            or user.has_perm("reports.change_reportstyle"))
+    return access.manage(user)
 
 
 @login_required

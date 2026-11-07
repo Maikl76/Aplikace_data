@@ -12,6 +12,7 @@ from django.test import Client
 from django.utils import timezone
 
 from apps.catalog.models import MetricDef, Protocol, ProtocolMetric, TestFamily
+from apps.core import access
 from apps.core.models import AuditLog, Organization, Role, User
 from apps.genetics import research, seed, services
 from apps.genetics.models import Domain, GenePanel, GeneVariant, PanelItem
@@ -29,7 +30,12 @@ def org(db, settings):
 
 
 def _user(org, role, username):
+    from apps.core import access
+
     user = User.objects.create(username=username, organization=org, role=role)
+    if role == Role.LAB:
+        # laborant genetiky: genetiku, vydávání a exporty mu zapne správce (Kolegové → Přístup)
+        access.grant(user, genetics=True, reports_release=True, exports=True)
     client = Client()
     client.force_login(user)
     return user, client
@@ -148,6 +154,8 @@ def test_stazeni_prikaz_a_frekvence(populace, tmp_path, settings):
     assert AuditLog.objects.filter(action=AuditLog.Action.EXPORT, detail__vyzkum="genetika",
                                    detail__osob=5).exists()
     researcher, r_client = _user(P["org"], Role.RESEARCHER, "vyzkum")
+    assert r_client.get("/genetika/vyzkum/export/").status_code == 403   # bez exportů jen čte
+    access.grant(researcher, exports=True)                              # zapnul správce
     assert r_client.get("/genetika/vyzkum/export/").status_code == 200
     coach, coach_client = _user(P["org"], Role.COACH, "trener")
     assert coach_client.get("/genetika/vyzkum/export/").url == "/trener/"

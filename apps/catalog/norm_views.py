@@ -123,7 +123,7 @@ def norm_list(request):
             groups.append({"metric": norm.metric, "key": norm.metric_id in key_ids, "norms": []})
         groups[-1]["norms"].append(norm)
     return render(request, "catalog/norms.html", {
-        "groups": groups, "steps": norm_steps(user, status), "can_edit": setup.can_edit(user),
+        "groups": groups, "steps": norm_steps(user, status), "can_edit": setup.can_edit_sports(user),
         "count": len(norms),
     })
 
@@ -225,8 +225,8 @@ def article_choices():
 @login_required
 def norm_edit(request, pk=None):
     user = request.user
-    if not setup.can_edit(user):
-        return _denied(request, "Normy zapisuje správce.")
+    if not setup.can_edit_sports(user):
+        return _denied(request, "Normy zapisuje správce nebo metodik sportu.")
     norm = get_object_or_404(Norm.objects.filter(_shared(user)), pk=pk) if pk else None
     status = catalog_status(user)
     key_ids = set(status["key_metrics"])
@@ -274,8 +274,8 @@ def norm_edit(request, pk=None):
 @login_required
 @require_POST
 def norm_delete(request, pk):
-    if not setup.can_edit(request.user):
-        return _denied(request, "Normy maže správce.")
+    if not setup.can_edit_sports(request.user):
+        return _denied(request, "Normy maže správce nebo metodik sportu.")
     norm = get_object_or_404(Norm.objects.filter(_shared(request.user)), pk=pk)
     label = f"{norm.metric.name} ({applies_to(norm)})"
     record(request, AuditLog.Action.DELETE, norm, norma=label)

@@ -64,10 +64,12 @@ def daily_steps(user, today=None) -> list[dict]:
     if rpe_missing:
         checks.append(f"{len(rpe_missing)}× chybí RPE po zátěžovém testu")
     report_pending = len(drafts) + len(unreported)
+    from apps.core import access
     from apps.subjects import retest
 
     due = retest.due_plans(user, today=today)
     overdue = [p for p in due if p.status == "overdue"]
+    may_measure = access.can(user, "measure")   # metodik a výzkumník hodnoty nezadávají
     return [
         step(1, "Kdo dnes přijde", bool(sessions),
              (f"{len(sessions)} testovacích dnů." if sessions else
@@ -77,9 +79,10 @@ def daily_steps(user, today=None) -> list[dict]:
         step(2, "Hodnoty", not without_values,
              (f"{len(without_values)} testů čeká na hodnoty – zadejte je u přístroje, nebo "
               "nahrajte export." if without_values else "Všechny dnešní testy mají hodnoty."),
-             url=(reverse("session_detail", args=[without_values[0][0].pk]) if without_values
-                  else reverse("import_list")),
-             button="Zadat nebo nahrát", count=len(without_values) or None),
+             url=((reverse("session_detail", args=[without_values[0][0].pk]) if without_values
+                   else reverse("import_list")) if may_measure else ""),
+             button="Zadat nebo nahrát" if may_measure else "",
+             count=len(without_values) or None),
         step(3, "Kontrola", not checks,
              ("; ".join(checks) + ". Pokud je sportovec ještě v laboratoři, test zopakujte."
               if checks else "Nic k zopakování ani k doplnění."),

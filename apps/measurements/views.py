@@ -169,6 +169,11 @@ def team(request):
         context.update(columns=columns, rows=table["rows"], summary=summary,
                        reference=bands[0] if bands else None)
         if request.GET.get("format") == "csv":
+            from apps.core import access
+
+            if not access.can(request.user, "exports"):
+                return render(request, "core/odepreno.html", {"duvod": access.reason("exports")},
+                              status=403)
             # Tabulka odchází z aplikace (se jmény, pokud je uživatel vidí) – do auditu.
             record(request, AuditLog.Action.EXPORT, battery, baterie=battery.label,
                    sportovci=[r["subject"].code for r in table["rows"]])

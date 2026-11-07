@@ -8,7 +8,6 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from apps.catalog.protocol_setup import can_edit as can_edit_catalog
 from apps.core.audit import record
 from apps.core.models import AuditLog
 
@@ -18,8 +17,10 @@ from .models import Article
 
 
 def can_edit(user) -> bool:
-    """Knihovnu spravuje správce – co se do ní zařadí, cituje se ve zprávách."""
-    return can_edit_catalog(user) or user.has_perm("evidence.change_article")
+    """Knihovnu upravuje správce nebo metodik (přístup účtu: články) – cituje se ve zprávách."""
+    from apps.core import access
+
+    return access.can(user, "articles")
 
 
 SORTS = {

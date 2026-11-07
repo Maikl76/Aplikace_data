@@ -119,9 +119,10 @@ def on_consent_deleted(sender, instance, **kwargs):
 # --- vzorky a genotypy --------------------------------------------------------
 
 def may_view_genotypes(user) -> bool:
-    """Genotypy vidí jen správce a laborant; výzkumník, trenér a sportovec ne."""
-    return bool(user and user.is_authenticated
-                and (user.is_superuser or getattr(user, "sees_identity", False)))
+    """Genotypy vidí jen účet s přístupem ke genetice (správce vždy); portál ne."""
+    from apps.core import access
+
+    return access.can(user, "genetics")
 
 
 def normalize(item, raw: str) -> tuple[str | None, str]:

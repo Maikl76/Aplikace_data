@@ -50,11 +50,17 @@ class MetricRow:
 
 
 def can_edit(user) -> bool:
-    """Testy v katalogu nastavuje správce – role Správce nebo oprávnění ke katalogu."""
-    from apps.core.models import Role
+    """Testy, ukazatele, MDC a přístroje nastavuje správce nebo metodik měření (přístup účtu)."""
+    from apps.core import access
 
-    return (user.is_superuser or getattr(user, "role", "") == Role.ADMIN
-            or user.has_perm("catalog.change_protocol"))
+    return access.can(user, "settings_tests")
+
+
+def can_edit_sports(user) -> bool:
+    """Sporty, baterie, normy, pravidla a dotazníky nastavuje správce nebo metodik sportu."""
+    from apps.core import access
+
+    return access.can(user, "settings_sports")
 
 
 def available_metrics(organization):

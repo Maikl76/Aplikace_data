@@ -15,8 +15,11 @@ from apps.subjects.models import Sport, Subject
 @pytest.fixture
 def tym(db, client):
     call_command("seed_catalog", verbosity=0)
+    from apps.core import access
+
     org = Organization.objects.create(name="FTVS", short_name="ftvs")
     user = User.objects.create(username="lab", organization=org, role=Role.LAB)
+    access.grant(user, exports=True)   # CSV týmu: exporty zapnul správce
     hokej = Sport.objects.create(organization=org, code="hokej", name="Lední hokej")
     battery = TestBattery.objects.create(organization=org, sport=hokej)
     for order, code in enumerate(["cmj", "sls"], start=1):

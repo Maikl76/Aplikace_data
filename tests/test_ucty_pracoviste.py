@@ -48,7 +48,10 @@ def test_ucet_vidi_data_a_prida_sport_i_sportovce(db, settings):
     settings.IDENTITY_ENCRYPTION_KEY = Fernet.generate_key().decode()
     org = Organization.objects.create(name="FTVS", short_name="ftvs")
     Subject.objects.create(organization=org, code="FTVS-0001")
+    from apps.core import access
+
     user = User.objects.create_user("lab", password="dlouhe-heslo-123", role=Role.LAB)
+    access.grant(user, settings_sports=True)   # nový sport zakládá metodik sportu nebo správce
     client = Client()
     client.force_login(user)
     assert "FTVS-0001" in client.get("/sportovci/").content.decode()
@@ -63,7 +66,10 @@ def test_ucet_vidi_data_a_prida_sport_i_sportovce(db, settings):
 def test_ucet_bez_pracoviste_pri_vice_pracovistich_dostane_vysvetleni(db):
     Organization.objects.create(name="FTVS", short_name="ftvs")
     Organization.objects.create(name="Jiná", short_name="jina")
+    from apps.core import access
+
     user = User.objects.create_user("lab", password="dlouhe-heslo-123", role=Role.LAB)
+    access.grant(user, settings_sports=True)
     client = Client()
     client.force_login(user)
     response = client.post("/sporty/", {"name": "Florbal"}, follow=True)

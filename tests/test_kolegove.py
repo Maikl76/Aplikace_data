@@ -47,7 +47,8 @@ def test_spravce_zalozi_kolegu_a_dostane_odkaz(org):
     page = _novy(client, email="Eva@Example.cz")
     assert page.status_code == 200
     user = User.objects.get(username="eva.metodicka")
-    assert (user.role, user.organization, user.is_staff, user.is_active) == (Role.LAB, org, True, True)
+    # do administrace Djanga smí jen správce; laborant má přístup jen v aplikaci
+    assert (user.role, user.organization, user.is_staff, user.is_active) == (Role.LAB, org, False, True)
     assert user.email == "eva@example.cz" and not user.has_usable_password()
     assert list(user.groups.values_list("name", flat=True)) == ["Diagnostik"]
     html = page.content.decode()

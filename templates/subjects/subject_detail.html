@@ -19,7 +19,7 @@
     </div>
   </div>
   <div class="flex flex-wrap gap-2">
-    <a href="{% url 'session_create' %}?sportovec={{ subject.pk }}" class="btn btn-primary">{% icon "plus" %}Nové měření</a>
+    {% if pristup.measure %}<a href="{% url 'session_create' %}?sportovec={{ subject.pk }}" class="btn btn-primary">{% icon "plus" %}Nové měření</a>{% endif %}
     {% if last_session %}
       <form method="post" action="{% url 'report_create' last_session.pk %}">
         {% csrf_token %}
@@ -219,7 +219,8 @@
   {% include "genetics/_subject_card.html" %}
 
   <section class="card min-w-0" id="vysetreni">
-    <div class="px-4 pt-4 pb-2 flex flex-wrap items-center justify-between gap-2"><h2 class="card-title">Externí vyšetření a omezení zátěže</h2>{% if may_edit %}<a href="{% url 'exam_new' subject.pk %}" class="btn btn-sm">{% icon "plus" %}Zapsat vyšetření</a>{% endif %}</div>
+    <div class="px-4 pt-4 pb-2 flex flex-wrap items-center justify-between gap-2"><h2 class="card-title">Externí vyšetření a omezení zátěže</h2>{% if may_see_exams and may_edit %}<a href="{% url 'exam_new' subject.pk %}" class="btn btn-sm">{% icon "plus" %}Zapsat vyšetření</a>{% endif %}</div>
+    {% if not may_see_exams %}<p class="px-4 pb-4 text-sm text-muted">Vyšetření vidí jen účet s přístupem k externím vyšetřením.</p>{% else %}
     <ul>
       {% for e in external_exams %}
         <li class="border-t px-4 py-3 text-sm flex flex-wrap items-center gap-2" style="border-color: var(--border)">
@@ -234,6 +235,7 @@
         <li class="px-4 py-5 text-sm text-muted border-t" style="border-color: var(--border)">Žádný záznam. Aplikace neukládá nálezy ani diagnózy, jen zda od lékaře platí omezení zátěže – zpráva pak nevydá doporučení vyžadující zátěž.</li>
       {% endfor %}
     </ul>
+  {% endif %}
   </section>
 
   <section class="card min-w-0" id="zpravy">

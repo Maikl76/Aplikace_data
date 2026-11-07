@@ -104,8 +104,7 @@
     {# ================================================================== #}
     <section id="role" class="card p-5" data-kapitola>
       <h2>Role a oprávnění</h2>
-      <p>Každý uživatel má jednu roli. Ta určuje, jestli vidí jména sportovců a kam smí.
-        Všichni vidí jen data svého pracoviště (organizace).</p>
+      <p>Každý uživatel má jednu roli. Role je ale jen šablona: skutečný přístup nastaví správce u každého účtu v <em>Kolegové → Přístup</em>: na které sporty (případně jen týmy) účet vidí, zda vidí jména a genetiku, a co smí (měření, sportovci, koncepty, vydávání zpráv, nastavení sportů a testů, exporty, články). Nový účet nemá žádný sport, dokud mu ho správce nepřidělí. Všichni vidí jen data svého pracoviště (organizace). Podrobně <code>docs/pristupy.md</code>.</p>
       <div class="overflow-x-auto mt-3">
         <table class="table napoveda-tabulka">
           <thead><tr><th>Role</th><th>Jména sportovců</th><th>Co dělá</th><th>Katalog a nastavení</th></tr></thead>
@@ -119,8 +118,14 @@
             <tr>
               <td class="font-medium whitespace-nowrap">Laborant / diagnostik</td>
               <td><span class="badge badge-good">vidí</span></td>
-              <td>Zakládá sportovce a testovací dny, zadává a importuje měření, píše a vydává zprávy, zaznamenává předání.</td>
+              <td>Pro přidělené sporty zakládá sportovce a testovací dny, zadává a importuje měření, píše koncepty zpráv. Vydávání, genetiku nebo exporty mu může správce zapnout.</td>
               <td>katalog jen čte; měření a sportovce smí upravit, ne smazat</td>
+            </tr>
+            <tr>
+              <td class="font-medium whitespace-nowrap">Metodik</td>
+              <td><span class="badge">jen kódy</span> (správce může zapnout)</td>
+              <td>Odpovídá za přidělené sporty a metodiky měření (rodiny testů): baterie, normy, pravidla, dotazníky, testy, ukazatele a MDC, přístroje; vydává zprávy pro své sporty, upravuje knihovnu článků. Měření nezadává.</td>
+              <td>nastavuje pro své sporty a metodiky</td>
             </tr>
             <tr>
               <td class="font-medium whitespace-nowrap">Výzkumník</td>
@@ -162,7 +167,7 @@
         <li>Menu {% if user.is_superuser or user.role == "admin" %}<a class="link" href="{% url 'colleagues' %}">Kolegové</a>{% else %}<em>Kolegové</em> (vidí jen správce){% endif %} → <em>Nový účet kolegy</em>: jméno, příjmení, role → <em>Založit a vytvořit odkaz</em>.</li>
         <li>Aplikace ukáže jednorázový odkaz. Pošlete ho kolegovi zprávou nebo e‑mailem; platí 7 dní. Kolega si jím nastaví heslo a je přihlášený, pak odkaz přestane platit.</li>
         <li>Zapomenuté heslo = <em>Odkaz na heslo</em> u účtu. Odchod z týmu = <em>Vypnout</em>; data zůstanou.</li>
-        <li>Skupina oprávnění podle role se přiřadí sama; správce a diagnostik se dostanou i do <em>Katalogu a nastavení</em> (pro pokročilé). Sportovci se účet zakládá pozvánkou na jeho kartě.</li>
+        <li>Po založení klepněte u účtu na <em>Přístup</em> a nastavte sporty, jména a oprávnění; do administrace Djanga (pro pokročilé) se dostane jen správce. Sportovci se účet zakládá pozvánkou na jeho kartě.</li>
       </ol>
       <p class="text-sm text-muted">Sportovec vyplňující RPE přes QR kód žádný účet nepotřebuje – viz <a class="link" href="#rpe">RPE a QR kódy</a>.</p>
     </section>
@@ -494,7 +499,7 @@
       <h2>Ochrana dat</h2>
       <ul>
         <li>Jméno a datum narození jsou oddělené od výsledků a <strong>šifrované</strong>. Výsledky jsou vedené pod kódem.</li>
-        <li>Jména vidí jen správce a diagnostik; ostatní role jen kódy.</li>
+        <li>Jména vidí jen účty s oprávněním <em>Jména sportovců</em> (správce a výchozí laborant); ostatní jen kódy.</li>
         {% if llm_info.remote and llm_info.enabled %}<li><strong>V tomhle zkušebním provozu píše souhrny cloudový model</strong> ({{ llm_info.host }}). Dostává jen kódy a čísla, ale opouštějí pracoviště, proto sem patří jen smyšlená data. V laboratoři a na serveru fakulty běží model lokálně a cloudový model tam aplikace mimo zkušební provoz odmítne.</li>{% else %}<li><strong>AI běží lokálně</strong> (LM Studio na tomto počítači / serveru fakulty) a dostává jen kódy a čísla. Nic se neposílá do cizích služeb; cloudový model aplikace mimo zkušební provoz odmítne.</li>{% endif %}
         <li>Kdo si koho prohlížel a co měnil, se zapisuje do auditního záznamu.</li>
         <li>Vydaná zpráva je neměnná; předání jen se souhlasem.</li>

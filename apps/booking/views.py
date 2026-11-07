@@ -22,12 +22,14 @@ from .steps import booking_steps
 
 
 def lab_only(view):
-    """Objednávky obsahují jména a zdravotní údaje – jen pro role, které vidí identitu."""
+    """Objednávky obsahují jména a zdravotní údaje – jen účty s přístupem k objednávkám."""
     @login_required
     @wraps(view)
     def wrapper(request, *args, **kwargs):
-        if not request.user.sees_identity:
-            raise PermissionDenied("Objednávky vyřizuje laboratoř.")
+        from apps.core import access
+
+        if not access.can(request.user, "bookings"):
+            raise PermissionDenied("Objednávky vyřizuje účet s přístupem k objednávkám.")
         return view(request, *args, **kwargs)
     return wrapper
 

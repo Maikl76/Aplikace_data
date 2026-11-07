@@ -22,16 +22,18 @@
   <section class="card lg:col-span-2 overflow-x-auto">
     <div class="px-4 pt-4 pb-2"><h2 class="card-title">Účty</h2></div>
     <table class="table text-sm">
-      <thead><tr><th>Kdo</th><th>Přihlašovací jméno</th><th>Role</th><th>Stav</th><th></th></tr></thead>
+      <thead><tr><th>Kdo</th><th>Přihlašovací jméno</th><th>Role a přístup</th><th>Stav</th><th></th></tr></thead>
       <tbody>
         {% for u in people %}
           <tr{% if not u.is_active %} class="text-muted"{% endif %}>
             <td><span class="font-medium">{{ u.get_full_name|default:"—" }}</span>{% if u.email %}<span class="block text-xs text-muted">{{ u.email }}</span>{% endif %}</td>
             <td>{{ u.get_username }}</td>
-            <td>{{ u.get_role_display }}{% if u.is_superuser %} <span class="badge">superuživatel</span>{% endif %}</td>
+            <td>{{ u.get_role_display }}{% if u.is_superuser %} <span class="badge">superuživatel</span>{% endif %}
+              <span class="block text-xs text-muted">{{ u.pristup }}{% if not u.pristup_potvrzen %} <span class="badge badge-warn" title="Platí výchozí šablona role; správce rozsah a oprávnění ještě nepotvrdil">přístup nepotvrzen</span>{% endif %}</span></td>
             <td>{% if not u.is_active %}<span class="badge">vypnutý</span>{% elif not u.has_usable_password %}<span class="badge badge-warn">čeká na heslo</span>{% elif u.last_login %}<span class="text-xs text-muted">naposledy {{ u.last_login|date:"d.m.Y" }}</span>{% else %}<span class="text-xs text-muted">zatím nepřihlášen</span>{% endif %}</td>
             <td class="text-right whitespace-nowrap">
               {% if u.pk != user.pk %}
+                {% if u.role != "coach" %}<a href="{% url 'colleague_access' u.pk %}" class="btn btn-sm{% if not u.pristup_potvrzen and u.is_active %} btn-primary{% endif %}" title="Na co vidí a co smí">Přístup</a>{% endif %}
                 <form method="post" class="inline-flex gap-1">{% csrf_token %}<input type="hidden" name="ucet" value="{{ u.pk }}">
                   {% if u.is_active %}
                     <button name="akce" value="odkaz" class="btn btn-sm" title="Nový jednorázový odkaz pro nastavení hesla – i když kolega heslo zapomněl">Odkaz</button>
@@ -40,7 +42,7 @@
                     <button name="akce" value="zapnout" class="btn btn-sm">Zapnout</button>
                   {% endif %}
                 </form>
-              {% else %}<span class="text-xs text-muted">vy</span>{% endif %}
+              {% else %}{% if u.role != "coach" %}<a href="{% url 'colleague_access' u.pk %}" class="btn btn-sm">Přístup</a> {% endif %}<span class="text-xs text-muted">vy</span>{% endif %}
             </td>
           </tr>
         {% empty %}<tr><td colspan="5" class="text-muted py-6">Zatím žádný účet.</td></tr>{% endfor %}
@@ -59,8 +61,9 @@
       <button class="btn btn-primary">{% icon "plus" %}Založit a vytvořit odkaz</button>
     </form>
     <div class="text-xs text-muted mt-4 space-y-1">
-      <p><strong>Správce</strong> dělá vše, zakládá účty a mění katalog. <strong>Diagnostik</strong> zadává měření, vydává zprávy, reviduje genové karty. <strong>Výzkumník</strong> jen čte, bez jmen. <strong>Trenér</strong> má vlastní portál jen pro sportovce, kteří mu sdílení potvrdí.</p>
-      <p>Správce a diagnostik se dostanou i do <em>Katalogu a nastavení</em> (pro pokročilé). Účet sportovce se tu nezakládá: vzniká z pozvánky na jeho kartě.</p>
+      <p>Role je šablona: po založení účtu klepněte na <strong>Přístup</strong> a nastavte, na které sporty kolega vidí, zda vidí jména a co smí. Nový účet nemá žádný sport, dokud mu ho nepřidělíte.</p>
+      <p><strong>Správce</strong> má vše a zakládá účty. <strong>Laborant</strong> zadává a importuje měření a tvoří koncepty zpráv pro své sporty, vidí jména. <strong>Metodik</strong> odpovídá za sporty a metodiky měření: nastavuje baterie, normy, pravidla a testy, vydává zprávy pro své sporty, jména nevidí, dokud mu je nezapnete. <strong>Výzkumník</strong> jen čte, bez jmen. <strong>Trenér</strong> má vlastní portál jen pro sportovce, kteří mu sdílení potvrdí.</p>
+      <p>Do administrace Djanga (pro pokročilé) se dostane jen správce. Účet sportovce se tu nezakládá: vzniká z pozvánky na jeho kartě.</p>
     </div>
   </section>
 </div>

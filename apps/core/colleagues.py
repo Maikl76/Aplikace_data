@@ -11,6 +11,7 @@ import unicodedata
 from django.core import signing
 from django.db import transaction
 
+from . import access
 from .models import Role, User
 from .roles import COLLEAGUE_ROLES, STAFF_ROLES, sync_groups
 
@@ -58,6 +59,8 @@ def create_colleague(organization, *, role: str, first_name: str, last_name: str
     user.set_unusable_password()
     user.save()
     sync_groups(user)
+    if role != Role.COACH:
+        access.initial_for(user)   # šablona podle role, zatím bez sportů – nastaví správce
     return user
 
 

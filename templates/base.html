@@ -81,12 +81,12 @@
       {% nav_link "report_list" "Zprávy" "file" %}
       {% nav_link "article_list" "Články" "book" %}
       {% nav_link "genetics_home" "Genetika" "dna" %}
-      {% if user.sees_identity %}{% nav_link "booking_list" "Objednávky" "inbox" "/objednavky/" nove_objednavky %}{% endif %}
-      {% nav_link "import_list" "Import" "upload" %}
+      {% if pristup.bookings %}{% nav_link "booking_list" "Objednávky" "inbox" "/objednavky/" nove_objednavky %}{% endif %}
+      {% if pristup.measure %}{% nav_link "import_list" "Import" "upload" %}{% endif %}
       {% nav_link "sport_list" "Sporty a testy" "list" %}
       <div class="pt-3 mt-3 border-t" style="border-color: var(--border)">
         {% nav_link "workplace" "Nastavení" "settings" "/nastaveni/" %}
-        {% if user.is_superuser or user.role == "admin" %}{% nav_link "colleagues" "Kolegové" "users" %}{% nav_link "remarks" "Připomínky" "inbox" "/pripominky/" nove_pripominky %}{% endif %}
+        {% if pristup.manage %}{% nav_link "colleagues" "Kolegové" "users" %}{% nav_link "remarks" "Připomínky" "inbox" "/pripominky/" nove_pripominky %}{% endif %}
         {% nav_link "about" "O aplikaci" "info" %}
       </div>
       {% endif %}
@@ -137,7 +137,7 @@
         {% endif %}
         <div class="ml-auto flex items-center gap-2">
           {% block topbar_actions %}
-            {% if not portal %}<a href="{% url 'session_create' %}" class="btn btn-primary btn-sm">{% icon "plus" %}<span class="hidden sm:inline">Nové měření</span></a>{% endif %}
+            {% if not portal and pristup.measure %}<a href="{% url 'session_create' %}" class="btn btn-primary btn-sm">{% icon "plus" %}<span class="hidden sm:inline">Nové měření</span></a>{% endif %}
           {% endblock %}
         </div>
       </div>
