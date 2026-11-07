@@ -23,9 +23,9 @@
           <tr>
             <td class="font-medium">{{ r.metric.name }}{% if r.metric.unit %} <span class="text-muted font-normal">[{{ r.metric.unit }}]</span>{% endif %}{% if r.key %} <span class="badge badge-accent" title="Klíčový ukazatel: jde na kartu sportovce a do týmového přehledu">klíčový</span>{% endif %}</td>
             <td class="text-2 max-md:hidden">{{ r.tests|join:", " }}</td>
-            <td><input name="mdc_{{ r.metric.pk }}" value="{{ r.metric.mdc|default_if_none:'' }}" inputmode="decimal" class="input w-24 text-sm py-1" {% if not can_edit %}readonly{% endif %}></td>
-            <td class="max-md:hidden"><input name="swc_{{ r.metric.pk }}" value="{{ r.metric.swc|default_if_none:'' }}" inputmode="decimal" class="input w-24 text-sm py-1" {% if not can_edit %}readonly{% endif %}></td>
-            <td><input name="zdroj_{{ r.metric.pk }}" value="{{ r.metric.mdc_source }}" maxlength="300" class="input text-sm py-1" placeholder="citace, nebo vlastní reliabilita (kdy, n)" {% if not can_edit %}readonly{% endif %}></td>
+            <td><input name="mdc_{{ r.metric.pk }}" value="{{ r.metric.mdc|default_if_none:'' }}" inputmode="decimal" class="input w-24 text-sm py-1" {% if not r.editable %}readonly{% endif %}></td>
+            <td class="max-md:hidden"><input name="swc_{{ r.metric.pk }}" value="{{ r.metric.swc|default_if_none:'' }}" inputmode="decimal" class="input w-24 text-sm py-1" {% if not r.editable %}readonly{% endif %}></td>
+            <td><input name="zdroj_{{ r.metric.pk }}" value="{{ r.metric.mdc_source }}" maxlength="300" class="input text-sm py-1" placeholder="citace, nebo vlastní reliabilita (kdy, n)" {% if not r.editable %}readonly{% endif %}></td>
           </tr>
         {% empty %}
           <tr><td colspan="5" class="text-muted py-6">Zatím žádný test v baterii – nejdřív sestavte baterie (Sporty a baterie).</td></tr>
@@ -44,9 +44,9 @@
             {% for r in others %}
               <tr>
                 <td class="font-medium">{{ r.metric.name }}{% if r.metric.unit %} <span class="text-muted font-normal">[{{ r.metric.unit }}]</span>{% endif %}</td>
-                <td><input name="mdc_{{ r.metric.pk }}" value="{{ r.metric.mdc|default_if_none:'' }}" inputmode="decimal" class="input w-24 text-sm py-1" {% if not can_edit %}readonly{% endif %}></td>
-                <td class="max-md:hidden"><input name="swc_{{ r.metric.pk }}" value="{{ r.metric.swc|default_if_none:'' }}" inputmode="decimal" class="input w-24 text-sm py-1" {% if not can_edit %}readonly{% endif %}></td>
-                <td><input name="zdroj_{{ r.metric.pk }}" value="{{ r.metric.mdc_source }}" maxlength="300" class="input text-sm py-1" {% if not can_edit %}readonly{% endif %}></td>
+                <td><input name="mdc_{{ r.metric.pk }}" value="{{ r.metric.mdc|default_if_none:'' }}" inputmode="decimal" class="input w-24 text-sm py-1" {% if not r.editable %}readonly{% endif %}></td>
+                <td class="max-md:hidden"><input name="swc_{{ r.metric.pk }}" value="{{ r.metric.swc|default_if_none:'' }}" inputmode="decimal" class="input w-24 text-sm py-1" {% if not r.editable %}readonly{% endif %}></td>
+                <td><input name="zdroj_{{ r.metric.pk }}" value="{{ r.metric.mdc_source }}" maxlength="300" class="input text-sm py-1" {% if not r.editable %}readonly{% endif %}></td>
               </tr>
             {% endfor %}
           </tbody>

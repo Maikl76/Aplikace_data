@@ -16,8 +16,8 @@
             <label class="block"><span class="text-xs text-2">Typ testu v exportu</span>
               <input value="{{ p.test_type }}" readonly class="input text-sm py-1.5 text-muted"></label>
             <label class="block"><span class="text-xs text-2">Test z katalogu</span>
-              <select name="p{{ p.pk }}_protocol" class="input text-sm py-1.5" {% if not can_edit %}disabled{% endif %}>{% for pr in protocols %}<option value="{{ pr.pk }}" {% if pr.pk == p.protocol_id %}selected{% endif %}>{{ pr.name }}</option>{% endfor %}</select></label>
-            <label class="inline-flex items-center gap-2 pb-2"><input type="checkbox" name="p{{ p.pk }}_active" {% if p.is_active %}checked{% endif %} {% if not can_edit %}disabled{% endif %}> importovat</label>
+              <select name="p{{ p.pk }}_protocol" class="input text-sm py-1.5" {% if not p.editable %}disabled{% endif %}>{% for pr in protocols %}<option value="{{ pr.pk }}" {% if pr.pk == p.protocol_id %}selected{% endif %}>{{ pr.name }}</option>{% endfor %}</select></label>
+            <label class="inline-flex items-center gap-2 pb-2"><input type="checkbox" name="p{{ p.pk }}_active" {% if p.is_active %}checked{% endif %} {% if not p.editable %}disabled{% endif %}> importovat</label>
           </div>
           <div class="overflow-x-auto">
             <table class="table text-sm">
@@ -25,16 +25,16 @@
               <tbody>
                 {% for c in p.rows %}
                   <tr>
-                    <td><input name="c{{ c.pk }}_column" value="{{ c.column }}" maxlength="200" class="input text-sm py-1 min-w-[14rem]" {% if not can_edit %}readonly{% endif %}></td>
-                    <td><select name="c{{ c.pk }}_metric" class="input text-sm py-1 min-w-[12rem]" {% if not can_edit %}disabled{% endif %}>
+                    <td><input name="c{{ c.pk }}_column" value="{{ c.column }}" maxlength="200" class="input text-sm py-1 min-w-[14rem]" {% if not p.editable %}readonly{% endif %}></td>
+                    <td><select name="c{{ c.pk }}_metric" class="input text-sm py-1 min-w-[12rem]" {% if not p.editable %}disabled{% endif %}>
                       {% for label, items in p.metric_groups %}<optgroup label="{{ label }}">{% for m in items %}<option value="{{ m.pk }}" {% if m.pk == c.metric_id %}selected{% endif %}>{{ m.name }}{% if m.unit %} [{{ m.unit }}]{% endif %}</option>{% endfor %}</optgroup>{% endfor %}
                     </select></td>
-                    <td class="max-md:hidden"><input type="checkbox" name="c{{ c.pk }}_sides" {% if c.with_sides %}checked{% endif %} {% if not can_edit %}disabled{% endif %}></td>
-                    <td class="max-md:hidden"><input name="c{{ c.pk }}_factor" value="{{ c.factor|default:'1' }}" inputmode="decimal" class="input w-20 text-sm py-1" {% if not can_edit %}readonly{% endif %}></td>
-                    <td class="text-xs text-muted whitespace-nowrap">{% if can_edit %}<label class="inline-flex items-center gap-1"><input type="checkbox" name="c{{ c.pk }}_delete"> smazat</label>{% endif %}</td>
+                    <td class="max-md:hidden"><input type="checkbox" name="c{{ c.pk }}_sides" {% if c.with_sides %}checked{% endif %} {% if not p.editable %}disabled{% endif %}></td>
+                    <td class="max-md:hidden"><input name="c{{ c.pk }}_factor" value="{{ c.factor|default:'1' }}" inputmode="decimal" class="input w-20 text-sm py-1" {% if not p.editable %}readonly{% endif %}></td>
+                    <td class="text-xs text-muted whitespace-nowrap">{% if p.editable %}<label class="inline-flex items-center gap-1"><input type="checkbox" name="c{{ c.pk }}_delete"> smazat</label>{% endif %}</td>
                   </tr>
                 {% endfor %}
-                {% if can_edit %}
+                {% if p.editable %}
                   {% for i in p.blank %}
                     <tr class="text-muted">
                       <td><input name="n{{ p.pk }}_{{ i }}_column" maxlength="200" class="input text-sm py-1 min-w-[14rem]" placeholder="nový sloupec přesně jak ho píše export"></td>

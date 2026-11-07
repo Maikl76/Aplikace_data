@@ -10,11 +10,13 @@
       sportu (a kategorie) předvyplní při novém testovacím dni. Úpravy nemění nic
       z toho, co už je naměřené.</p>
   </div>
+  {% if may_add_sport %}
   <form method="post" class="flex gap-2" id="pridat-sport">
     {% csrf_token %}
     <input name="name" required placeholder="Nový sport, např. Lední hokej" class="input w-64">
     <button type="submit" class="btn btn-primary">{% icon "plus" %}Přidat sport</button>
   </form>
+  {% else %}<p class="text-xs text-muted" id="pridat-sport">Nový sport zakládá správce nebo účet se všemi sporty.</p>{% endif %}
 </div>
 
 {% steps steps heading="Postup nastavení testování" may_act=read_only|yesno:"False,True" %}
@@ -22,10 +24,11 @@
 <div class="grid lg:grid-cols-2 gap-4">
   {% for sport in sports %}
     <section class="card p-4 min-w-0">
-      <div class="flex items-baseline justify-between mb-2">
+      <div class="flex items-baseline justify-between mb-1">
         <h2 class="text-lg font-semibold">{{ sport.name }}</h2>
         <a class="text-sm link" href="{% url 'subject_list' %}?sport={{ sport.pk }}">{{ sport.pocet_sportovcu }} sportovců</a>
       </div>
+      <p class="text-xs text-muted mb-2">{% if sport.metodici %}Odpovídá metodik: {{ sport.metodici }}{% else %}Bez metodika – odpovědnost za sport přidělí správce v Kolegové → Přístup.{% endif %}</p>
       <form method="post" action="{% url 'sport_season' sport.pk %}" class="flex flex-wrap items-center gap-2 text-xs mb-3" title="Od tohoto měsíce se na kartě sportovce, v portálu i ve zprávě srovnává „od začátku sezóny“.">
         {% csrf_token %}
         <span class="text-muted">Sezóna začíná</span>

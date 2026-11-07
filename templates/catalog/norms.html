@@ -27,7 +27,7 @@
             <td class="tabular-nums">{{ n.values_txt }}{% if n.incomplete %} <span class="badge badge-warn" title="Chybí hodnoty, nebo je citace neúplná">doplnit</span>{% endif %}</td>
             <td class="tabular-nums max-md:hidden">{{ n.sample_size|default:"—" }}</td>
             <td class="text-xs text-2 max-w-xs">{{ n.source_citation|truncatechars:90 }}{% if n.source_doi %} <a class="link" href="https://doi.org/{{ n.source_doi }}" target="_blank" rel="noopener">DOI</a>{% endif %}</td>
-            <td class="text-right whitespace-nowrap">{% if can_edit %}<a class="btn btn-sm" href="{% url 'norm_edit' n.pk %}">{% icon "edit" %}Upravit</a>{% endif %}</td>
+            <td class="text-right whitespace-nowrap">{% if n.editable %}<a class="btn btn-sm" href="{% url 'norm_edit' n.pk %}">{% icon "edit" %}Upravit</a>{% elif can_edit %}<span class="text-xs text-muted" title="Sport mimo váš rozsah, nebo norma napříč sporty">jen čtení</span>{% endif %}</td>
           </tr>
         {% endfor %}
       {% empty %}

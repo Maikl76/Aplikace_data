@@ -36,14 +36,18 @@ def catalog_status(user) -> dict:
 def catalog_steps(user, status: dict | None = None) -> list[dict]:
     from django.urls import reverse
 
+    from apps.core import access
+
     c = status or catalog_status(user)
     sports, without = c["sports"], c["sports_without"]
     protocols, no_metrics, no_key = c["protocols"], c["no_metrics"], c["no_key"]
     key_metrics, no_mdc = c["key_metrics"], c["no_mdc"]
+    may_add = access.may_add_sport(user)
     return [
         step(1, "Sporty", bool(sports),
              f"{len(sports)} sportů." if sports else "Založte sport, který v laboratoři testujete.",
-             url=reverse("sport_list") + "#pridat-sport", button="Přidat sport"),
+             url=reverse("sport_list") + ("#pridat-sport" if may_add else ""),
+             button="Přidat sport" if may_add else "Sporty"),
         step(2, "Baterie testů", bool(sports) and not without,
              (f"{len(sports) - len(without)} z {len(sports)} sportů má baterii; bez ní se "
               "testovací den nepředvyplní." if sports else "Které testy se u sportu měří "

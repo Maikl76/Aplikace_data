@@ -201,7 +201,7 @@ def subject_today(request, pk):
 def _may_add_sport(user) -> bool:
     from apps.core import access
 
-    return access.can(user, "settings_sports")
+    return access.may_add_sport(user)
 
 
 def _may_edit(user) -> bool:
@@ -310,8 +310,8 @@ def subject_new(request):
                                     "aplikaci přes spustit.bat, klíč se doplní sám.")
             return _form_page(request, form)
         if form.is_valid() and form.cleaned_data.get("new_sport") and not _may_add_sport(request.user):
-            form.add_error("new_sport", "Nový sport zakládá správce nebo metodik sportu – vyberte "
-                                        "sport ze seznamu.")
+            form.add_error("new_sport", "Nový sport zakládá správce nebo účet se všemi sporty – "
+                                        "vyberte sport ze seznamu.")
             return _form_page(request, form)
         duplicates = _check(request, form, organization)
         if duplicates is not None and "exact" not in duplicates:
@@ -346,8 +346,8 @@ def subject_edit(request, pk):
     if request.method == "POST":
         form = SubjectForm(request.POST, sports=sports, teams=teams)
         if form.is_valid() and form.cleaned_data.get("new_sport") and not _may_add_sport(request.user):
-            form.add_error("new_sport", "Nový sport zakládá správce nebo metodik sportu – vyberte "
-                                        "sport ze seznamu.")
+            form.add_error("new_sport", "Nový sport zakládá správce nebo účet se všemi sporty – "
+                                        "vyberte sport ze seznamu.")
             return _form_page(request, form, subject=subject)
         duplicates = _check(request, form, subject.organization, subject)
         if duplicates is not None and "exact" not in duplicates:

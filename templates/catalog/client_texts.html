@@ -28,8 +28,8 @@
         {% for r in rows %}
           <tr{% if r.draft %} style="background: var(--surface-2)"{% endif %}>
             <td class="font-medium">{{ r.metric.name }}{% if r.metric.unit %} <span class="text-muted font-normal">[{{ r.metric.unit }}]</span>{% endif %}{% if r.key %} <span class="badge badge-accent" title="Klíčový ukazatel: jde na kartu sportovce a do portálu">klíčový</span>{% endif %}{% if r.draft %}<span class="block text-xs text-muted">návrh modelu</span>{% endif %}<span class="block text-xs text-muted">{{ r.tests|join:", " }}</span></td>
-            <td><textarea name="s_{{ r.metric.pk }}" rows="2" maxlength="300" class="input text-sm py-1" placeholder="Co ukazatel vyjadřuje, laicky." {% if not can_edit %}readonly{% endif %}>{{ r.text_s }}</textarea></td>
-            <td><textarea name="t_{{ r.metric.pk }}" rows="2" maxlength="300" class="input text-sm py-1" placeholder="K čemu v tréninku slouží." {% if not can_edit %}readonly{% endif %}>{{ r.text_t }}</textarea></td>
+            <td><textarea name="s_{{ r.metric.pk }}" rows="2" maxlength="300" class="input text-sm py-1" placeholder="Co ukazatel vyjadřuje, laicky." {% if not r.editable %}readonly{% endif %}>{{ r.text_s }}</textarea></td>
+            <td><textarea name="t_{{ r.metric.pk }}" rows="2" maxlength="300" class="input text-sm py-1" placeholder="K čemu v tréninku slouží." {% if not r.editable %}readonly{% endif %}>{{ r.text_t }}</textarea></td>
           </tr>
         {% empty %}
           <tr><td colspan="3" class="text-muted py-6">Zatím žádný test v baterii – nejdřív sestavte baterie (Sporty a baterie).</td></tr>
@@ -46,7 +46,7 @@
         {% for p in protocols %}
           <tr{% if p.draft %} style="background: var(--surface-2)"{% endif %}>
             <td class="font-medium">{{ p.name }}{% if p.device %}<span class="block text-xs text-muted">{{ p.device }}</span>{% endif %}{% if p.draft %}<span class="block text-xs text-muted">návrh modelu</span>{% endif %}</td>
-            <td><textarea name="p_{{ p.pk }}" rows="2" maxlength="300" class="input text-sm py-1" placeholder="Co sportovec při testu dělá a co se měří." {% if not can_edit %}readonly{% endif %}>{{ p.text_p }}</textarea></td>
+            <td><textarea name="p_{{ p.pk }}" rows="2" maxlength="300" class="input text-sm py-1" placeholder="Co sportovec při testu dělá a co se měří." {% if not p.editable %}readonly{% endif %}>{{ p.text_p }}</textarea></td>
           </tr>
         {% empty %}
           <tr><td colspan="2" class="text-muted py-6">Zatím žádný test v baterii.</td></tr>
@@ -65,8 +65,8 @@
             {% for r in others %}
               <tr{% if r.draft %} style="background: var(--surface-2)"{% endif %}>
                 <td class="font-medium">{{ r.metric.name }}{% if r.metric.unit %} <span class="text-muted font-normal">[{{ r.metric.unit }}]</span>{% endif %}{% if r.draft %}<span class="block text-xs text-muted">návrh modelu</span>{% endif %}</td>
-                <td><textarea name="s_{{ r.metric.pk }}" rows="2" maxlength="300" class="input text-sm py-1" {% if not can_edit %}readonly{% endif %}>{{ r.text_s }}</textarea></td>
-                <td><textarea name="t_{{ r.metric.pk }}" rows="2" maxlength="300" class="input text-sm py-1" {% if not can_edit %}readonly{% endif %}>{{ r.text_t }}</textarea></td>
+                <td><textarea name="s_{{ r.metric.pk }}" rows="2" maxlength="300" class="input text-sm py-1" {% if not r.editable %}readonly{% endif %}>{{ r.text_s }}</textarea></td>
+                <td><textarea name="t_{{ r.metric.pk }}" rows="2" maxlength="300" class="input text-sm py-1" {% if not r.editable %}readonly{% endif %}>{{ r.text_t }}</textarea></td>
               </tr>
             {% endfor %}
           </tbody>

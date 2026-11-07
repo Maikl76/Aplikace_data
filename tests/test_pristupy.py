@@ -16,7 +16,7 @@ from django.core.management import call_command
 from django.test import Client
 from django.urls import reverse
 
-from apps.catalog.models import TestBattery
+from apps.catalog.models import MetricDef, Norm, Protocol, TestBattery, TestFamily
 from apps.core import access, colleagues
 from apps.core.models import Access, AuditLog, Organization, Role, User
 from apps.core.workplace import workplace_steps
@@ -25,6 +25,7 @@ from apps.ingest.models import ImportBatch, StagedMeasurement
 from apps.measurements.models import TestSession
 from apps.reports import services as report_services
 from apps.reports.models import Audience, Report
+from apps.rules.models import Rule
 from apps.subjects.models import Sport, Subject, SubjectIdentity, Team
 from tests.test_tym import zmer
 from tests.test_zaloha_a_importy import _batch
@@ -258,3 +259,78 @@ def test_migrace_zachova_dnesni_chovani(db):
     assert a.all_sports and not a.configured and a.genetics and a.reports_release and a.names
     assert not stary.is_staff and not vyzkum.access.names and not User.objects.get(pk=vyzkum.pk).is_staff
     assert access.unconfigured(org) == [stary, vyzkum]
+
+
+def test_metodik_nastavuje_jen_sve_sporty_a_metodiky(lab):
+    org, admin, florbal, hokej = lab["org"], lab["admin"], lab["florbal"], lab["hokej"]
+    metodik = _user(org, Role.METHODOLOGIST, "metodik", all_sports=False, all_families=False,
+                    families=[TestFamily.FORCE_PLATE])
+    metodik.first_name, metodik.last_name = "Eva", "Metodická"
+    metodik.save()
+    metodik.access.sports.set([florbal])
+    access.forget(metodik)
+    client = _client(metodik)
+    cmj = Protocol.objects.get(code="cmj")
+    other = Protocol.objects.exclude(family=TestFamily.FORCE_PLATE).order_by("code").first()
+
+    # testy: jen rodina v rozsahu, odpovědnost u testu i sportu
+    assert client.get(reverse("test_edit", args=[cmj.pk])).status_code == 200
+    assert client.get(reverse("test_edit", args=[other.pk])).status_code == 302
+    page = client.get(reverse("test_list")).content.decode()
+    assert "jen čtení" in page and "metodik: Eva Metodická" in page
+    sports_page = _client(admin).get(reverse("sport_list")).content.decode()
+    assert "Odpovídá metodik: Eva Metodická" in sports_page and "Bez metodika" in sports_page
+    assert "Přidat sport" not in client.get(reverse("sport_list")).content.decode()
+    client.post(reverse("sport_list"), {"name": "Tenis"})
+    assert not Sport.objects.filter(name="Tenis").exists()
+
+    # MDC: uloží se jen ukazatel své metodiky
+    cmj_height = MetricDef.objects.get(code="cmj_height")
+    foreign = MetricDef.objects.exclude(family=TestFamily.FORCE_PLATE).order_by("code").first()
+    client.post(reverse("mdc_settings"), {f"mdc_{cmj_height.pk}": "1,5", f"zdroj_{cmj_height.pk}": "studie",
+                                          f"mdc_{foreign.pk}": "2", f"zdroj_{foreign.pk}": "studie"})
+    assert MetricDef.objects.get(pk=cmj_height.pk).mdc == 1.5
+    assert MetricDef.objects.get(pk=foreign.pk).mdc is None
+
+    # normy a pravidla: cizí sport jen ke čtení, napříč sporty jen správce
+    mine = Norm.objects.create(organization=org, metric=cmj_height, sport=florbal, mean=30, sd=3,
+                               source_citation="Citace dostatečně dlouhá pro normu florbal")
+    theirs = Norm.objects.create(organization=org, metric=cmj_height, sport=hokej, mean=40, sd=3,
+                                 source_citation="Citace dostatečně dlouhá pro normu hokej")
+    assert client.get(reverse("norm_edit", args=[mine.pk])).status_code == 200
+    assert client.get(reverse("norm_edit", args=[theirs.pk])).status_code == 403
+    assert client.post(reverse("norm_delete", args=[theirs.pk])).status_code == 403
+    assert Norm.objects.filter(pk=theirs.pk).exists()
+    assert "jen čtení" in client.get(reverse("norms_settings")).content.decode()
+    client.post(reverse("norm_new"), {"metric": cmj_height.pk, "sport": "", "mean": "31", "sd": "2",
+                                      "source_citation": "Citace dostatečně dlouhá pro normu napříč"})
+    assert Norm.objects.count() == 2                       # napříč sporty metodik nezapíše
+    client.post(reverse("norm_new"), {"metric": cmj_height.pk, "sport": florbal.pk, "mean": "31",
+                                      "sd": "2", "source_citation": "Citace dostatečně dlouhá pro normu"})
+    assert Norm.objects.filter(sport=florbal).count() == 2
+    rule = Rule.objects.create(organization=org, code="hokej_r", name="Hokej", applies_to_sport=hokej,
+                               condition={"metric": "cmj_height", "op": "<", "value": 20},
+                               finding_template="nález")
+    assert client.get(reverse("rule_edit", args=[rule.pk])).status_code == 403
+    assert "jen čtení" in client.get(reverse("rules_settings")).content.decode()
+    assert "všechny sporty" not in client.get(reverse("rule_new")).content.decode()
+
+    # Přehled říká rozsah
+    home = client.get(reverse("dashboard")).content.decode()
+    assert "Váš rozsah: <strong>Florbal</strong>" in home and "pod kódy" in home
+
+
+def test_ukazkovy_ucet_metodika(lab):
+    from apps.portal.demo import create_demo_accounts
+
+    org = lab["org"]
+    Subject.objects.create(organization=org, code="FTVS-0003", sport=lab["hokej"])
+    created = create_demo_accounts(org, "kontrola-heslo-123")
+    assert "metodik" in created
+    metodik = User.objects.get(username="metodik")
+    assert metodik.role == Role.METHODOLOGIST and not metodik.is_staff
+    a = metodik.access
+    assert a.configured and not a.all_sports and a.families == ["force_plate"]
+    assert set(a.sports.all()) == {lab["florbal"], lab["hokej"]}
+    assert not access.can(metodik, "names") and access.can(metodik, "reports_release")
+    assert create_demo_accounts(org, "x") == []           # podruhé nic nezakládá

@@ -15,6 +15,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
+from apps.core import access
 from apps.core.audit import record
 from apps.core.models import AuditLog
 from apps.evidence.models import Article
@@ -114,16 +115,18 @@ def norm_list(request):
     norms = (Norm.objects.filter(_shared(user)).select_related("metric", "sport")
              .order_by("metric__name", "sport__name", "sex", "level", "side", "pk"))
     groups = []
+    can_edit = setup.can_edit_sports(user)
     for norm in norms:
         norm.applies = applies_to(norm)
         norm.values_txt = values_text(norm)
+        norm.editable = can_edit and access.sport_allowed(user, norm.sport_id)
         norm.incomplete = ((norm.mean is None or not norm.sd) and not norm.percentiles
                            or len(norm.source_citation.strip()) < 30)
         if not groups or groups[-1]["metric"].pk != norm.metric_id:
             groups.append({"metric": norm.metric, "key": norm.metric_id in key_ids, "norms": []})
         groups[-1]["norms"].append(norm)
     return render(request, "catalog/norms.html", {
-        "groups": groups, "steps": norm_steps(user, status), "can_edit": setup.can_edit_sports(user),
+        "groups": groups, "steps": norm_steps(user, status), "can_edit": can_edit,
         "count": len(norms),
     })
 
@@ -228,15 +231,22 @@ def norm_edit(request, pk=None):
     if not setup.can_edit_sports(user):
         return _denied(request, "Normy zapisuje správce nebo metodik sportu.")
     norm = get_object_or_404(Norm.objects.filter(_shared(user)), pk=pk) if pk else None
+    if norm is not None and not access.sport_allowed(user, norm.sport_id):
+        return _denied(request, "Tuhle normu upravuje správce nebo metodik jejího sportu – "
+                                "váš rozsah ji nezahrnuje.")
     status = catalog_status(user)
     key_ids = set(status["key_metrics"])
     metrics = list(setup.available_metrics(user.organization))
     sports = list(Sport.objects.for_user(user).order_by("name"))
+    restricted = access.scope(user) is not None
     if request.method == "POST":
         data = _form_data(None, request.POST)
         if norm is not None:
             data["metric"] = str(norm.metric_id)  # ukazatel se u uložené normy nemění
         values, errors = _parse(data, metrics, sports)
+        if not errors and not access.sport_allowed(
+                user, values["sport"].pk if values.get("sport") else None):
+            errors.append("Vyberte sport ze svého rozsahu – normu napříč sporty zapisuje správce.")
         if not errors:
             if norm is None:
                 norm = Norm(organization=user.organization)
@@ -264,7 +274,8 @@ def norm_edit(request, pk=None):
         "norm": norm, "data": data, "fits": fits,
         "key_metrics": [m for m in metrics if m.pk in key_ids],
         "other_metrics": [m for m in metrics if m.pk not in key_ids],
-        "sports": sports, "sexes": SEX, "levels": Subject.Level.choices, "sides": Side.choices,
+        "sports": sports, "restricted": restricted,
+        "sexes": SEX, "levels": Subject.Level.choices, "sides": Side.choices,
         "modes": MODES, "percentile_rows": [(p, data[f"p{p}"]) for p in PERCENTILES],
         "has_percentiles": any(data[f"p{p}"] for p in PERCENTILES),
         "articles": article_choices(),
@@ -277,6 +288,8 @@ def norm_delete(request, pk):
     if not setup.can_edit_sports(request.user):
         return _denied(request, "Normy maže správce nebo metodik sportu.")
     norm = get_object_or_404(Norm.objects.filter(_shared(request.user)), pk=pk)
+    if not access.sport_allowed(request.user, norm.sport_id):
+        return _denied(request, "Tuhle normu maže správce nebo metodik jejího sportu.")
     label = f"{norm.metric.name} ({applies_to(norm)})"
     record(request, AuditLog.Action.DELETE, norm, norma=label)
     norm.delete()

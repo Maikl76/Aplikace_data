@@ -22,6 +22,7 @@ from django.views.decorators.http import require_POST
 from apps.catalog import protocol_setup as setup
 from apps.catalog.models import MetricDef
 from apps.catalog.norm_views import article_choices
+from apps.core import access
 from apps.core.audit import record
 from apps.core.models import AuditLog
 from apps.evidence.models import Article
@@ -111,9 +112,13 @@ def _num_txt(value) -> str:
 def rule_list(request):
     user = request.user
     status = rule_status(user)
+    can_edit = setup.can_edit_sports(user)
+    for r in status["rules"]:
+        r.editable = can_edit and access.sport_allowed(user, r.applies_to_sport_id)
     return render(request, "rules/list.html", {
         "rules": status["rules"], "steps": rule_steps(user, status),
-        "can_edit": setup.can_edit_sports(user), "active": len(status["active"]),
+        "can_edit": can_edit, "active": len(status["active"]),
+        "restricted": access.scope(user) is not None,
     })
 
 
@@ -326,11 +331,17 @@ def rule_edit(request, pk=None):
     if not setup.can_edit_sports(user):
         return _denied(request, "Pravidla zapisuje správce nebo metodik sportu.")
     rule = get_object_or_404(Rule.objects.filter(_shared(user)), pk=pk) if pk else None
+    if rule is not None and not access.sport_allowed(user, rule.applies_to_sport_id):
+        return _denied(request, "Tohle pravidlo upravuje správce nebo metodik jeho sportu – "
+                                "váš rozsah ho nezahrnuje.")
     metrics = {m.code: m for m in MetricDef.objects.filter(_shared(user)).order_by("family", "name")}
     sports = list(Sport.objects.for_user(user).order_by("name"))
     if request.method == "POST":
         data = _form_data(None, request.POST)
         values, errors = _parse(data, rule, metrics, sports, user)
+        if not errors and not access.sport_allowed(
+                user, values["applies_to_sport"].pk if values.get("applies_to_sport") else None):
+            errors.append("Vyberte sport ze svého rozsahu – pravidlo napříč sporty zapisuje správce.")
         if not errors:
             created = rule is None
             if created:
@@ -361,7 +372,7 @@ def rule_edit(request, pk=None):
         data["rows"] = [dict(EMPTY_ROW)]
     links = list(rule.rule_articles.select_related("article")) if rule else []
     return render(request, "rules/form.html", {
-        "rule": rule, "data": data, "links": links,
+        "rule": rule, "data": data, "links": links, "restricted": access.scope(user) is not None,
         "metrics": [m for m in metrics.values() if m.is_active], "sports": sports,
         "severities": Severity.choices, "kinds": KIND_LABELS, "operators": list(OPERATORS),
         "sides": Side.choices, "modes": MODES, "palette": palette(),
@@ -378,6 +389,8 @@ def rule_delete(request, pk):
     if not setup.can_edit_sports(request.user):
         return _denied(request, "Pravidla maže správce nebo metodik sportu.")
     rule = get_object_or_404(Rule.objects.filter(_shared(request.user)), pk=pk)
+    if not access.sport_allowed(request.user, rule.applies_to_sport_id):
+        return _denied(request, "Tohle pravidlo maže správce nebo metodik jeho sportu.")
     findings = rule.findings.count()
     if findings:
         messages.error(request, f"Pravidlo {rule.name} má {findings} nálezů ve zprávách, proto "

@@ -195,7 +195,7 @@ bash deploy/pa-update.sh
 Stáhne novou verzi, **zazálohuje databázi a nahrané soubory** do složky
 `~/Zalohy-FTVS` (posledních 10 záloh), upraví databázi, doplní do katalogu
 nové testy a do ukázky chybějící ukázkové účty portálu (`sportovec`,
-`rodic`, `trener`) a restartuje aplikaci. **Data zůstanou** – účty, zprávy,
+`rodic`, `trener`, `metodik`) a restartuje aplikaci. **Data zůstanou** – účty, zprávy,
 cokoli jste v ukázce zadali. Pak v prohlížeči **Ctrl+F5**.
 
 `git pull` zvlášť předem je důležitý: skript se při stahování sám mění

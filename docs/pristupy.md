@@ -67,6 +67,26 @@ složení těla, terénní testy, jiné): testy, ukazatele, MDC, popisy pro
 klienta, sloupce exportů a přístroje. Jména sportovců nevidí, dokud mu je
 správce nezapne; měření nezadává.
 
+Co to znamená uvnitř stránek nastavení:
+
+- **Sporty a baterie**: vidí a upravuje jen přidělené sporty; u sportu
+  je napsáno, který metodik za něj odpovídá (správce tak vidí sporty bez
+  metodika). Nový sport zakládá jen účet se všemi sporty (jinak by ho
+  sám neviděl) – totéž u „nový sport“ při zakládání sportovce.
+- **Testy, ukazatele, MDC, popisy, přístroje a profily importu**: upravit
+  jde jen test, ukazatel nebo profil z přidělené rodiny testů; ostatní
+  jsou ke čtení („jen čtení“). U testu je napsáno, který metodik za jeho
+  metodiku odpovídá.
+- **Normy a pravidla**: upravit a mazat jde jen normu nebo pravidlo
+  přiděleného sportu; normu nebo pravidlo napříč sporty (bez sportu)
+  zapisuje jen účet se všemi sporty. Cizí jsou v přehledu „jen čtení“.
+- **Přehled** ukazuje rozsah účtu („Váš rozsah: Florbal · jen Ženy A“)
+  a u účtu bez jmen připomene, že vidí kódy.
+
+Ve zkušebním provozu je ukázkový účet `metodik` (sporty ukázkových
+sportovců, metodika silová plošina, bez jmen) se stejným heslem jako
+ostatní ukázkové účty.
+
 ## Jak se to vymáhá
 
 - `apps/core/access.py`: `can(user, klíč)`, `manage(user)`, `scope(user)`,

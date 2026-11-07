@@ -12,6 +12,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.text import slugify
 from django.views.decorators.http import require_POST
 
+from apps.core import access
 from apps.core.audit import record
 from apps.core.models import AuditLog, default_organization
 from apps.subjects.models import Sport
@@ -34,6 +35,10 @@ def sport_list(request):
     if request.method == "POST":
         name = request.POST.get("name", "").strip()
         org = request.user.organization or default_organization()
+        if name and not access.may_add_sport(request.user):
+            messages.error(request, "Nový sport zakládá správce nebo účet se všemi sporty – "
+                                    "sám byste ho ve svém rozsahu neviděl.")
+            return redirect("sport_list")
         if name and org is None:
             messages.error(request, "Účet nemá přiřazené pracoviště – v administraci "
                                     "u uživatele vyberte organizaci.")
@@ -59,16 +64,19 @@ def sport_list(request):
         used = {item.protocol_id for item in battery.items.all()}
         battery.available = [p for p in protocols if p.pk not in used]
         by_sport.setdefault(battery.sport_id, []).append(battery)
+    responsible = access.Responsibility(request.user.organization)
     for sport in sports:
         sport.baterie = by_sport.get(sport.pk, [])
         sport.ma_obecnou = any(not b.category for b in sport.baterie)
+        sport.metodici = ", ".join(responsible.for_sport(sport.pk))
     from apps.analytics.compare import MONTHS_LOCATIVE
 
     from .steps import catalog_steps
 
     return render(request, "catalog/sports.html", {
         "sports": sports, "steps": catalog_steps(request.user),
-        "months": list(enumerate(MONTHS_LOCATIVE, start=1))})
+        "months": list(enumerate(MONTHS_LOCATIVE, start=1)),
+        "may_add_sport": access.may_add_sport(request.user)})
 
 
 @login_required

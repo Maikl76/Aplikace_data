@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 
+from apps.core import access
 from apps.core.audit import record
 from apps.core.models import AuditLog
 
@@ -17,12 +18,16 @@ from .models import Direction, MetricDef, Protocol, TestFamily
 def test_list(request):
     protocols = (Protocol.objects.annotate(pocet_metrik=Count("protocol_metrics", distinct=True))
                  .prefetch_related("battery_items__battery__sport").order_by("-is_active", "name"))
+    can_edit = setup.can_edit(request.user)
+    responsible = access.Responsibility(request.user.organization)
     for p in protocols:
         p.baterie = sorted({item.battery.label for item in p.battery_items.all()})
+        p.editable = can_edit and access.family_allowed(request.user, p.family)
+        p.metodici = ", ".join(responsible.for_family(p.family))
     from .steps import catalog_steps
 
     return render(request, "catalog/tests.html", {
-        "protocols": protocols, "can_edit": setup.can_edit(request.user),
+        "protocols": protocols, "can_edit": can_edit,
         "steps": catalog_steps(request.user)})
 
 
@@ -59,13 +64,21 @@ def _posted_data(post) -> dict:
 
 def _edit(request, protocol):
     if not setup.can_edit(request.user):
-        messages.error(request, "Testy v katalogu nastavuje správce (role Správce).")
+        messages.error(request, "Testy v katalogu nastavuje správce nebo metodik měření.")
+        return redirect("test_list")
+    if protocol is not None and not access.family_allowed(request.user, protocol.family):
+        messages.error(request, f"Test „{protocol.name}“ patří do metodiky "
+                                f"{protocol.get_family_display()}, kterou nenastavujete.")
         return redirect("test_list")
     all_batteries = list(_batteries(request.user))
     if request.method == "POST":
         data = _posted_data(request.POST)
         if data["family"] not in TestFamily.values:
             data["family"] = TestFamily.OTHER
+        if not access.family_allowed(request.user, data["family"]):
+            messages.error(request, "Vyberte rodinu testů (metodiku), kterou nastavujete.")
+            return _form(request, protocol, data=data, rows=setup.posted_rows(request.POST),
+                         battery_ids=set(request.POST.getlist("baterie")))
         chosen = set(request.POST.getlist("baterie"))
         try:
             rows = setup.read_rows(request.POST, request.user.organization)

@@ -24,7 +24,7 @@
         {% if rule %}<input value="{{ data.code }}" readonly class="input mt-1" style="background: var(--surface-2)"><span class="text-xs text-muted">Kód se u uloženého pravidla nemění.</span>
         {% else %}<input name="code" value="{{ data.code }}" maxlength="64" class="input mt-1" placeholder="prázdné = odvodí se z názvu"><span class="text-xs text-muted">Malá písmena bez diakritiky, slova spojená podtržítkem.</span>{% endif %}</label>
       <label class="block"><span class="text-sm font-medium">Sport</span>
-        <select name="sport" class="input mt-1"><option value="">všechny sporty</option>{% for s in sports %}<option value="{{ s.pk }}" {% if data.sport == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>{% endfor %}</select></label>
+        <select name="sport" class="input mt-1">{% if not restricted %}<option value="">všechny sporty</option>{% endif %}{% for s in sports %}<option value="{{ s.pk }}" {% if data.sport == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>{% endfor %}</select></label>
       <label class="block"><span class="text-sm font-medium">Závažnost</span>
         <select name="severity" class="input mt-1">{% for value, label in severities %}<option value="{{ value }}" {% if data.severity == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
     </div>

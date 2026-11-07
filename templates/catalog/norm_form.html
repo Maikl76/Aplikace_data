@@ -34,7 +34,7 @@
     </div>
     <div class="grid sm:grid-cols-3 gap-4">
       <label class="block"><span class="text-sm font-medium">Sport</span>
-        <select name="sport" class="input mt-1"><option value="">všechny sporty</option>{% for s in sports %}<option value="{{ s.pk }}" {% if data.sport == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>{% endfor %}</select></label>
+        <select name="sport" class="input mt-1">{% if not restricted %}<option value="">všechny sporty</option>{% endif %}{% for s in sports %}<option value="{{ s.pk }}" {% if data.sport == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>{% endfor %}</select></label>
       <label class="block"><span class="text-sm font-medium">Pohlaví</span>
         <select name="sex" class="input mt-1">{% for value, label in sexes %}<option value="{{ value }}" {% if data.sex == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
       <label class="block"><span class="text-sm font-medium">Úroveň</span>

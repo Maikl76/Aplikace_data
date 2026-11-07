@@ -226,6 +226,85 @@ def families(user) -> set | None:
     return set(access.families or [])
 
 
+def family_allowed(user, family: str) -> bool:
+    """Smí účet nastavovat test (ukazatel, profil) této rodiny testů?"""
+    allowed = families(user)
+    return allowed is None or family in allowed
+
+
+def sport_allowed(user, sport_id) -> bool:
+    """
+    Smí účet nastavovat normu, pravidlo nebo baterii tohoto sportu? Záznam
+    napříč sporty (bez sportu) jen účet bez omezení rozsahu.
+    """
+    sc = scope(user)
+    if sc is None:
+        return True
+    if sport_id is None:
+        return False
+    return sc.sports is None or sport_id in sc.sports
+
+
+def may_add_sport(user) -> bool:
+    """Nový sport zakládá jen účet se všemi sporty – jinak by ho sám neviděl."""
+    return can(user, "settings_sports") and scope(user) is None
+
+
+def scope_text(user) -> str:
+    """„Florbal, Hokej · jen Ženy A“ pro účet s omezeným rozsahem; jinak prázdné."""
+    sc = scope(user)
+    if sc is None:
+        return ""
+    from apps.subjects.models import Sport, Team
+
+    parts = []
+    if sc.sports is not None:
+        names = list(Sport.objects.filter(pk__in=sc.sports).order_by("name")
+                     .values_list("name", flat=True))
+        parts.append(", ".join(names) if names else "žádný sport")
+    else:
+        parts.append("všechny sporty")
+    if sc.teams:
+        parts.append("jen " + ", ".join(Team.objects.filter(pk__in=sc.teams).order_by("name")
+                                        .values_list("name", flat=True)))
+    return " · ".join(parts)
+
+
+class Responsibility:
+    """Kdo (metodik) odpovídá za který sport a metodiku – pro stránky Sporty a Testy."""
+
+    def __init__(self, organization):
+        from .models import User
+
+        self.by_sport: dict = {}
+        self.all_sports: list[str] = []
+        self.by_family: dict = {}
+        self.all_families: list[str] = []
+        users = (User.objects.filter(organization=organization, role=Role.METHODOLOGIST,
+                                     is_active=True)
+                 .select_related("access").prefetch_related("access__sports")
+                 .order_by("last_name", "first_name", "username"))
+        for user in users:
+            access = getattr(user, "access", None)
+            name = user.get_full_name() or user.get_username()
+            if access is None or access.all_sports:
+                self.all_sports.append(name)
+            else:
+                for sport in access.sports.all():
+                    self.by_sport.setdefault(sport.pk, []).append(name)
+            if access is None or access.all_families:
+                self.all_families.append(name)
+            else:
+                for family in access.families or []:
+                    self.by_family.setdefault(family, []).append(name)
+
+    def for_sport(self, sport_id) -> list[str]:
+        return self.all_sports + self.by_sport.get(sport_id, [])
+
+    def for_family(self, family: str) -> list[str]:
+        return self.all_families + self.by_family.get(family, [])
+
+
 def scope_queryset(model, qs, user):
     """
     Omezí dotaz na rozsah účtu. Sportovec podle sportu a týmu, tabulky se

@@ -36,7 +36,7 @@
             {% if r.errors %}<span class="badge badge-bad" title="{{ r.errors|join:' ' }}">špatný zápis</span>{% endif %}
             {% if r.warnings %}<span class="badge badge-warn" title="{{ r.warnings|join:' ' }}">nikdy nesedne</span>{% endif %}
           </td>
-          <td class="text-right whitespace-nowrap">{% if can_edit %}<a class="btn btn-sm" href="{% url 'rule_edit' r.pk %}">{% icon "edit" %}Upravit</a>{% endif %}</td>
+          <td class="text-right whitespace-nowrap">{% if r.editable %}<a class="btn btn-sm" href="{% url 'rule_edit' r.pk %}">{% icon "edit" %}Upravit</a>{% elif can_edit %}<span class="text-xs text-muted" title="Sport mimo váš rozsah, nebo pravidlo napříč sporty">jen čtení</span>{% endif %}</td>
         </tr>
         {% if r.errors or r.warnings %}
           <tr><td colspan="7" class="text-xs pt-0 pb-3" style="color: var(--warn)">{% for e in r.errors %}{{ e }} {% endfor %}{% for w in r.warnings %}{{ w }} {% endfor %}</td></tr>

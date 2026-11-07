@@ -1,10 +1,10 @@
-"""Ukázkové účty portálu pro veřejnou ukázku (sportovec, rodič, trenér)."""
+"""Ukázkové účty pro veřejnou ukázku: portál (sportovec, rodič, trenér) a metodik."""
 
 from django.conf import settings
 
 from apps.core.models import Role, User
 
-USERNAMES = ("sportovec", "rodic", "trener")
+USERNAMES = ("sportovec", "rodic", "trener", "metodik")
 
 
 def create_demo_accounts(org, password) -> list[str]:
@@ -56,4 +56,12 @@ def create_demo_accounts(org, password) -> list[str]:
         for code in ("FTVS-0001", "FTVS-0003"):
             accounts.start_sharing(subjects[code], coach, by=by)
         accounts.request_sharing(subjects["FTVS-0002"], coach, by=coach)
+    # Metodik: odpovídá za sport ukázkových sportovců a za silovou plošinu, bez jmen.
+    if methodologist := make("metodik", Role.METHODOLOGIST, first_name="Eva",
+                             last_name="Metodička"):
+        from apps.core import access
+
+        profile = access.grant(methodologist, all_sports=False, all_families=False,
+                               families=["force_plate"], configured=True)
+        profile.sports.set({s.sport for s in subjects.values() if s.sport_id})
     return created

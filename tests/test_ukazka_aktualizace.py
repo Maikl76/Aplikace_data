@@ -105,7 +105,8 @@ def ukazka(db, settings):
 def test_ukazkove_ucty_dopln_bez_mazani(ukazka, capsys):
     kolega = User.objects.create(username="kolega", organization=ukazka, role=Role.LAB)
     call_command("ukazkove_ucty", heslo="ukazka-heslo-12345")
-    assert "založeno sportovec, rodic, trener" in capsys.readouterr().out
+    assert "založeno sportovec, rodic, trener, metodik" in capsys.readouterr().out
+    assert User.objects.get(username="metodik").role == Role.METHODOLOGIST
     assert User.objects.get(username="sportovec").check_password("ukazka-heslo-12345")
     assert SubjectIdentity.objects.get(subject__code="FTVS-0001").user.username == "sportovec"
     assert Guardian.objects.get().identity.subject.code == "FTVS-0002"
@@ -114,7 +115,7 @@ def test_ukazkove_ucty_dopln_bez_mazani(ukazka, capsys):
     call_command("ukazkove_ucty", heslo="jine-heslo-123456")
     assert "už jsou" in capsys.readouterr().out
     assert User.objects.get(username="sportovec").check_password("ukazka-heslo-12345")
-    assert User.objects.filter(pk=kolega.pk).exists() and User.objects.count() == 4
+    assert User.objects.filter(pk=kolega.pk).exists() and User.objects.count() == 5
 
 
 def test_ukazkove_ucty_nesahaji_na_cizi_ucet_se_stejnym_jmenem(ukazka):

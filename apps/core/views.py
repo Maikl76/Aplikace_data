@@ -82,6 +82,7 @@ def dashboard(request):
         "dnes": daily_steps(request.user),
         "may_act": request.user.is_superuser or request.user.role not in READ_ONLY,
         "nastaveni_ceka": nastaveni_ceka,
+        "rozsah": access.scope_text(request.user),
         "objednavky": objednavky,
         "tiles": [
             ("Aktivní sportovci", Subject.objects.for_user(request.user)

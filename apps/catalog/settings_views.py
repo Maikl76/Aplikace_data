@@ -11,6 +11,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import redirect, render
 
+from apps.core import access
 from apps.core.audit import record
 from apps.core.models import AuditLog
 
@@ -50,6 +51,10 @@ def _metric_rows(user):
     others = [{"metric": m, "tests": [], "key": False}
               for m in MetricDef.objects.filter(_shared(user), is_active=True).order_by("name")
               if m.pk not in rows]
+    # metodik měření upravuje jen ukazatele své rodiny testů
+    editable = setup.can_edit(user)
+    for row in in_batteries + others:
+        row["editable"] = editable and access.family_allowed(user, row["metric"].family)
     return status, in_batteries, others
 
 
@@ -64,6 +69,8 @@ def mdc_settings(request):
         problems, changed = [], 0
         with transaction.atomic():
             for row in in_batteries + others:
+                if not row["editable"]:
+                    continue
                 m = row["metric"]
                 try:
                     mdc = _number(request.POST.get(f"mdc_{m.pk}"))
@@ -111,6 +118,7 @@ def client_texts(request):
     protocols = sorted(status["protocols"].values(), key=lambda p: p.name)
     for p in protocols:
         p.text_p, p.draft = p.athlete_text, False
+        p.editable = can_edit and access.family_allowed(request.user, p.family)
     for row in in_batteries + others:
         row["text_s"], row["text_t"], row["draft"] = row["metric"].athlete_text, row["metric"].coach_text, False
     drafts = None
@@ -144,6 +152,8 @@ def client_texts(request):
             changed = 0
             with transaction.atomic():
                 for row in in_batteries + others:
+                    if not row["editable"]:
+                        continue
                     m = row["metric"]
                     athlete, coach = _text(request.POST, f"s_{m.pk}"), _text(request.POST, f"t_{m.pk}")
                     if (m.athlete_text, m.coach_text) != (athlete, coach):
@@ -151,6 +161,8 @@ def client_texts(request):
                         m.athlete_text, m.coach_text = athlete, coach
                         m.save(update_fields=["athlete_text", "coach_text", "updated_at"])
                 for p in protocols:
+                    if not p.editable:
+                        continue
                     text = _text(request.POST, f"p_{p.pk}")
                     if p.athlete_text != text:
                         p.athlete_text = text
@@ -195,7 +207,12 @@ def _save_profiles(post, profiles, protocols, metrics, user) -> list[str]:
     metric_by_pk = {str(m.pk): m for m in metrics}
     with transaction.atomic():
         for profile in profiles:
+            if not getattr(profile, "editable", True):
+                continue
             protocol = protocol_by_pk.get(post.get(f"p{profile.pk}_protocol", ""))
+            if protocol is not None and not access.family_allowed(user, protocol.family):
+                problems.append(f"{profile}: test {protocol.name} patří do jiné metodiky – neuloženo.")
+                continue
             if protocol is not None:
                 profile.protocol = protocol
             profile.is_active = f"p{profile.pk}_active" in post
@@ -252,6 +269,8 @@ def _save_profiles(post, profiles, protocols, metrics, user) -> list[str]:
                 problems.append("Nový profil: napište typ testu přesně tak, jak ho píše export.")
             elif protocol is None:
                 problems.append("Nový profil: vyberte test z katalogu.")
+            elif not access.family_allowed(user, protocol.family):
+                problems.append(f"Nový profil: test {protocol.name} patří do jiné metodiky než vaší.")
             elif ImportProfile.objects.filter(device=device, test_type=test_type).exists():
                 problems.append(f"Nový profil: typ testu „{test_type}“ už profil má.")
             else:
@@ -267,6 +286,8 @@ def import_profiles(request):
 
     allowed = can_edit(request.user)
     profiles = list(_builtin_profiles(request.user))
+    for profile in profiles:
+        profile.editable = allowed and access.family_allowed(request.user, profile.protocol.family)
     protocols = list(Protocol.objects.filter(_shared(request.user), is_active=True).order_by("name"))
     metrics = list(MetricDef.objects.filter(_shared(request.user), is_active=True)
                    .order_by("family", "name"))

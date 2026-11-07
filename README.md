@@ -27,7 +27,7 @@ make up                       # http://localhost:8000
 ```
 
 Přihlášení po `make seed`: `admin` / `demo-heslo-1234` (jen pro vývoj); portál
-sportovce `sportovec`, rodiče `rodic` a trenéra `trener` se stejným heslem.
+sportovce `sportovec`, rodiče `rodic`, trenéra `trener` a metodika `metodik` se stejným heslem.
 
 Bez `make` jsou to tytéž příkazy přes
 `docker compose run --rm web python manage.py <příkaz>`.

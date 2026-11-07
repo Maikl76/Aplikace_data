@@ -23,12 +23,13 @@
         <tr {% if not p.is_active %}class="text-muted"{% endif %}>
           <td class="font-medium">{{ p.name }}
             {% if not p.is_active %}<span class="badge">vypnutý</span>{% endif %}
-            {% if p.rpe_after %}<span class="badge" title="Po testu se zaznamenává RPE">RPE</span>{% endif %}</td>
+            {% if p.rpe_after %}<span class="badge" title="Po testu se zaznamenává RPE">RPE</span>{% endif %}
+            <span class="block text-xs text-muted font-normal">{{ p.get_family_display }}{% if p.metodici %} · metodik: {{ p.metodici }}{% endif %}</span></td>
           <td class="text-2 max-md:hidden">{{ p.device|default:"—" }}</td>
           <td class="text-right tabular-nums">{{ p.pocet_metrik }}</td>
           <td class="text-right tabular-nums max-md:hidden">{{ p.default_trials }}</td>
           <td class="text-2 text-sm max-md:hidden">{{ p.baterie|join:", "|default:"—" }}</td>
-          <td class="text-right">{% if can_edit %}<a class="btn btn-sm" href="{% url 'test_edit' p.pk %}">{% icon "edit" %}upravit</a>{% endif %}</td>
+          <td class="text-right">{% if p.editable %}<a class="btn btn-sm" href="{% url 'test_edit' p.pk %}">{% icon "edit" %}upravit</a>{% elif can_edit %}<span class="text-xs text-muted" title="Jiná metodika než vaše">jen čtení</span>{% endif %}</td>
         </tr>
       {% empty %}
         <tr><td colspan="6" class="text-muted py-6 text-center">Zatím žádné testy.</td></tr>

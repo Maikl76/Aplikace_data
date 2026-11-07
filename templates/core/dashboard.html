@@ -4,6 +4,7 @@
 <div class="mb-5">
   <div class="eyebrow">{{ dnes_datum|date:"l j. F Y" }}</div>
   <h1 class="text-2xl font-semibold">Přehled laboratoře</h1>
+  {% if rozsah %}<p class="text-sm text-muted mt-1">Váš rozsah: <strong>{{ rozsah }}</strong>. Vidíte jen sportovce, měření a zprávy těchto sportů{% if not pristup.names %}, pod kódy{% endif %}.</p>{% endif %}
 </div>
 
 {% if nastaveni_ceka %}
