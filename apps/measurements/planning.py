@@ -35,6 +35,24 @@ def ensure_runs(session, protocols) -> int:
     return len(new)
 
 
+def repeat_session(source, *, day, user):
+    """
+    Zopakovat testovací den: pro téhož sportovce vznikne den ``day`` se
+    stejnými testy (místo a fáze sezóny se přenesou; hodnoty ne). Když den
+    už existuje, jen se do něj doplní chybějící testy.
+    Vrací (den, nový?, počet přidaných testů).
+    """
+    protocols = list({r.protocol_id: r.protocol for r in source.protocol_runs
+                      .select_related("protocol").order_by("started_at", "pk")
+                      if r.protocol.is_active and r.protocol.code not in DERIVED_PROTOCOLS}
+                     .values())
+    session, created = TestSession.objects.get_or_create(
+        organization=source.organization, subject=source.subject, date=day,
+        defaults={"operator": user, "location": source.location,
+                  "season_phase": source.season_phase})
+    return session, created, ensure_runs(session, protocols)
+
+
 def empty_run(session, protocol):
     """Prázdné (založené, ale nezměřené) provedení – import ho vyplní místo nového."""
     return (session.protocol_runs.filter(protocol=protocol, external_ref="")

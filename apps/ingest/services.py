@@ -428,7 +428,8 @@ def assignment_choices(batch, user) -> list[dict]:
     Nabízí se hlavně ten, kdo má ve dnech ze souboru naplánované testování
     (Dnešní testování, schválená objednávka) – tak se export spáruje i se
     sportovcem, kterého VALD zná pod jinak napsaným jménem. Import spuštěný
-    z testovacího dne předvybere jeho sportovce, pokud je to jednoznačné.
+    z testovacího dne předvybere jeho sportovce, pokud je to jednoznačné;
+    import spuštěný z Dnešního testování nabídne sportovce skupiny.
     """
     from apps.subjects.search import names_for
 
@@ -448,9 +449,13 @@ def assignment_choices(batch, user) -> list[dict]:
                    .select_related("subject"))
     target_subject = Subject.objects.filter(organization=batch.organization,
                                             pk=target.get("subject")).first()
+    # skupina z Dnešního testování: její sportovci jsou v nabídce hned za naplánovanými
+    group = list(Subject.objects.filter(organization=batch.organization,
+                                        pk__in=target.get("subjects") or []))
     pool = {s.subject for s in planned} | ({target_subject} if target_subject else set())
-    pool |= set(Subject.objects.filter(pk__in=current.values()))
+    pool |= set(Subject.objects.filter(pk__in=current.values())) | set(group)
     names = names_for(pool, user)
+    group.sort(key=lambda s: (names.get(s.pk) or s.code).lower())
 
     def label(subject, day=None):
         name = names.get(subject.pk)
@@ -471,6 +476,11 @@ def assignment_choices(batch, user) -> list[dict]:
                 seen.add(session.subject_id)
         if target_subject and target_subject.pk not in seen:
             options.append((target_subject.pk, label(target_subject) + " – z testovacího dne"))
+        for subject in group:
+            if subject.pk not in seen:
+                options.append((subject.pk, label(subject) + f" – skupina {target.get('skupina')}"
+                                if target.get("skupina") else label(subject) + " – ze skupiny"))
+                seen.add(subject.pk)
 
         selected, how = current.get(key), ""
         if selected is None:

@@ -10,6 +10,8 @@ v Nastavení → Pracoviště a týmy.
 
 import logging
 
+from django.db import transaction
+
 from apps.measurements.planning import DERIVED_PROTOCOLS
 
 from . import services
@@ -52,3 +54,30 @@ def ensure_draft(session, *, user):
     Report.objects.filter(pk=report.pk).update(auto_created=True)
     report.auto_created = True
     return report
+
+
+def drafts_for(sessions, *, user, audience=None) -> dict:
+    """
+    Koncepty pro víc testovacích dnů najednou (Dnešní testování): jen pro
+    kompletní dny bez zprávy. ``audience`` None = pro každého podle sdílení,
+    jako u konceptu, který vzniká sám. Vrací počty: ``vytvoreno``,
+    ``uz_ma``, ``nekompletni`` a kódy sportovců, u kterých koncept nevznikl.
+    """
+    result = {"vytvoreno": 0, "uz_ma": 0, "nekompletni": 0, "chyby": []}
+    for session in sessions:
+        if session.reports.exists():
+            result["uz_ma"] += 1
+            continue
+        if not session_complete(session):
+            result["nekompletni"] += 1
+            continue
+        try:
+            with transaction.atomic():
+                services.build_draft(session, user=user,
+                                     audience=audience or audience_for(session))
+        except services.ReportError as exc:
+            logger.warning("Koncept zprávy pro %s nevznikl: %s", session.subject.code, exc)
+            result["chyby"].append(session.subject.code)
+            continue
+        result["vytvoreno"] += 1
+    return result

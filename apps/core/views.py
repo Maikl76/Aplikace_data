@@ -78,8 +78,11 @@ def dashboard(request):
         from apps.core.workplace import pending_count
 
         nastaveni_ceka = pending_count(request.user)
+    from apps.measurements import week
+
     context = {
         "dnes": daily_steps(request.user),
+        "tyden": week.overview(request.user, week.monday_of(today), today=today)["days"],
         "may_act": request.user.is_superuser or request.user.role not in READ_ONLY,
         "nastaveni_ceka": nastaveni_ceka,
         "rozsah": access.scope_text(request.user),

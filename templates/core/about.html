@@ -254,6 +254,7 @@
         hromadně v <em>Dnešním testování</em>, nebo sám při importu exportu z přístroje.</p>
       <ul>
         <li><strong>Nový testovací den:</strong> vyberte sportovce – testy se zaškrtnou podle baterie jeho sportu; další jde přidat. Vyplnit lze místo, fázi sezóny, subjektivní únavu, teplotu a vlhkost.</li>
+        <li><strong>Zopakovat poslední den</strong> (karta sportovce; v detailu minulého dne <em>Zopakovat dnes</em>): dnešní testovací den se stejnými testy jako minule, i mimo baterii; přenese se místo a fáze sezóny, hodnoty ne. Existuje-li dnešní den, jen se doplní chybějící testy.</li>
         <li><strong>Detail dne</strong> (<a class="link" href="{% url 'session_list' %}">Měření</a> → datum): testy s počtem hodnot (<span class="badge badge-good">hotovo</span> / <span class="badge badge-accent">zadat hodnoty</span>), přidání dalšího testu, zprávy z tohoto dne, RPE a prostředí.</li>
         <li><strong>Opakované měření v jednom dni</strong> (např. před a po zátěži): každé provedení má svůj čas; hodnotou dne je první (hlavní) měření, opakování se ve zprávě ukážou vedle sebe.</li>
         <li><strong>Prostředí:</strong> teplota a vlhkost se dají doplnit i dodatečně v kartě <em>Prostředí</em> – objeví se ve zprávě.</li>
@@ -268,7 +269,10 @@
         <li>Tabulka ukazuje sportovce skupiny × testy baterie: <span class="badge badge-good">hotovo</span> změřeno, <span class="badge badge-accent">zadat</span> založeno a čeká, — nic.</li>
         <li>Zaškrtněte sportovce a klikněte <em>Založit testování pro vybrané</em> – každý dostane testovací den se všemi testy baterie. Kdo už den má, tomu se jen doplní chybějící testy.</li>
         <li>Klepnutím na <em>zadat</em> otevřete zadávání, nebo po měření nahrajte export – import vyplní právě tyto založené testy.</li>
+        <li><strong>Za celou skupinu</strong> (pod tabulkou): <em>Nahrát export za skupinu</em> – jeden export pro všechny, v náhledu jsou sportovci skupiny v nabídce první, řádky bez data jdou k vybranému dni a po uložení se vrátíte sem; <em>Koncepty zpráv pro hotové dny</em> – pro každý den s hodnotami u všech testů a bez zprávy vznikne koncept najednou, dny se zprávou nebo nehotové se přeskočí. Poslední sloupec ukazuje <em>zpráva</em> / <em>bez zprávy</em>.</li>
       </ol>
+      <h3>Přehled na týden</h3>
+      <p>Tlačítko <em>Přehled na týden</em> (a proužek <em>Tento týden</em> na Přehledu) ukáže týden den po dni: testovací dny po skupinách s počty hotovo / rozpracováno / čeká a jmény, objednávky na termíny v týdnu (s přístupem k objednávkám), termíny dalšího měření podle plánu opakování s tlačítkem <em>Nové měření</em>, prošlé termíny a dny s hodnotami bez zprávy. Listuje se po týdnech; nic se tu nezadává.</p>
     </section>
 
     {# ================================================================== #}
@@ -322,6 +326,7 @@
         <li><strong>Sledovaná složka:</strong> místo nahrávání může složku s exporty hlídat aplikace sama. Správce do <code>.env</code> doplní <code>IMPORT_WATCH_DIR</code> (složka, kam VALD Hub ukládá exporty); <code>spustit.bat</code> pak otevře okno „Sledovana slozka“, které každých 30 s projde složku. Nový export se načte do Importu a když aplikace sportovce jednoznačně pozná a má naplánovaný testovací den, rovnou se uloží; jinak čeká na kontrolu jako po ručním nahrání. Stav je v Importu (karta <em>Sledovaná složka</em>). Soubory se nepřesouvají ani nemažou.</li>
         <li><strong>Z testovacího dne:</strong> tlačítko <em>Nahrát export z přístroje</em> v testovacím dni (i v zadávání testu) nahraje soubor a v náhledu rovnou předvybere tohoto sportovce. Hodnoty se zapíšou do naplánovaných testů toho dne – datum se bere z exportu, musí tedy sedět s datem testovacího dne.</li>
         <li><strong>Opakovaný import</strong> téhož souboru nic nezdvojí – chybějící hodnoty doplní, přepočítané aktualizuje.</li>
+        <li><strong>Za celou skupinu:</strong> v Dnešním testování tlačítko <em>Nahrát export za skupinu</em> – sportovci skupiny jsou v náhledu v nabídce první (i bez založeného dne), řádky bez data jdou k vybranému dni. Po uložení se aplikace vrátí do Dnešního testování; z testovacího dne zpět do něj.</li>
         <li><strong>Založené testy</strong> z Dnešního testování import vyplní, nevzniknou druhé.</li>
         <li><strong>Co se importuje</strong> určují <a class="link" href="/admin/catalog/importprofile/">profily importu</a> (sloupec exportu → metrika). Po doplnění profilu tlačítko <em>načíst znovu</em> u starého importu doplní nové metriky.</li>
       </ul>

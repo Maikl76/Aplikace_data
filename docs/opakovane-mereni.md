@@ -28,7 +28,11 @@ o N dnů*, *naplánováno*, *objednáno*, nebo termín bez zvýraznění.
 - **Sportovci** – sloupec *Další měření* a filtr *jen na řadě*.
 - **Karta sportovce** – věta v kartě Testovací dny, krok *Měření* je po
   prošlém termínu znovu nehotový, tlačítko *Připomenout e‑mailem*, plán
-  opakování a seznam odeslaných připomínek.
+  opakování a seznam odeslaných připomínek. Tlačítko **Zopakovat poslední
+  den** založí dnešní den se stejnými testy jako minule (viz
+  `docs/baterie.md`).
+- **Přehled na týden** – termíny dalšího měření v daném týdnu u příslušného
+  dne a počet prošlých termínů nad týdnem.
 - **Portál sportovce** – *Příští měření: do …*, po prošlém termínu výzva
   a tlačítko *Objednat se* (když je objednávání zapnuté).
 - **Portál trenéra** – odznak u sportovce, který je na řadě.

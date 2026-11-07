@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <div class="eyebrow">Měření · {{ week_number }}. týden</div>
+    <h1 class="text-2xl font-semibold">Týden {{ title }}</h1>
+  </div>
+  <div class="flex flex-wrap gap-2 items-center">
+    <a href="{% url 'week' %}?od={{ prev|date:'Y-m-d' }}" class="btn" title="Předchozí týden">‹ předchozí</a>
+    {% if not is_this_week %}<a href="{% url 'week' %}" class="btn">tento týden</a>{% endif %}
+    <a href="{% url 'week' %}?od={{ next|date:'Y-m-d' }}" class="btn" title="Další týden">další ›</a>
+    <form method="get" class="inline-flex">
+      <input type="date" name="od" value="{{ monday|date:'Y-m-d' }}" class="input w-auto" onchange="this.form.submit()" title="Kterýkoli den týdne">
+    </form>
+    <a href="{% url 'today' %}" class="btn">{% icon "calendar" %}Dnešní testování</a>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-5">
+  <div class="card p-4"><div class="kpi-value tabular-nums">{{ summary.sessions }}</div><div class="text-sm text-muted">testovacích dnů</div></div>
+  <div class="card p-4"><div class="kpi-value tabular-nums">{{ summary.done }} <span class="kpi-unit">/ {{ summary.sessions }}</span></div><div class="text-sm text-muted">hotovo</div></div>
+  {% if pristup.bookings %}<div class="card p-4"><div class="kpi-value tabular-nums">{{ summary.bookings }}</div><div class="text-sm text-muted">objednávek</div></div>{% endif %}
+  <div class="card p-4"><div class="kpi-value tabular-nums">{{ summary.due }}</div><div class="text-sm text-muted">termínů dalšího měření</div></div>
+  <div class="card p-4"><div class="kpi-value tabular-nums">{{ summary.unreported }}</div><div class="text-sm text-muted">dnů s hodnotami bez zprávy</div></div>
+  <a href="{% url 'report_list' %}" class="card p-4 block hover:bg-[var(--surface-2)]"><div class="kpi-value tabular-nums">{{ summary.drafts }}</div><div class="text-sm text-muted">konceptů ke kontrole</div></a>
+</div>
+
+{% if summary.overdue %}
+  <div class="card px-4 py-3 mb-5 text-sm flex flex-wrap items-center gap-3 border-l-4" style="border-left-color: var(--warn)">
+    <span class="flex-1">{{ summary.overdue }} {% if summary.overdue == 1 %}sportovec má{% elif summary.overdue < 5 %}sportovci mají{% else %}sportovců má{% endif %} prošlý termín dalšího měření – domluvte nový a zapište ho do některého dne.</span>
+    <a href="{% url 'subject_list' %}?na_rade=1" class="btn btn-sm">Kdo je na řadě</a>
+  </div>
+{% endif %}
+
+<div class="space-y-3">
+  {% for d in days %}
+    <section class="card p-4 {% if d.is_today %}border-l-4{% endif %}" {% if d.is_today %}style="border-left-color: var(--accent)"{% endif %} id="den-{{ d.date|date:'Y-m-d' }}">
+      <div class="flex flex-wrap gap-x-6 gap-y-3">
+        <div class="w-32 shrink-0">
+          <div class="text-xs uppercase tracking-wide text-muted">{{ d.name }}{% if d.is_today %} · dnes{% endif %}</div>
+          <div class="text-xl font-semibold tabular-nums {% if d.past and not d.is_today %}text-muted{% endif %}">{{ d.date|date:"j. n." }}</div>
+          {% if d.sessions %}<div class="text-xs text-2 mt-1">{{ d.done }} / {{ d.sessions }} hotovo</div>{% endif %}
+          {% if may_measure %}<a href="{{ d.today_url }}" class="text-xs link block mt-1" title="Založit nebo doplnit testování tento den">{% if d.sessions %}otevřít den{% else %}založit testování{% endif %}</a>{% endif %}
+        </div>
+        <div class="flex-1 min-w-[16rem] space-y-3">
+          {% if d.empty %}
+            <p class="text-sm text-muted">Nic naplánováno.</p>
+          {% endif %}
+          {% for g in d.groups %}
+            <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
+              <a href="{{ g.url }}" class="font-medium link">{{ g.label }}</a>
+              <span class="text-2 tabular-nums">{{ g.sessions|length }} {% if g.sessions|length == 1 %}sportovec{% elif g.sessions|length < 5 %}sportovci{% else %}sportovců{% endif %}</span>
+              {% if g.done %}<span class="badge badge-good">{{ g.done }} hotovo</span>{% endif %}
+              {% if g.started %}<span class="badge badge-accent">{{ g.started }} rozpracováno</span>{% endif %}
+              {% if g.waiting %}<span class="badge">{{ g.waiting }} čeká</span>{% endif %}
+              <span class="text-xs text-muted basis-full">{{ g.names|join:", " }}{% if g.more %} +{{ g.more }}{% endif %}</span>
+            </div>
+          {% endfor %}
+          {% for b in d.bookings %}
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+              <span class="avatar w-7 h-7">{% icon "inbox" "w-3.5 h-3.5" %}</span>
+              <a href="{% url 'booking_detail' b.pk %}" class="font-medium link">{{ b.slot.start|date:"H:i" }} · {% if b.team_name %}{{ b.team_name }}{% else %}objednávka {{ b.number }}{% endif %}</a>
+              <span class="text-2">{{ b.osob }} {% if b.osob == 1 %}osoba{% elif b.osob < 5 %}osoby{% else %}osob{% endif %}{% if b.sport_name %} · {{ b.sport_name }}{% endif %}</span>
+              {% if b.schvalena %}<span class="badge badge-good">schváleno</span>{% else %}<span class="badge badge-warn">ke schválení</span>{% endif %}
+            </div>
+          {% endfor %}
+          {% for p in d.due %}
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+              <span class="avatar w-7 h-7 text-[10px]">{{ p.jmeno|initials }}</span>
+              <a href="{% url 'subject_detail' p.subject.pk %}#plan" class="font-medium link">{{ p.jmeno }}</a>
+              <span class="text-2">termín dalšího měření{% if p.subject.sport %} · {{ p.subject.sport }}{% endif %}</span>
+              {% with badge=p.badge %}<span class="badge {{ badge.0 }}">{{ badge.1 }}</span>{% endwith %}
+              {% if may_measure %}<a href="{% url 'session_create' %}?sportovec={{ p.subject.pk }}" class="btn btn-sm">{% icon "plus" %}Nové měření</a>{% endif %}
+            </div>
+          {% endfor %}
+          {% if d.unreported %}
+            <div class="text-sm text-2">
+              {% icon "file" "w-4 h-4 inline-block align-text-bottom" %}
+              {{ d.unreported|length }} {% if d.unreported|length == 1 %}den s hodnotami bez zprávy{% elif d.unreported|length < 5 %}dny s hodnotami bez zprávy{% else %}dnů s hodnotami bez zprávy{% endif %}:
+              {% for s in d.unreported %}<a href="{% url 'session_detail' s.pk %}" class="link">{{ s.jmeno }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+  {% endfor %}
+</div>
+
+<p class="mt-6 text-xs text-muted">Týden se skládá z dat: testovací dny podle skupin (baterií), objednávky na termíny v týdnu,
+  termíny dalšího měření podle plánu opakování a dny, které mají hodnoty, ale zatím ne zprávu. Plánuje se
+  v <a class="link" href="{% url 'today' %}">Dnešním testování</a>{% if pristup.bookings %} a v <a class="link" href="{% url 'booking_list' %}">Objednávkách</a>{% endif %}.</p>
+{% endblock %}

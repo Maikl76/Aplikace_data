@@ -73,6 +73,23 @@ z přístroje**) – v náhledu se pak předvybere sportovec toho dne. Datum se 
 z exportu, takže hodnoty se zapíšou do naplánovaných testů jen tehdy, když
 datum v exportu sedí s datem testovacího dne.
 
+## Z testovacího dne a za celou skupinu
+
+Export nemusíte nahrávat přes menu Import:
+
+- **V testovacím dni** (i v zadávání testu) tlačítko *Nahrát export
+  z přístroje* nahraje soubor a náhled předvybere tohoto sportovce. Po
+  uložení se aplikace vrátí do testovacího dne.
+- **V Dnešním testování** tlačítko *Nahrát export za skupinu* (pod tabulkou)
+  nahraje jeden export pro celou skupinu. V náhledu jsou sportovci skupiny
+  v nabídce přiřazení první – i ti, kdo ten den založený nemají –, řádky
+  bez data se zapíší k vybranému dni a hodnoty se doplní do založených
+  testů. Po uložení se aplikace vrátí do Dnešního testování stejného dne
+  a skupiny.
+
+V obou případech náhled říká, odkud se nahrávalo; sportovce, které aplikace
+nepozná, přiřadíte stejně jako jindy.
+
 ## Opakované nahrání
 
 - **Stejný soubor** podruhé aplikace odmítne.

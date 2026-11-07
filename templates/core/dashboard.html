@@ -16,6 +16,26 @@
 
 {% steps dnes heading="Dnes" may_act=may_act done_label="dnes nic nečeká" %}
 
+<section class="card p-4 mb-8" id="tyden">
+  <div class="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+    <h2 class="card-title">Tento týden</h2>
+    <a href="{% url 'week' %}" class="text-sm link">celý týden den po dni</a>
+  </div>
+  <div class="grid grid-cols-7 gap-1.5 text-center">
+    {% for d in tyden %}
+      <a href="{% url 'week' %}#den-{{ d.date|date:'Y-m-d' }}" class="rounded-lg px-1 py-2 text-sm {% if d.is_today %}font-semibold{% elif d.past %}text-muted{% endif %}"
+         style="{% if d.is_today %}background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--accent);{% else %}background: var(--surface-2);{% endif %}"
+         title="{{ d.name }} {{ d.date|date:'j. n.' }}">
+        <span class="block text-xs uppercase tracking-wide">{{ d.short }}</span>
+        <span class="block tabular-nums">{{ d.date|date:"j." }}</span>
+        <span class="block text-xs mt-1 {% if d.sessions or d.bookings or d.due %}text-2{% else %}text-muted{% endif %}">
+          {% if d.sessions %}{{ d.sessions }} {% if d.sessions == 1 %}den{% elif d.sessions < 5 %}dny{% else %}dnů{% endif %}{% endif %}{% if d.bookings %}{% if d.sessions %} · {% endif %}{{ d.bookings|length }} obj.{% endif %}{% if d.due %}{% if d.sessions or d.bookings %} · {% endif %}{{ d.due|length }} na řadě{% endif %}{% if not d.sessions and not d.bookings and not d.due %}—{% endif %}
+        </span>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
   {% for popisek, hodnota, ikona in tiles %}
     <div class="card p-4 flex items-center gap-4">

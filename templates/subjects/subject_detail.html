@@ -5,7 +5,7 @@
 {# --- hlavička -------------------------------------------------------------- #}
 <div class="card p-5 mb-5 flex flex-wrap items-center gap-4">
   <span class="avatar w-14 h-14 text-lg">{{ display_name|initials }}</span>
-  <div class="min-w-0 flex-1">
+  <div class="min-w-[14rem] flex-1">
     <h1 class="text-2xl font-semibold leading-tight">{{ display_name }}</h1>
     <div class="mt-1 flex flex-wrap gap-1.5 text-sm">
       {% if display_name != subject.code %}<span class="badge">{{ subject.code }}</span>{% endif %}
@@ -20,6 +20,12 @@
   </div>
   <div class="flex flex-wrap gap-2">
     {% if pristup.measure %}<a href="{% url 'session_create' %}?sportovec={{ subject.pk }}" class="btn btn-primary">{% icon "plus" %}Nové měření</a>{% endif %}
+    {% if pristup.measure and repeat_session %}
+      <form method="post" action="{% url 'session_repeat' repeat_session.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn" title="Dnes založí testovací den se stejnými testy jako {{ repeat_session.date|date:'j. n. Y' }} ({{ repeat_session.protokoly|join:', ' }})">{% icon "plus" %}Zopakovat poslední den</button>
+      </form>
+    {% endif %}
     {% if last_session %}
       <form method="post" action="{% url 'report_create' last_session.pk %}">
         {% csrf_token %}

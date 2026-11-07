@@ -136,15 +136,86 @@ def today(request):
             s.zobrazeni = names.get(s.pk) or s.code
         subjects.sort(key=lambda s: s.zobrazeni.lower())
         rows = planning.day_overview(subjects, protocols, day)
+        from apps.reports.models import Report
+
+        reports = {r.session_id: r for r in Report.objects.filter(
+            session__in=[row["session"] for row in rows if row["session"]])
+            .order_by("created_at")}
         for row in rows:
             # vstup do režimu u přístroje: první založený test bez hodnot
             pending = [c["run"] for c in row["cells"] if c["stav"] == "zalozeno"]
             row["pristroj"] = pending[0] if pending else None
+            # den je hotový, když má hodnoty u všech testů baterie
+            row["kompletni"] = bool(protocols) and row["hotovo"] == len(protocols)
+            row["zprava"] = reports.get(row["session"].pk) if row["session"] else None
+
+    from apps.core import access
 
     done = sum(r["hotovo"] for r in rows)
     return render(request, "measurements/today.html", {
         "batteries": batteries, "battery": battery, "protocols": protocols, "rows": rows,
         "day": day, "hotovo": done, "celkem": len(rows) * len(protocols),
+        "bez_zpravy": [r for r in rows if r["kompletni"] and r["zprava"] is None],
+        "may_draft": access.can(request.user, "reports_draft"),
+        "may_measure": access.can(request.user, "measure"),
+    })
+
+
+@login_required
+def today_drafts(request):
+    """Koncepty zpráv pro všechny hotové testovací dny skupiny v jednom dni."""
+    from datetime import date as date_cls
+
+    from apps.reports import auto
+    from apps.reports.models import Audience
+
+    batteries, battery = _pick_battery(request)
+    try:
+        day = date_cls.fromisoformat(request.POST.get("datum") or "")
+    except ValueError:
+        day = timezone.localdate()
+    back = f"{reverse('today')}?datum={day.isoformat()}" + (f"&baterie={battery.pk}" if battery
+                                                             else "")
+    if request.method != "POST" or battery is None:
+        return redirect(back)
+    audience = request.POST.get("pro") or None
+    if audience not in Audience.values:
+        audience = None   # podle sdílení, jako u konceptu, který vzniká sám
+    sessions = list(TestSession.objects.for_user(request.user)
+                    .filter(date=day, subject__in=_battery_subjects(request, battery))
+                    .select_related("subject"))
+    result = auto.drafts_for(sessions, user=request.user, audience=audience)
+    record(request, AuditLog.Action.CREATE, battery, baterie=battery.label, datum=day.isoformat(),
+           koncepty=result["vytvoreno"])
+    from apps.reports.narrative import plural
+
+    n = result["vytvoreno"]
+    parts = [f"{plural(n, 'Vznikl', 'Vznikly', 'Vzniklo')} {n} "
+             f"{plural(n, 'koncept zprávy', 'koncepty zpráv', 'konceptů zpráv')} ke kontrole."]
+    if n := result["uz_ma"]:
+        parts.append(f"{n} {plural(n, 'den už zprávu má', 'dny už zprávu mají', 'dnů už zprávu má')}.")
+    if n := result["nekompletni"]:
+        parts.append(f"{n} {plural(n, 'den ještě nemá', 'dny ještě nemají', 'dnů ještě nemá')} "
+                     "hodnoty u všech testů.")
+    if result["chyby"]:
+        parts.append("Koncept nevznikl u: " + ", ".join(result["chyby"]) + " – otevřete den "
+                     "a zkuste to ručně.")
+    (messages.success if result["vytvoreno"] else messages.info)(request, " ".join(parts))
+    return redirect(back)
+
+
+@login_required
+def week(request):
+    """Přehled na týden: den po dni testovací dny, objednávky, kdo je na řadě, zprávy."""
+    from apps.core import access
+
+    from . import week as week_overview
+
+    today = timezone.localdate()
+    monday = week_overview.parse_monday(request.GET.get("od"), today)
+    return render(request, "measurements/week.html", {
+        **week_overview.overview(request.user, monday, today=today),
+        "may_measure": access.can(request.user, "measure"),
     })
 
 
@@ -228,6 +299,7 @@ def session_detail(request, pk):
     steps = session_steps(session, runs, unstable, reports, followup=previous)
     return render(request, "measurements/session_detail.html", {
         "session": session,
+        "je_minuly": session.date < timezone.localdate(),
         "unstable": unstable,
         "runs": runs,
         "device_url": device_url(runs),
@@ -242,6 +314,32 @@ def session_detail(request, pk):
         "responses": questionnaires.summary(session),
         "other_questionnaires": questionnaires.available(session.organization),
     })
+
+
+@login_required
+def session_repeat(request, pk):
+    """Zopakovat testovací den: dnes (nebo zvolený den) se stejnými testy jako tenkrát."""
+    from datetime import date as date_cls
+
+    source = get_object_or_404(TestSession.objects.for_user(request.user)
+                               .select_related("subject"), pk=pk)
+    if request.method != "POST":
+        return redirect("session_detail", pk=pk)
+    try:
+        day = date_cls.fromisoformat(request.POST.get("datum") or "")
+    except ValueError:
+        day = timezone.localdate()
+    session, created, added = planning.repeat_session(source, day=day, user=request.user)
+    record(request, AuditLog.Action.CREATE, session, subject_code=session.subject.code,
+           podle=source.date.isoformat(), testu=added)
+    if created:
+        messages.success(request, f"Založen testovací den {day:%d.%m.%Y} s {added} testy podle "
+                                  f"{source.date:%d.%m.%Y}. Hodnoty zadáte tady, nebo nahrajete "
+                                  "export.")
+    else:
+        messages.info(request, f"Testovací den {day:%d.%m.%Y} už existoval – otevřen"
+                               + (f", doplněno testů: {added}." if added else "."))
+    return redirect("session_detail", pk=session.pk)
 
 
 @login_required

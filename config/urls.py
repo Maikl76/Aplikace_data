@@ -25,6 +25,8 @@ urlpatterns = [
     path("sportovci/<int:pk>/vysetreni/", include("apps.external.urls")),
     path("sporty/", include("apps.catalog.urls")),
     path("testovani/", measurement_views.today, name="today"),
+    path("testovani/tyden/", measurement_views.week, name="week"),
+    path("testovani/koncepty/", measurement_views.today_drafts, name="today_drafts"),
     path("tym/", measurement_views.team, name="team"),
     # Dotazník pro sportovce na jeho telefonu – bez přihlášení, s podepsaným odkazem.
     path("d/<str:token>/", measurement_views.questionnaire_fill, name="questionnaire_fill"),

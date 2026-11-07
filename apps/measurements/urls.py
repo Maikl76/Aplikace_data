@@ -10,6 +10,7 @@ urlpatterns = [
     path("<int:pk>/protokol/", views.session_add_protocol, name="session_add_protocol"),
     path("<int:pk>/prostredi/", views.session_conditions, name="session_conditions"),
     path("<int:pk>/doporuceni-minule/", views.session_followup, name="session_followup"),
+    path("<int:pk>/zopakovat/", views.session_repeat, name="session_repeat"),
     path("<int:pk>/dotaznik/", views.session_questionnaire, name="session_questionnaire"),
     path("<int:pk>/dotaznik/qr/", views.session_questionnaire_qr,
          name="session_questionnaire_qr"),

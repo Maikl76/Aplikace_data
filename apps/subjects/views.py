@@ -112,6 +112,10 @@ def subject_detail(request, pk):
         "display_name": subject.display_for(request.user),
         "sessions": sessions,
         "last_session": measured[0] if measured else None,
+        # zopakovat jde den, který už proběhl – dokud dnešní den neexistuje
+        "repeat_session": next((s for s in sessions if s.date < timezone.localdate()
+                                and s.protocol_runs.all()), None)
+        if not any(s.date == timezone.localdate() for s in sessions) else None,
         "tiles": overview.kpi_tiles(subject, goals=goals_by_metric, reference=reference_index),
         "goals": goal_progress,
         "goal_metrics": goals.metric_choices(subject) if _may_edit(request.user) else [],

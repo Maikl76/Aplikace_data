@@ -30,6 +30,13 @@ REMIND_AGAIN_DAYS = 30    # další připomínka témuž sportovci nejdřív po 
 SOON_DAYS = 30            # „na řadě“ = termín do tolika dnů, nebo prošlý
 
 
+def days_text(days: int, *, after: str = "do") -> str:
+    """Dny po předložce: „do 1 dne“, „do 5 dnů“; „o 1 den“, „o 2 dny“, „o 5 dnů“."""
+    if after == "do":
+        return f"do {days} {'dne' if days == 1 else 'dnů'}"
+    return f"{after} {days} {'den' if days == 1 else 'dny' if days <= 4 else 'dnů'}"
+
+
 def weeks_text(weeks: int) -> str:
     """„každý týden“, „každé 3 týdny“, „každých 12 týdnů“."""
     if weeks == 1:
@@ -99,9 +106,11 @@ class Plan:
         elif self.weeks:
             base += f" ({self.interval_text}, poslední {self.last_date:%d.%m.%Y})"
         if s == "overdue":
-            return base + f". Termín prošel o {-self.days_left} dnů – domluvte nové měření."
+            return base + f". Termín prošel {days_text(-self.days_left, after='o')} – domluvte nové měření."
         if s == "soon":
-            return base + f", zbývá {self.days_left} dnů."
+            n = self.days_left
+            return base + f", {'zbývá' if n == 1 or n >= 5 else 'zbývají'} {n} " \
+                          f"{'den' if n == 1 else 'dny' if n <= 4 else 'dnů'}."
         return base + "."
 
     def badge(self) -> tuple[str, str]:
@@ -112,10 +121,9 @@ class Plan:
         if s == "booked":
             return "badge-good", "objednáno"
         if s == "overdue":
-            return "badge-bad", f"prošlo o {-self.days_left} dnů"
+            return "badge-bad", f"prošlo {days_text(-self.days_left, after='o')}"
         if s == "soon":
-            return "badge-warn", (f"do {self.days_left} dnů" if self.days_left
-                                  else "dnes")
+            return "badge-warn", (days_text(self.days_left) if self.days_left else "dnes")
         if s == "ok":
             return "badge", f"do {self.due:%d.%m.%Y}"
         return "", ""

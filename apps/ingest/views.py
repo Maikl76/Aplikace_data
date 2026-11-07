@@ -76,16 +76,12 @@ def import_upload(request):
             continue
         ready.append(batch)
 
-    # Nahráno z testovacího dne: v náhledu předvybrat jeho sportovce.
-    if ready and (session_id := request.POST.get("testovaci_den")):
-        from apps.measurements.models import TestSession
-
-        session = TestSession.objects.for_user(request.user).filter(pk=session_id).first()
-        if session:
-            for batch in ready:
-                batch.summary = {**(batch.summary or {}),
-                                 "cil": {"subject": session.subject_id, "session": session.pk}}
-                batch.save(update_fields=["summary"])
+    # Nahráno z testovacího dne nebo z Dnešního testování: náhled předvybere
+    # jeho sportovce a po uložení se aplikace vrátí tam, odkud se nahrávalo.
+    if ready and (target := upload_target(request)):
+        for batch in ready:
+            batch.summary = {**(batch.summary or {}), "cil": target}
+            batch.save(update_fields=["summary"])
 
     if len(ready) == 1:
         return redirect("import_detail", pk=ready[0].pk)
@@ -93,6 +89,61 @@ def import_upload(request):
         messages.info(request, f"Načteno {len(ready)} souborů. Zkontrolujte a uložte "
                                f"každý zvlášť (odkaz „zkontrolovat“ v historii).")
     return redirect("import_list")
+
+
+def upload_target(request) -> dict:
+    """
+    Odkud se export nahrál: z testovacího dne (jeden sportovec), nebo
+    z Dnešního testování (skupina v jeden den). Drží se v souhrnu náhledu
+    jako ``cil``: koho nabídnout první, kam zapsat řádky bez data a kam se
+    po uložení vrátit.
+    """
+    from datetime import date
+
+    from django.urls import reverse
+
+    from apps.measurements.models import TestSession
+
+    if session_id := request.POST.get("testovaci_den"):
+        session = TestSession.objects.for_user(request.user).filter(pk=session_id).first()
+        if session is None:
+            return {}
+        return {"subject": session.subject_id, "session": session.pk,
+                "den": session.date.isoformat(),
+                "zpet": reverse("session_detail", args=[session.pk])}
+    if day_text := request.POST.get("testovani_datum"):
+        try:
+            day = date.fromisoformat(day_text)
+        except ValueError:
+            return {}
+        from apps.catalog.models import TestBattery
+        from apps.subjects.models import Sport, Subject
+
+        battery = (TestBattery.objects.filter(pk=request.POST.get("testovani_baterie") or None,
+                                              sport__in=Sport.objects.for_user(request.user))
+                   .select_related("sport").first())
+        subjects = Subject.objects.for_user(request.user).filter(is_active=True)
+        if battery is not None:
+            subjects = subjects.filter(sport=battery.sport)
+            if battery.category:
+                subjects = subjects.filter(category__iexact=battery.category)
+        back = reverse("today") + f"?datum={day.isoformat()}"
+        if battery is not None:
+            back += f"&baterie={battery.pk}"
+        return {"den": day.isoformat(), "skupina": battery.label if battery else "",
+                "subjects": list(subjects.values_list("pk", flat=True)), "zpet": back}
+    return {}
+
+
+def _back_url(request, batch) -> str:
+    """Kam po uložení: tam, odkud se nahrávalo (jen adresa v aplikaci), jinak seznam importů."""
+    from django.urls import reverse
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    back = ((batch.summary or {}).get("cil") or {}).get("zpet") or ""
+    if back.startswith("/") and url_has_allowed_host_and_scheme(back, allowed_hosts=None):
+        return back
+    return reverse("import_list")
 
 
 @login_required
@@ -115,10 +166,19 @@ def import_detail(request, pk):
     problems = list(staged.filter(flag__in=problem_flags)[:100])
     from .steps import import_detail_steps
 
+    cil = summary.get("cil") or {}
+    try:
+        from datetime import date
+
+        cil_den = date.fromisoformat(cil.get("den") or "")
+    except ValueError:
+        cil_den = None
+
     return render(request, "ingest/import_detail.html", {
         "steps": import_detail_steps(batch, sportovci, problems),
         "batch": batch,
         "summary": summary,
+        "cil": cil, "cil_den": cil_den,
         "dlazdice": [
             ("sportovců", summary.get("sportovcu")),
             ("nepoznaných automaticky", summary.get("novych_sportovcu")),
@@ -134,7 +194,8 @@ def import_detail(request, pk):
         "bez_data": summary.get("novych_hodnot_bez_data") or 0,
         "problems": problems,
         "sample": staged.exclude(flag__in=problem_flags)[:25],
-        "dnes": timezone.localdate(),
+        # řádky bez data: den, ze kterého se nahrávalo, jinak dnešek
+        "dnes": cil_den or timezone.localdate(),
     })
 
 
@@ -175,7 +236,7 @@ def import_commit(request, pk):
             f"Jména {result['jmena_neulozena']} nových sportovců se neuložila – chybí "
             f"šifrovací klíč. Spusťte aplikaci přes spustit.bat, klíč se doplní sám; "
             f"jména pak doplníte v administraci (Identity sportovců)."))
-    return redirect("import_list")
+    return redirect(_back_url(request, batch))
 
 
 @login_required

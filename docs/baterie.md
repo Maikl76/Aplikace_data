@@ -19,6 +19,12 @@ Baterie se přenáší s katalogem (`ulozit-katalog.bat` / `nacist-katalog.bat`)
 Po výběru sportovce se testy zaškrtnou podle baterie jeho sportu
 a kategorie. Odškrtnout nebo přidat jde podle potřeby.
 
+**Zopakovat poslední den** (karta sportovce, nebo *Zopakovat dnes* v detailu
+minulého dne) založí dnešní testovací den se stejnými testy, jaké měl ten
+minulý – i s testy mimo baterii; přenese se místo a fáze sezóny, hodnoty
+ne. Když dnešní den už existuje, jen se do něj doplní chybějící testy.
+Hodí se, když se sportovec vrací na kontrolu a má se měřit totéž.
+
 ## Dnešní testování
 
 Vyberete baterii a datum a vidíte všechny sportovce daného sportu
@@ -34,6 +40,36 @@ nahrajete export z přístroje: **import doplní hodnoty do založených testů*
 (nevznikne vedle nich druhý).
 
 Vypočtené ukazatele (DSI, EUR) se v baterii nezakládají, dopočítají se samy.
+
+Pod tabulkou jsou dvě akce **za celou skupinu**:
+
+- **Export za celou skupinu** – jeden export z přístroje pro všechny. V náhledu
+  importu jsou sportovci skupiny v nabídce přiřazení první (i ti, kdo ten den
+  založený nemají), řádky bez data se zapíší k vybranému dni a hodnoty se
+  doplní do založených testů. Po uložení se aplikace vrátí do Dnešního
+  testování (z testovacího dne zase do něj).
+- **Koncepty zpráv pro hotové dny** – pro každý den skupiny, který má hodnoty
+  u všech testů baterie a zatím žádnou zprávu, vznikne koncept najednou (pro
+  koho: podle sdílení s trenérem, nebo zvolíte). Dny, které už zprávu mají
+  nebo nejsou hotové, se přeskočí a aplikace to řekne. Každý koncept pak
+  zkontrolujete a vydáte jako dosud. Poslední sloupec tabulky ukazuje
+  *zpráva* (odkaz) nebo *bez zprávy*.
+
+## Přehled na týden
+
+Tlačítko **Přehled na týden** v Dnešním testování (a proužek *Tento týden*
+na Přehledu) ukáže týden den po dni:
+
+- **testovací dny po skupinách** (baterie) s počty hotovo / rozpracováno /
+  čeká a jmény; odkaz vede do Dnešního testování toho dne a skupiny,
+- **objednávky** na termíny v týdnu (schválené i čekající na schválení) –
+  jen s přístupem k objednávkám,
+- **termíny dalšího měření** podle plánu opakování, které padnou do týdne,
+  s tlačítkem *Nové měření*; nad týdnem upozornění na prošlé termíny,
+- **dny s hodnotami bez zprávy** s odkazem do detailu dne.
+
+Listuje se po týdnech (nebo zadáte kterýkoli den týdne). Nic se tu
+nezadává – plánuje se v Dnešním testování a v Objednávkách.
 
 ## Týmový přehled
 

@@ -6,12 +6,15 @@
     <div class="eyebrow">Měření</div>
     <h1 class="text-2xl font-semibold">Testování {{ day|date:"j. n. Y" }}</h1>
   </div>
-  <form method="get" class="flex flex-wrap gap-2 items-center justify-end">
-    <select name="baterie" class="input w-auto" onchange="this.form.submit()">
-      {% for b in batteries %}<option value="{{ b.pk }}" {% if b == battery %}selected{% endif %}>{{ b.label }}</option>{% endfor %}
-    </select>
-    <input type="date" name="datum" value="{{ day|date:'Y-m-d' }}" class="input w-auto" onchange="this.form.submit()">
-  </form>
+  <div class="flex flex-wrap gap-2 items-center justify-end">
+    <form method="get" class="flex flex-wrap gap-2 items-center">
+      <select name="baterie" class="input w-auto" onchange="this.form.submit()">
+        {% for b in batteries %}<option value="{{ b.pk }}" {% if b == battery %}selected{% endif %}>{{ b.label }}</option>{% endfor %}
+      </select>
+      <input type="date" name="datum" value="{{ day|date:'Y-m-d' }}" class="input w-auto" onchange="this.form.submit()">
+    </form>
+    <a href="{% url 'week' %}?od={{ day|date:'Y-m-d' }}" class="btn" title="Celý týden den po dni: testovací dny, objednávky, kdo je na řadě, zprávy">{% icon "calendar" %}Přehled na týden</a>
+  </div>
 </div>
 
 {% if not battery %}
@@ -25,10 +28,11 @@
     zatím nejsou žádní aktivní sportovci. Kategorii nastavíte u sportovce (úprava údajů).
   </div>
 {% else %}
-  <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-5">
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
     <div class="card p-4"><div class="kpi-value tabular-nums">{{ rows|length }}</div><div class="text-sm text-muted">sportovců</div></div>
     <div class="card p-4"><div class="kpi-value tabular-nums">{{ protocols|length }}</div><div class="text-sm text-muted">testů v baterii</div></div>
     <div class="card p-4"><div class="kpi-value tabular-nums">{{ hotovo }} <span class="kpi-unit">/ {{ celkem }}</span></div><div class="text-sm text-muted">změřeno</div></div>
+    <div class="card p-4"><div class="kpi-value tabular-nums">{{ bez_zpravy|length }}</div><div class="text-sm text-muted">hotových dnů bez zprávy</div></div>
   </div>
 
   <form method="post" x-data="{ vse: false }">
@@ -68,7 +72,7 @@
                 </td>
               {% endfor %}
               <td class="text-right whitespace-nowrap">
-                {% if row.pristroj %}<a class="text-sm link" href="{% url 'run_device' row.pristroj.pk %}" title="Režim u přístroje: test za testem na jedné obrazovce">u přístroje</a> · {% endif %}{% if row.session %}<a class="text-sm link" href="{% url 'session_detail' row.session.pk %}">den →</a>{% endif %}
+                {% if row.zprava %}<a class="text-sm link" href="{% url 'report_detail' row.zprava.pk %}" title="Zpráva {{ row.zprava.report_number }} ({{ row.zprava.get_status_display|lower }})">zpráva</a> · {% elif row.kompletni %}<span class="text-sm text-muted" title="Den má hodnoty u všech testů, zpráva zatím není">bez zprávy</span> · {% endif %}{% if row.pristroj %}<a class="text-sm link" href="{% url 'run_device' row.pristroj.pk %}" title="Režim u přístroje: test za testem na jedné obrazovce">u přístroje</a> · {% endif %}{% if row.session %}<a class="text-sm link" href="{% url 'session_detail' row.session.pk %}">den →</a>{% endif %}
               </td>
             </tr>
           {% endfor %}
@@ -82,5 +86,41 @@
         do založených testů.</span>
     </div>
   </form>
+
+  {# --- hromadně za celou skupinu: export z přístroje a koncepty zpráv --- #}
+  <div class="grid md:grid-cols-2 gap-4 mt-6" id="hromadne">
+    {% if may_measure and not demo_mode %}
+      <section class="card p-4">
+        <h2 class="card-title mb-1">Export za celou skupinu</h2>
+        <p class="text-sm text-2 mb-3">Jeden export z přístroje pro všechny: v náhledu se sportovci
+          skupiny nabídnou první, řádky bez data se zapíší k {{ day|date:"j. n." }} a hodnoty se doplní
+          do založených testů. Po uložení se vrátíte sem.</p>
+        {% include "measurements/_upload_export.html" with skupina_datum=day skupina_baterie=battery.pk label="Nahrát export za skupinu" %}
+      </section>
+    {% endif %}
+    {% if may_draft %}
+      <section class="card p-4">
+        <h2 class="card-title mb-1">Koncepty zpráv pro hotové dny</h2>
+        <p class="text-sm text-2 mb-3">
+          {% if bez_zpravy %}{{ bez_zpravy|length }} {% if bez_zpravy|length == 1 %}den má{% elif bez_zpravy|length < 5 %}dny mají{% else %}dnů má{% endif %} hodnoty u všech testů a zatím bez zprávy.
+          Koncepty vzniknou najednou; každý pak zkontrolujete a vydáte jako dosud.
+          {% else %}Žádný hotový den bez zprávy – koncepty vzniknou, jakmile budou mít dny hodnoty u všech testů.{% endif %}
+        </p>
+        <form method="post" action="{% url 'today_drafts' %}" class="flex flex-wrap gap-2 items-center">
+          {% csrf_token %}
+          <input type="hidden" name="datum" value="{{ day|date:'Y-m-d' }}">
+          <input type="hidden" name="baterie" value="{{ battery.pk }}">
+          <select name="pro" class="input w-auto" title="Pro koho jsou zprávy">
+            <option value="">podle sdílení (trenér, jinak sportovec)</option>
+            <option value="sportovec">pro sportovce</option>
+            <option value="trener">pro trenéra</option>
+            <option value="lekar">pro lékaře</option>
+          </select>
+          <button type="submit" class="btn btn-primary" {% if not bez_zpravy %}disabled{% endif %}
+                  onclick="this.lastChild.textContent='Připravuji…'">{% icon "file" %}<span>Koncepty pro {{ bez_zpravy|length }} {% if bez_zpravy|length == 1 %}den{% elif bez_zpravy|length > 1 and bez_zpravy|length < 5 %}dny{% else %}dnů{% endif %}</span></button>
+        </form>
+      </section>
+    {% endif %}
+  </div>
 {% endif %}
 {% endblock %}

@@ -1,12 +1,17 @@
 {% load ui %}
-{# Nahrání exportu z přístroje přímo z testovacího dne – v náhledu se předvybere tento sportovec. #}
+{% comment %}Nahrání exportu z přístroje přímo z testovacího dne (session_pk) nebo z Dnešního testování
+(skupina_datum + skupina_baterie): náhled předvybere sportovce, po uložení se sem aplikace vrátí.{% endcomment %}
 {% if not demo_mode %}
 <form method="post" action="{% url 'import_upload' %}" enctype="multipart/form-data" class="inline-flex">
   {% csrf_token %}
-  <input type="hidden" name="testovaci_den" value="{{ session_pk }}">
+  {% if session_pk %}<input type="hidden" name="testovaci_den" value="{{ session_pk }}">{% endif %}
+  {% if skupina_datum %}
+    <input type="hidden" name="testovani_datum" value="{{ skupina_datum|date:'Y-m-d' }}">
+    <input type="hidden" name="testovani_baterie" value="{{ skupina_baterie }}">
+  {% endif %}
   <input type="hidden" name="adapter" value="auto">
-  <label class="btn {{ css|default:'' }} cursor-pointer" title="Export z VALD (xlsx, csv) – po nahrání se ukáže náhled ke kontrole">
-    {% icon "upload" %}Nahrát export z přístroje
+  <label class="btn {{ css|default:'' }} cursor-pointer" title="{{ title|default:'Export z VALD (xlsx, csv) – po nahrání se ukáže náhled ke kontrole' }}">
+    {% icon "upload" %}{{ label|default:"Nahrát export z přístroje" }}
     <input type="file" name="file" accept=".xlsx,.xls,.csv" multiple class="sr-only" onchange="this.form.submit()">
   </label>
 </form>
