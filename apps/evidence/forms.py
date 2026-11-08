@@ -8,6 +8,10 @@ from .models import Article
 
 
 class ArticleForm(forms.ModelForm):
+    stitky = forms.CharField(
+        required=False, label="štítky",
+        help_text="Oddělené čárkou, např. genetika, ACTN3, rs1815739. Podle štítku se v knihovně "
+                  "hledá a filtruje.")
     rules = forms.ModelMultipleChoiceField(
         Rule.objects.none(), required=False, label="pravidla",
         widget=forms.CheckboxSelectMultiple,
@@ -46,9 +50,22 @@ class ArticleForm(forms.ModelForm):
         if self.instance.pk:
             self.fields["rules"].initial = list(
                 self.instance.rule_articles.values_list("rule_id", flat=True))
+            self.fields["stitky"].initial = ", ".join(self.instance.tags or [])
         for field in self.fields.values():
             if not isinstance(field.widget, forms.CheckboxSelectMultiple):
                 field.widget.attrs.setdefault("class", "input mt-1")
+
+    def clean_stitky(self) -> list[str]:
+        tags = []
+        for part in self.cleaned_data["stitky"].replace(";", ",").split(","):
+            tag = " ".join(part.split())
+            if tag and tag not in tags:
+                tags.append(tag[:60])
+        return tags
+
+    def save(self, commit=True):
+        self.instance.tags = self.cleaned_data.get("stitky") or []
+        return super().save(commit=commit)
 
     def clean_doi(self):
         doi = self.cleaned_data["doi"].strip()

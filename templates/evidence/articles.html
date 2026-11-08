@@ -23,27 +23,32 @@
   {% endfor %}
 </div>
 
-<form method="get" class="card p-4 mb-4" x-data="{ vic: {% if f.test or f.ukazatel or f.pohlavi or f.dukaz or f.chybi or f.vek %}true{% else %}false{% endif %} }" @submit="[...$el.elements].forEach(e => { if (e.name && !e.value) e.disabled = true })">
+<form method="get" class="card p-4 mb-4" x-data="{ vic: {% if f.test or f.ukazatel or f.stitek or f.pohlavi or f.dukaz or f.chybi or f.vek %}true{% else %}false{% endif %} }" @submit="[...$el.elements].forEach(e => { if (e.name && !e.value) e.disabled = true })">
   <input type="hidden" name="stav" value="{{ f.stav }}">
   <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
     <label class="block sm:col-span-2"><span class="text-xs text-2">Hledat</span>
-      <input name="q" value="{{ f.q }}" class="input mt-1" placeholder="název, autor, časopis, DOI, hlavní zjištění, štítek (např. genetika, ACTN3)…"></label>
+      <input name="q" value="{{ f.q }}" class="input mt-1" placeholder="název, autor, časopis, DOI, hlavní zjištění, štítek…"></label>
     <label class="block"><span class="text-xs text-2">Sport</span>
       <select name="sport" class="input mt-1" @change="$el.form.requestSubmit()">
         <option value="">všechny</option>
-        {% for s in sports %}<option value="{{ s.pk }}" {% if f.sport == s.pk|stringformat:"d" %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+        {% for s in sports %}<option value="{{ s.pk }}" {% if f.sport == s.pk|stringformat:"d" %}selected{% endif %}>{{ s.name }}{% if s.n_clanku %} ({{ s.n_clanku }}){% endif %}</option>{% endfor %}
       </select></label>
     <label class="block" :class="vic ? '' : 'max-sm:hidden'"><span class="text-xs text-2">Pro věk sportovce</span>
       <input name="vek" type="number" min="5" max="99" value="{{ f.vek }}" class="input mt-1" placeholder="např. 17" @change="$el.form.requestSubmit()"></label>
     <label class="block" :class="vic ? '' : 'max-sm:hidden'"><span class="text-xs text-2">Test</span>
       <select name="test" class="input mt-1" @change="$el.form.requestSubmit()">
         <option value="">všechny</option>
-        {% for p in tests %}<option value="{{ p.pk }}" {% if f.test == p.pk|stringformat:"d" %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
+        {% for p in tests %}<option value="{{ p.pk }}" {% if f.test == p.pk|stringformat:"d" %}selected{% endif %}>{{ p.name }}{% if p.n_clanku %} ({{ p.n_clanku }}){% endif %}</option>{% endfor %}
       </select></label>
     <label class="block" :class="vic ? '' : 'max-sm:hidden'"><span class="text-xs text-2">Ukazatel</span>
       <select name="ukazatel" class="input mt-1" @change="$el.form.requestSubmit()">
         <option value="">všechny</option>
-        {% for m in metrics %}<option value="{{ m.pk }}" {% if f.ukazatel == m.pk|stringformat:"d" %}selected{% endif %}>{{ m.name }}</option>{% endfor %}
+        {% for m in metrics %}<option value="{{ m.pk }}" {% if f.ukazatel == m.pk|stringformat:"d" %}selected{% endif %}>{{ m.name }}{% if m.n_clanku %} ({{ m.n_clanku }}){% endif %}</option>{% endfor %}
+      </select></label>
+    <label class="block" :class="vic ? '' : 'max-sm:hidden'"><span class="text-xs text-2">Štítek</span>
+      <select name="stitek" class="input mt-1" @change="$el.form.requestSubmit()">
+        <option value="">všechny</option>
+        {% for t in tags %}<option value="{{ t }}" {% if f.stitek == t %}selected{% endif %}>{{ t }}</option>{% endfor %}
       </select></label>
     <label class="block" :class="vic ? '' : 'max-sm:hidden'"><span class="text-xs text-2">Pohlaví</span>
       <select name="pohlavi" class="input mt-1" @change="$el.form.requestSubmit()">
@@ -74,7 +79,7 @@
     {% if active_filters %}<a href="?{% if f.stav %}stav={{ f.stav }}{% endif %}" class="btn btn-sm">Zrušit filtry ({{ active_filters }})</a>{% endif %}
     <span class="text-sm text-muted ml-auto">{{ page.paginator.count }} {% if page.paginator.count == 1 %}článek{% elif page.paginator.count >= 2 and page.paginator.count <= 4 %}články{% else %}článků{% endif %}</span>
   </div>
-  <p class="text-xs text-muted mt-2">Věk a pohlaví: ukáže studie, jejichž populace na takového sportovce sedí (studie bez údaje se ukazují vždy).</p>
+  <p class="text-xs text-muted mt-2">Věk a pohlaví: ukáže studie, jejichž populace na takového sportovce sedí (studie bez údaje se ukazují vždy). Sport, test a ukazatel nabízejí celý katalog pracoviště, v závorce je počet článků; štítky se píšou u článku v části <em>Kdy se článek použije</em>.</p>
 </form>
 
 <div class="space-y-3">
@@ -95,7 +100,7 @@
             {% for gene in a.card_genes %}<span class="badge badge-accent" title="zdroj genové karty">karta {{ gene }}</span>{% endfor %}
             {% for sp in a.sports.all %}<span class="badge badge-good" title="sport studie">{{ sp.name }}</span>{% endfor %}
             {% if a.population_without_sports %}<span class="badge" title="populace studie">{{ a.population_without_sports }}</span>{% endif %}
-            {% for t in a.tags %}<a class="badge" href="?q={{ t|urlencode }}" title="štítek – kliknutím vyhledat">{{ t }}</a>{% endfor %}
+            {% for t in a.tags %}<a class="badge" href="?stitek={{ t|urlencode }}" title="štítek – kliknutím vyfiltrovat">{{ t }}</a>{% endfor %}
           </div>
           {% if a.key_finding or a.curator_note %}
             <p class="text-sm mt-2"><span class="text-muted">Hlavní zjištění:</span> {{ a.key_finding|default:a.curator_note }}</p>

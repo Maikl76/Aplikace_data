@@ -43,12 +43,18 @@ populace to uvést.
 Nad seznamem článků je panel filtrů:
 
 - **Hledat** – název, autoři, časopis, DOI/PMID, text hlavního zjištění,
-- **Sport** – sporty z katalogu, ve kterých studie vznikla (u článku je
-  zaškrtnete v části *Na kom se studie dělala*; sport mimo katalog se
-  píše do pole *jiný sport*),
+  štítky,
+- **Sport** – všechny sporty z katalogu pracoviště, v závorce počet článků;
+  sport studie zaškrtnete u článku v části *Na kom se studie dělala*, sport
+  mimo katalog se píše do pole *jiný sport*,
 - **Pro věk sportovce** a **Pohlaví** – studie, jejichž populace na takového
   sportovce sedí (studie bez údaje se ukazují vždy),
-- **Test**, **Ukazatel** – témata článku,
+- **Test**, **Ukazatel** – témata článku; nabídka je celý aktivní katalog
+  pracoviště s počtem článků, téma zaškrtnete u článku v části *Kdy se
+  článek použije*,
+- **Štítek** – volné štítky článků (např. `genetika`, `ACTN3`, `rs1815739`);
+  píšou se u článku v části *Kdy se článek použije*, oddělené čárkou,
+  a v seznamu jsou u článku jako odkazy,
 - **Úroveň evidence**,
 - **K doplnění** – chybí hlavní zjištění / článek bez vazby (do zpráv se
   nedostane) / bez sportu,

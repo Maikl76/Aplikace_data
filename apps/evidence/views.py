@@ -39,6 +39,25 @@ def _int(value):
         return None
 
 
+def _tag_ids(match) -> list[int]:
+    """
+    Id článků, které mají štítek vyhovující podmínce. Štítky jsou JSON seznam,
+    proto se porovnávají v Pythonu – stejně na SQLite i na jiné databázi a bez
+    potíží s diakritikou v uloženém JSON.
+    """
+    return [pk for pk, tags in Article.objects.values_list("pk", "tags")
+            if any(match(str(t)) for t in (tags or []))]
+
+
+def _all_tags() -> list[str]:
+    """Všechny štítky nezamítnutých článků – nabídka filtru Štítek."""
+    tags = set()
+    for item in (Article.objects.exclude(status=Article.Status.REJECTED)
+                 .values_list("tags", flat=True)):
+        tags.update(str(t).strip() for t in (item or []) if str(t).strip())
+    return sorted(tags, key=lambda t: (t.casefold(), t))
+
+
 @login_required
 def article_list(request):
     from django.core.paginator import Paginator
@@ -51,7 +70,7 @@ def article_list(request):
 
     get = request.GET
     f = {key: get.get(key, "").strip() for key in
-         ("stav", "q", "sport", "test", "ukazatel", "dukaz", "pohlavi", "vek", "chybi",
+         ("stav", "q", "sport", "test", "ukazatel", "stitek", "dukaz", "pohlavi", "vek", "chybi",
           "razeni")}
     articles = Article.objects.annotate(pocet_pravidel=Count("rule_articles", distinct=True))
     if f["stav"] in Article.Status.values:
@@ -61,7 +80,10 @@ def article_list(request):
                                    | Q(doi__icontains=f["q"]) | Q(pmid=f["q"])
                                    | Q(key_finding__icontains=f["q"])
                                    | Q(journal__icontains=f["q"])
-                                   | Q(tags__icontains=f["q"]))
+                                   | Q(pk__in=_tag_ids(
+                                       lambda t: f["q"].casefold() in t.casefold())))
+    if f["stitek"]:
+        articles = articles.filter(pk__in=_tag_ids(lambda t: t == f["stitek"]))
     if sport := Sport.objects.filter(pk=_int(f["sport"])).first():
         articles = articles.filter(Q(sports=sport)
                                    | Q(population_sport__icontains=sport.name))
@@ -103,8 +125,12 @@ def article_list(request):
     keep.pop("strana", None)
     without_status = keep.copy()
     without_status.pop("stav", None)
-    active = [k for k in ("sport", "test", "ukazatel", "dukaz", "pohlavi", "vek", "chybi", "q")
-              if f[k]]
+    active = [k for k in ("sport", "test", "ukazatel", "stitek", "dukaz", "pohlavi", "vek",
+                          "chybi", "q") if f[k]]
+    # Nabídka filtrů: celý katalog pracoviště (ne jen položky, které už článek mají),
+    # u každé položky počet článků.
+    mine = Q(organization=request.user.organization) | Q(organization__isnull=True)
+    n_clanku = Count("articles", distinct=True)
     from .steps import library_steps
 
     return render(request, "evidence/articles.html", {
@@ -115,10 +141,12 @@ def article_list(request):
         "can_edit": can_edit(request.user),
         "statuses": [(value, label, counts.get(value, 0))
                      for value, label in Article.Status.choices],
-        "sports": Sport.objects.filter(Q(articles__isnull=False)).distinct().order_by("name"),
-        "tests": Protocol.objects.filter(articles__isnull=False).distinct().order_by("name"),
-        "metrics": MetricDef.objects.filter(articles__isnull=False).distinct()
-        .order_by("name"),
+        "sports": Sport.objects.filter(mine).annotate(n_clanku=n_clanku).order_by("name"),
+        "tests": (Protocol.objects.filter(mine, is_active=True).annotate(n_clanku=n_clanku)
+                  .order_by("name")),
+        "metrics": (MetricDef.objects.filter(mine, is_active=True).annotate(n_clanku=n_clanku)
+                    .order_by("name")),
+        "tags": _all_tags(),
         "levels": EvidenceLevel.choices,
         "sorts": [(key, label) for key, (_, label) in SORTS.items()],
     })

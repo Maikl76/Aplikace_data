@@ -117,8 +117,17 @@ def test_seznam_hleda_podle_stitku_a_ukaze_je(org):
     text = page.content.decode()
     assert page.status_code == 200
     assert "Guest" in text and "Kilpel" not in text          # FTO článek štítek CYP1A2 nemá
-    assert 'href="?q=rs762551"' in text                     # štítek je odkaz na hledání
+    assert 'href="?stitek=rs762551"' in text                # štítek je odkaz na filtr
     assert "navrženo" in text and "karta CYP1A2" in text    # vazba na kartu je vidět
+    assert '<option value="rs762551"' in text and '<option value="výkon a trénink"' in text
+
+    # filtr Štítek: přesná shoda i s diakritikou; hledání ve štítcích nehledí na velikost písmen
+    def pmids(**params):
+        return {a.pmid for a in client.get(reverse("article_list"), params).context["articles"]}
+
+    assert "39595706" in pmids(stitek="výkon a trénink") and "29509641" not in pmids(stitek="ACE")
+    assert pmids(stitek="ACE") == pmids(stitek="rs1799752") and "23358679" in pmids(stitek="ACE")
+    assert pmids(q="GENETIKA") >= pmids(stitek="genetika") and "29509641" in pmids(q="GENETIKA")
     # vazba na kartu je téma: knihovna článek nehlásí jako nepoužitý
     bez_vazby = client.get(reverse("article_list") + "?chybi=vazba").content.decode()
     assert "10.1249/MSS.0000000000001596" not in bez_vazby    # Guest 2018 má kartu
@@ -165,3 +174,32 @@ def test_krok_zdroje_udrzi_navrzeny_clanek(org):
     source.save()
     text = client.get(reverse("genetics_card", args=[card.pk])).content.decode()
     assert "článek v knihovně" in text and "Guest N (2018)" in text
+
+
+def test_filtry_nabizeji_cely_katalog_a_stitky_se_upravuji(org):
+    from django.urls import reverse
+
+    from apps.core.models import Role
+    from apps.evidence.forms import ArticleForm
+    from apps.subjects.models import Sport
+    from tests.test_genetika import _user
+
+    _, client = _user(org, Role.ADMIN, "spravce")
+    Sport.objects.create(organization=org, code="florbal", name="Florbal")
+    call_command("nacist_clanky", verbosity=0)
+    guest = Article.objects.get(pmid="29509641")
+    tenis = Sport.objects.create(organization=org, code="tenis", name="Tenis")
+    guest.sports.add(tenis)
+    text = client.get(reverse("article_list")).content.decode()
+    assert ">Florbal</option>" in text                      # sport bez článku je v nabídce
+    assert ">Tenis (1)</option>" in text                    # s počtem článků
+
+    form = ArticleForm({"title": "Štítky", "status": Article.Status.SUGGESTED,
+                        "stitky": " genetika ;ACTN3, rs1815739,, genetika "}, organization=org)
+    assert form.is_valid(), form.errors
+    article = form.save()
+    assert article.tags == ["genetika", "ACTN3", "rs1815739"]
+    assert ArticleForm(instance=article, organization=org).fields["stitky"].initial == \
+        "genetika, ACTN3, rs1815739"
+    page = client.get(reverse("article_edit", args=[article.pk])).content.decode()
+    assert 'value="genetika, ACTN3, rs1815739"' in page
