@@ -60,7 +60,7 @@
       </details>
     </section>
     {% elif report.is_editable %}
-    <form method="post" id="upravy" class="space-y-4">
+    <form method="post" id="upravy" class="space-y-4" data-jednou="Ukládám…">
       {% csrf_token %}
       <section class="card p-4" id="souhrn">
         <div class="flex flex-wrap items-baseline gap-2 mb-2">
@@ -88,7 +88,7 @@
             <select name="model" class="input w-auto text-sm py-1.5">
               {% for value, label in model_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
             </select>
-            <button type="submit" formaction="{% url 'report_rewrite' report.pk %}" class="btn btn-sm"
+            <button type="submit" formaction="{% url 'report_rewrite' report.pk %}" class="btn btn-sm" data-jednou="Model píše souhrn…"
                     onclick="return confirm('Napsat souhrn znovu? Dosavadní text (i vaše úpravy) zůstane v historii zprávy.')">
               {% icon "edit" %}Napsat znovu</button>
           </div>

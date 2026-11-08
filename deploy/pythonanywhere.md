@@ -281,7 +281,14 @@ aplikace cloudový model odmítne; tam zůstává model lokální.
 3. Do `.env` doplňte řádky ze šablony `deploy/pythonanywhere.env.example`
    (oddíl o jazykovém modelu): `LLM_ENABLED=True`, `LLM_BASE_URL`,
    `LLM_API_KEY`, `LLM_MODEL`, `LLM_BACKGROUND=False`, `LLM_TIMEOUT=90`.
-   Klíč do gitu nepatří, `.env` v něm není.
+   Klíč do gitu nepatří, `.env` v něm není. S `LLM_BACKGROUND=False` píše
+   model souhrn přímo v požadavku: tlačítko *Vytvořit zprávu* / *Sestavit
+   koncept* se zamkne, ukazuje uplynulý čas a stránka zprávy se otevře, až
+   model dopíše (i minutu). Když řádek vynecháte, platí výchozí `True`:
+   zpráva se otevře hned se souhrnem ze šablony a model píše na pozadí ve
+   vlákně; stránka se po dopsání obnoví sama. Vyzkoušejte, co na
+   PythonAnywhere běží spolehlivěji – kdyby vlákno po restartu aplikace
+   nedoběhlo, zpráva se po uplynutí `LLM_TIMEOUT` sama uvolní.
 4. Na záložce **Web** aplikaci restartujte (*Reload*). V aplikaci otevřete
    *Zprávy → AI zprávy → Modely*: seznam modelů přijde z Gemini, vyberte
    výchozí (např. `gemini-2.5-flash`). Oranžový pruh *Cloudový model* tam

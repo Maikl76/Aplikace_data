@@ -187,6 +187,42 @@
     var pole = document.getElementById("hledani");
     if (pole) { e.preventDefault(); pole.focus(); }
   });
+  // Formulář s delší prací (data-jednou="text"): po odeslání se tlačítka zamknou,
+  // ukazují text a uplynulý čas a druhé odeslání se zahodí – nic nevznikne dvakrát.
+  document.addEventListener("submit", function (e) {
+    var form = e.target;
+    if (!(form instanceof HTMLFormElement) || !form.hasAttribute("data-jednou")) return;
+    if (form.dataset.odeslano) { e.preventDefault(); return; }
+    form.dataset.odeslano = "1";
+    var vychozi = form.getAttribute("data-jednou") || "Pracuji…";
+    var tlacitka = Array.prototype.slice.call(form.querySelectorAll("button:not([type=button]):not([type=reset])"));
+    var start = Date.now();
+    setTimeout(function () {
+      tlacitka.forEach(function (b) {
+        b.dataset.puvodni = b.innerHTML;
+        b.disabled = true; b.style.opacity = "0.7"; b.style.cursor = "wait";
+        b.textContent = (b.getAttribute("data-jednou") || vychozi) + " ";
+        var cas = document.createElement("span"); cas.className = "tabular-nums"; cas.setAttribute("data-cas", ""); cas.textContent = "0 s";
+        b.appendChild(cas);
+      });
+      form.querySelectorAll("[data-jednou-poznamka]").forEach(function (p) { p.hidden = false; });
+    }, 0);
+    form.dataset.hodiny = setInterval(function () {
+      var s = Math.round((Date.now() - start) / 1000);
+      form.querySelectorAll("[data-cas]").forEach(function (el) { el.textContent = (s >= 60 ? Math.floor(s / 60) + " min " : "") + (s % 60) + " s"; });
+    }, 1000);
+  });
+  // Návrat zpět z mezipaměti prohlížeče: zamčený formulář zase odemknout.
+  window.addEventListener("pageshow", function (e) {
+    if (!e.persisted) return;
+    document.querySelectorAll("form[data-jednou][data-odeslano]").forEach(function (form) {
+      delete form.dataset.odeslano; clearInterval(Number(form.dataset.hodiny));
+      form.querySelectorAll("button[data-puvodni]").forEach(function (b) {
+        b.innerHTML = b.dataset.puvodni; b.disabled = false; b.style.opacity = ""; b.style.cursor = "";
+      });
+      form.querySelectorAll("[data-jednou-poznamka]").forEach(function (p) { p.hidden = true; });
+    });
+  });
 </script>
 </body>
 </html>

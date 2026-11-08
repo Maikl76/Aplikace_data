@@ -315,3 +315,20 @@ def test_kontrola_souhrnu_od_modelu(laborator):
     facts = genetics_report.facts(content)
     assert facts["oblasti"][0]["varianty"][0]["text_karty"] == "Byl zjištěn genotyp CT (RX)."
     assert facts["doporuceni_sloucena"] == ["Zařaďte plyometrii."] and facts["k_odbornemu_posouzeni"] == ["regenerace"]
+
+
+def test_dvoji_kliknuti_nezalozi_druhy_koncept(laborator):
+    """Tlačítko se po kliknutí zamkne a server druhý stejný požadavek do dvou minut odkáže na hotový koncept."""
+    L = laborator
+    client, sample, subject = L["client"], L["sample"], L["subject"]
+    page = client.get(f"/genetika/sportovec/{subject.pk}/").content.decode()
+    assert 'data-jednou="Sestavuji koncept…"' in page and "data-jednou-poznamka" in page
+    assert 'form[data-jednou]' in page                      # společný zámek v base.html
+    data = {"vzorek": sample.pk, "pro": Audience.ATHLETE}
+    first = client.post(f"/genetika/sportovec/{subject.pk}/zprava/", data)
+    second = client.post(f"/genetika/sportovec/{subject.pk}/zprava/", data)
+    assert Report.objects.filter(kind=Report.Kind.GENETICS).count() == 1
+    assert first.url == second.url
+    # jiný čtenář je jiná zpráva
+    client.post(f"/genetika/sportovec/{subject.pk}/zprava/", {"vzorek": sample.pk, "pro": Audience.CLINICIAN})
+    assert Report.objects.filter(kind=Report.Kind.GENETICS).count() == 2

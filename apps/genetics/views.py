@@ -7,6 +7,8 @@ Obrazovky genetiky v aplikaci laboratoře.
 * Sportovec – souhlas, vzorky a genotypy; genotypy vidí jen správce a laborant.
 """
 
+from datetime import timedelta
+
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -20,7 +22,7 @@ from apps.core.audit import record
 from apps.core.models import AuditLog, Role
 from apps.measurements import questionnaires
 from apps.measurements.models import QuestionnaireResponse
-from apps.reports.models import Audience
+from apps.reports.models import Audience, Report
 from apps.subjects.models import Subject
 
 from . import crypto, research, seed, services
@@ -304,9 +306,19 @@ def report_create(request, pk):
     subject = _subject(request, pk)
     sample = get_object_or_404(subject.genetic_samples, pk=request.POST.get("vzorek"))
     model = request.POST.get("model", "").strip()
+    audience = request.POST.get("pro")
+    # Dvojí kliknutí nebo obnovení stránky nesmí založit druhý koncept.
+    recent = (Report.objects.filter(genetic_sample=sample, audience=audience,
+                                    status=Report.Status.DRAFT,
+                                    created_at__gte=timezone.now() - timedelta(minutes=2))
+              .order_by("-pk").first())
+    if recent is not None:
+        messages.info(request, f"Koncept {recent.report_number} se právě založil – otevírám ho "
+                               "místo dalšího.")
+        return redirect("report_detail", pk=recent.pk)
     try:
         report = genetics_report.build_draft(
-            sample, user=request.user, audience=request.POST.get("pro"),
+            sample, user=request.user, audience=audience,
             model=model if model and llm.is_enabled() and is_offered(model) else None)
     except genetics_report.GeneticsReportError as exc:
         messages.error(request, str(exc))

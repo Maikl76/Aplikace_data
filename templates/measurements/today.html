@@ -106,7 +106,7 @@
           Koncepty vzniknou najednou; každý pak zkontrolujete a vydáte jako dosud.
           {% else %}Žádný hotový den bez zprávy – koncepty vzniknou, jakmile budou mít dny hodnoty u všech testů.{% endif %}
         </p>
-        <form method="post" action="{% url 'today_drafts' %}" class="flex flex-wrap gap-2 items-center">
+        <form method="post" action="{% url 'today_drafts' %}" class="flex flex-wrap gap-2 items-center" data-jednou="Zakládám koncepty…">
           {% csrf_token %}
           <input type="hidden" name="datum" value="{{ day|date:'Y-m-d' }}">
           <input type="hidden" name="baterie" value="{{ battery.pk }}">
