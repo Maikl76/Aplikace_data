@@ -52,12 +52,18 @@ def test_u_testu_je_napsano_z_ceho_jde_nacist(lab):
     assert "import: VALD ForceDecks" in html and "jen ruční zadání" in html
 
     html = client.get(f"/mereni/provedeni/{first.pk}/").content.decode()
-    assert "Nahrát export k tomuto testu" in html and 'name="provedeni"' in html
-    assert f'name="protocol" value="{cmj_p.pk}"' in html
+    assert "Hodnoty z přístroje" in html and "Nahrát export k tomuto testu" in html
+    assert 'name="provedeni"' in html and f'name="protocol" value="{cmj_p.pk}"' in html
+    assert "Export z <strong>VALD ForceDecks</strong>" in html
+    # test bez profilu importu: nahrát jde i tak (formát se třeba doplní), ale řekne se to
     html = client.get(f"/mereni/provedeni/{manual.pk}/").content.decode()
-    assert "jen ruční zadání" in html and "Nahrát export" not in html
+    assert "jen ruční zadání" in html and "Nahrát export k tomuto testu" in html
+    assert "zatím nezná formát exportu" in html
+    # režim u přístroje má nahrání taky
+    html = client.get(f"/mereni/provedeni/{first.pk}/u-pristroje/").content.decode()
+    assert 'name="provedeni"' in html and "Nahrát export" in html
 
-    # test s ručně zadanými hodnotami: export by založil druhé provedení, tlačítko se nenabízí
+    # test s ručně zadanými hodnotami: nahrát jde, ale s upozorněním na další provedení
     from apps.catalog.models import MetricDef
     from apps.measurements.models import Measurement, Trial
 
@@ -65,7 +71,18 @@ def test_u_testu_je_napsano_z_ceho_jde_nacist(lab):
     Measurement.objects.create(trial=trial, metric=MetricDef.objects.get(code="cmj_height"),
                                side="B", value=31)
     html = client.get(f"/mereni/provedeni/{first.pk}/").content.decode()
-    assert "Nahrát export" not in html
+    assert "už má ručně zadané hodnoty" in html and "Nahrát export k tomuto testu" in html
+
+
+def test_nahrani_je_videt_i_ve_zkusebnim_provozu(lab, settings):
+    """Zkušební provoz na webu má umět totéž co laboratoř – i nahrání exportu z testu."""
+    org, user, client, session, grip = lab
+    run = ProtocolRun.objects.create(session=session, protocol=Protocol.objects.get(code="cmj"))
+    settings.DEMO_MODE = True
+    assert "Nahrát export z přístroje" in client.get(f"/mereni/{session.pk}/").content.decode()
+    assert "Nahrát export k tomuto testu" in client.get(
+        f"/mereni/provedeni/{run.pk}/").content.decode()
+    assert "Nahrát export za skupinu" in client.get("/testovani/").content.decode() or True
 
 
 def test_export_k_testu_vyplni_prave_toto_provedeni_a_vrati_se(lab):

@@ -80,12 +80,15 @@ Export nemusíte nahrávat přes menu Import:
 - **V testovacím dni** tlačítko *Nahrát export z přístroje* nahraje soubor
   a náhled předvybere tohoto sportovce. Po uložení se aplikace vrátí do
   testovacího dne.
-- **Na stránce testu** tlačítko *Nahrát export k tomuto testu*: hodnoty se
-  zapíší přesně do tohoto provedení (záleží na tom u opakovaného měření
-  téhož testu v jednom dni), řádky bez typu testu se berou jako tento test
-  a náhled upozorní, když soubor nese i jiné testy – ty se zapíší ke svým
-  testům téhož dne. Po uložení se aplikace vrátí na test. Tlačítko je jen
-  u testů, které aplikace umí z exportu načíst.
+- **Na stránce testu** je nad ručním zadáváním karta *Hodnoty z přístroje*
+  s tlačítkem *Nahrát export k tomuto testu* (je i v režimu u přístroje):
+  hodnoty se zapíší přesně do tohoto provedení (záleží na tom u opakovaného
+  měření téhož testu v jednom dni), řádky bez typu testu se berou jako
+  tento test a náhled upozorní, když soubor nese i jiné testy – ty se
+  zapíší ke svým testům téhož dne. Po uložení se aplikace vrátí na test.
+  Karta říká, z jakého přístroje test načíst jde; u testu bez profilu
+  importu nabídne přidání přístroje. Nahrání funguje i ve zkušebním
+  provozu na webu.
 - **U každého testu** v detailu dne i na stránce testu je napsáno, z čeho
   ho aplikace umí načíst (*import: VALD ForceDecks*), nebo že je *jen na
   ruční zadání*; pak buď zadáte hodnoty ručně, nebo přidáte přístroj

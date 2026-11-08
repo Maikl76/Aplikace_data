@@ -12,7 +12,6 @@
     </p>
   </div>
   <div class="flex flex-wrap gap-2">
-  {% if not run.external_ref and not ma_hodnoty and import_zdroje %}{% include "measurements/_upload_export.html" with run_pk=run.pk protocol_pk=run.protocol_id label="Nahrát export k tomuto testu" title="Hodnoty se zapíší do tohoto provedení; v náhledu se předvybere tento sportovec" %}{% endif %}
   {% if run.protocol.rest_seconds %}
     <button type="button" class="btn" x-data
             @click="$dispatch('pauza', {sekundy: {{ run.protocol.rest_seconds }} })">
@@ -45,6 +44,21 @@
   <span class="text-sm" x-show="hotovo" style="color: var(--good)">Pauza skončila – další pokus</span>
   <button type="button" class="btn btn-sm" @click="zastavit()">Zavřít</button>
 </div>
+
+{% if not run.external_ref %}
+<section class="card p-4 mb-4 flex flex-wrap items-center gap-4 border-l-4" style="border-left-color: var(--accent)" id="z-pristroje">
+  <div class="flex-1 min-w-[16rem]">
+    <h2 class="card-title">Hodnoty z přístroje</h2>
+    <p class="text-sm text-2 mt-0.5">
+      {% if import_zdroje %}Export z <strong>{{ import_zdroje|join:", " }}</strong> (xlsx nebo csv) nahrajte sem – hodnoty se zapíší do tohoto testu, nic není třeba opisovat.
+      {% else %}Pro tento test aplikace zatím nezná formát exportu; export můžete zkusit nahrát, nebo hodnoty zapište ručně níže.{% if pristup.manage %} Formát přidáte průvodcem <a class="link" href="{% url 'device_new' %}">Nový přístroj</a>.{% endif %}{% endif %}
+      {% if ma_hodnoty %}<br><span class="text-muted">Tento test už má ručně zadané hodnoty; export by vedle nich založil další provedení.</span>{% endif %}
+      Ručně zadávejte jen to, co přístroj neexportuje.
+    </p>
+  </div>
+  {% include "measurements/_upload_export.html" with run_pk=run.pk protocol_pk=run.protocol_id label="Nahrát export k tomuto testu" css=ma_hodnoty|yesno:",btn-primary" title="Hodnoty se zapíší do tohoto provedení; v náhledu se předvybere tento sportovec" %}
+</section>
+{% endif %}
 
 <form method="post"
       hx-post="{% url 'run_entry' run.pk %}"
