@@ -8,11 +8,11 @@
     <a href="{% url 'session_detail' run.session_id %}" class="text-sm link">← {{ run.session.jmeno }} · {{ run.session.date|date:"j. n. Y" }}</a>
     <h1 class="text-2xl font-semibold mt-1">{{ run.protocol.name }}{% if not run.is_primary %} <span class="badge align-middle">opakované měření</span>{% endif %}</h1>
     <p class="text-sm text-muted">
-      {% if run.protocol.device %}{{ run.protocol.device }}{% endif %}{% if run.started_at %} · {{ run.started_at|time:"H:i" }}{% endif %}{% if run.external_ref|slice:":9" == "odvozeno:" %} · vypočteno automaticky z ostatních testů{% elif run.external_ref %} · importováno z přístroje{% endif %}
+      {% if run.protocol.device %}{{ run.protocol.device }}{% endif %}{% if run.started_at %} · {{ run.started_at|time:"H:i" }}{% endif %}{% if not run.external_ref and not ma_hodnoty %} · {% if import_zdroje %}<span title="Export z tohoto přístroje vyplní tento test">import: {{ import_zdroje|join:", " }}</span>{% else %}<span title="Pro tento test není profil importu – hodnoty se zadávají ručně">jen ruční zadání</span>{% if pristup.manage %} · <a class="link" href="{% url 'device_new' %}">přidat přístroj</a>{% endif %}{% endif %}{% endif %}{% if run.external_ref|slice:":9" == "odvozeno:" %} · vypočteno automaticky z ostatních testů{% elif run.external_ref %} · importováno z přístroje{% endif %}
     </p>
   </div>
   <div class="flex flex-wrap gap-2">
-  {% if not run.external_ref %}{% include "measurements/_upload_export.html" with session_pk=run.session_id %}{% endif %}
+  {% if not run.external_ref and not ma_hodnoty and import_zdroje %}{% include "measurements/_upload_export.html" with run_pk=run.pk protocol_pk=run.protocol_id label="Nahrát export k tomuto testu" title="Hodnoty se zapíší do tohoto provedení; v náhledu se předvybere tento sportovec" %}{% endif %}
   {% if run.protocol.rest_seconds %}
     <button type="button" class="btn" x-data
             @click="$dispatch('pauza', {sekundy: {{ run.protocol.rest_seconds }} })">

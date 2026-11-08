@@ -102,8 +102,18 @@ def upload_target(request) -> dict:
 
     from django.urls import reverse
 
-    from apps.measurements.models import TestSession
+    from apps.measurements.models import ProtocolRun, TestSession
 
+    if run_id := request.POST.get("provedeni"):
+        run = (ProtocolRun.objects.filter(pk=run_id, session__in=TestSession.objects
+                                          .for_user(request.user))
+               .select_related("session", "protocol").first())
+        if run is None:
+            return {}
+        return {"subject": run.session.subject_id, "session": run.session_id, "run": run.pk,
+                "protokol": run.protocol.code, "test": run.protocol.name,
+                "den": run.session.date.isoformat(),
+                "zpet": reverse("run_entry", args=[run.pk])}
     if session_id := request.POST.get("testovaci_den"):
         session = TestSession.objects.for_user(request.user).filter(pk=session_id).first()
         if session is None:
@@ -173,12 +183,18 @@ def import_detail(request, pk):
         cil_den = date.fromisoformat(cil.get("den") or "")
     except ValueError:
         cil_den = None
+    # Nahráno k jednomu testu, ale soubor nese i jiné: ty se zapíší ke svým testům dne.
+    cil_jine = []
+    if cil.get("protokol"):
+        cil_jine = sorted({name for name in staged.exclude(protocol__code=cil["protokol"])
+                           .exclude(protocol__isnull=True)
+                           .values_list("protocol__name", flat=True)})
 
     return render(request, "ingest/import_detail.html", {
         "steps": import_detail_steps(batch, sportovci, problems),
         "batch": batch,
         "summary": summary,
-        "cil": cil, "cil_den": cil_den,
+        "cil": cil, "cil_den": cil_den, "cil_jine": cil_jine,
         "dlazdice": [
             ("sportovců", summary.get("sportovcu")),
             ("nepoznaných automaticky", summary.get("novych_sportovcu")),

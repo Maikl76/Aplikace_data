@@ -77,9 +77,19 @@ datum v exportu sedí s datem testovacího dne.
 
 Export nemusíte nahrávat přes menu Import:
 
-- **V testovacím dni** (i v zadávání testu) tlačítko *Nahrát export
-  z přístroje* nahraje soubor a náhled předvybere tohoto sportovce. Po
-  uložení se aplikace vrátí do testovacího dne.
+- **V testovacím dni** tlačítko *Nahrát export z přístroje* nahraje soubor
+  a náhled předvybere tohoto sportovce. Po uložení se aplikace vrátí do
+  testovacího dne.
+- **Na stránce testu** tlačítko *Nahrát export k tomuto testu*: hodnoty se
+  zapíší přesně do tohoto provedení (záleží na tom u opakovaného měření
+  téhož testu v jednom dni), řádky bez typu testu se berou jako tento test
+  a náhled upozorní, když soubor nese i jiné testy – ty se zapíší ke svým
+  testům téhož dne. Po uložení se aplikace vrátí na test. Tlačítko je jen
+  u testů, které aplikace umí z exportu načíst.
+- **U každého testu** v detailu dne i na stránce testu je napsáno, z čeho
+  ho aplikace umí načíst (*import: VALD ForceDecks*), nebo že je *jen na
+  ruční zadání*; pak buď zadáte hodnoty ručně, nebo přidáte přístroj
+  průvodcem (`docs/novy-pristroj.md`).
 - **V Dnešním testování** tlačítko *Nahrát export za skupinu* (pod tabulkou)
   nahraje jeden export pro celou skupinu. V náhledu jsou sportovci skupiny
   v nabídce přiřazení první – i ti, kdo ten den založený nemají –, řádky

@@ -288,6 +288,9 @@ def session_detail(request, pk):
     unstable = [(block, row) for block in protocol_results(session) for row in block["unstable"]]
     runs = _in_battery_order(session, session.protocol_runs.select_related("protocol").annotate(
         hodnot=Count("trials__measurements"), pokusu=Count("trials", distinct=True)))
+    sources = import_sources([r.protocol for r in runs], session.organization)
+    for run in runs:
+        run.import_zdroje = sources.get(run.protocol_id, [])
     rpe = questionnaires.questionnaire(questionnaires.RPE, session.organization)
     from apps.core.steps import next_step
     from apps.reports import followup
@@ -657,12 +660,22 @@ def run_conditions(request, pk):
     return redirect("run_entry", pk=pk)
 
 
+def import_sources(protocols, organization):
+    from apps.ingest.capabilities import import_sources as sources
+
+    return sources(protocols, organization)
+
+
 def _entry_context(run, *, columns: int | None = None, device: bool = False) -> dict:
     rpe = (questionnaires.questionnaire(questionnaires.RPE, run.session.organization)
            if run.protocol.rpe_after else None)
     answer = questionnaires.rpe_for_run(run) if rpe else None
     context = {
         "run": run,
+        "import_zdroje": import_sources([run.protocol], run.session.organization)
+        .get(run.protocol_id, []),
+        # export k testu jen dokud je prázdný – jinak by vedle ručních hodnot vzniklo druhé provedení
+        "ma_hodnoty": Measurement.objects.filter(trial__protocol_run=run).exists(),
         "rows": build_grid(run, columns=columns),
         "trials": trial_states(run, columns),
         "rpe_question": rpe.questions.first() if rpe else None,

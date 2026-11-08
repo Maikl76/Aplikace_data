@@ -1,10 +1,12 @@
 {% load ui %}
-{% comment %}Nahrání exportu z přístroje přímo z testovacího dne (session_pk) nebo z Dnešního testování
+{% comment %}Nahrání exportu z přístroje přímo z testu (run_pk + protocol_pk: hodnoty do tohoto provedení,
+řádky bez typu testu jako tento test), z testovacího dne (session_pk) nebo z Dnešního testování
 (skupina_datum + skupina_baterie): náhled předvybere sportovce, po uložení se sem aplikace vrátí.{% endcomment %}
 {% if not demo_mode %}
 <form method="post" action="{% url 'import_upload' %}" enctype="multipart/form-data" class="inline-flex">
   {% csrf_token %}
-  {% if session_pk %}<input type="hidden" name="testovaci_den" value="{{ session_pk }}">{% endif %}
+  {% if run_pk %}<input type="hidden" name="provedeni" value="{{ run_pk }}"><input type="hidden" name="protocol" value="{{ protocol_pk }}">
+  {% elif session_pk %}<input type="hidden" name="testovaci_den" value="{{ session_pk }}">{% endif %}
   {% if skupina_datum %}
     <input type="hidden" name="testovani_datum" value="{{ skupina_datum|date:'Y-m-d' }}">
     <input type="hidden" name="testovani_baterie" value="{{ skupina_baterie }}">

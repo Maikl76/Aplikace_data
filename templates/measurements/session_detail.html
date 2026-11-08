@@ -72,7 +72,7 @@
                 {% if not run.is_primary %}<span class="badge ml-1">opakované měření</span>{% endif %}
               </span>
               <span class="block text-xs text-muted">
-                {{ run.protocol.device|default:"" }}{% if run.external_ref|slice:":9" == "odvozeno:" %}{% if run.protocol.device %} · {% endif %}vypočteno automaticky{% elif run.external_ref %}{% if run.protocol.device %} · {% endif %}importováno{% endif %}
+                {{ run.protocol.device|default:"" }}{% if run.external_ref|slice:":9" == "odvozeno:" %}{% if run.protocol.device %} · {% endif %}vypočteno automaticky{% elif run.external_ref %}{% if run.protocol.device %} · {% endif %}importováno{% elif not run.hodnot %}{% if run.protocol.device %} · {% endif %}{% if run.import_zdroje %}<span title="Export z tohoto přístroje vyplní tento test">import: {{ run.import_zdroje|join:", " }}</span>{% else %}<span title="Pro tento test není profil importu – hodnoty se zadávají ručně">jen ruční zadání</span>{% endif %}{% endif %}
               </span>
             </span>
             {% if run.hodnot %}

@@ -30,7 +30,9 @@
 <div class="space-y-2 mb-6">
   {% if cil.zpet %}
     <div class="card px-4 py-3 text-sm border-l-4" style="border-left-color: var(--accent)">
-      {% if cil.session %}Nahráno z testovacího dne{% if cil_den %} {{ cil_den|date:"j. n. Y" }}{% endif %}: jeho sportovec je v nabídce přiřazení první.
+      {% if cil.run %}Nahráno k testu <strong>{{ cil.test }}</strong>{% if cil_den %} dne {{ cil_den|date:"j. n. Y" }}{% endif %}: hodnoty se zapíší do tohoto provedení, sportovec je v nabídce přiřazení první a řádky bez typu testu se berou jako tento test.
+        {% if cil_jine %}<br><strong>Soubor obsahuje i jiné testy:</strong> {{ cil_jine|join:", " }} – zapíší se ke svým testům téhož dne (chybějící se založí).{% endif %}
+      {% elif cil.session %}Nahráno z testovacího dne{% if cil_den %} {{ cil_den|date:"j. n. Y" }}{% endif %}: jeho sportovec je v nabídce přiřazení první.
       {% else %}Nahráno z Dnešního testování{% if cil.skupina %} – skupina <strong>{{ cil.skupina }}</strong>{% endif %}{% if cil_den %}, den {{ cil_den|date:"j. n. Y" }}{% endif %}:
         sportovci skupiny jsou v nabídce přiřazení první{% if cil_den %}, řádky bez data se zapíší k tomuto dni{% endif %} a hodnoty se doplní do založených testů.{% endif %}
       Po uložení se vrátíte <a class="link" href="{{ cil.zpet }}">zpět</a>.

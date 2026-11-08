@@ -20,6 +20,7 @@ from datetime import timedelta
 
 from django.core.files.base import ContentFile
 from django.db import transaction
+from django.db.models import Count
 from django.utils import timezone
 
 from apps.catalog.models import MetricDef, Protocol
@@ -549,6 +550,22 @@ def commit_batch(batch, *, user, default_date=None, skip_out_of_range=False) -> 
     runs_info = summary.get("runs", {})
     result = {"sportovci": 0, "session": 0, "testy": 0, "hodnoty": 0,
               "aktualizovano": 0, "preskoceno": 0, "jmena_neulozena": 0}
+    # Nahráno ze stránky testu: jeho provedení dostane přednost před prvním
+    # prázdným – záleží na tom u opakovaného měření téhož testu v jednom dni.
+    target_run = ProtocolRun.objects.filter(
+        pk=(summary.get("cil") or {}).get("run"), session__organization=batch.organization,
+        external_ref="").annotate(n=Count("trials__measurements")).filter(n=0).first()
+
+    def planned_run(session, protocol):
+        """Prázdné provedení pro zápis: cílové z testu, jinak první prázdné toho dne."""
+        nonlocal target_run
+        if (target_run is not None and target_run.session_id == session.pk
+                and target_run.protocol_id == protocol.pk):
+            run, target_run = target_run, None
+            return run
+        from apps.measurements.planning import empty_run
+
+        return empty_run(session, protocol)
 
     rows = list(batch.staged.select_related("metric", "protocol", "subject"))
 
@@ -614,9 +631,7 @@ def commit_batch(batch, *, user, default_date=None, skip_out_of_range=False) -> 
                 conditions = runs_info.get(row.run_key, {}).get("conditions", {})
                 # Test naplánovaný podle baterie (prázdné provedení) se vyplní,
                 # místo aby vedle něj vzniklo druhé.
-                from apps.measurements.planning import empty_run
-
-                run = empty_run(session, row.protocol)
+                run = planned_run(session, row.protocol)
                 if run is not None:
                     run.started_at, run.external_ref = row.run_started_at, row.run_key
                     run.conditions = {**run.conditions, **conditions}
@@ -634,7 +649,8 @@ def commit_batch(batch, *, user, default_date=None, skip_out_of_range=False) -> 
                 # protokolu toho dne, jinak nové. get_or_create by spadl, když
                 # jich je víc (opakované měření).
                 session = session_for(subject, day)
-                run = (session.protocol_runs.filter(protocol=row.protocol)
+                run = (planned_run(session, row.protocol)
+                       or session.protocol_runs.filter(protocol=row.protocol)
                        .order_by("started_at", "pk").first())
                 created = run is None
                 if created:
