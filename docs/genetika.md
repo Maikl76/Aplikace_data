@@ -180,6 +180,18 @@ uvedeným názvem neexistuje; doložitelná studie k témuž tvrzení je Yamin
 2008, která v knihovně je). Zdroj S3 karty PPARGC1A je v časopise bez
 PubMedu a DOI – záznam je bez abstraktu, zjištění doplní garant.
 
+## Ukázkové vzorky ve zkušebním provozu
+
+Ve zkušebním provozu (DEMO_MODE) založí aktualizace prvním třem dospělým
+sportovcům podle kódu souhlas s genetickými daty a jeden vzorek
+s fiktivními genotypy pro aktivní panel (`ukazkova_genetika`). Vzorek je
+označený jako fiktivní a zůstává **neověřený**: ověření příslušnosti je na
+diagnostikovi, stejně jako u skutečného výsledku. Nezletilé sportovce
+příkaz přeskočí a napíše proč. Mimo zkušební provoz se nic neděje, vzorky
+jde založit jen vyjmenovaným sportovcům:
+
+    python manage.py ukazkova_genetika --kody FTVS-0001 FTVS-0003
+
 ## Dotazník ke genetickému vyšetření
 
 Sdílený dotazník `genetika` (Katalog → Dotazníky) vzniká ze seedu podle osnovy

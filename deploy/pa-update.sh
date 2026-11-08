@@ -155,6 +155,8 @@ main() {
         "$PY" manage.py ukazkovy_pristroj
         # Účty portálu (sportovec, rodic, trener), pokud chybí – existující nechá být.
         "$PY" manage.py ukazkove_ucty
+        # Ukázkové genetické vzorky (fiktivní genotypy) prvním třem dospělým sportovcům – jen při DEMO_MODE.
+        "$PY" manage.py ukazkova_genetika
     fi
     "$PY" manage.py collectstatic --noinput --verbosity 0
 
