@@ -161,6 +161,25 @@ Všechny návrhy mají kroky 1–7 průvodce hotové; schválení blokují jen z
 k ověření a otevřené revizní záznamy (krok 8). U ACTN3 kontrola nic
 neblokuje, protože texty jsou z revize v0.2.
 
+## Knihovna článků ke kartám
+
+Studie, které genové karty citují (a několik doplňkových, o které si karty
+samy říkají značkou DOPLNIT), jsou připravené v `katalog/clanky/genetika.json`:
+DOI, PMID, název, autoři, abstrakt z PubMedu a kurátorem navržené *hlavní
+zjištění pro praxi*, *omezení*, *populace* a *úroveň evidence*. Příkaz
+`nacist_clanky` (volá ho `spustit.bat` i `deploy/pa-update.sh`) je založí
+jako **navržené** – jen chybějící podle DOI, PMID nebo názvu a roku, nic
+nepřepisuje – a připojí je ke zdrojům karet (S1, S2…) a k důkazům, které se
+opírají jen o ně. Zařazení je na správci v **Článcích**: před ním texty
+zkontrolujte, model dostane jen zařazené. Články nesou štítky `genetika`,
+gen a rsID, takže se v knihovně dají vyhledat.
+
+Co se nepodařilo dohledat a čeká na garanta: zdroj S5 karty COL5A1 (neúplný
+fragment „elders in Taiwan“) a zdroj S5 karty IL6 (Ben-Zaken 2017 pod
+uvedeným názvem neexistuje; doložitelná studie k témuž tvrzení je Yamin
+2008, která v knihovně je). Zdroj S3 karty PPARGC1A je v časopise bez
+PubMedu a DOI – záznam je bez abstraktu, zjištění doplní garant.
+
 ## Dotazník ke genetickému vyšetření
 
 Sdílený dotazník `genetika` (Katalog → Dotazníky) vzniká ze seedu podle osnovy

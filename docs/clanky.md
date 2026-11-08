@@ -104,6 +104,16 @@ nebo články přijdou s katalogem: na počítači s internetem `ulozit-katalog.
 na druhém počítači `nacist-katalog.bat` (na serveru `python manage.py
 import_katalog`). Přenášejí se včetně témat a vazeb na pravidla.
 
+## Články ke genetice
+
+Literaturu genových karet nemusíte zadávat ručně: soubor
+`katalog/clanky/genetika.json` a příkaz `nacist_clanky` (součást aktualizace)
+ji založí jako navržené články se štítkem `genetika`, genem a rsID
+a připojí ke zdrojům karet. V seznamu je najdete hledáním podle štítku
+(„genetika“, „ACTN3“, „rs1815739“ – štítky jsou u článku jako odkazy) a poznáte
+podle značky *karta GEN*. Vazba na kartu se počítá jako téma, takže knihovna
+takový článek nehlásí jako nepoužitý. Podrobně v `docs/genetika.md`.
+
 ## Do budoucna
 
 Až bude článků stovky, dá se výběr k tématu doplnit sémantickým

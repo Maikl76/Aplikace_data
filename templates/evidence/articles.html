@@ -27,7 +27,7 @@
   <input type="hidden" name="stav" value="{{ f.stav }}">
   <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
     <label class="block sm:col-span-2"><span class="text-xs text-2">Hledat</span>
-      <input name="q" value="{{ f.q }}" class="input mt-1" placeholder="název, autor, časopis, DOI, hlavní zjištění…"></label>
+      <input name="q" value="{{ f.q }}" class="input mt-1" placeholder="název, autor, časopis, DOI, hlavní zjištění, štítek (např. genetika, ACTN3)…"></label>
     <label class="block"><span class="text-xs text-2">Sport</span>
       <select name="sport" class="input mt-1" @change="$el.form.requestSubmit()">
         <option value="">všechny</option>
@@ -92,16 +92,18 @@
             {% for m in a.metrics.all %}<span class="badge badge-accent" title="téma – ukazatel">{{ m.name }}</span>{% endfor %}
             {% for p in a.protocols.all %}<span class="badge badge-accent" title="téma – test">{{ p.name }}</span>{% endfor %}
             {% if a.pocet_pravidel %}<span class="badge" title="připojeno k pravidlům">pravidla: {{ a.pocet_pravidel }}</span>{% endif %}
+            {% for gene in a.card_genes %}<span class="badge badge-accent" title="zdroj genové karty">karta {{ gene }}</span>{% endfor %}
             {% for sp in a.sports.all %}<span class="badge badge-good" title="sport studie">{{ sp.name }}</span>{% endfor %}
             {% if a.population_without_sports %}<span class="badge" title="populace studie">{{ a.population_without_sports }}</span>{% endif %}
+            {% for t in a.tags %}<a class="badge" href="?q={{ t|urlencode }}" title="štítek – kliknutím vyhledat">{{ t }}</a>{% endfor %}
           </div>
           {% if a.key_finding or a.curator_note %}
             <p class="text-sm mt-2"><span class="text-muted">Hlavní zjištění:</span> {{ a.key_finding|default:a.curator_note }}</p>
           {% elif a.status == "approved" %}
             <p class="text-sm mt-2" style="color: var(--warn)">Chybí hlavní zjištění – model ví jen název článku.</p>
           {% endif %}
-          {% if not a.metrics.all and not a.protocols.all and not a.pocet_pravidel and a.status == "approved" %}
-            <p class="text-xs text-muted mt-1">Není připojený k pravidlu ani k ukazateli či testu – do zpráv se nedostane.</p>
+          {% if not a.metrics.all and not a.protocols.all and not a.pocet_pravidel and not a.card_genes and a.status == "approved" %}
+            <p class="text-xs text-muted mt-1">Není připojený k pravidlu, ukazateli, testu ani genové kartě – do zpráv se nedostane.</p>
           {% endif %}
         </div>
         {% if can_edit %}

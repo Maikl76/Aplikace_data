@@ -118,6 +118,13 @@ class Article(TimeStampedModel):
         return f"{first_author} ({self.year}): {self.title[:70]}"
 
     @property
+    def card_genes(self) -> list[str]:
+        """Geny karet, které článek citují jako zdroj nebo důkaz (vazba na kartu je téma)."""
+        genes = {s.card.variant.gene for s in self.gene_sources.all()}
+        genes |= {e.card.variant.gene for e in self.gene_evidence.all()}
+        return sorted(genes)
+
+    @property
     def evidence_rank(self) -> int:
         """Pořadí podle síly důkazu (metaanalýza první) – kvůli výběru článků k tématu."""
         order = list(EvidenceLevel.values)

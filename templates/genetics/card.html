@@ -123,7 +123,7 @@
     {% endif %}
     <section class="card p-4">
       <h2 class="card-title mb-2">Zdroje</h2>
-      {% for s in sources %}<p class="text-sm mb-2">{% if s.label %}<span class="badge mr-1">{{ s.label }}</span>{% endif %}{% if s.title %}<span class="font-medium">{{ s.title }}</span><br>{% endif %}<span class="text-2 whitespace-pre-line">{{ s.citation }}</span>{% if s.url %}<br><a class="link text-xs break-all" href="{{ s.url }}" rel="noopener" target="_blank">{{ s.url }}</a>{% endif %}</p>{% empty %}<p class="text-sm text-muted">Bez zdrojů.</p>{% endfor %}
+      {% for s in sources %}<p class="text-sm mb-2">{% if s.label %}<span class="badge mr-1">{{ s.label }}</span>{% endif %}{% if s.title %}<span class="font-medium">{{ s.title }}</span><br>{% endif %}<span class="text-2 whitespace-pre-line">{{ s.citation }}</span>{% if s.url %}<br><a class="link text-xs break-all" href="{{ s.url }}" rel="noopener" target="_blank">{{ s.url }}</a>{% endif %}{% if s.article %}<br><span class="text-xs">článek v knihovně: {% if pristup.articles %}<a class="link" href="{% url 'article_edit' s.article_id %}">{{ s.article }}</a>{% else %}{{ s.article }}{% endif %}{% if s.article.status != "approved" %} <span class="badge badge-warn">navrženo</span>{% endif %}</span>{% endif %}</p>{% empty %}<p class="text-sm text-muted">Bez zdrojů.</p>{% endfor %}
       {% if variant.frequency_source %}<p class="text-xs text-muted break-all">Zdroj frekvencí: {{ variant.frequency_source }}</p>{% endif %}
     </section>
     {% if revisions %}

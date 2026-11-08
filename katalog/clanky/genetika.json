@@ -1,0 +1,1495 @@
+{
+ "format": "clanky/1",
+ "popis": "Studie citované v genových kartách a několik doplňkových, které karty výslovně postrádají. Metadata a abstrakty z PubMedu, hlavní zjištění, omezení a populace připravil kurátor z abstraktů – články vznikají jako navržené, zařazuje je správce po kontrole. Načítá příkaz nacist_clanky.",
+ "clanky": [
+  {
+   "doi": "10.1172/JCI114844",
+   "pmid": "1976655",
+   "title": "An insertion/deletion polymorphism in the angiotensin I-converting enzyme gene accounting for half the variance of serum enzyme levels",
+   "authors": "Rigat B, Hubert C, Alhenc-Gelas F, Cambien F, Corvol P, Soubrier F",
+   "journal": "J Clin Invest",
+   "year": 1990,
+   "abstract": "A polymorphism consisting of the presence or absence of a 250-bp DNA fragment was detected within the angiotensin I-converting enzyme gene (ACE) using the endothelial ACE cDNA probe. This polymorphism was used as a marker genotype in a study involving 80 healthy subjects, whose serum ACE levels were concomitantly measured. Allele frequencies were 0.6 for the shorter allele and 0.4 for the longer allele. A marked difference in serum ACE levels was observed between subjects in each of the three ACE genotype classes. Serum immunoreactive ACE concentrations were, respectively, 299.3 +/- 49, 392.6 +/- 66.8, and 494.1 +/- 88.3 micrograms/liter, for homozygotes with the longer allele (n = 14), and heterozygotes (n = 37) and homozygotes (n = 29) with the shorter allele. The insertion/deletion polymorphism accounted for 47% of the total phenotypic variance of serum ACE, showing that the ACE gene locus is the major locus that determines serum ACE concentration. Concomitant determination of the ACE genotype will improve discrimination between normal and abnormal serum ACE values by allowing comparison with a more appropriate reference interval.",
+   "url": "https://doi.org/10.1172/JCI114844",
+   "evidence_level": "cross",
+   "key_finding": "U 80 zdravých osob se sérová koncentrace ACE lišila podle genotypu: I/I 299, I/D 393, D/D 494 µg/l; polymorfismus I/D vysvětlil 47 % rozptylu sérového ACE.",
+   "limitations": "Malý soubor; hladina enzymu v krvi není sportovní výkon. Primární zdroj k důkazu E02 karty ACE, který karta označila jako chybějící.",
+   "tags": [
+    "genetika",
+    "ACE",
+    "rs1799752",
+    "výkon a trénink"
+   ],
+   "karty": [],
+   "population_sport": "",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": 80,
+   "curator_note": "Doplněk ke kartě ACE (důkaz E02 žádal primární zdroj k aktivitě enzymu); před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1038/30374",
+   "pmid": "9607758",
+   "title": "Human gene for physical performance",
+   "authors": "Montgomery HE, Marshall R, Hemingway H, Myerson S, Clarkson P, Dollery C, Hayward M, Holliman DE, Jubb M, World M, Thomas EL, Brynes AE, Saeed N, Barnard M, Bell JD, Prasad K, Rayson M, Talmud PJ, Humphries SE",
+   "journal": "Nature",
+   "year": 1998,
+   "abstract": "[Abstract not available]",
+   "url": "https://doi.org/10.1038/30374",
+   "evidence_level": "cohort",
+   "key_finding": "První asociační studie ACE I/D a vytrvalosti: u britských vojenských rekrutů měli nositelé alely I po 10 týdnech výcviku větší nárůst vytrvalosti než nositelé D a mezi elitními horolezci byl genotyp II častější.",
+   "limitations": "Krátké sdělení bez plného abstraktu, malé soubory, jen britští muži; pozdější studie výsledek replikovaly jen částečně.",
+   "tags": [
+    "genetika",
+    "ACE",
+    "rs1799752",
+    "výkon a trénink"
+   ],
+   "karty": [
+    {
+     "varianta": "rs1799752",
+     "zdroje": [
+      "S2"
+     ]
+    }
+   ],
+   "population_sport": "horolezectví, vojenský výcvik",
+   "population_sex": "M",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": null,
+   "curator_note": "Navrženo z genové karty ACE (zdroj S2): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1152/jappl.1999.87.4.1313",
+   "pmid": "10517757",
+   "title": "Human angiotensin I-converting enzyme gene and endurance performance",
+   "authors": "Myerson S, Hemingway H, Budget R, Martin J, Humphries S, Montgomery H",
+   "journal": "J Appl Physiol (1985)",
+   "year": 1999,
+   "abstract": "Human physical performance is strongly influenced by genetic factors. A variation in the structure of the human angiotensin I-converting enzyme (ACE) gene has been reported in which the insertion (I) variant is associated with lower ACE levels than the deletion (D) gene. We have previously reported that the I variant was associated with improved endurance performance in high-altitude mountaineers and British Army recruits. We now examine this genotype distribution in 91 British Olympic-standard runners (79 Caucasians). DNA was extracted from the buccal cells contained in 10 ml of saline mouthwash donated by the subjects, and the I and D variants of the ACE gene were identified by PCR amplification of the polymorphic region. There was an increasing frequency of the I allele with distance run [0.35, 0.53, and 0.62 for </=200 m (n = 20), 400-3,000 m (n = 37), and >/=5,000 m (n = 34), respectively; P = 0.009 for linear trend]. Among 404 Olympic-standard athletes from 19 other mixed sporting disciplines (in which endurance performance was not necessarily a key factor), the I allele did not differ significantly from that found in control subjects: 0.50 vs. 0.49 (P = 0.526). These results support a positive association of the I allele with elite endurance performance.",
+   "url": "https://doi.org/10.1152/jappl.1999.87.4.1313",
+   "evidence_level": "cross",
+   "key_finding": "U 91 britských olympijských běžců rostla frekvence alely I s délkou tratě: 0,35 do 200 m, 0,53 na 400 až 3000 m, 0,62 od 5000 m (P = 0,009 pro trend). U 404 sportovců z 19 jiných disciplín se frekvence od kontrol nelišila (0,50 vs. 0,49).",
+   "limitations": "Průřezová studie statusu sportovce s malými podskupinami, převážně běloši; asociace na úrovni skupiny neříká nic o výkonu jednotlivce.",
+   "tags": [
+    "genetika",
+    "ACE",
+    "rs1799752",
+    "výkon a trénink"
+   ],
+   "karty": [
+    {
+     "varianta": "rs1799752",
+     "zdroje": [
+      "S3"
+     ]
+    }
+   ],
+   "population_sport": "atletika, běh",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "olympijská úroveň",
+   "sample_size": 495,
+   "curator_note": "Navrženo z genové karty ACE (zdroj S3): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1371/journal.pone.0054685",
+   "pmid": "23358679",
+   "title": "The association of sport performance with ACE and ACTN3 genetic polymorphisms: a systematic review and meta-analysis",
+   "authors": "Ma F, Yang Y, Li X, Zhou F, Gao C, Li M, Gao L",
+   "journal": "PLoS One",
+   "year": 2013,
+   "abstract": "Genetic polymorphism is suggested to be associated with human physical performance. The angiotensin I-converting enzyme insertion/deletion (ACE I/D) polymorphism and the α-actinin-3 gene (ACTN3) R577X polymorphism have been most widely studied for such association analysis. However, the findings are frequently heterogeneous. We aim to summarize the associations of ACE I/D and ACTN3 R577X with sport performance by means of meta-analysis.\n\nWe systematically reviewed and quantitatively summarized published studies, until October 31, 2012, on relationship between ACE/ACTN3 genetic polymorphisms and sports performance, respectively.\n\nA total of 366 articles on ACE and 88 articles on ACTN3 were achieved by literature search. A significant association was found for ACE II genotype compared to D allele carriage (DD+ID) with increased possibility of physical performance (OR, 1.23; 95% CI, 1.05-1.45). With respect to sport discipline, the II genotype was found to be associated with performance in endurance athletes (OR, 1.35; 95% CI, 1.17-1.55). On the other hand, no significant association was observed for ACTN3 RR genotype as compared to X allele carriage (XX+RX) (OR, 1.03; 95% CI, 0.92-1.15). However, when restricted the analyses to power events, a significant association was observed (OR, 1.21; 95% CI, 1.03-1.42).\n\nOur results provide more solid evidence for the associations between ACE II genotype and endurance events and between ACTN3 R allele and power events. The findings suggest that the genetic profiles might influence human physical performance.",
+   "url": "https://doi.org/10.1371/journal.pone.0054685",
+   "evidence_level": "meta",
+   "key_finding": "Metaanalýza studií do 31. 10. 2012: genotyp ACE II proti nositelům alely D OR 1,23 (95% CI 1,05–1,45) pro sportovní výkon, u vytrvalců OR 1,35 (1,17–1,55). ACTN3 RR proti nositelům X celkově bez asociace (OR 1,03), v silově-rychlostních disciplínách OR 1,21 (1,03–1,42).",
+   "limitations": "Heterogenní studie typu případ–kontrola s různými populacemi a definicemi disciplín; OR je poměr šancí na úrovni skupiny, ne pravděpodobnost úspěchu jednotlivce.",
+   "tags": [
+    "genetika",
+    "ACE",
+    "ACTN3",
+    "rs1799752",
+    "rs1815739",
+    "výkon a trénink"
+   ],
+   "karty": [
+    {
+     "varianta": "rs1799752",
+     "zdroje": [
+      "S4"
+     ]
+    },
+    {
+     "varianta": "rs1815739",
+     "zdroje": [
+      "S3"
+     ]
+    }
+   ],
+   "population_sport": "různé",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "sportovci vs. kontroly",
+   "sample_size": null,
+   "curator_note": "Navrženo z genové karty ACE (S4) a ACTN3 (S3): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.3390/ijerph21111439",
+   "pmid": "39595706",
+   "title": "Role of the ACE I/D Polymorphism in Selected Public Health-Associated Sporting Modalities: An Updated Systematic Review and Meta-Analysis",
+   "authors": "Sommers L, Akam L, Hunter DJ, Bhatti JS, Mastana S",
+   "journal": "Int J Environ Res Public Health",
+   "year": 2024,
+   "abstract": "The ACE I/D polymorphism has been suggested to be associated with multiple chronic diseases and sports modalities, which has public health implications for global populations and sport performance. This updated review aims to strengthen the association and identify sporting disciplines that are most influenced by the ACE gene polymorphism using a meta-analysis approach. Published studies on the association between the ACE I/D polymorphism and elite endurance and power were collected until 15 June 2024. The studies on public health-associated sports like running, swimming, and cycling were systematically reviewed following pre-agreed criteria, and a meta-analysis was carried out using different genetic models. A total of 137 studies were identified in the literature search and screened. There was a significant association between elite endurance and the II genotype compared with healthy inactive controls (OR, 1.54; 95%CI, 1.24-1.91) and elite power athletes (OR = 1.56; 95%CI = 1.07-2.28). Specifically, runners and triathletes were associated with the II genotype compared with controls (OR = 1.76; 95%CI = 1.26-2.47; p-value = 0.001 and OR = 2.69; 95%CI = 1.15-6.32, p-value = 0.023, respectively). Additionally, endurance swimmers were associated with the II genotype compared with short-distance, power swimmers (OR = 2.27; 95%CI = 1.49-3.45; p-value < 0.001). The meta-analysis results confirm and strengthen the association between elite endurance and the ACE I/D polymorphism in different sporting modalities, which may have implications for public health and sports participation.",
+   "url": "https://doi.org/10.3390/ijerph21111439",
+   "evidence_level": "meta",
+   "key_finding": "Aktualizovaná metaanalýza (studie do 15. 6. 2024, 137 nalezených): genotyp II je u elitních vytrvalců častější než u neaktivních kontrol (OR 1,54; 95% CI 1,24–1,91) i než u silových sportovců (OR 1,56; 1,07–2,28); u běžců OR 1,76, u triatlonistů 2,69, u vytrvalostních plavců proti sprinterům 2,27.",
+   "limitations": "Studie případ–kontrola s publikačním zkreslením a heterogenitou populací; nic o odezvě jednotlivce na trénink.",
+   "tags": [
+    "genetika",
+    "ACE",
+    "rs1799752",
+    "výkon a trénink"
+   ],
+   "karty": [
+    {
+     "varianta": "rs1799752",
+     "zdroje": [
+      "S5"
+     ]
+    }
+   ],
+   "population_sport": "běh, triatlon, plavání, cyklistika",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "elitní sportovci",
+   "sample_size": null,
+   "curator_note": "Navrženo z genové karty ACE (zdroj S5): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1038/7675",
+   "pmid": "10192379",
+   "title": "A common nonsense mutation results in alpha-actinin-3 deficiency in the general population",
+   "authors": "North KN, Yang N, Wattanasirichaigoon D, Mills M, Easteal S, Beggs AH",
+   "journal": "Nat Genet",
+   "year": 1999,
+   "abstract": "",
+   "url": "https://doi.org/10.1038/7675",
+   "evidence_level": "cross",
+   "key_finding": "Krátké sdělení: běžná nonsense mutace R577X genu ACTN3 vede u homozygotů XX k úplné absenci α-aktininu-3 v rychlých svalových vláknech, bez projevů onemocnění.",
+   "limitations": "Krátké sdělení bez abstraktu; popisuje molekulární důsledek, ne výkon.",
+   "tags": [
+    "genetika",
+    "ACTN3",
+    "rs1815739",
+    "výkon a trénink"
+   ],
+   "karty": [],
+   "population_sport": "",
+   "population_sex": "",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": null,
+   "curator_note": "Doplněk ke kartě ACTN3 (důkaz E01 se opírá jen o záznam ClinVar); před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1086/377590",
+   "pmid": "12879365",
+   "title": "ACTN3 genotype is associated with human elite athletic performance",
+   "authors": "Yang N, MacArthur DG, Gulbin JP, Hahn AG, Beggs AH, Easteal S, North K",
+   "journal": "Am J Hum Genet",
+   "year": 2003,
+   "abstract": "There is increasing evidence for strong genetic influences on athletic performance and for an evolutionary \"trade-off\" between performance traits for speed and endurance activities. We have recently demonstrated that the skeletal-muscle actin-binding protein alpha-actinin-3 is absent in 18% of healthy white individuals because of homozygosity for a common stop-codon polymorphism in the ACTN3 gene, R577X. alpha-Actinin-3 is specifically expressed in fast-twitch myofibers responsible for generating force at high velocity. The absence of a disease phenotype secondary to alpha-actinin-3 deficiency is likely due to compensation by the homologous protein, alpha-actinin-2. However, the high degree of evolutionary conservation of ACTN3 suggests function(s) independent of ACTN2. Here, we demonstrate highly significant associations between ACTN3 genotype and athletic performance. Both male and female elite sprint athletes have significantly higher frequencies of the 577R allele than do controls. This suggests that the presence of alpha-actinin-3 has a beneficial effect on the function of skeletal muscle in generating forceful contractions at high velocity, and provides an evolutionary advantage because of increased sprint performance. There is also a genotype effect in female sprint and endurance athletes, with higher than expected numbers of 577RX heterozygotes among sprint athletes and lower than expected numbers among endurance athletes. The lack of a similar effect in males suggests that the ACTN3 genotype affects athletic performance differently in males and females. The differential effects in sprint and endurance athletes suggests that the R577X polymorphism may have been maintained in the human population by balancing natural selection.",
+   "url": "https://doi.org/10.1086/377590",
+   "evidence_level": "cross",
+   "key_finding": "Elitní australští sprinteři i sprinterky měli významně vyšší frekvenci alely 577R než kontroly; u žen bylo mezi sprinterkami více heterozygotek RX a mezi vytrvalkyněmi méně, u mužů tento efekt chyběl.",
+   "limitations": "Studie případ–kontrola u elitních sportovců; velikost efektu malá a pozdější replikace nejednotné.",
+   "tags": [
+    "genetika",
+    "ACTN3",
+    "rs1815739",
+    "výkon a trénink"
+   ],
+   "karty": [],
+   "population_sport": "atletika",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "elitní sportovci",
+   "sample_size": null,
+   "curator_note": "Doplněk ke kartě ACTN3 (původní asociační studie); před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1136/bjsports-2015-095343",
+   "pmid": "26582191",
+   "title": "Direct-to-consumer genetic testing for predicting sports performance and talent identification: Consensus statement",
+   "authors": "Webborn N, Williams A, McNamee M, Bouchard C, Pitsiladis Y, Ahmetov I, Ashley E, Byrne N, Camporesi S, Collins M, Dijkstra P, Eynon N, Fuku N, Garton FC, Hoppe N, Holm S, Kaye J, Klissouras V, Lucia A, Maase K, Moran C, North KN, Pigozzi F, Wang G",
+   "journal": "Br J Sports Med",
+   "year": 2015,
+   "abstract": "The general consensus among sport and exercise genetics researchers is that genetic tests have no role to play in talent identification or the individualised prescription of training to maximise performance. Despite the lack of evidence, recent years have witnessed the rise of an emerging market of direct-to-consumer marketing (DTC) tests that claim to be able to identify children's athletic talents. Targeted consumers include mainly coaches and parents. There is concern among the scientific community that the current level of knowledge is being misrepresented for commercial purposes. There remains a lack of universally accepted guidelines and legislation for DTC testing in relation to all forms of genetic testing and not just for talent identification. There is concern over the lack of clarity of information over which specific genes or variants are being tested and the almost universal lack of appropriate genetic counselling for the interpretation of the genetic data to consumers. Furthermore independent studies have identified issues relating to quality control by DTC laboratories with different results being reported from samples from the same individual. Consequently, in the current state of knowledge, no child or young athlete should be exposed to DTC genetic testing to define or alter training or for talent identification aimed at selecting gifted children or adolescents. Large scale collaborative projects, may help to develop a stronger scientific foundation on these issues in the future.",
+   "url": "https://doi.org/10.1136/bjsports-2015-095343",
+   "evidence_level": "expert",
+   "key_finding": "Konsenzus 2015: genetické testy nemají roli ve výběru talentů ani v individuálním předepisování tréninku; žádné dítě ani mladý sportovec by neměl být kvůli tomu komerčně testován. Upozorňuje na nejasnost testovaných variant, chybějící genetické poradenství a rozdílné výsledky téhož vzorku v různých laboratořích.",
+   "limitations": "Stanovisko expertů bez nových dat; platí obecně pro všechny varianty v panelu.",
+   "tags": [
+    "genetika",
+    "ACTN3",
+    "ACE",
+    "rs1815739",
+    "rs1799752",
+    "konsenzus"
+   ],
+   "karty": [
+    {
+     "varianta": "rs1815739",
+     "zdroje": [
+      "S4"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": null,
+   "curator_note": "Navrženo z genové karty ACTN3 (zdroj S4); karta ACE ho žádá u důkazu E05: hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.3390/nu16152511",
+   "pmid": "39125391",
+   "title": "Association of Genetic Profile with Muscle Mass Gain and Muscle Injury Prevention in Professional Football Players after Creatine Supplementation",
+   "authors": "Varillas-Delgado D",
+   "journal": "Nutrients",
+   "year": 2024,
+   "abstract": "In recent years, the study of creatine supplementation in professional athletes has been of great interest. However, the genetics involved in response to supplementation is unknown. The aim of this study was to analyse, for the first time, the relationship between muscle performance-related genes and the risk of an increased body mass index (BMI) and muscle mass and a decrease in fat mass in professional football players after creatine supplementation.\n\nFor this longitudinal study, one hundred and sixty-one men's professional football players were recruited. The polymorphismsI/D,c.1729C>T,c.34C>T,c.*800A>G, and(c.49C>T and c.37885C>A) were genotyped using Single-Nucleotide Primer Extension (SNPE). To assess the combined impact of these six polymorphisms, a total genotype score (TGS) was calculated. The creatine supplementation protocol consisted of 20 g/day of creatine monohydrate for 5 days (loading dose) and 3-5 g/day for 7 weeks (maintenance dose). Anthropometric characteristics (body mass index (BMI), fat, and muscle mass) were recorded before and after the creatine supplementation protocol. Characteristics of non-contact muscle injuries during the 2022/2023 season were classified according to a consensus statement for injury recording. The results showed that the allelic frequencies ofanddiffered between responders and non-responders in muscle mass increase (all< 0.05). Players with a TGS exceeding 54.16 a.u. had an odds ratio (OR) of 2.985 (95%CI: 1.560-5.711;= 0.001) for muscle mass increase. By contrast, those with a TGS below 54.16 a.u. had an OR of 9.385 (95%CI: 4.535-19.425;< 0.001) for suffering non-contact muscle injuries during the season.\n\nThe increase in BMI and muscle mass in response to creatine supplementation in professional football players was influenced by a TGS derived from the combination of favourable genotypes linked to muscle performance. The CC genotype and C allele ofwere particularly associated with a higher likelihood of muscle mass increase under creatine supplementation in this group of professional football players.",
+   "url": "https://doi.org/10.3390/nu16152511",
+   "evidence_level": "cohort",
+   "key_finding": "161 profesionálních fotbalistů po 8 týdnech kreatinu: přírůstek svalové hmoty souvisel se skóre ze šesti polymorfismů (skóre nad 54,16: OR 2,99 pro přírůstek; pod hranicí OR 9,39 pro nekontaktní svalové zranění v sezóně). Samotný ACTN3 R577X se mezi respondéry a nerespondéry nelišil.",
+   "limitations": "Jediná kohorta bez placebové větve, skóre kombinuje více genů; nelze přenést na jednu variantu, na ženy ani na jiné sporty.",
+   "tags": [
+    "genetika",
+    "ACTN3",
+    "rs1815739",
+    "kreatin"
+   ],
+   "karty": [
+    {
+     "varianta": "rs1815739",
+     "zdroje": [
+      "S5"
+     ]
+    }
+   ],
+   "population_sport": "fotbal",
+   "population_sex": "M",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "profesionální",
+   "sample_size": 161,
+   "curator_note": "Navrženo z genové karty ACTN3 (zdroj S5): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.3390/nu16121803",
+   "pmid": "38931158",
+   "title": "Effect of ADORA2A Gene Polymorphism and Acute Caffeine Supplementation on Hormonal Response to Resistance Exercise: A Double-Blind, Crossover, Placebo-Controlled Study",
+   "authors": "Rahimi MR, Semenova EA, John G, Fallah F, Larin AK, Generozov EV, Ahmetov II",
+   "journal": "Nutrients",
+   "year": 2024,
+   "abstract": "Previous studies have reported that TT genotype carriers of the adenosine A2a receptor () gene rs5751876 polymorphism have better ergogenic and anti-inflammatory responses to caffeine intake compared to C allele carriers. The aim of the present study was twofold: (1) to investigate the association of thers5751876 polymorphism with acute caffeine supplementation on hormonal (growth hormone and testosterone) response to resistance exercise (RE); (2) to examine the relationship between the rs5751876 polymorphism and the resting levels of growth hormone and testosterone in athletes who are light caffeine consumers. A double-blind, crossover, placebo-controlled study involving 30 resistance-trained men (age 21.7 ± 4.1) was conducted to assess the impact of caffeine supplementation on serum growth hormone (GH) and testosterone (TS) levels before, immediately after, and 15 min post-RE. One hour before engaging in resistance exercise, subjects were randomly administered 6 mg of caffeine per kg of body mass or a placebo (maltodextrin). After a 7-day washout period, the same protocol was repeated. Resting testosterone and growth hormone levels were examined in the sera of 94 elite athletes (31 females, age 21.4 ± 2.8; 63 males, age 22.9 ± 3.8). Caffeine consumption led to significantly greater increases in GH and TS in men with the TT genotype compared to C allele carriers. Furthermore, in the group of athletes, carriers of the TT genotype had significantly higher testosterone (= 0.0125) and growth hormone (= 0.0365) levels compared to C allele carriers. In conclusion, thegene rs5751876 polymorphism may modify the effect of caffeine intake on the hormonal response to exercise.",
+   "url": "https://doi.org/10.3390/nu16121803",
+   "evidence_level": "rct",
+   "key_finding": "30 silově trénovaných mužů, 6 mg/kg kofeinu proti placebu: u genotypu TT rs5751876 genu ADORA2A větší vzestup růstového hormonu a testosteronu po silovém tréninku než u nositelů C; u 94 elitních sportovců měli TT vyšší klidový testosteron i GH.",
+   "limitations": "Jiný gen než CYP1A2 (ADORA2A není v panelu), malý soubor; hormonální odezva není výkon.",
+   "tags": [
+    "genetika",
+    "ADORA2A",
+    "CYP1A2",
+    "rs762551",
+    "kofein"
+   ],
+   "karty": [
+    {
+     "varianta": "rs762551",
+     "zdroje": [
+      "S8"
+     ]
+    }
+   ],
+   "population_sport": "silový trénink",
+   "population_sex": "M",
+   "population_age_min": 18,
+   "population_age_max": 26,
+   "population_level": "",
+   "sample_size": 30,
+   "curator_note": "Navrženo z genové karty CYP1A2 (zdroj S8, mimo panel): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1136/bjsm.2008.048793",
+   "pmid": "18443036",
+   "title": "Variants within the COL5A1 gene are associated with Achilles tendinopathy in two populations",
+   "authors": "September AV, Cook J, Handley CJ, van der Merwe L, Schwellnus MP, Collins M",
+   "journal": "Br J Sports Med",
+   "year": 2008,
+   "abstract": "A COL5A1 gene variant was shown to be associated with chronic Achilles tendinopathy in a South African population. The aim of this case-control genetic association study was to investigate the BstUI and DpnII restriction fragment length polymorphisms (RFLP) in a second population from Australia and to identify a predisposing haplotype for Achilles tendinopathy in both populations.\n\n85 Australian and 93 South African patients with tendinopathy, as well as 210 Australian and 132 white South African control subjects were genotyped for the BstUI (rs12722) and DpnII (rs13946) RFLP, as well as markers rs10858286, rs3196378, rs11103544, rs4504708 and rs3128575.\n\nThe BstUI RFLP (p<0.001) and marker rs3196378 (p = 0.016) were associated with chronic Achilles tendinopathy in Australian subjects. Individuals within both populations with a CC genotype for the BstUI RFLP had a significantly decreased risk of developing tendinopathy versus any other genotypes (Australian odds ratio 0.42, 95% CI 0.20 to 0.86, p = 0.017). The TC inferred haplotype (rs12722, rs3196378) was found to be overrepresented (global p = 0.008) in the South African tendinopathy group compared with all other haplotypes.\n\nThe BstUI RFLP is associated with chronic Achilles tendinopathy in a second population and a region within the COL5A1 3' untranslated region may predispose individuals to an increased risk of developing chronic Achilles tendinopathy.",
+   "url": "https://doi.org/10.1136/bjsm.2008.048793",
+   "evidence_level": "cross",
+   "key_finding": "Dvě populace (85 australských a 93 jihoafrických pacientů s chronickou tendinopatií Achillovy šlachy proti 210 a 132 kontrolám): genotyp CC rs12722 (BstUI) byl spojen s nižším rizikem tendinopatie (Austrálie OR 0,42; 95% CI 0,20–0,86); v jihoafrické skupině byl nadměrně zastoupen haplotyp TC.",
+   "limitations": "Případ–kontrola, bílé populace, malé soubory; jde o chronickou tendinopatii, ne o akutní zranění ani o výkon.",
+   "tags": [
+    "genetika",
+    "COL5A1",
+    "rs12722",
+    "pohybový aparát"
+   ],
+   "karty": [
+    {
+     "varianta": "rs12722",
+     "zdroje": [
+      "S1"
+     ]
+    }
+   ],
+   "population_sport": "různé (pacienti s tendinopatií)",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": 520,
+   "curator_note": "Navrženo z genové karty COL5A1 (zdroj S1); tištěné vydání 2009: hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1249/MSS.0b013e3181f34f4d",
+   "pmid": "20798666",
+   "title": "The COL5A1 gene: a novel marker of endurance running performance",
+   "authors": "Posthumus M, Schwellnus MP, Collins M",
+   "journal": "Med Sci Sports Exerc",
+   "year": 2011,
+   "abstract": "Running economy, a key component of endurance ability, has been shown to be associated with flexibility. Increased stiffness (inflexibility) may improve running economy and therefore endurance running ability. The COL5A1 gene, which encodes the α1-chain of type V collagen, was found to associate with measures of flexibility. Type V collagen is a quantitatively minor fibrillar collagen, which is believed to regulate fibrillogenesis within tendons and other connective tissue.\n\nThe aim of this study was therefore to determine whether the COL5A1 gene is associated with endurance performance.\n\nThree hundred thirteen Caucasian male participants who completed either the 2006 or the 2007 226-km South African Ironman triathlon (3.8-km swim, 180-km bike, and 42.2-km run) participated in this study. All participants were genotyped for the COL5A1 BstUI restriction fragment length polymorphism (RFLP).\n\nThe COL5A1 BstUI RFLP was significantly associated with time to complete the running component of the triathlon. Participants with a TT genotype completed the running component of the race significantly faster than individuals with a CC genotype (P = 0.019; mean ± SD: TT = 294.2 ± 52.1 min, CC = 307.4 ± 48.6 min). In addition, there was a significant linear trend (P = 0.020) in the CC genotype distribution when the run times were divided into the fastest (13%), middle (17%), and slowest (25%) tertiles. There were no significant genotype differences for time to complete the swim, the bike, or the overall race. COL5A1 BstUI RFLP, body mass index, age, and 15 wk of running training history predicted 30% of the variance in running performance.\n\nThis is the first study to identify the COL5A1 BstUI RFLP as a marker for endurance running performance. Further studies are required to replicate these findings.",
+   "url": "https://doi.org/10.1249/MSS.0b013e3181f34f4d",
+   "evidence_level": "cross",
+   "key_finding": "313 bělošských mužů v Ironmanu: nositelé TT rs12722 dokončili běžeckou část rychleji než CC (294 ± 52 vs. 307 ± 49 min; P = 0,019); u plavání, kola ani celkového času rozdíl nebyl. Genotyp spolu s BMI, věkem a tréninkem vysvětlil 30 % rozptylu běžeckého času.",
+   "limitations": "Jedna asociační studie, jen muži; autoři sami žádají replikaci.",
+   "tags": [
+    "genetika",
+    "COL5A1",
+    "rs12722",
+    "pohybový aparát",
+    "vytrvalost"
+   ],
+   "karty": [
+    {
+     "varianta": "rs12722",
+     "zdroje": [
+      "S2"
+     ]
+    }
+   ],
+   "population_sport": "triatlon",
+   "population_sex": "M",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": 313,
+   "curator_note": "Navrženo z genové karty COL5A1 (zdroj S2): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.18632/oncotarget.23805",
+   "pmid": "29632650",
+   "title": "Association between polymorphism rs12722 in COL5A1 and musculoskeletal soft tissue injuries: a systematic review and meta-analysis",
+   "authors": "Lv ZT, Gao ST, Cheng P, Liang S, Yu SY, Yang Q, Chen AM",
+   "journal": "Oncotarget",
+   "year": 2017,
+   "abstract": "The rs12722 polymorphism in COL5A1 gene has been implicated in the etiology of musculoskeletal soft tissue injuries in several association studies with limited sample size and conflicting results. The purpose of the present systematic review and meta-analysis was to evaluate and synthesize the currently available data on the association between rs12722 and musculoskeletal soft tissue injuries. Five electronic databases including Pubmed, EMBASE, ISI Web of Science, CNKI and Wanfang were searched to identify relevant studies published before 15 May, 2017. Summary odds ratios (ORs) and corresponding 95% confidence intervals (95% CIs) were estimated using the RevMan 5.3 software. Nine studies comprising 1140 cases and 1410 healthy controls met the eligibility criteria. Recessive model was confirmed to be the optimum model (TT vs TC + CC). The results indicated that rs12722 SNP was significantly associated with musculoskeletal soft tissue injuries (OR 1.58, 95% CI 1.33, 1.89;< 0.00001). When stratified by injury sites, modest but statistically significant association was found in Achilles tendon pathology (ATP), anterior cruciate ligament injuries (ACLI) and tennis elbow (TE). Subgroup-analysis by ethnicity suggested that TT genotype of rs12722 was associated with tendon and ligament injuries in Caucasians (OR 1.59, 95% CI 1.33, 1.90;< 0.00001) but not in Asians (OR 1.46, 95% CI 0.46, 4.60;= 0.52). Our findings indicated that rs12722 of COL5A1 was positively associated with tendon and ligament injuries, especially in Caucasian subjects. Individuals with TT genotype were predisposed to higher risk of ATP, ACLI and TE.",
+   "url": "https://doi.org/10.18632/oncotarget.23805",
+   "evidence_level": "meta",
+   "key_finding": "Metaanalýza 9 studií (1140 případů, 1410 kontrol): genotyp TT rs12722 spojen s poraněním měkkých tkání pohybového aparátu (OR 1,58; 95% CI 1,33–1,89), zejména u bělochů (OR 1,59), u Asiatů bez významné asociace; mírné asociace pro tendinopatii Achillovy šlachy, poranění ACL a tenisový loket.",
+   "limitations": "Malé původní studie, různé definice zranění, převaha bělošských populací.",
+   "tags": [
+    "genetika",
+    "COL5A1",
+    "rs12722",
+    "pohybový aparát"
+   ],
+   "karty": [
+    {
+     "varianta": "rs12722",
+     "zdroje": [
+      "S3"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": 2550,
+   "curator_note": "Navrženo z genové karty COL5A1 (zdroj S3); tištěné vydání 2018: hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1186/s12881-019-0928-2",
+   "pmid": "31791263",
+   "title": "COL5A1 rs12722 polymorphism is not associated with passive muscle stiffness and sports-related muscle injury in Japanese athletes",
+   "authors": "Miyamoto-Mikami E, Miyamoto N, Kumagai H, Hirata K, Kikuchi N, Zempo H, Kimura N, Kamiya N, Kanehisa H, Naito H, Fuku N",
+   "journal": "BMC Med Genet",
+   "year": 2019,
+   "abstract": "Poor joint flexibility has been repeatedly proposed as a risk factor for muscle injury. The C-to-T polymorphism (rs12722) in the 3'-untranslated region of the collagen type V α1 chain gene (COL5A1) is reportedly associated with joint flexibility. Flexibility of a normal joint is largely determined by passive muscle stiffness, which is influenced by intramuscular collagenous connective tissues including type V collagen. The present study aimed to test the hypothesis that the COL5A1 rs12722 polymorphism influences joint flexibility via passive muscle stiffness, and is accordingly associated with the incidence of muscle injury. In Study 1, we examined whether the rs12722 polymorphism is associated with joint flexibility and passive muscle stiffness in 363 healthy young adults. Joint flexibility was evaluated by passive straight-leg-raise and sit-and-reach tests, and passive muscle stiffness was measured using ultrasound shear wave elastography. In Study 2, the association of the rs12722 polymorphism with sports-related muscle injury was assessed in 1559 Japanese athletes. Muscle injury history and severity were assessed by a questionnaire. Study 1 revealed that the rs12722 polymorphism had no significant effect on range of motion in passive straight-leg-raise and sit-and-reach tests. Furthermore, there was no significant difference in passive muscle stiffness of the hamstring among the rs12722 genotypes. In Study 2, rs12722 genotype frequencies did not differ between the muscle injury and no muscle injury groups. Moreover, no association was observed between rs12722 polymorphism and severity of muscle injury. The present study does not support the view that COL5A1 rs12722 polymorphism has a role as a risk factor for sports-related muscle injury, or that it is a determinant for passive muscle stiffness in a Japanese population.",
+   "url": "https://doi.org/10.1186/s12881-019-0928-2",
+   "evidence_level": "cross",
+   "key_finding": "U 363 mladých dospělých nesouvisel rs12722 s rozsahem pohybu ani s pasivní tuhostí hamstringů měřenou elastografií; u 1559 japonských sportovců se frekvence genotypů nelišily mezi zraněnými a nezraněnými ani podle závažnosti zranění.",
+   "limitations": "Japonská populace, zranění z dotazníku; naznačuje, že asociace z bělošských studií nemusí platit v jiných populacích.",
+   "tags": [
+    "genetika",
+    "COL5A1",
+    "rs12722",
+    "pohybový aparát"
+   ],
+   "karty": [
+    {
+     "varianta": "rs12722",
+     "zdroje": [
+      "S4"
+     ]
+    }
+   ],
+   "population_sport": "různé",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": 1922,
+   "curator_note": "Navrženo z genové karty COL5A1 (zdroj S4): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1046/j.1365-2125.1999.00898.x",
+   "pmid": "10233211",
+   "title": "Functional significance of a C-->A polymorphism in intron 1 of the cytochrome P450 CYP1A2 gene tested with caffeine",
+   "authors": "Sachse C, Brockmöller J, Bauer S, Roots I",
+   "journal": "Br J Clin Pharmacol",
+   "year": 1999,
+   "abstract": "The cytochrome P450 enzyme CYP1A2 metabolises several drugs and carcinogens. We wanted to determine how much of the variability of CYP1A2 activity is explained by a newly discovered gene polymorphism in intron 1. A single nucleotide polymorphism in intron 1 of the CYP1A2 gene at position 734 downstream of the first transcribed nucleotide was identified by DNA sequence analysis. The functional significance of this C/A polymorphism was assessed in 185 healthy Caucasian non-smokers and in 51 smokers by genotyping and phenotyping using caffeine (100 mg oral dose). Out of the total sample, 46% were homozygous for the variant A, 44% were heterozygous, and 10% were homozygous for the variant C. The ratio of 1,7-dimethylxanthine (17X) plus 1,7-dimethyluric acid divided by caffeine in 0-5 h urine samples from 185 non-smokers did not differ significantly between the three CYP1A2 genotypes. In the 51 smokers, analysis of variance revealed significant differences in the 5 h plasma 17X/caffeine ratios between the genotypes (P=0.008, F-test). The mean ratio was 1.37 in carriers of the A/A genotype, 0.88 in heterozygotes and 0.82 in carriers of C/C. The mean difference between the A/A and C/A groups was 0.48 (95% confidence interval 0.15-0.81; P=0.01). The A/A genotype, which may represent a CYP1A2 high inducibility genotype, may either be a direct cause of increased CYP1A2 activity, or be genetically linked to polymorphisms conferring high inducibility. Further studies are needed to define the role of this polymorphism on the pharmacokinetics of drugs metabolised by CYP1A2 and in the activation of carcinogens.",
+   "url": "https://doi.org/10.1046/j.1365-2125.1999.00898.x",
+   "evidence_level": "cross",
+   "key_finding": "185 nekuřáků a 51 kuřáků, fenotypizace 100 mg kofeinu: u nekuřáků se poměr metabolitů mezi genotypy nelišil; u kuřáků měli nositelé A/A vyšší aktivitu CYP1A2 (poměr 1,37 proti 0,88 u C/A a 0,82 u C/C; P = 0,008). Alela A tedy znamená vyšší indukovatelnost enzymu, ne vyšší základní aktivitu.",
+   "limitations": "Bělošská populace, rozdíl patrný jen u kuřáků; k dávkování kofeinu u sportovců se vztahuje jen nepřímo.",
+   "tags": [
+    "genetika",
+    "CYP1A2",
+    "rs762551",
+    "kofein"
+   ],
+   "karty": [],
+   "population_sport": "",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": 236,
+   "curator_note": "Doplněk ke kartě CYP1A2 (důkaz E02 žádal primární zdroj k rychlosti odbourávání); před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1249/MSS.0000000000001596",
+   "pmid": "29509641",
+   "title": "Caffeine, CYP1A2 Genotype, and Endurance Performance in Athletes",
+   "authors": "Guest N, Corey P, Vescovi J, El-Sohemy A",
+   "journal": "Med Sci Sports Exerc",
+   "year": 2018,
+   "abstract": "Many studies have examined the effect of caffeine on exercise performance, but findings have not always been consistent. The objective of this study was to determine whether variation in the CYP1A2 gene, which affects caffeine metabolism, modifies the ergogenic effects of caffeine in a 10-km cycling time trial.\n\nCompetitive male athletes (n = 101; age = 25 ± 4 yr) completed the time trial under three conditions: 0, 2, or 4 mg of caffeine per kilogram body mass, using a split-plot randomized, double-blinded, placebo-controlled design. DNA was isolated from saliva and genotyped for the -163A > C polymorphism in the CYP1A2 gene (rs762551).\n\nOverall, 4 mg·kg caffeine decreased cycling time by 3% (mean ± SEM) versus placebo (17.6 ± 0.1 vs 18.1 ± 0.1 min, P = 0.01). However, a significant (P <0.0001) caffeine-gene interaction was observed. Among those with the AA genotype, cycling time decreased by 4.8% at 2 mg·kg (17.0 ± 0.3 vs 17.8 ± 0.4 min, P = 0.0005) and by 6.8% at 4 mg·kg (16.6 ± 0.3 vs 17.8 ± 0.4 min, P < 0.0001). In those with the CC genotype, 4 mg·kg increased cycling time by 13.7% versus placebo (20.8 ± 0.8 vs 18.3 ± 0.5 min, P = 0.04). No effects were observed among those with the AC genotype.\n\nOur findings show that both 2 and 4 mg·kg caffeine improve 10-km cycling time, but only in those with the AA genotype. Caffeine had no effect in those with the AC genotype and diminished performance at 4 mg·kg in those with the CC genotype. CYP1A2 genotype should be considered when deciding whether an athlete should use caffeine for enhancing endurance performance.",
+   "url": "https://doi.org/10.1249/MSS.0000000000001596",
+   "evidence_level": "rct",
+   "key_finding": "101 trénovaných mužů, 10km časovka na kole, placebo / 2 / 4 mg/kg kofeinu: celkově 4 mg/kg zrychlilo o 3 %. U genotypu AA zlepšení o 4,8 % (2 mg/kg) a 6,8 % (4 mg/kg), u AC bez účinku, u CC zpomalení o 13,7 % při 4 mg/kg (P = 0,04).",
+   "limitations": "Jen muži a jedna vytrvalostní disciplína, malá skupina CC; zhoršení u CC se v jiných studiích neopakuje konzistentně.",
+   "tags": [
+    "genetika",
+    "CYP1A2",
+    "rs762551",
+    "kofein"
+   ],
+   "karty": [
+    {
+     "varianta": "rs762551",
+     "zdroje": [
+      "S3"
+     ]
+    }
+   ],
+   "population_sport": "cyklistika",
+   "population_sex": "M",
+   "population_age_min": 21,
+   "population_age_max": 29,
+   "population_level": "trénovaní sportovci",
+   "sample_size": 101,
+   "curator_note": "Navrženo z genové karty CYP1A2 (zdroj S3): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1007/s00394-020-02427-6",
+   "pmid": "33137206",
+   "title": "CYP1A2 genotype and acute ergogenic effects of caffeine intake on exercise performance: a systematic review",
+   "authors": "Grgic J, Pickering C, Del Coso J, Schoenfeld BJ, Mikulic P",
+   "journal": "Eur J Nutr",
+   "year": 2020,
+   "abstract": "To systematically review studies that examined the influence of the CYP1A2 -163C>A polymorphism on the ergogenic effects of caffeine and to discuss some of the reasons for the discrepancies in findings between the studies.\n\nThis review was performed in accordance with the PRISMA guidelines. The search for studies was performed through nine databases.\n\nSeventeen studies were included in the review. Based on the included studies, it seems that individuals with the AA or AC/CC genotype may experience an increase in performance following caffeine ingestion. Significant differences between genotypes were found in four studies, and all four reported a more favorable response in the AA vs. AC/CC genotype. These results suggest that if there is an actual genotype-related effect of acute caffeine supplementation, it might be in that direction. In the studies that reported such data for aerobic endurance, the findings are specific to male participants performing cycling time trials (distances of ≥ 10 km) and ingesting caffeine 60 min before exercise. For high-intensity exercise, two studies reported that genotype variations determined the response to caffeine ingestion, even though the differences were either small (~ 1 additional repetition in high-load resistance exercise set performed to muscular failure) or inconsistent (i.e., observed only in one out of eight performance tests).\n\nCYP1A2 genotype variations may modulate caffeine's ergogenic effects, but the differences between genotypes were small, inconsistent, or limited to specific exercise scenarios. Future studies with larger sample sizes are needed to fully elucidate this research area.",
+   "url": "https://doi.org/10.1007/s00394-020-02427-6",
+   "evidence_level": "meta",
+   "key_finding": "Systematický přehled 17 studií: po kofeinu se zlepšili nositelé AA i AC/CC; ve čtyřech studiích s rozdílem mezi genotypy byla odezva příznivější u AA. U vytrvalosti to platí pro muže v cyklistických časovkách od 10 km s kofeinem 60 minut před výkonem; u vysoké intenzity byly rozdíly malé nebo nekonzistentní.",
+   "limitations": "Malé studie; autoři hodnotí vliv genotypu jako malý a vázaný na konkrétní scénáře.",
+   "tags": [
+    "genetika",
+    "CYP1A2",
+    "rs762551",
+    "kofein"
+   ],
+   "karty": [],
+   "population_sport": "",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": null,
+   "curator_note": "Doplněk ke kartě CYP1A2 (starší systematický přehled, střízlivější závěr než Messenburger 2025); před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1123/ijsnem.2020-0395",
+   "pmid": "34284351",
+   "title": "CYP1A2 Genotype Modifies the Effects of Caffeine Compared With Placebo on Muscle Strength in Competitive Male Athletes",
+   "authors": "Wong O, Marshall K, Sicova M, Guest NS, García-Bailo B, El-Sohemy A",
+   "journal": "Int J Sport Nutr Exerc Metab",
+   "year": 2021,
+   "abstract": "Caffeine is commonly used to improve athletic performance across a variety of sports. Previously, the CYP1A2 gene has been shown to modify the effects of caffeine on endurance performance. The effect of caffeine on strength and power activities is unclear and may differ depending on an individual's CYP1A2 genotype. A randomized controlled trial was used to determine whether caffeine impacts strength and power, determined by the handgrip and vertical jump tests, respectively, and whether CYP1A2 genotype modifies any effects. Competitive male athletes (age = 25 ± 4 years) completed vertical jump (n = 97), and handgrip tests (n = 102) under three conditions: 0 (placebo), 2, or 4 mg of caffeine per kilogram of body mass (in milligrams per kilogram). CYP1A2 (rs762551) genotype was determined from saliva samples. No differences between caffeine doses and placebo were observed for strength or power; however, significant Caffeine × Gene interactions were observed for all exercise tests. Individuals with the CC genotype experienced a 12.8% decrease in handgrip strength with 4 mg/kg of caffeine compared with placebo (53 ± 11 kg vs. 61 ± 17 kg, p = .02). No differences were observed in those with the AC or AA genotypes. Despite observing a significant Caffeine × Gene interaction for vertical jump performance, no differences were observed between caffeine doses and placebo for all genotypes. In summary, caffeine (4 mg/kg) worsened handgrip strength performance in those with the CC genotype, but no differences were observed in those with the AC or AA genotypes. Athletes may want to consider their CYP1A2 genotype prior to using caffeine to improve muscle strength.",
+   "url": "https://doi.org/10.1123/ijsnem.2020-0395",
+   "evidence_level": "rct",
+   "key_finding": "Trénovaní muži (výskok n = 97, stisk ruky n = 102), placebo / 2 / 4 mg/kg: kofein celkově sílu ani výskok nezlepšil; u genotypu CC 4 mg/kg snížilo sílu stisku o 12,8 % (53 ± 11 vs. 61 ± 17 kg; P = 0,02), u AA a AC bez rozdílu; u výskoku interakce bez rozdílu mezi dávkami.",
+   "limitations": "Jen muži, malá skupina CC, krátké testy; účinek na výskok a sprint nepotvrzen.",
+   "tags": [
+    "genetika",
+    "CYP1A2",
+    "rs762551",
+    "kofein",
+    "síla"
+   ],
+   "karty": [
+    {
+     "varianta": "rs762551",
+     "zdroje": [
+      "S6"
+     ]
+    }
+   ],
+   "population_sport": "různé",
+   "population_sex": "M",
+   "population_age_min": 21,
+   "population_age_max": 29,
+   "population_level": "trénovaní sportovci",
+   "sample_size": 102,
+   "curator_note": "Navrženo z genové karty CYP1A2 (zdroj S6): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1186/s12970-020-00383-4",
+   "pmid": "33388079",
+   "title": "International society of sports nutrition position stand: caffeine and exercise performance",
+   "authors": "Guest NS, VanDusseldorp TA, Nelson MT, Grgic J, Schoenfeld BJ, Jenkins NDM, Arent SM, Antonio J, Stout JR, Trexler ET, Smith-Ryan AE, Goldstein ER, Kalman DS, Campbell BI",
+   "journal": "J Int Soc Sports Nutr",
+   "year": 2021,
+   "abstract": "Following critical evaluation of the available literature to date, The International Society of Sports Nutrition (ISSN) position regarding caffeine intake is as follows: 1. Supplementation with caffeine has been shown to acutely enhance various aspects of exercise performance in many but not all studies. Small to moderate benefits of caffeine use include, but are not limited to: muscular endurance, movement velocity and muscular strength, sprinting, jumping, and throwing performance, as well as a wide range of aerobic and anaerobic sport-specific actions. 2. Aerobic endurance appears to be the form of exercise with the most consistent moderate-to-large benefits from caffeine use, although the magnitude of its effects differs between individuals. 3. Caffeine has consistently been shown to improve exercise performance when consumed in doses of 3-6 mg/kg body mass. Minimal effective doses of caffeine currently remain unclear but they may be as low as 2 mg/kg body mass. Very high doses of caffeine (e.g. 9 mg/kg) are associated with a high incidence of side-effects and do not seem to be required to elicit an ergogenic effect. 4. The most commonly used timing of caffeine supplementation is 60 min pre-exercise. Optimal timing of caffeine ingestion likely depends on the source of caffeine. 5. Caffeine appears to improve physical performance in both trained and untrained individuals. 6. Inter-individual differences in sport and exercise performance as well as adverse effects on sleep or feelings of anxiety following caffeine ingestion may be attributed to genetic variation associated with caffeine metabolism, and physical and psychological response. Other factors such as habitual caffeine intake also may play a role in between-individual response variation. 7. Caffeine has been shown to be ergogenic for cognitive function, including attention and vigilance, in most individuals. 8. Caffeine may improve cognitive and physical performance in some individuals under conditions of sleep deprivation. 9. The use of caffeine in conjunction with endurance exercise in the heat and at altitude is well supported when dosages range from 3 to 6 mg/kg and 4-6 mg/kg, respectively. 10. Alternative sources of caffeine such as caffeinated chewing gum, mouth rinses, energy gels and chews have been shown to improve performance, primarily in aerobic exercise. 11. Energy drinks and pre-workout supplements containing caffeine have been demonstrated to enhance both anaerobic and aerobic performance.",
+   "url": "https://doi.org/10.1186/s12970-020-00383-4",
+   "evidence_level": "expert",
+   "key_finding": "Stanovisko ISSN: kofein 3–6 mg/kg zlepšuje vytrvalost nejkonzistentněji, dále sílu, rychlost, skok i hod; minimální účinná dávka může být 2 mg/kg, 9 mg/kg přináší hlavně nežádoucí účinky; obvyklé načasování 60 minut před výkonem; účinek se mezi jedinci liší i podle genetické variability metabolismu kofeinu a podle návyku.",
+   "limitations": "Konsenzus expertů; doporučení pro kofein obecně, ne podle genotypu.",
+   "tags": [
+    "genetika",
+    "CYP1A2",
+    "rs762551",
+    "kofein",
+    "konsenzus"
+   ],
+   "karty": [],
+   "population_sport": "",
+   "population_sex": "",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": null,
+   "curator_note": "Doplněk ke kartě CYP1A2 (důkaz E04 žádal aktuální doporučení k dávkování); před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1007/s11033-024-09800-2",
+   "pmid": "39042267",
+   "title": "Exploring the relationship between caffeine metabolism-related CYP1A2 rs762551 polymorphism and team sport athlete status and training adaptations",
+   "authors": "Kazan HH, Bulgay C, Zorba E, Dalip M, Ceylan HI, Semenova EA, Larin AK, Kulemin NA, Generozov EV, Ahmetov II, Cerit M",
+   "journal": "Mol Biol Rep",
+   "year": 2024,
+   "abstract": "This study aimed to achieve a dual objective: to compare the frequencies of CYP1A2 rs762551 genotypes between team sport athletes and a control group, and to determine the association between the rs762551 polymorphism and changes in physical performance after a six-week training program among elite basketball players.\n\nThe study encompassed an analysis of 504 individuals, comprising 320 athletes and 184 controls. For the Turkish cohort, DNA was isolated using the buccal swab method, and genotyping was conducted using the KASP technique. Performance assessments included the Yo-Yo IR2 and 30 m sprint tests. For Russian participants, DNA samples were extracted from peripheral blood, a commercial kit was used for DNA extraction, and genotyping of the rs762551 polymorphism was conducted using DNA microarray.\n\nNotably, a statistically significant linear decline in the prevalence of the CC genotype was observed with ascending levels of athletic achievement within team sports (sub-elite: 18.0%, elite: 8.2%, highly elite: 0%; p = 0.001). Additionally, the CA genotype was the most prevalent genotype in the highly elite group compared to controls (80.0% vs. 45.1%, p = 0.048). Furthermore, statistically significant improvements in Yo-Yo IR2 performance were noted exclusively among basketball players harboring the CA genotype (p = 0.048).\n\nThe study's findings indicate that the rs762551 CC genotype is a disadvantage in elite team sports, whereas the CA genotype provides an advantage in basketball performance.",
+   "url": "https://doi.org/10.1007/s11033-024-09800-2",
+   "evidence_level": "cross",
+   "key_finding": "504 osob (320 týmových sportovců, 184 kontrol): podíl genotypu CC klesal s úrovní (sub-elita 18 %, elita 8,2 %, nejvyšší elita 0 %; P = 0,001); po 6 týdnech tréninku se Yo-Yo IR2 zlepšil jen u basketbalistů s genotypem CA.",
+   "limitations": "Turecká a ruská kohorta; status sportovce není účinek kofeinu, malé podskupiny, zlepšení jen v jedné podskupině.",
+   "tags": [
+    "genetika",
+    "CYP1A2",
+    "rs762551",
+    "kofein"
+   ],
+   "karty": [
+    {
+     "varianta": "rs762551",
+     "zdroje": [
+      "S7"
+     ]
+    }
+   ],
+   "population_sport": "týmové sporty, basketbal",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": 504,
+   "curator_note": "Navrženo z genové karty CYP1A2 (zdroj S7): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1007/s40279-025-02245-y",
+   "pmid": "40579619",
+   "title": "Caffeine and Sports Performance: The Conflict between Caffeine Intake to Enhance Performance and Avoiding Caffeine to Ensure Sleep Quality",
+   "authors": "Silva H, Del Coso J, Pickering C",
+   "journal": "Sports Med",
+   "year": 2025,
+   "abstract": "The ergogenic effects of caffeine have been reported in scientific literature over a wide spectrum of sporting activities. The current recommendation for caffeine supplementation is ingesting ~3-6 mg/kg about 1 h before the onset of exercise. However, some studies reporting caffeine-induced ergogenic effects during exercise have also reported increased activation and reduced sleep quality in the hours after caffeine ingestion. While most of the research on caffeine supplementation for sporting activities recommends the consumption of this stimulant to enhance performance, research focusing on athletes' sleep quality advises against this decision, especially before competition in the evening or later. Considering that some athletes often compete in the evening or later, the general recommendation of caffeine supplementation may be modified for these athletes as acute caffeine intake in these conditions may produce undesirable side effects such as insomnia and, potentially, reduced performance in subsequent days. In this review, we examine literature on this topic to help athletes and sports practitioners solve the dilemma between the convenience of using caffeine to enhance sports performance or avoiding caffeine to ensure sleep quality. Overall, the performance response to caffeine and the effect of this substance on sleep quality can vary interindividually and depend on the conditions of the exercise session (time of onset, duration, etc.). For this reason, nutritional practitioners should assess their athletes individually to resolve the conflict between caffeine ingestion and ensuring sleep quality on an individual basis, using simulated competitions with dual measurement of performance during exercise and unwanted effects in the following hours. In addition, the dose, timing, and source of caffeine supplementation can be individually adjusted to obtain performance benefits while reducing side effects for athletes ingesting caffeine before evening sporting events.",
+   "url": "https://doi.org/10.1007/s40279-025-02245-y",
+   "evidence_level": "expert",
+   "key_finding": "Přehled: kofein 3–6 mg/kg asi hodinu před výkonem výkon zlepšuje, u večerních startů ale zhoršuje spánek; odezva výkonu i spánku se mezi jedinci liší, proto autoři doporučují individuální zkoušku (simulovaný závod s měřením výkonu i nežádoucích účinků) a úpravu dávky, načasování a zdroje kofeinu.",
+   "limitations": "Narativní přehled bez metaanalýzy; o genotypu CYP1A2 říká jen, že je jedním ze zdrojů variability.",
+   "tags": [
+    "genetika",
+    "CYP1A2",
+    "rs762551",
+    "kofein",
+    "spánek"
+   ],
+   "karty": [
+    {
+     "varianta": "rs762551",
+     "zdroje": [
+      "S5"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": null,
+   "curator_note": "Navrženo z karty CYP1A2 (zdroj S5). Karta cituje jiný podtitul; podle autorů, časopisu a roku jde o tento článek – ověřte."
+  },
+  {
+   "doi": "10.1016/j.nutres.2025.10.005",
+   "pmid": "41207073",
+   "title": "Influence of the CYP1A2 genotype on the exercise performance of physically active individuals under caffeine supplementation: a systematic review",
+   "authors": "Messenburger GP, Nuñez FF, Porepp O, Collares LDN, Delpino FM, de Barros CC, Pieniz S",
+   "journal": "Nutr Res",
+   "year": 2025,
+   "abstract": "This study aims to evaluate the influence of the CYP1A2 genotype on the exercise performance of athletes and physically active individuals with caffeine supplementation. We followed the recommendations of the Preferred Reporting Items for Systematic Reviews and Meta-Analysis. The search was performed up to May 2025 and included the following databases: PubMed, EMBASE, Scopus, Web of Science, Cochrane Central Register of Controlled Trials, CINAHL, LILACS, and SPORTDiscus. Only randomized clinical trials evaluating the effects of caffeine supplementation and the influence of the CYP1A2 genotype on exercise performance were included. The risk of bias was evaluated using the updated version of the Cochrane tool for assessing bias risk in randomized trials (RoB 2). We included 19 studies, involving 732 participants, and published between 2012 and 2024. Dosages of caffeine supplementation ranged from 2 to 9 mg/kg. Although there is no consensus among all studies, caffeine supplementation has shown positive results in sports performance in individuals with the AA genotype, as well as positive for AC individuals with smaller effect sizes, and null or negative for individuals with the CC genotype. The majority (84%) of the included studies were classified as \"some concerns\" in our risk of bias analysis, with only two studies classified as having a low risk of bias. Caffeine may enhance athletic performance in various sports modalities and physical tests in individuals with the AA genotype, may also demonstrate marginal improvement in AC individuals, and has null or detrimental effects on individuals with the CC genotype.",
+   "url": "https://doi.org/10.1016/j.nutres.2025.10.005",
+   "evidence_level": "meta",
+   "key_finding": "Systematický přehled 19 RCT (732 účastníků, 2–9 mg/kg kofeinu, do května 2025): kofein zlepšoval výkon hlavně u genotypu AA, u AC s menším účinkem, u CC nulový nebo záporný; 84 % studií mělo riziko zkreslení hodnocené jako „some concerns“.",
+   "limitations": "Bez metaanalýzy, malé studie, nejednotné protokoly; závěr není napříč studiemi jednoznačný.",
+   "tags": [
+    "genetika",
+    "CYP1A2",
+    "rs762551",
+    "kofein"
+   ],
+   "karty": [
+    {
+     "varianta": "rs762551",
+     "zdroje": [
+      "S4"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": 732,
+   "curator_note": "Navrženo z genové karty CYP1A2 (zdroj S4); karta uvádí jiný časopis, PubMed vede Nutrition Research: hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1126/science.1141634",
+   "pmid": "17434869",
+   "title": "A common variant in the FTO gene is associated with body mass index and predisposes to childhood and adult obesity",
+   "authors": "Frayling TM, Timpson NJ, Weedon MN, Zeggini E, Freathy RM, Lindgren CM, Perry JR, Elliott KS, Lango H, Rayner NW, Shields B, Harries LW, Barrett JC, Ellard S, Groves CJ, Knight B, Patch AM, Ness AR, Ebrahim S, Lawlor DA, Ring SM, Ben-Shlomo Y, Jarvelin MR, Sovio U, Bennett AJ, Melzer D, Ferrucci L, Loos RJ, Barroso I, Wareham NJ, Karpe F, Owen KR, Cardon LR, Walker M, Hitman GA, Palmer CN, Doney AS, Morris AD, Smith GD, Hattersley AT, McCarthy MI",
+   "journal": "Science",
+   "year": 2007,
+   "abstract": "Obesity is a serious international health problem that increases the risk of several common diseases. The genetic factors predisposing to obesity are poorly understood. A genome-wide search for type 2 diabetes-susceptibility genes identified a common variant in the FTO (fat mass and obesity associated) gene that predisposes to diabetes through an effect on body mass index (BMI). An additive association of the variant with BMI was replicated in 13 cohorts with 38,759 participants. The 16% of adults who are homozygous for the risk allele weighed about 3 kilograms more and had 1.67-fold increased odds of obesity when compared with those not inheriting a risk allele. This association was observed from age 7 years upward and reflects a specific increase in fat mass.",
+   "url": "https://doi.org/10.1126/science.1141634",
+   "evidence_level": "cross",
+   "key_finding": "GWAS s replikací ve 13 kohortách (38 759 osob): každá riziková alela rs9939609 zvyšuje BMI; 16 % dospělých homozygotů váží asi o 3 kg více a má 1,67× vyšší šanci na obezitu než osoby bez rizikové alely; efekt je patrný od 7 let a jde o tukovou hmotu.",
+   "limitations": "Evropské populace, malý efekt na jednotlivce (asi 0,4 kg/m² na alelu); nic o sportovním výkonu.",
+   "tags": [
+    "genetika",
+    "FTO",
+    "rs9939609",
+    "hmotnost a metabolismus"
+   ],
+   "karty": [
+    {
+     "varianta": "rs9939609",
+     "zdroje": [
+      "S1"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": 38759,
+   "curator_note": "Navrženo z genové karty FTO (zdroj S1): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1371/journal.pmed.1001116",
+   "pmid": "22069379",
+   "title": "Physical activity attenuates the influence of FTO variants on obesity risk: a meta-analysis of 218,166 adults and 19,268 children",
+   "authors": "Kilpeläinen TO, Qi L, Brage S, Sharp SJ, Sonestedt E, Demerath E, Ahmad T, Mora S, Kaakinen M, Sandholt CH, Holzapfel C, Autenrieth CS, Hyppönen E, Cauchi S, He M, Kutalik Z, Kumari M, Stančáková A, Meidtner K, Balkau B, Tan JT, Mangino M, Timpson NJ, Song Y, Zillikens MC, Jablonski KA, Garcia ME, Johansson S, Bragg-Gresham JL, Wu Y, van Vliet-Ostaptchouk JV, Onland-Moret NC, Zimmermann E, Rivera NV, Tanaka T, Stringham HM, Silbernagel G, Kanoni S, Feitosa MF, Snitker S, Ruiz JR, Metter J, Larrad MT, Atalay M, Hakanen M, Amin N, Cavalcanti-Proença C, Grøntved A, Hallmans G, Jansson JO, Kuusisto J, Kähönen M, Lutsey PL, Nolan JJ, Palla L, Pedersen O, Pérusse L, Renström F, Scott RA, Shungin D, Sovio U, Tammelin TH, Rönnemaa T, Lakka TA, Uusitupa M, Rios MS, Ferrucci L, Bouchard C, Meirhaeghe A, Fu M, Walker M, Borecki IB, Dedoussis GV, Fritsche A, Ohlsson C, Boehnke M, Bandinelli S, van Duijn CM, Ebrahim S, Lawlor DA, Gudnason V, Harris TB, Sørensen TI, Mohlke KL, Hofman A, Uitterlinden AG, Tuomilehto J, Lehtimäki T, Raitakari O, Isomaa B, Njølstad PR, Florez JC, Liu S, Ness A, Spector TD, Tai ES, Froguel P, Boeing H, Laakso M, Marmot M, Bergmann S, Power C, Khaw KT, Chasman D, Ridker P, Hansen T, Monda KL, Illig T, Järvelin MR, Wareham NJ, Hu FB, Groop LC, Orho-Melander M, Ekelund U, Franks PW, Loos RJ",
+   "journal": "PLoS Med",
+   "year": 2011,
+   "abstract": "The FTO gene harbors the strongest known susceptibility locus for obesity. While many individual studies have suggested that physical activity (PA) may attenuate the effect of FTO on obesity risk, other studies have not been able to confirm this interaction. To confirm or refute unambiguously whether PA attenuates the association of FTO with obesity risk, we meta-analyzed data from 45 studies of adults (n = 218,166) and nine studies of children and adolescents (n = 19,268).\n\nAll studies identified to have data on the FTO rs9939609 variant (or any proxy [r(2)>0.8]) and PA were invited to participate, regardless of ethnicity or age of the participants. PA was standardized by categorizing it into a dichotomous variable (physically inactive versus active) in each study. Overall, 25% of adults and 13% of children were categorized as inactive. Interaction analyses were performed within each study by including the FTO×PA interaction term in an additive model, adjusting for age and sex. Subsequently, random effects meta-analysis was used to pool the interaction terms. In adults, the minor (A-) allele of rs9939609 increased the odds of obesity by 1.23-fold/allele (95% CI 1.20-1.26), but PA attenuated this effect (p(interaction)  = 0.001). More specifically, the minor allele of rs9939609 increased the odds of obesity less in the physically active group (odds ratio  = 1.22/allele, 95% CI 1.19-1.25) than in the inactive group (odds ratio  = 1.30/allele, 95% CI 1.24-1.36). No such interaction was found in children and adolescents.\n\nThe association of the FTO risk allele with the odds of obesity is attenuated by 27% in physically active adults, highlighting the importance of PA in particular in those genetically predisposed to obesity.",
+   "url": "https://doi.org/10.1371/journal.pmed.1001116",
+   "evidence_level": "meta",
+   "key_finding": "Metaanalýza 45 studií dospělých (218 166) a 9 studií dětí (19 268): riziková alela rs9939609 zvyšuje šanci na obezitu 1,23× na alelu; u fyzicky aktivních dospělých je účinek o 27 % slabší (OR 1,22 proti 1,30 u neaktivních; P interakce = 0,001). U dětí se interakce nenašla.",
+   "limitations": "Pohybová aktivita jen ve dvou kategoriích z dotazníků; observační data.",
+   "tags": [
+    "genetika",
+    "FTO",
+    "rs9939609",
+    "hmotnost a metabolismus",
+    "pohybová aktivita"
+   ],
+   "karty": [
+    {
+     "varianta": "rs9939609",
+     "zdroje": [
+      "S2"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": 237434,
+   "curator_note": "Navrženo z genové karty FTO (zdroj S2): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1136/bmj.i4707",
+   "pmid": "27650503",
+   "title": "FTO genotype and weight loss: systematic review and meta-analysis of 9563 individual participant data from eight randomised controlled trials",
+   "authors": "Livingstone KM, Celis-Morales C, Papandonatos GD, Erar B, Florez JC, Jablonski KA, Razquin C, Marti A, Heianza Y, Huang T, Sacks FM, Svendstrup M, Sui X, Church TS, Jääskeläinen T, Lindström J, Tuomilehto J, Uusitupa M, Rankinen T, Saris WH, Hansen T, Pedersen O, Astrup A, Sørensen TI, Qi L, Bray GA, Martinez-Gonzalez MA, Martinez JA, Franks PW, McCaffery JM, Lara J, Mathers JC",
+   "journal": "BMJ",
+   "year": 2016,
+   "abstract": " To assess the effect of the FTO genotype on weight loss after dietary, physical activity, or drug based interventions in randomised controlled trials.\n\n Systematic review and random effects meta-analysis of individual participant data from randomised controlled trials.\n\n Ovid Medline, Scopus, Embase, and Cochrane from inception to November 2015.\n\n Randomised controlled trials in overweight or obese adults reporting reduction in body mass index, body weight, or waist circumference by FTO genotype (rs9939609 or a proxy) after dietary, physical activity, or drug based interventions. Gene by treatment interaction models were fitted to individual participant data from all studies included in this review, using allele dose coding for genetic effects and a common set of covariates. Study level interactions were combined using random effect models. Metaregression and subgroup analysis were used to assess sources of study heterogeneity.\n\n We identified eight eligible randomised controlled trials for the systematic review and meta-analysis (n=9563). Overall, differential changes in body mass index, body weight, and waist circumference in response to weight loss intervention were not significantly different between FTO genotypes. Sensitivity analyses indicated that differential changes in body mass index, body weight, and waist circumference by FTO genotype did not differ by intervention type, intervention length, ethnicity, sample size, sex, and baseline body mass index and age category.\n\n We have observed that carriage of the FTO minor allele was not associated with differential change in adiposity after weight loss interventions. These findings show that individuals carrying the minor allele respond equally well to dietary, physical activity, or drug based weight loss interventions and thus genetic predisposition to obesity associated with the FTO minor allele can be at least partly counteracted through such interventions.\n\n PROSPERO CRD42015015969.",
+   "url": "https://doi.org/10.1136/bmj.i4707",
+   "evidence_level": "meta",
+   "key_finding": "Metaanalýza individuálních dat z 8 RCT (9563 dospělých s nadváhou nebo obezitou): genotyp FTO neovlivnil úbytek BMI, hmotnosti ani obvodu pasu po dietní, pohybové nebo farmakologické intervenci; nositelé rizikové alely hubnou stejně dobře.",
+   "limitations": "Dospělí s nadváhou nebo obezitou, ne sportovci; intervence různé délky.",
+   "tags": [
+    "genetika",
+    "FTO",
+    "rs9939609",
+    "hmotnost a metabolismus"
+   ],
+   "karty": [
+    {
+     "varianta": "rs9939609",
+     "zdroje": [
+      "S3"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "dospělí s nadváhou nebo obezitou",
+   "sample_size": 9563,
+   "curator_note": "Navrženo z genové karty FTO (zdroj S3): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1172/JCI2629",
+   "pmid": "9769329",
+   "title": "The effect of novel polymorphisms in the interleukin-6 (IL-6) gene on IL-6 transcription and plasma IL-6 levels, and an association with systemic-onset juvenile chronic arthritis",
+   "authors": "Fishman D, Faulds G, Jeffery R, Mohamed-Ali V, Yudkin JS, Humphries S, Woo P",
+   "journal": "J Clin Invest",
+   "year": 1998,
+   "abstract": "During active disease, patients with systemic-onset juvenile chronic arthritis (S-JCA) demonstrate a rise and fall in serum interleukin-6 (IL-6) that parallels the classic quotidian fever. To investigate the possibility that this cytokine profile results from a difference in the control of IL-6 expression, we examined the 5' flanking region of the IL-6 gene for polymorphisms. A G/C polymorphism was detected at position -174. In a group of 383 healthy men and women from a general practice in North London, the frequency of the C allele was 0.403 (95% confidence interval 0.37-0.44). In comparison, 92 patients with S-JCA had a different overall genotype frequency, especially those with onset of disease at < 5 yr of age. This was mainly due to the statistically significant lower frequency of the CC genotype in this subgroup. When comparing constructs of the 5' flanking region (-550-+61 bp) in a luciferase reporter vector transiently transfected into HeLa cells, the -174C construct showed 0.624+/-0.15-fold lower expression than the -174G construct. After stimulation with LPS or IL-1, expression from the -174C construct did not significantly change after 24 h, whereas expression from the -174G construct increased by 2.35+/-0.10- and 3.60+/-0.26-fold, respectively, compared with the unstimulated level. Plasma levels of IL-6 were also measured in 102 of the healthy subjects, and the C allele was found to be associated with significantly lower levels of plasma IL-6. These results suggest that there is a genetically determined difference in the degree of the IL-6 response to stressful stimuli between individuals.",
+   "url": "https://doi.org/10.1172/JCI2629",
+   "evidence_level": "cross",
+   "key_finding": "383 zdravých osob a 92 pacientů s juvenilní artritidou: konstrukt s −174C měl v buňkách nižší základní expresi než −174G a po stimulaci nestoupal; u 102 zdravých byla alela C spojena s nižší plazmatickou hladinou IL-6.",
+   "limitations": "Buněčný model a klidové hladiny; pozdější studie dávají nejednotné výsledky, jak uvádí karta.",
+   "tags": [
+    "genetika",
+    "IL6",
+    "rs1800795",
+    "regenerace"
+   ],
+   "karty": [],
+   "population_sport": "",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": 383,
+   "curator_note": "Doplněk ke kartě IL6 (důkaz E03 žádal primární zdroj k promotoru); před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1111/j.1469-7793.2000.00237.x",
+   "pmid": "11080265",
+   "title": "Production of interleukin-6 in contracting human skeletal muscles can account for the exercise-induced increase in plasma interleukin-6",
+   "authors": "Steensberg A, van Hall G, Osada T, Sacchetti M, Saltin B, Klarlund Pedersen B",
+   "journal": "J Physiol",
+   "year": 2000,
+   "abstract": "1. Plasma interleukin (IL)-6 concentration is increased with exercise and it has been demonstrated that contracting muscles can produce IL-The question addressed in the present study was whether the IL-6 production by contracting skeletal muscle is of such a magnitude that it can account for the IL-6 accumulating in the blood. 2. This was studied in six healthy males, who performed one-legged dynamic knee extensor exercise for 5 h at 25 W, which represented 40% of peak power output (Wmax). Arterial-femoral venous (a-fv) differences over the exercising and the resting leg were obtained before and every hour during the exercise. Leg blood flow was measured in parallel by the ultrasound Doppler technique. IL-6 was measured by enzyme-linked immunosorbent assay (ELISA). 3. Arterial plasma concentrations for IL-6 increased 19-fold compared to rest. The a-fv difference for IL-6 over the exercising leg followed the same pattern as did the net IL-6 release. Over the resting leg, there was no significant a-fv difference or net IL-6 release. The work was produced by 2.5 kg of active muscle, which means that during the last 2 h of exercise, the median IL-6 production was 6.8 ng min-1 (kg active muscle)-1 (range, 3.96-9.69 ng min-1 kg-1). 4. The net IL-6 release from the muscle over the last 2 h of exercise was 17-fold higher than the elevation in arterial IL-6 concentration and at 5 h of exercise the net release during 1 min was half of the IL-6 content in the plasma. This indicates a very high turnover of IL-6 during muscular exercise. We suggest that IL-6 produced by skeletal contracting muscle contributes to the maintenance of glucose homeostasis during prolonged exercise.",
+   "url": "https://doi.org/10.1111/j.1469-7793.2000.00237.x",
+   "evidence_level": "cross",
+   "key_finding": "6 zdravých mužů, 5 hodin jednostranné extenze kolene: arteriální IL-6 vzrostl 19×; čisté uvolňování z pracující nohy bylo 17× vyšší než vzestup v tepenné krvi, z klidové nohy nulové. Kontrahující sval tedy sám vysvětlí vzestup IL-6 při zátěži.",
+   "limitations": "6 osob, laboratorní protokol; bez vztahu ke genotypu.",
+   "tags": [
+    "genetika",
+    "IL6",
+    "rs1800795",
+    "regenerace"
+   ],
+   "karty": [
+    {
+     "varianta": "rs1800795",
+     "zdroje": [
+      "S3"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "M",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": 6,
+   "curator_note": "Navrženo z genové karty IL6 (zdroj S3): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1097/00062752-200105000-00002",
+   "pmid": "11303145",
+   "title": "Exercise and interleukin-6",
+   "authors": "Pedersen BK, Steensberg A, Schjerling P",
+   "journal": "Curr Opin Hematol",
+   "year": 2001,
+   "abstract": "Strenuous exercise induces increased levels in a number of pro-and anti-inflammatory cytokines, natural occurring cytokine inhibitors, and chemokines. Thus, increased plasma levels of tumor necrosis factor (TNF)-alpha, interleukin (IL)-1 beta, IL-1 receptor antagonist (IL-1ra), TNF-receptors (TNF-R), IL-10, IL-8, and macrophage inflammatory protein (MIP)-1 are found after strenuous exercise. The concentration of IL-6 increases as much as 100-fold after a marathon race. It has recently been demonstrated that IL-6 is produced locally in contracting skeletal muscles and that the net release from the muscle can account for the exercise-induced increase in arterial concentration. Larger amounts of IL-6 are produced in response to exercise than any other cytokine, IL-6 is produced locally in the skeletal muscle in response to exercise, and IL-6 is known to induce hepatic glucose output and to induce lipolysis. These facts indicate that IL-6 may represent an important link between contracting skeletal muscles and exercise-related metabolic changes.",
+   "url": "https://doi.org/10.1097/00062752-200105000-00002",
+   "evidence_level": "expert",
+   "key_finding": "Přehled: při namáhavé zátěži stoupají prozánětlivé i protizánětlivé cytokiny, IL-6 až 100× po maratonu; IL-6 vzniká přímo v kontrahujícím se svalu a jeho uvolnění vysvětlí vzestup v krvi; IL-6 zvyšuje výdej glukózy z jater a lipolýzu, je tedy spojkou mezi svalem a metabolismem.",
+   "limitations": "Biologie IL-6, ne vliv genotypu; starší přehled.",
+   "tags": [
+    "genetika",
+    "IL6",
+    "rs1800795",
+    "regenerace"
+   ],
+   "karty": [
+    {
+     "varianta": "rs1800795",
+     "zdroje": [
+      "S2"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": null,
+   "curator_note": "Navrženo z genové karty IL6 (zdroj S2): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1007/s00421-008-0728-4",
+   "pmid": "18758806",
+   "title": "IL6 (-174) and TNFA (-308) promoter polymorphisms are associated with systemic creatine kinase response to eccentric exercise",
+   "authors": "Yamin C, Duarte JA, Oliveira JM, Amir O, Sagiv M, Eynon N, Sagiv M, Amir RE",
+   "journal": "Eur J Appl Physiol",
+   "year": 2008,
+   "abstract": "Exertional rhabdomyolysis is a complex and poorly understood entity. The inflammatory system has an important role in muscle injury and repair. Serum creatine kinase (CK) is often used as systemic biomarker representing muscle damage. Considerable variation exists in CK response between different subjects. Genetic elements may act as predisposition factors for exertional rhabdomyolysis. Based on their biological activity, we hypothesized that in healthy subjects IL6 G-174C and TNFA G-308A promoter polymorphisms would be associated with CK response to exercise. We determined serum CK activity pre- and post-maximal eccentric contractions of the elbow flexor muscles. IL6 G-174C and TNFA G-308A genotypes were analyzed for possible relationship with changes in serum CK activity. IL6 G-174C genotype was associated with CK activity in a dose-dependent fashion. Subjects with one or more of the -174C allele had a greater increase and higher peak CK values than subjects homozygous for the G allele (mean +/- SE U/L: GG, 2,604 +/- 821; GC, 7,592 +/- 1,111; CC, 8,403 +/- 3,849, ANOVA P = 0.0003 for GG + GC genotypes versus CC genotype, P = 0.0005 for linear trend). IL6-174CC genotype was associated with a greater than threefold increased risk of massive CK response (adjusted odds ratio 3.29, 95% confidence interval 1.27-7.85, P = 0.009). A milder association (P = 0.06) was noted between TNFA G-308A genotype and CK activity. In conclusion, we found a strong association of the IL6 G-174C genotype with systemic CK response to strenuous exercise. Data suggest that homozygosity for the IL6-174C allele is a clinically important risk factor for exercise-induced muscle injury, further supporting the central role of cytokines in the reactive inflammatory process of muscle damage and repair.",
+   "url": "https://doi.org/10.1007/s00421-008-0728-4",
+   "evidence_level": "cross",
+   "key_finding": "Zdraví dobrovolníci po maximálních excentrických kontrakcích flexorů lokte: vzestup CK rostl s počtem alel −174C (vrchol CK GG 2604, GC 7592, CC 8403 U/l; P = 0,0003); genotyp CC měl 3,3× vyšší šanci masivní odpovědi CK (OR 3,29; 95% CI 1,27–7,85).",
+   "limitations": "Jedna laboratorní studie, nepřímý ukazatel poškození (CK), netrénované osoby.",
+   "tags": [
+    "genetika",
+    "IL6",
+    "rs1800795",
+    "regenerace",
+    "svalové poškození"
+   ],
+   "karty": [],
+   "population_sport": "",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": null,
+   "curator_note": "Doplněk ke kartě IL6: toto je dohledatelná studie k tvrzení důkazu E04 (alela C a vyšší CK). Zdroj S5 karty (Ben-Zaken 2017, J Sports Sci) se pod uvedeným názvem nepodařilo najít – garant by měl S5 nahradit."
+  },
+  {
+   "doi": "10.1590/1678-4685-GMB-2015-0299",
+   "pmid": "27727360",
+   "title": "Association between interleukin 6 -174 G/C promoter gene polymorphism and runners' responses to the dietary ingestion of antioxidant supplementation based on pequi (Caryocar brasiliense Camb.) oil: a before-after study",
+   "authors": "Miranda-Vilela AL, Ribeiro IF, Grisolia CK",
+   "journal": "Genet Mol Biol",
+   "year": 2016,
+   "abstract": "Exercise is a double-edged sword: when practiced in moderation, it increases the expression of antioxidant enzymes, but when practiced strenuously it causes oxidative stress and cell damage. In this context, polymorphisms in the interleukin (IL)-6 gene should be investigated better because they can influence performance, at least in exercise that generates oxidative stress and leads to muscular injuries with consequent inflammation. In this work, we investigated the influence of IL-6 -174 G/C polymorphism on tissue damage and inflammation markers, lipid peroxidation, hemogram and lipid profile of runners before and after ingestion of 400 mg of pequi oil in capsules supplied daily for 14 consecutive days. The IL-6 genotypes were associated with significant differences in lipid peroxidation, with the CC mutant having lower values. There were also significant differences among these genotypes in the response to supplementation with pequi oil, exercise-induced damage and C-reactive protein (CRP) levels. The best protection against damage was observed with the heterozygous genotype. Although the CC genotype showed an increase in CRP levels after supplementation, the lack of a positive correlation between triglycerides and high-sensitivity CRP in this mutant genotype after supplementation indicated a protective effect of pequi. These findings deserve further investigation, particularly with regard to the quantification of circulating IL-6 concentrations.",
+   "url": "https://doi.org/10.1590/1678-4685-GMB-2015-0299",
+   "evidence_level": "cohort",
+   "key_finding": "Běžci, 14 dní 400 mg oleje z pequi: genotypy IL6 −174 G/C se lišily v lipoperoxidaci (CC nejnižší), v odpovědi na suplementaci, v ukazatelích poškození a v CRP; nejlepší ochranu měli heterozygoti.",
+   "limitations": "Design před–po bez kontrolní skupiny, brazilská populace a specifický doplněk; karta ho vede jako nepoužitý.",
+   "tags": [
+    "genetika",
+    "IL6",
+    "rs1800795",
+    "regenerace"
+   ],
+   "karty": [
+    {
+     "varianta": "rs1800795",
+     "zdroje": [
+      "S6"
+     ]
+    }
+   ],
+   "population_sport": "běh",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": null,
+   "curator_note": "Navrženo z genové karty IL6 (zdroj S6, v kartě nepoužitý): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1007/s00421-016-3411-1",
+   "pmid": "27294501",
+   "title": "Genetic variation and exercise-induced muscle damage: implications for athletic performance, injury and ageing",
+   "authors": "Baumert P, Lake MJ, Stewart CE, Drust B, Erskine RM",
+   "journal": "Eur J Appl Physiol",
+   "year": 2016,
+   "abstract": "Prolonged unaccustomed exercise involving muscle lengthening (eccentric) actions can result in ultrastructural muscle disruption, impaired excitation-contraction coupling, inflammation and muscle protein degradation. This process is associated with delayed onset muscle soreness and is referred to as exercise-induced muscle damage. Although a certain amount of muscle damage may be necessary for adaptation to occur, excessive damage or inadequate recovery from exercise-induced muscle damage can increase injury risk, particularly in older individuals, who experience more damage and require longer to recover from muscle damaging exercise than younger adults. Furthermore, it is apparent that inter-individual variation exists in the response to exercise-induced muscle damage, and there is evidence that genetic variability may play a key role. Although this area of research is in its infancy, certain gene variations, or polymorphisms have been associated with exercise-induced muscle damage (i.e. individuals with certain genotypes experience greater muscle damage, and require longer recovery, following strenuous exercise). These polymorphisms include ACTN3 (R577X, rs1815739), TNF (-308 G>A, rs1800629), IL6 (-174 G>C, rs1800795), and IGF2 (ApaI, 17200 G>A, rs680). Knowing how someone is likely to respond to a particular type of exercise could help coaches/practitioners individualise the exercise training of their athletes/patients, thus maximising recovery and adaptation, while reducing overload-associated injury risk. The purpose of this review is to provide a critical analysis of the literature concerning gene polymorphisms associated with exercise-induced muscle damage, both in young and older individuals, and to highlight the potential mechanisms underpinning these associations, thus providing a better understanding of exercise-induced muscle damage.",
+   "url": "https://doi.org/10.1007/s00421-016-3411-1",
+   "evidence_level": "expert",
+   "key_finding": "Přehled: nezvyklá excentrická zátěž poškozuje sval, odezva se mezi jedinci liší a část variability se připisuje variantám ACTN3 R577X, TNF −308, IL6 −174 G>C a IGF2; autoři hodnotí obor jako v počátcích a individualizaci tréninku podle genotypu jako hypotézu.",
+   "limitations": "Narativní přehled nad malými původními studiemi.",
+   "tags": [
+    "genetika",
+    "IL6",
+    "ACTN3",
+    "rs1800795",
+    "rs1815739",
+    "regenerace",
+    "svalové poškození"
+   ],
+   "karty": [
+    {
+     "varianta": "rs1800795",
+     "zdroje": [
+      "S4"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": null,
+   "curator_note": "Navrženo z genové karty IL6 (zdroj S4): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1515/hukin-2017-0070",
+   "pmid": "28828083",
+   "title": "Increased Prevalence of the IL-6-174C Genetic Polymorphism in Long Distance Swimmers",
+   "authors": "Ben-Zaken S, Meckel Y, Nemet D, Kassem E, Eliakim A",
+   "journal": "J Hum Kinet",
+   "year": 2017,
+   "abstract": "The IL-6 -174G/C single nucleotide polymorphism (SNP) functionally affects IL-6 activity, with the G-allele associated with increased IL-6 levels. The C-allele was found to be associated with exercise-induced skeletal muscle damage. The aim of the present study was to examine the association between the IL-6 -174G/C polymorphism and athletic performance among elite swimmers and runners. The study sample included 180 track and field athletes and 80 swimmers. Track and field athletes were assigned to three sub-groups: long-distance runners, middle-distance runners and short-distance runners. Swimmers were assigned to two subgroups: long-distance swimmers and short-distance swimmers. The control group consisted of 123 non-athletic healthy individuals. Genomic DNA was extracted from peripheral blood following a standard protocol. Genotyping was performed using polymerase chain reaction (PCR). The CC genotype and C-allele frequency were significantly higher in the long-distance swimmers (18 and 43%, respectively) compared to the long-distance runners (3 and 14%, respectively, p < 0.001); middle-distance runners (4 and 22%, respectively, p < 0.001); and controls (5 and 19%, respectively, p < 0.001). In addition, the CC genotype and C-allele frequency were significantly higher (p < 0.001) in long-distance swimmers compared to short-distance swimmers (18 versus 5% and 43 versus 29% for the CC genotype and C-allele frequency, respectively). The higher frequency of the C-allele and CC genotype among long-distance swimmers suggests that the rarity of exercise-associated rhabdomyolysis among swimmers is probably related to other sports-specific or water-related protective mechanisms. It is possible that swimming selection in talented endurance athletes who are C-allele carriers represents an example of genetically-dependent sports selection.",
+   "url": "https://doi.org/10.1515/hukin-2017-0070",
+   "evidence_level": "cross",
+   "key_finding": "180 atletů, 80 plavců a 123 kontrol: genotyp CC a alela C byly častější u vytrvalostních plavců (18 % a 43 %) než u vytrvalostních běžců (3 % a 14 %), středotraťařů a kontrol; autoři spekulují o výběru do plavání u nositelů alely C.",
+   "limitations": "Status sportovce v izraelské populaci; není to studie svalového poškození.",
+   "tags": [
+    "genetika",
+    "IL6",
+    "rs1800795",
+    "regenerace"
+   ],
+   "karty": [],
+   "population_sport": "plavání, atletika",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": 383,
+   "curator_note": "Skutečná práce Ben-Zaken 2017 o IL-6 −174C; neodpovídá citaci S5 karty IL6, proto není ke zdroji připojena. Před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1038/ng826",
+   "pmid": "11788828",
+   "title": "Identification of a variant associated with adult-type hypolactasia",
+   "authors": "Enattah NS, Sahi T, Savilahti E, Terwilliger JD, Peltonen L, Järvelä I",
+   "journal": "Nat Genet",
+   "year": 2002,
+   "abstract": "Adult-type hypolactasia, also known as lactase non-persistence (lactose intolerance), is a common autosomal recessive condition resulting from the physiological decline in activity of the lactase-phlorizin hydrolase (LPH) in intestinal cells after weaning. LPH hydrolyzes lactose into glucose and galactose. Sequence analyses of the coding and promoter regions of LCT, the gene encoding LPH, has revealed no DNA variations correlating with lactase non-persistence. An associated haplotype spanning LCT, as well as a distinct difference in the transcript levels of 'non-persistence' and 'persistence' alleles in heterozygotes, suggest that a cis-acting element contributes to the lactase non-persistence phenotype. Using linkage disequilibrium (LD) and haplotype analysis of nine extended Finnish families, we restricted the locus to a 47-kb interval on 2q21. Sequence analysis of the complete region and subsequent association analyses revealed that a DNA variant, C/T-13910, roughly 14 kb upstream from the LCT locus, completely associates with biochemically verified lactase non-persistence in Finnish families and a sample set of 236 individuals from four different populations. A second variant, G/A-22018, 8 kb telomeric to C/T-13910, is also associated with the trait in 229 of 236 cases. Prevalence of the C/T-13910 variant in 1,047 DNA samples is consistent with the reported prevalence of adult-type hypolactasia in four different populations. That the variant (C/T-13910) occurs in distantly related populations indicates that it is very old.",
+   "url": "https://doi.org/10.1038/ng826",
+   "evidence_level": "cross",
+   "key_finding": "Vazebná a asociační analýza finských rodin a 236 osob ze čtyř populací: varianta C/T −13910 asi 14 kb před genem LCT se úplně shodovala s biochemicky ověřenou nepersistencí laktázy; prevalence varianty v 1047 vzorcích odpovídá výskytu hypolaktázie dospělých.",
+   "limitations": "Platí pro evropské populace; v Africe a na Blízkém východě jsou jiné varianty persistence.",
+   "tags": [
+    "genetika",
+    "MCM6",
+    "LCT",
+    "rs4988235",
+    "laktóza"
+   ],
+   "karty": [
+    {
+     "varianta": "rs4988235",
+     "zdroje": [
+      "S1"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": 1047,
+   "curator_note": "Navrženo z genové karty MCM6/LCT (zdroj S1): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1038/ng1263",
+   "pmid": "14634648",
+   "title": "Gene-culture coevolution between cattle milk protein genes and human lactase genes",
+   "authors": "Beja-Pereira A, Luikart G, England PR, Bradley DG, Jann OC, Bertorelle G, Chamberlain AT, Nunes TP, Metodiev S, Ferrand N, Erhardt G",
+   "journal": "Nat Genet",
+   "year": 2003,
+   "abstract": "Milk from domestic cows has been a valuable food source for over 8,000 years, especially in lactose-tolerant human societies that exploit dairy breeds. We studied geographic patterns of variation in genes encoding the six most important milk proteins in 70 native European cattle breeds. We found substantial geographic coincidence between high diversity in cattle milk genes, locations of the European Neolithic cattle farming sites (>5,000 years ago) and present-day lactose tolerance in Europeans. This suggests a gene-culture coevolution between cattle and humans.",
+   "url": "https://doi.org/10.1038/ng1263",
+   "evidence_level": "cross",
+   "key_finding": "Geografická shoda mezi variabilitou genů mléčných bílkovin u 70 evropských plemen skotu, místy neolitického chovu a dnešní tolerancí laktózy v Evropě svědčí pro koevoluci genů a kultury.",
+   "limitations": "Populačně-genetická studie bez klinického významu pro jednotlivce.",
+   "tags": [
+    "genetika",
+    "MCM6",
+    "LCT",
+    "rs4988235",
+    "laktóza"
+   ],
+   "karty": [
+    {
+     "varianta": "rs4988235",
+     "zdroje": [
+      "S2"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": null,
+   "curator_note": "Navrženo z genové karty MCM6/LCT (zdroj S2): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1136/gutjnl-2019-318404",
+   "pmid": "31427404",
+   "title": "Update on lactose malabsorption and intolerance: pathogenesis, diagnosis and clinical management",
+   "authors": "Misselwitz B, Butter M, Verbeke K, Fox MR",
+   "journal": "Gut",
+   "year": 2019,
+   "abstract": "Lactose is the main source of calories in milk, an essential nutrient in infancy and a key part of the diet in populations that maintain the ability to digest this disaccharide in adulthood. Lactase deficiency (LD) is the failure to express the enzyme that hydrolyses lactose into galactose and glucose in the small intestine. The genetic mechanism of lactase persistence in adult Caucasians is mediated by a single C→T nucleotide polymorphism at the LCTbo -13'910 locus on chromosome-2. Lactose malabsorption (LM) refers to any cause of failure to digest and/or absorb lactose in the small intestine. This includes primary genetic and also secondary LD due to infection or other conditions that affect the mucosal integrity of the small bowel. Lactose intolerance (LI) is defined as the onset of abdominal symptoms such as abdominal pain, bloating and diarrhoea after lactose ingestion by an individual with LM. The likelihood of LI depends on the lactose dose, lactase expression and the intestinal microbiome. Independent of lactose digestion, patients with visceral hypersensitivity associated with anxiety or the Irritable Bowel Syndrome (IBS) are at increased risk of the condition. Diagnostic investigations available to diagnose LM and LI include genetic, endoscopic and physiological tests. The association between self-reported LI, objective findings and clinical outcome of dietary intervention is variable. Treatment of LI can include low-lactose diet, lactase supplementation and, potentially, colonic adaptation by prebiotics. The clinical outcome of these treatments is modest, because lactose is just one of a number of poorly absorbed carbohydrates which can cause symptoms by similar mechanisms.",
+   "url": "https://doi.org/10.1136/gutjnl-2019-318404",
+   "evidence_level": "expert",
+   "key_finding": "Přehled: nepersistence laktázy je u bělochů dána variantou −13910 C>T; intolerance závisí na dávce laktózy, aktivitě laktázy a střevním mikrobiomu, takže genotyp sám příznaky nepředpovídá; shoda mezi udávanou intolerancí, testy a výsledkem diety je proměnlivá.",
+   "limitations": "Klinický přehled, ne data u sportovců.",
+   "tags": [
+    "genetika",
+    "MCM6",
+    "LCT",
+    "rs4988235",
+    "laktóza"
+   ],
+   "karty": [],
+   "population_sport": "",
+   "population_sex": "",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": null,
+   "curator_note": "Doplněk ke kartě MCM6/LCT (důkaz E04 žádal přehled k laktózové intoleranci); před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1210/jc.2006-1785",
+   "pmid": "17327385",
+   "title": "Genetic variations in PPARD and PPARGC1A determine mitochondrial function and change in aerobic physical fitness and insulin sensitivity during lifestyle intervention",
+   "authors": "Stefan N, Thamer C, Staiger H, Machicao F, Machann J, Schick F, Venter C, Niess A, Laakso M, Fritsche A, Häring HU",
+   "journal": "J Clin Endocrinol Metab",
+   "year": 2007,
+   "abstract": "Mitochondrial function is associated with aerobic physical fitness and insulin sensitivity and may play an important role in the pathophysiology of type 2 diabetes. Peroxisome proliferator-activated receptor (PPAR)-delta (gene PPARD) and PPARgamma coactivator 1alpha (gene PPARGC1A) are determinants of mitochondrial function in animals and in vitro.\n\nThe objective of this study was to establish whether single-nucleotide polymorphisms (SNPs) in PPARD and PPARGC1A modulate the effect of exercise training on change in aerobic physical fitness and insulin sensitivity and whether they affect mitochondrial function in human myotubes in vitro.\n\nThe study setting was the Tuebingen Lifestyle Intervention Program in a university teaching hospital.\n\nAfter 9 months of intervention, the minor G allele of SNP rs2267668 in PPARD and the minor serine-encoding allele of the common Gly482Ser SNP in PPARGC1A were independently associated with less increase in individual anaerobic threshold (n = 136, P = 0.002 and P = 0.005), a precise measurement of aerobic physical fitness. Moreover, individual anaerobic threshold (+11%) and insulin sensitivity (+4%) increased less in subjects carrying the minor alleles at both SNPs (X/G-X/Ser), compared with homozygous carriers of the major alleles (A/A-Gly/Gly, +120% and +40%; P < 0.0001 and P = 0.015), suggesting an additive effect of the SNPs. In addition, low skeletal muscle mitochondrial function in vitro was detected in young carriers of the G allele of the SNP rs2267668 in PPARD (n = 19, P = 0.02).\n\nThese data provide evidence that the rs2267668 A/G SNP in PPARD and the Gly482Ser SNP in PPARGC1A have both independent and additive effects on the effectiveness of aerobic exercise training to increase aerobic physical fitness and insulin sensitivity.",
+   "url": "https://doi.org/10.1210/jc.2006-1785",
+   "evidence_level": "cohort",
+   "key_finding": "136 osob v devítiměsíční intervenci životního stylu (Tübingen): alela Ser482 PPARGC1A a alela G rs2267668 PPARD nezávisle souvisely s menším vzestupem individuálního anaerobního prahu; nositelé obou minoritních alel zlepšili práh o 11 % a inzulinovou senzitivitu o 4 % proti 120 % a 40 % u homozygotů majoritních alel.",
+   "limitations": "Osoby s rizikem diabetu, ne sportovci; malé genotypové podskupiny.",
+   "tags": [
+    "genetika",
+    "PPARGC1A",
+    "rs8192678",
+    "výkon a trénink",
+    "hmotnost a metabolismus"
+   ],
+   "karty": [
+    {
+     "varianta": "rs8192678",
+     "zdroje": [
+      "S2"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": 136,
+   "curator_note": "Navrženo z genové karty PPARGC1A (zdroj S2): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1080/02640414.2011.623709",
+   "pmid": "22122487",
+   "title": "The PPARGC1A gene Gly482Ser in Polish and Russian athletes",
+   "authors": "Maciejewska A, Sawczuk M, Cieszczyk P, Mozhayskaya IA, Ahmetov II",
+   "journal": "J Sports Sci",
+   "year": 2011,
+   "abstract": "Peroxysome proliferator-activated receptor gamma coactivator-1-alpha (PGC-1α; encoded by the gene PPARGC1A in humans) is a crucial component in training-induced muscle adaptation because it is a co-activator of transcriptional factors that control gene expression in coordinated response to exercise. It has been suggested that a Gly482Ser substitution in PPARGC1A has functional relevance in the context of human disorders and athletic performance. To test this hypothesis, we examined the genotype distribution of PPARGC1A Gly482Ser in a group of Polish athletes and confirmed the results obtained in a replication study of Russian athletes. We found that the 482Ser allele was under-represented in the cohort of Polish and Russian athletes examined compared with unfit controls (P < 0.0001). A statistically significant low frequency of the 482Ser allele was observed among the endurance,strength-endurance, and sprint-strength groups of Polish athletes (P = 0.019, P = 0.022, and P < 0.0001, respectively). The replication study revealed that the 482Ser allele was also less prevalent in Russian endurance and strength-endurance athletes (P = 0.029 and P < 0.0001, respectively). Our results suggest that the PPARGC1A Gly482Ser polymorphism is associated with elite endurance athletic status. These findings support the hypothesis that the PPARGC1A 482Ser allele may impair aerobic capacity: thus, the Gly482 allele may be considered a beneficial factor for endurance performance.",
+   "url": "https://doi.org/10.1080/02640414.2011.623709",
+   "evidence_level": "cross",
+   "key_finding": "Polští a ruští sportovci proti kontrolám: alela 482Ser byla u sportovců méně častá (P < 0,0001), v polské kohortě ve vytrvalostní, silově-vytrvalostní i sprintersko-silové skupině, v ruské replikaci u vytrvalostních a silově-vytrvalostních.",
+   "limitations": "Status sportovce, případ–kontrola; směr účinku na výkon z designu neplyne.",
+   "tags": [
+    "genetika",
+    "PPARGC1A",
+    "rs8192678",
+    "výkon a trénink"
+   ],
+   "karty": [
+    {
+     "varianta": "rs8192678",
+     "zdroje": [
+      "S5"
+     ]
+    }
+   ],
+   "population_sport": "různé",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "sportovci vs. kontroly",
+   "sample_size": null,
+   "curator_note": "Navrženo z genové karty PPARGC1A (zdroj S5); tištěné vydání 2012: hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "pmid": "",
+   "doi": "",
+   "title": "Does Genetic Variation in PPARGC1A Affect Exercise-Induced Changes in Ventilatory Thresholds and Metabolic Syndrome?",
+   "authors": "Ring-Dimitriou S, Kedenko L, Kedenko I, Feichtinger RG, Steinbacher P, Stoiber W, Paulweber B",
+   "journal": "Journal of Exercise Physiology Online",
+   "year": 2014,
+   "abstract": "",
+   "url": "",
+   "evidence_level": "cohort",
+   "key_finding": "Podle citace karty: změny ventilačních prahů po tréninku podle genotypu PPARGC1A Gly482Ser u osob s metabolickým syndromem. Plný text nebyl při přípravě knihovny dostupný; hlavní zjištění doplní garant.",
+   "limitations": "Časopis bez indexace v PubMedu, bez DOI; závěr nutno ověřit z plného textu.",
+   "tags": [
+    "genetika",
+    "PPARGC1A",
+    "rs8192678",
+    "výkon a trénink"
+   ],
+   "karty": [
+    {
+     "varianta": "rs8192678",
+     "zdroje": [
+      "S3"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "osoby s metabolickým syndromem",
+   "sample_size": null,
+   "curator_note": "Navrženo z karty PPARGC1A (zdroj S3). Záznam bez PubMedu a DOI – před zařazením dohledejte plný text a doplňte zjištění."
+  },
+  {
+   "doi": "10.1371/journal.pone.0123881",
+   "pmid": "25886402",
+   "title": "The single nucleotide polymorphism Gly482Ser in the PGC-1α gene impairs exercise-induced slow-twitch muscle fibre transformation in humans",
+   "authors": "Steinbacher P, Feichtinger RG, Kedenko L, Kedenko I, Reinhardt S, Schönauer AL, Leitner I, Sänger AM, Stoiber W, Kofler B, Förster H, Paulweber B, Ring-Dimitriou S",
+   "journal": "PLoS One",
+   "year": 2015,
+   "abstract": "PGC-1α (peroxisome proliferator-activated receptor γ co-activator 1α) is an important regulator of mitochondrial biogenesis and a master regulator of enzymes involved in oxidative phosphorylation. Recent evidence demonstrated that the Gly482Ser single nucleotide polymorphism (SNP) in the PGC-1α gene affects insulin sensitivity, blood lipid metabolism and binding to myocyte enhancer factor 2 (MEF2). Individuals carrying this SNP were shown to have a reduced cardiorespiratory fitness and a higher risk to develop type 2 diabetes. Here, we investigated the responses of untrained men with the Gly482Ser SNP to a 10 week programme of endurance training (cycling, 3 x 60 min/week, heart rate at 70-90% VO2peak). Quantitative data from analysis of biopsies from vastus lateralis muscle revealed that the SNP group, in contrast to the control group, lacked a training-induced increase in content of slow contracting oxidative fibres. Capillary supply, mitochondrial density, mitochondrial enzyme activities and intramyocellular lipid content increased similarly in both groups. These results indicate that the impaired binding of MEF2 to PGC-1α in humans with this SNP impedes exercise-induced fast-to-slow muscle fibre transformation.",
+   "url": "https://doi.org/10.1371/journal.pone.0123881",
+   "evidence_level": "cohort",
+   "key_finding": "Netrénovaní muži, 10 týdnů vytrvalostního tréninku na kole (3× 60 min týdně, 70–90 % VO2peak): u nositelů Ser482 chyběl nárůst podílu pomalých oxidativních vláken, který kontrolní skupina měla; kapilarizace, hustota mitochondrií, enzymy i nitrosvalové lipidy stouply v obou skupinách stejně.",
+   "limitations": "Malý soubor netrénovaných mužů, svalové biopsie; nic o sportovcích.",
+   "tags": [
+    "genetika",
+    "PPARGC1A",
+    "rs8192678",
+    "výkon a trénink"
+   ],
+   "karty": [
+    {
+     "varianta": "rs8192678",
+     "zdroje": [
+      "S1"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "M",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "netrénovaní",
+   "sample_size": null,
+   "curator_note": "Navrženo z genové karty PPARGC1A (zdroj S1): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.3390/ijms19051472",
+   "pmid": "29762540",
+   "title": "The Role of Peroxisome Proliferator-Activated Receptors and Their Transcriptional Coactivators Gene Variations in Human Trainability: A Systematic Review",
+   "authors": "Petr M, Stastny P, Zajac A, Tufano JJ, Maciejewska-Skrendo A",
+   "journal": "Int J Mol Sci",
+   "year": 2018,
+   "abstract": "The peroxisome proliferator-activated receptors (,,) and their transcriptional coactivators' (,) gene polymorphisms have been associated with muscle morphology, oxygen uptake, power output and endurance performance. The purpose of this review is to determine whether the PPARs and/or their coactivators' polymorphisms can predict the training response to specific training stimuli.\n\nIn accordance with the Preferred Reporting Items for Systematic Reviews and Meta Analyses, a literature review has been run for a combination of PPARs and physical activity key words.\n\nAll ten of the included studies were performed using aerobic training in general, sedentary or elderly populations from 21 to 75 years of age. The non-responders for aerobic training (VO₂peak increase, slow muscle fiber increase and low-density lipoprotein decrease) are the carriers ofrs8192678 Ser/Ser. The negative responders for aerobic training (decrease in VO₂peak) are carriers of thers2267668 G allele. The negative responders for aerobic training (decreased glucose tolerance and insulin response) are subjects with thers1801282 Pro/Pro genotype. The best responders to aerobic training arers8192678 Gly/Gly,rs1053049 TT,rs2267668 AA andrs1801282 Ala carriers.\n\nThe human response for aerobic training is significantly influenced by PPARs' gene polymorphism and their coactivators, where aerobic training can negatively influence glucose metabolism and VO₂peak in some genetically-predisposed individuals.",
+   "url": "https://doi.org/10.3390/ijms19051472",
+   "evidence_level": "meta",
+   "key_finding": "Systematický přehled 10 studií aerobního tréninku u běžné, sedavé a starší populace (21–75 let): nositelé PPARGC1A rs8192678 Ser/Ser patřili mezi nerespondéry (VO2peak, pomalá vlákna, LDL); nejlepší respondéři měli Gly/Gly spolu s příznivými variantami PPARD a PPARG.",
+   "limitations": "Žádná studie u sportovců, malé soubory, bez metaanalýzy.",
+   "tags": [
+    "genetika",
+    "PPARGC1A",
+    "rs8192678",
+    "výkon a trénink"
+   ],
+   "karty": [
+    {
+     "varianta": "rs8192678",
+     "zdroje": [
+      "S4"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "B",
+   "population_age_min": 21,
+   "population_age_max": 75,
+   "population_level": "",
+   "sample_size": null,
+   "curator_note": "Navrženo z genové karty PPARGC1A (zdroj S4): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1002/(sici)1097-4598(200001)23:1<90::aid-mus12>3.0.co;2-m",
+   "pmid": "10590411",
+   "title": "Mutations in MCT1 cDNA in patients with symptomatic deficiency in lactate transport",
+   "authors": "Merezhinskaya N, Fishbein WN, Davis JI, Foellmer JW",
+   "journal": "Muscle Nerve",
+   "year": 2000,
+   "abstract": "We identified 5 patients with subnormal erythrocyte lactate transport plus symptoms and signs of muscle injury on exercise and heat exposure. All had transport rates below the 95% envelope for normals. Three cases had rates 40-50% of mean normal. One was found to have a missense mutation in monocarboxylate transporter 1 (MCT1), the gene for the red cell lactate transporter (also expressed in skeletal muscle), at a conserved site, which was not mutated in a cohort of 90 normal humans. The other 2 cases had a different missense mutation (at a nonconserved site), which was also not mutated in the normal cohort. All 3 patients were heterozygotes. We presume that these mutations are responsible for their subnormal lactate transport, and hence their muscle injury under environmental stress; homozygous patients should be more seriously compromised. The other 2 cases had lactate transport rates 60-65% of mean normal, and their MCT1 revealed a third mutation, which proved to be a common polymorphism in the normal cohort. These 2 patients may be physiologic outliers in lactate transport, with their muscle damage arising from some other genetic defect.",
+   "url": "https://doi.org/10.1002/(sici)1097-4598(200001)23:1<90::aid-mus12>3.0.co;2-m",
+   "evidence_level": "case",
+   "key_finding": "5 pacientů s podnormálním transportem laktátu v erytrocytech a svalovými potížemi při zátěži a v horku: u 3 byly nalezeny missense mutace MCT1 (heterozygoti), u 2 jen běžný polymorfismus; autoři spojují snížený transport se svalovým poškozením při zátěži.",
+   "limitations": "Kazuistická série 5 osob; běžný polymorfismus sám o sobě transport nevysvětloval.",
+   "tags": [
+    "genetika",
+    "SLC16A1",
+    "MCT1",
+    "rs1049434",
+    "regenerace",
+    "laktát"
+   ],
+   "karty": [
+    {
+     "varianta": "rs1049434",
+     "zdroje": [
+      "S2"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": 5,
+   "curator_note": "Navrženo z genové karty SLC16A1 (zdroj S2): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1016/j.jsams.2009.07.004",
+   "pmid": "19850519",
+   "title": "MCT1 genetic polymorphism influence in high intensity circuit training: a pilot study",
+   "authors": "Cupeiro R, Benito PJ, Maffulli N, Calderón FJ, González-Lamuño D",
+   "journal": "J Sci Med Sport",
+   "year": 2009,
+   "abstract": "Monocarboxylate Transporter 1 (MCT1) mediates the transport of the main fraction of lactate across the sarcolemma. A common polymorphic MCT1 variant has been identified, but its role in high intensity exercise performance has not been defined. We investigated the influence of MCT1 A1470T polymorphism (rs1049434) on lactate accumulation after high intensity circuit training. Ten men aged 20-26 performed three controlled circuit training (CWT) sessions at 60%, 70%, and 80% of the 15 repetition maximum (15RM), in non-consecutive days. CWT included three sets of a circuit of eight exercises, obtaining lactate measurements immediately after each set had been completed. Two independent variables were analysed: MTC1 genotypes according to the presence or absence of the A1470T polymorphism, and the intensity of circuit training. Genotype distributions were in Hardy-Weinberg equilibrium, being 30% wild-type, 50% heterozygotes, and 20% mutated homozygotes. Mean lactate concentration at 80% of 15RM were significantly higher than the mean lactate values at the other intensities (p<0.01). Significant differences between genetic groups were found in the lactate accumulation slope at 80% of 15RM (p=0.02) and in the maximal lactate concentration reached by all subjects in the study (L(max)) (p=0.03). The carriers of the A1470T polymorphism in the MTC1 gene seem to exhibit a worse lactate transport capability into the less active muscle cells for oxidation.",
+   "url": "https://doi.org/10.1016/j.jsams.2009.07.004",
+   "evidence_level": "cross",
+   "key_finding": "10 mužů (20–26 let), kruhový trénink na 60, 70 a 80 % 15RM: při 80 % se nositelé A1470T lišili ve sklonu kumulace laktátu (P = 0,02) a v maximální koncentraci laktátu (P = 0,03); autoři soudí na horší transport laktátu do méně aktivních vláken.",
+   "limitations": "Pilotní studie 10 mužů.",
+   "tags": [
+    "genetika",
+    "SLC16A1",
+    "MCT1",
+    "rs1049434",
+    "laktát"
+   ],
+   "karty": [
+    {
+     "varianta": "rs1049434",
+     "zdroje": [
+      "S3"
+     ]
+    }
+   ],
+   "population_sport": "silový kruhový trénink",
+   "population_sex": "M",
+   "population_age_min": 20,
+   "population_age_max": 26,
+   "population_level": "",
+   "sample_size": 10,
+   "curator_note": "Navrženo z genové karty SLC16A1 (zdroj S3); tištěné vydání 2010: hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1123/ijspp.2013-0026",
+   "pmid": "23628675",
+   "title": "A common polymorphism of the MCT1 gene and athletic performance",
+   "authors": "Fedotovskaya ON, Mustafina LJ, Popov DV, Vinogradova OL, Ahmetov II",
+   "journal": "Int J Sports Physiol Perform",
+   "year": 2013,
+   "abstract": "In red skeletal muscle, monocarboxylate transporter 1 (MCT1) is required for lactate to enter the myocytes for oxidation. The A1470T polymorphism (rs1049434) in the MCT1 gene was shown to be associated with lactate transport rates in human skeletal muscles. The aim of the study was to compare genotype and allele frequencies of the MCT1 gene polymorphism in 323 Russian athletes and 467 nonathletic controls and to investigate the association of the MCT1 gene A1470T polymorphism with maximal oxygen consumption and maximal lactate concentration in rowers (n = 79).\n\nGenotyping for the A1470T MCT1 polymorphism was performed by PCR-RFLP method. Physiological measurements of 79 Russian rowers of national competitive standard were determined during an incremental test to exhaustion on a rowing ergometer.\n\nFrequencies of the A allele (71.8% vs 62.5%, P < .0001) and AA genotype (59.8% vs 39.4%, P < .0001) were significantly higher in endurance-oriented athletes (n = 142) than in the control group. Mean blood lactate concentration was higher in male rowers with the T allele (AT+TT 10.26 ± 1.89 mmol/L, AA 8.75 ± 1.69 mmol/L, P = .005).\n\nMCT1 gene A1470T polymorphism is associated with endurance athlete status and blood lactate level after intensive exercise.",
+   "url": "https://doi.org/10.1123/ijspp.2013-0026",
+   "evidence_level": "cross",
+   "key_finding": "323 ruských sportovců proti 467 kontrolám: alela A (71,8 proti 62,5 %) i genotyp AA (59,8 proti 39,4 %) byly častější u vytrvalců (P < 0,0001); u 79 veslařů měli nositelé alely T vyšší laktát po zátěži do vyčerpání (10,3 proti 8,8 mmol/l; P = 0,005).",
+   "limitations": "Ruská populace, status sportovce; laktát měřen jen u mužů veslařů.",
+   "tags": [
+    "genetika",
+    "SLC16A1",
+    "MCT1",
+    "rs1049434",
+    "laktát",
+    "vytrvalost"
+   ],
+   "karty": [
+    {
+     "varianta": "rs1049434",
+     "zdroje": [
+      "S4"
+     ]
+    }
+   ],
+   "population_sport": "veslování a další",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": 790,
+   "curator_note": "Navrženo z genové karty SLC16A1 (zdroj S4); tištěné vydání 2014: hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1056/NEJMoa062418",
+   "pmid": "16855264",
+   "title": "TCF7L2 polymorphisms and progression to diabetes in the Diabetes Prevention Program",
+   "authors": "Florez JC, Jablonski KA, Bayley N, Pollin TI, de Bakker PI, Shuldiner AR, Knowler WC, Nathan DM, Altshuler D, ",
+   "journal": "N Engl J Med",
+   "year": 2006,
+   "abstract": "Common polymorphisms of the transcription factor 7-like 2 gene (TCF7L2) have recently been associated with type 2 diabetes. We examined whether the two most strongly associated variants (rs12255372 and rs7903146) predict the progression to diabetes in persons with impaired glucose tolerance who were enrolled in the Diabetes Prevention Program, in which lifestyle intervention or treatment with metformin was compared with placebo.\n\nWe genotyped these variants in 3548 participants and performed Cox regression analysis using genotype, intervention, and their interactions as predictors. We assessed the effect of genotype on measures of insulin secretion and insulin sensitivity at baseline and at one year.\n\nOver an average period of three years, participants with the risk-conferring TT genotype at rs7903146 were more likely to have progression from impaired glucose tolerance to diabetes than were CC homozygotes (hazard ratio, 1.55; 95 percent confidence interval, 1.20 to 2.01; P<0.001). The effect of genotype was stronger in the placebo group (hazard ratio, 1.81; 95 percent confidence interval, 1.21 to 2.70; P=0.004) than in the metformin and lifestyle-intervention groups (hazard ratios, 1.62 and 1.15, respectively; P for the interaction between genotype and intervention not significant). The TT genotype was associated with decreased insulin secretion but not increased insulin resistance at baseline. Similar results were obtained for rs12255372.\n\nCommon variants in TCF7L2 seem to be associated with an increased risk of diabetes among persons with impaired glucose tolerance. The risk-conferring genotypes in TCF7L2 are associated with impaired beta-cell function but not with insulin resistance. (ClinicalTrials.gov number, NCT00004992. [ClinicalTrials.gov]).",
+   "url": "https://doi.org/10.1056/NEJMoa062418",
+   "evidence_level": "cohort",
+   "key_finding": "3548 osob s porušenou glukózovou tolerancí v Diabetes Prevention Program: genotyp TT rs7903146 zvyšoval progresi do diabetu (HR 1,55; 95% CI 1,20–2,01); efekt byl silnější na placebu (HR 1,81) než při intervenci životního stylu (HR 1,15); TT souvisel se sníženou sekrecí inzulinu, ne s inzulinovou rezistencí.",
+   "limitations": "Populace s prediabetem středního věku, ne sportovci; interakce genotyp × intervence nebyla statisticky významná.",
+   "tags": [
+    "genetika",
+    "TCF7L2",
+    "rs7903146",
+    "hmotnost a metabolismus"
+   ],
+   "karty": [
+    {
+     "varianta": "rs7903146",
+     "zdroje": [
+      "S2"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "osoby s prediabetem",
+   "sample_size": 3548,
+   "curator_note": "Navrženo z genové karty TCF7L2 (zdroj S2): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  },
+  {
+   "doi": "10.1038/ng1732",
+   "pmid": "16415884",
+   "title": "Variant of transcription factor 7-like 2 (TCF7L2) gene confers risk of type 2 diabetes",
+   "authors": "Grant SF, Thorleifsson G, Reynisdottir I, Benediktsson R, Manolescu A, Sainz J, Helgason A, Stefansson H, Emilsson V, Helgadottir A, Styrkarsdottir U, Magnusson KP, Walters GB, Palsdottir E, Jonsdottir T, Gudmundsdottir T, Gylfason A, Saemundsdottir J, Wilensky RL, Reilly MP, Rader DJ, Bagger Y, Christiansen C, Gudnason V, Sigurdsson G, Thorsteinsdottir U, Gulcher JR, Kong A, Stefansson K",
+   "journal": "Nat Genet",
+   "year": 2006,
+   "abstract": "We have previously reported suggestive linkage of type 2 diabetes mellitus to chromosome 10q. We genotyped 228 microsatellite markers in Icelandic individuals with type 2 diabetes and controls throughout a 10.5-Mb interval on 10q. A microsatellite, DG10S478, within intron 3 of the transcription factor 7-like 2 gene (TCF7L2; formerly TCF4) was associated with type 2 diabetes (P = 2.1 x 10(-9)). This was replicated in a Danish cohort (P = 4.8 x 10(-3)) and in a US cohort (P = 3.3 x 10(-9)). Compared with non-carriers, heterozygous and homozygous carriers of the at-risk alleles (38% and 7% of the population, respectively) have relative risks of 1.45 and 2.41. This corresponds to a population attributable risk of 21%. The TCF7L2 gene product is a high mobility group box-containing transcription factor previously implicated in blood glucose homeostasis. It is thought to act through regulation of proglucagon gene expression in enteroendocrine cells via the Wnt signaling pathway.",
+   "url": "https://doi.org/10.1038/ng1732",
+   "evidence_level": "cross",
+   "key_finding": "Islandská studie s replikací v Dánsku a USA: varianta v intronu 3 TCF7L2 je spojena s diabetem 2. typu (P = 2,1 × 10⁻⁹); relativní riziko 1,45 u heterozygotů a 2,41 u homozygotů rizikové alely, populační atributivní riziko 21 %.",
+   "limitations": "Riziko onemocnění, ne výkon; evropské populace.",
+   "tags": [
+    "genetika",
+    "TCF7L2",
+    "rs7903146",
+    "hmotnost a metabolismus"
+   ],
+   "karty": [
+    {
+     "varianta": "rs7903146",
+     "zdroje": [
+      "S1"
+     ]
+    }
+   ],
+   "population_sport": "",
+   "population_sex": "B",
+   "population_age_min": null,
+   "population_age_max": null,
+   "population_level": "",
+   "sample_size": null,
+   "curator_note": "Navrženo z genové karty TCF7L2 (zdroj S1): hlavní zjištění a omezení připravil kurátor z abstraktu – před zařazením zkontrolujte."
+  }
+ ]
+}

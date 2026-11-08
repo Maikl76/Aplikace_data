@@ -10,12 +10,13 @@
         <input name="src_label_{{ i }}" value="{{ s.label }}" maxlength="12" class="input w-20 text-sm py-1.5" placeholder="S1">
         <input name="src_title_{{ i }}" value="{{ s.title }}" maxlength="200" class="input flex-1 text-sm py-1.5" placeholder="k čemu (např. frekvence genotypů)">
       </div>
-      {% if articles %}
+      {% if articles or s.article %}
         <select name="src_article_{{ i }}" class="input text-sm py-1.5" data-clanek>
           <option value="">— článek z knihovny (nepovinné) —</option>
+          {% if s.article and s.article.status != "approved" %}<option value="{{ s.article_id }}" selected>{{ s.article }} (navržený, čeká na zařazení)</option>{% endif %}
           {% for a in articles %}<option value="{{ a.pk }}" data-citace="{{ a.citation }}" data-doi="{{ a.doi }}" {% if s.article_id == a.pk %}selected{% endif %}>{{ a.label }}</option>{% endfor %}
         </select>
-      {% elif s.article %}<p class="text-xs text-muted">článek v knihovně: {{ s.article }}</p>{% endif %}
+      {% endif %}
       <textarea name="src_citation_{{ i }}" rows="2" class="input text-sm" data-citace placeholder="citace – autoři, název, časopis, rok">{{ s.citation }}</textarea>
       <div class="flex flex-wrap items-center gap-3">
         <input name="src_url_{{ i }}" value="{{ s.url }}" maxlength="500" class="input flex-1 text-xs py-1" data-odkaz placeholder="odkaz (DOI nebo URL)">
@@ -64,12 +65,13 @@
         <textarea name="ev_usage_{{ i }}" rows="1" class="input flex-1 text-sm" placeholder="použití ve zprávě – co z toho smí do textu">{{ e.usage }}</textarea>
         <label class="inline-flex items-center gap-1 text-xs text-muted"><input type="checkbox" name="ev_delete_{{ i }}"> smazat</label>
       </div>
-      {% if articles %}
+      {% if articles or e.article %}
         <select name="ev_article_{{ i }}" class="input text-sm py-1.5">
           <option value="">— článek z knihovny (nepovinné) —</option>
+          {% if e.article and e.article.status != "approved" %}<option value="{{ e.article_id }}" selected>{{ e.article }} (navržený, čeká na zařazení)</option>{% endif %}
           {% for a in articles %}<option value="{{ a.pk }}" {% if e.article_id == a.pk %}selected{% endif %}>{{ a.label }}</option>{% endfor %}
         </select>
-      {% elif e.article %}<p class="text-xs text-muted">článek v knihovně: {{ e.article }}</p>{% endif %}
+      {% endif %}
     </div>
     {% endwith %}
   {% endfor %}

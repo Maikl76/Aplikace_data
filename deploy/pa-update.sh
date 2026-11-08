@@ -147,6 +147,8 @@ main() {
     if [ "$MODE" != "--obnovit" ]; then
         # Návrhy genových karet z repozitáře (katalog/karty/*.json) – jen varianty, které chybí.
         "$PY" manage.py nacist_navrhy_karet
+        # Články ke genovým kartám z repozitáře (katalog/clanky/*.json) – jen chybějící, navržené ke schválení.
+        "$PY" manage.py nacist_clanky
         # Ukázkové zprávy od AI uložené z laboratorního počítače (demo/ukazkove_zpravy/).
         "$PY" manage.py nacist_ukazky_zprav
         # Ukázkový přístroj DEXA pro průvodce „Nový přístroj“.

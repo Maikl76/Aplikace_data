@@ -60,7 +60,8 @@ def article_list(request):
         articles = articles.filter(Q(title__icontains=f["q"]) | Q(authors__icontains=f["q"])
                                    | Q(doi__icontains=f["q"]) | Q(pmid=f["q"])
                                    | Q(key_finding__icontains=f["q"])
-                                   | Q(journal__icontains=f["q"]))
+                                   | Q(journal__icontains=f["q"])
+                                   | Q(tags__icontains=f["q"]))
     if sport := Sport.objects.filter(pk=_int(f["sport"])).first():
         articles = articles.filter(Q(sports=sport)
                                    | Q(population_sport__icontains=sport.name))
@@ -81,7 +82,8 @@ def article_list(request):
         articles = articles.filter(key_finding="", curator_note="")
     elif f["chybi"] == "vazba":
         articles = articles.filter(pocet_pravidel=0, metrics__isnull=True,
-                                   protocols__isnull=True)
+                                   protocols__isnull=True, gene_sources__isnull=True,
+                                   gene_evidence__isnull=True)
     elif f["chybi"] == "sport":
         articles = articles.filter(sports__isnull=True, population_sport="")
     articles = articles.distinct()
@@ -90,7 +92,9 @@ def article_list(request):
     articles = articles.annotate(evidence_order=Case(
         *[When(evidence_level=value, then=Value(i)) for i, value in enumerate(EvidenceLevel.values)],
         default=Value(99), output_field=IntegerField())).order_by(*SORTS[sort][0])
-    page = Paginator(articles.prefetch_related("metrics", "protocols", "sports"),
+    page = Paginator(articles.prefetch_related("metrics", "protocols", "sports",
+                                               "gene_sources__card__variant",
+                                               "gene_evidence__card__variant"),
                      PER_PAGE).get_page(get.get("strana"))
 
     used = Article.objects.all()

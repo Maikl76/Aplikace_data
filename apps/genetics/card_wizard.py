@@ -606,8 +606,9 @@ def _save_vyroky(card, request) -> list[str]:
 
 
 def _article(pk):
-    """Schválený článek z knihovny podle id z výběru; prázdné = bez vazby."""
-    return Article.objects.filter(pk=pk or 0, status=Article.Status.APPROVED).first()
+    """Článek z knihovny podle id z výběru – zařazený, nebo navržený (připravený ke kartě);
+    prázdné = bez vazby. Zamítnutý článek se ke kartě připojit nedá."""
+    return Article.objects.filter(pk=pk or 0).exclude(status=Article.Status.REJECTED).first()
 
 
 def _prefill_from_article(values: dict) -> None:

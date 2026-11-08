@@ -13,7 +13,8 @@ def library_steps() -> list[dict]:
     live = Article.objects.exclude(status=Article.Status.REJECTED)
     no_finding = live.filter(key_finding="").count()
     no_topic = (live.annotate(n_rules=Count("rule_articles", distinct=True))
-                .filter(n_rules=0, metrics__isnull=True, protocols__isnull=True).distinct().count())
+                .filter(n_rules=0, metrics__isnull=True, protocols__isnull=True,
+                        gene_sources__isnull=True, gene_evidence__isnull=True).distinct().count())
     suggested = Article.objects.filter(status=Article.Status.SUGGESTED).count()
     return [
         step(1, "Přidat článek", total > 0,
@@ -26,8 +27,9 @@ def library_steps() -> list[dict]:
              url=reverse("article_list") + "?chybi=zjisteni", button="Doplnit",
              count=no_finding or None),
         step(3, "Témata", no_topic == 0,
-             (f"{no_topic} článků bez vazby na ukazatel, test ani pravidlo – u sportovce se "
-              "nikdy nepoužijí." if no_topic else "Každý článek má téma nebo pravidlo."),
+             (f"{no_topic} článků bez vazby na ukazatel, test, pravidlo ani genovou kartu – "
+              "u sportovce se nikdy nepoužijí." if no_topic else
+              "Každý článek má téma, pravidlo nebo genovou kartu."),
              url=reverse("article_list") + "?chybi=vazba", button="Doplnit témata",
              count=no_topic or None),
         step(4, "Zařazení", suggested == 0,
@@ -46,7 +48,9 @@ def article_steps(article) -> list[dict]:
     population = bool(article.population_sex or article.population_age_min
                       or article.population_age_max or article.population_sport
                       or article.sports.exists())
-    topics = article.metrics.exists() or article.protocols.exists() or article.rule_articles.exists()
+    topics = (article.metrics.exists() or article.protocols.exists()
+              or article.rule_articles.exists() or article.gene_sources.exists()
+              or article.gene_evidence.exists())
     return [
         step(1, "Identifikace", ident,
              "Název, DOI nebo PMID a rok." if ident else "Chybí DOI nebo PMID, nebo rok."),
