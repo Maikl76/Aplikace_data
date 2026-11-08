@@ -211,3 +211,33 @@ def test_scenare_se_napoji_na_otazky_a_shoda_odpovedi(org):
     yesno = ContextScenario(answer_match={"value": 1})
     assert yesno.matches(Answer(question=scale_q, value=1.0, state="answered"))
     assert not yesno.matches(Answer(question=scale_q, value=0.0, state="answered"))
+
+
+def test_po_chybe_zustanou_vyplnene_odpovedi(org):
+    """Zapomenutá povinná otázka nesmí smazat, co už je vyplněné (laboratoř i portál)."""
+    _, lab_client = _user(org, Role.LAB, "laborant")
+    subject = _adult(org)
+    url = f"/genetika/sportovec/{subject.pk}/dotaznik/"
+    data = {"q_hlavni_sport": "tenis", "q_zamereni": "rekreacni", "q_praxe_let": "12,5",
+            "q_stres": "4", "q_kofein_davky__stav": "na", "q_slozka": ["silova"]}
+    response = lab_client.post(url, data)
+    page = response.content.decode()
+    assert response.status_code == 200 and QuestionnaireResponse.objects.count() == 0
+    assert ">tenis</textarea>" in page                                       # text
+    assert 'name="q_zamereni" value="rekreacni" class="mt-1" checked' in page  # volba
+    assert 'name="q_praxe_let" class="input w-32 text-sm py-1.5" value="12.5"' in page  # číslo
+    assert 'name="q_stres" value="4" checked' in page                         # škála
+    assert 'name="q_kofein_davky__stav" value="na" checked' in page           # stav
+    assert 'name="q_slozka" value="silova" class="mt-1" checked' in page      # více možností
+    assert 'id="q-cil"' in page and 'href="#q-cil"' in page and "chybí odpověď" in page
+    assert "Co už je vyplněné, zůstalo" in page
+
+    # portál: totéž pro sportovce
+    athlete, athlete_client = _user(org, Role.ATHLETE, "jana@example.cz")
+    identity = subject.identity
+    identity.user = athlete
+    identity.save()
+    services.grant_consent(subject, by=athlete)
+    page = athlete_client.post(f"/muj/{subject.pk}/dotaznik/genetika/", data).content.decode()
+    assert ">tenis</textarea>" in page and 'name="q_stres" value="4" checked' in page
+    assert QuestionnaireResponse.objects.count() == 0

@@ -326,7 +326,7 @@ def questionnaire(request, pk):
         messages.error(request, "Dotazník genetiky není v katalogu (seed_catalog ho založí).")
         return redirect("genetics_subject", pk=pk)
     previous = questionnaires.latest(subject, seed.QUESTIONNAIRE_CODE)
-    missing = []
+    missing, values = [], None
     if request.method == "POST":
         values = questionnaires.parse_answers(form, request.POST)
         missing = questionnaires.missing_required(form, values)
@@ -341,7 +341,7 @@ def questionnaire(request, pk):
         messages.error(request, "Doplňte povinné otázky, nebo u nich zvolte „nevím“ / „netýká se“.")
     return render(request, "measurements/questionnaire_form.html", {
         "questionnaire": form, "subject": subject, "previous": previous, "missing": missing,
-        "sections": questionnaires.sections(form, previous),
+        "sections": questionnaires.sections(form, previous, values=values, missing=missing),
         "back_url": reverse("genetics_subject", args=[subject.pk]),
         "back_label": f"Genetika · {subject.display_for(request.user)}",
         "who": True,

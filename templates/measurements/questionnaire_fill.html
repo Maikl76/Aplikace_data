@@ -26,7 +26,7 @@
       </div>
       {% if missing %}
         <div class="card px-4 py-3 text-sm border-l-4" style="border-left-color: var(--warn)">
-          Chybí odpověď na povinné otázky: {% for q in missing %}<strong>{{ q.text }}</strong>{% if not forloop.last %}, {% endif %}{% endfor %}.
+          Chybí odpověď na povinné otázky: {% for q in missing %}<a class="link font-medium" href="#q-{{ q.code }}">{{ q.text }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}. Co už je vyplněné, zůstalo – doplňte jen označené otázky, nebo u nich zvolte „nevím“ / „netýká se“.
         </div>
       {% endif %}
       {% if simple %}

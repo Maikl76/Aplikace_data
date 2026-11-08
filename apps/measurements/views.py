@@ -435,7 +435,7 @@ def session_questionnaire_form(request, pk, code):
         messages.error(request, "Takový dotazník se v testovacím dni nenabízí.")
         return redirect("session_detail", pk=pk)
     previous = session.responses.filter(questionnaire=questionnaire, protocol_run=None).first()
-    missing = []
+    missing, values = [], None
     if request.method == "POST":
         values = questionnaires.parse_answers(questionnaire, request.POST)
         missing = questionnaires.missing_required(questionnaire, values)
@@ -451,7 +451,8 @@ def session_questionnaire_form(request, pk, code):
         messages.error(request, "Doplňte povinné otázky, nebo u nich zvolte „nevím“ / „netýká se“.")
     return render(request, "measurements/questionnaire_form.html", {
         "questionnaire": questionnaire, "previous": previous, "missing": missing,
-        "sections": questionnaires.sections(questionnaire, previous), "overwrite": True,
+        "sections": questionnaires.sections(questionnaire, previous, values=values,
+                                            missing=missing), "overwrite": True,
         "back_url": f"{reverse('session_detail', args=[pk])}#dotazniky",
         "back_label": f"Testovací den {session.date:%d.%m.%Y}", "who": True,
     })
@@ -474,7 +475,7 @@ def questionnaire_fill(request, token):
     run = session.protocol_runs.filter(pk=data.get("r")).select_related("protocol").first()
     questions = list(questionnaire.questions.all())
     simple = all(q.kind == Question.Kind.SCALE for q in questions)   # RPE: jen škála
-    done, missing = False, []
+    done, missing, answers = False, [], None
     if request.method == "POST":
         answers = questionnaires.parse_answers(questionnaire, request.POST)
         missing = questionnaires.missing_required(questionnaire, answers)
@@ -485,7 +486,8 @@ def questionnaire_fill(request, token):
     return render(request, "measurements/questionnaire_fill.html", {
         "questionnaire": questionnaire, "run": run, "session": session, "done": done,
         "questions": questions, "simple": simple, "missing": missing,
-        "sections": [] if simple else questionnaires.sections(questionnaire),
+        "sections": ([] if simple else
+                     questionnaires.sections(questionnaire, values=answers, missing=missing)),
     })
 
 

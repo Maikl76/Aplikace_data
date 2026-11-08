@@ -148,14 +148,41 @@ def missing_required(questionnaire, values: dict) -> list:
     return [q for q in questionnaire.questions.all() if q.required and q not in values]
 
 
-def sections(questionnaire, response=None) -> list[dict]:
-    """Otázky po oddílech s případnou dřívější odpovědí – pro formulář i výpis."""
-    answers = response.answers_by_code() if response is not None else {}
+class Draft:
+    """
+    Odpověď z odeslaného formuláře před uložením. Má stejná pole jako Answer,
+    takže se formulář po chybě vykreslí znovu s tím, co člověk vyplnil.
+    """
+
+    def __init__(self, parsed: dict):
+        self.state = parsed.get("state", Answer.State.ANSWERED)
+        self.value = parsed.get("value")
+        self.text = parsed.get("text", "")
+        self.choices = list(parsed.get("choices", []))
+
+    @property
+    def is_answered(self) -> bool:
+        return self.state == Answer.State.ANSWERED
+
+
+def sections(questionnaire, response=None, values=None, missing=()) -> list[dict]:
+    """
+    Otázky po oddílech – pro formulář i výpis. Bez ``values`` se předvyplní
+    dřívější odpovědí (``response``); s ``values`` (odpovědi z právě
+    odeslaného formuláře podle parse_answers) se ukáže přesně to, co člověk
+    vyplnil, a otázky z ``missing`` dostanou příznak, že chybí odpověď.
+    """
+    if values is not None:
+        answers = {question.code: Draft(parsed) for question, parsed in values.items()}
+    else:
+        answers = response.answers_by_code() if response is not None else {}
+    missing_codes = {q.code for q in missing}
     out: list[dict] = []
     for question in questionnaire.questions.all():
         if not out or out[-1]["name"] != question.section:
             out.append({"name": question.section, "questions": []})
-        out[-1]["questions"].append({"question": question, "answer": answers.get(question.code)})
+        out[-1]["questions"].append({"question": question, "answer": answers.get(question.code),
+                                     "missing": question.code in missing_codes})
     return out
 
 

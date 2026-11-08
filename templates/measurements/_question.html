@@ -1,7 +1,7 @@
 {# Jedna otázka dotazníku: podle druhu + stav „nevím“ / „netýká se“. Čeká question a answer (nebo None). #}
 {% with q=item.question a=item.answer %}
-<fieldset class="py-3 border-t" style="border-color: var(--border)">
-  <legend class="font-medium text-sm">{{ q.text }}{% if not q.required %} <span class="text-xs text-muted font-normal">(nepovinné)</span>{% endif %}</legend>
+<fieldset class="py-3 border-t" id="q-{{ q.code }}" style="border-color: var(--border){% if item.missing %}; box-shadow: inset 3px 0 0 var(--bad){% endif %}">
+  <legend class="font-medium text-sm">{{ q.text }}{% if not q.required %} <span class="text-xs text-muted font-normal">(nepovinné)</span>{% endif %}{% if item.missing %} <span class="text-xs font-normal" style="color: var(--bad)">– chybí odpověď</span>{% endif %}</legend>
   {% if q.help_text %}<p class="text-xs text-muted mb-1">{{ q.help_text }}</p>{% endif %}
   <div class="mt-1">
     {% if q.kind == "scale" %}
@@ -15,7 +15,7 @@
       </div>
     {% elif q.kind == "number" %}
       <div class="flex items-center gap-2">
-        <input type="number" step="any" name="q_{{ q.code }}" class="input w-32 text-sm py-1.5" value="{% if a and a.is_answered and a.value is not None %}{{ a.value|floatformat:"-2" }}{% endif %}">
+        <input type="number" step="any" name="q_{{ q.code }}" class="input w-32 text-sm py-1.5" value="{% if a and a.is_answered and a.value is not None %}{{ a.value|stringformat:"g" }}{% endif %}">
         {% if q.unit %}<span class="text-sm text-muted">{{ q.unit }}</span>{% endif %}
       </div>
     {% elif q.kind == "yesno" %}

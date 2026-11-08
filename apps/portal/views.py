@@ -260,7 +260,7 @@ def genetics_questionnaire(request, pk):
         messages.error(request, "Dotazník zatím není připravený.")
         return redirect("portal_consents", pk=pk)
     previous = questionnaires.latest(subject, seed.QUESTIONNAIRE_CODE)
-    missing = []
+    missing, values = [], None
     if request.method == "POST":
         values = questionnaires.parse_answers(form, request.POST)
         missing = questionnaires.missing_required(form, values)
@@ -274,7 +274,7 @@ def genetics_questionnaire(request, pk):
         messages.error(request, "Doplňte povinné otázky, nebo u nich zvolte „nevím“ / „netýká se“.")
     return render(request, "measurements/questionnaire_form.html", {
         "questionnaire": form, "subject": subject, "previous": previous, "missing": missing,
-        "sections": questionnaires.sections(form, previous),
+        "sections": questionnaires.sections(form, previous, values=values, missing=missing),
         "back_url": reverse("portal_consents", args=[subject.pk]),
         "back_label": "Souhlasy a sdílení",
         "subjects_count": subjects_for(request.user).count(),
