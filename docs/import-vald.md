@@ -57,6 +57,15 @@ Ruční kontrola jednou: `python manage.py hlidat_slozku --jednou`.
 
 ## Když aplikace sportovce nepozná
 
+Export obsahuje všechny sportovce, kteří se ten den měřili; aplikace je
+zpracuje všechny najednou, každého do jeho testovacího dne. V kontrole před
+uložením má každý sportovec ze souboru výběr *Patří k*: poznaný je
+předvybraný, nepoznaného přiřadíte, nebo se založí jako nový. Volba
+**neimportovat – přeskočit** sportovce vynechá i s hodnotami (někdo z jiné
+skupiny, nebo už načtený z jiného souboru). Při nahrání ze stránky testu
+nebo testovacího dne je navíc zaškrtnutí **Načíst jen tohoto sportovce**;
+ostatní se přeskočí a soubor jde později nahrát znovu z Importu.
+
 Typicky nový klient z objednávky, kterého VALD zná pod jinak napsaným jménem
 („Nováková Jana“ × „Jana Nováková“, překlep). V náhledu importu je u každého
 sportovce ze souboru výběr **Patří k**:

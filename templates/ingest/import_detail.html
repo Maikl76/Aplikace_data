@@ -98,8 +98,9 @@
           <td>
             <select name="prirazeni_{{ s.key }}" form="ulozit" class="input w-auto max-w-full"
                     aria-label="Ke komu patří {{ s.hint }}">
-              {% for pk, label in s.options %}<option value="{{ pk }}" {% if s.selected == pk %}selected{% endif %}>{{ label }}</option>{% endfor %}
-              <option value="" {% if not s.selected %}selected{% endif %}>nový sportovec – založí se</option>
+              {% for pk, label in s.options %}<option value="{{ pk }}" {% if s.selected == pk and not s.preskocit %}selected{% endif %}>{{ label }}</option>{% endfor %}
+              <option value="" {% if not s.selected and not s.preskocit %}selected{% endif %}>nový sportovec – založí se</option>
+              <option value="preskocit" {% if s.preskocit %}selected{% endif %}>neimportovat – přeskočit</option>
             </select>
             {% if s.navrh %}<div class="text-xs mt-1" style="color: var(--accent-strong)">navrženo: {{ s.navrh }} – zkontrolujte</div>{% endif %}
             {% if s.upozorneni %}<div class="text-xs mt-1" style="color: var(--warn)">{{ s.upozorneni }}</div>{% endif %}
@@ -194,6 +195,12 @@
       <input type="checkbox" name="skip_out_of_range">
       Neukládat hodnoty mimo věrohodný rozsah
     </label>
+    {% if cil_sportovec and sportovci|length > 1 %}
+    <label class="flex items-center gap-2 text-sm pb-2" title="Ostatní sportovci ze souboru se přeskočí i s hodnotami; soubor jde později nahrát znovu z Importu">
+      <input type="checkbox" name="jen_cil">
+      Načíst jen tohoto sportovce ({{ cil_sportovec }})
+    </label>
+    {% endif %}
     <button type="submit" class="btn btn-primary"
             onclick="this.textContent='Ukládám…'">
       {% icon "check" %}Uložit do databáze

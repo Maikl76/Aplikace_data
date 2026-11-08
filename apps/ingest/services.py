@@ -405,7 +405,7 @@ def scope_problem(batch, user) -> str:
 
     if access.scope(user) is None:
         return ""
-    staged = batch.staged.all()
+    staged = batch.staged.exclude(subject_key__in=skipped_keys(batch))
     new_keys = set(staged.filter(subject__isnull=True)
                    .exclude(subject_key="").values_list("subject_key", flat=True))
     visible = Subject.objects.for_user(user).values_list("pk", flat=True)
@@ -437,6 +437,7 @@ def assignment_choices(batch, user) -> list[dict]:
     summary = batch.summary or {}
     subjects_info = summary.get("subjects") or {}
     target = summary.get("cil") or {}
+    skipped = set(summary.get("preskocit") or [])
     staged = batch.staged.all()
     dates = {}
     for key, day in staged.values_list("subject_key", "session_date").distinct():
@@ -493,7 +494,7 @@ def assignment_choices(batch, user) -> list[dict]:
         if selected is None and target_subject and (len(subjects_info) == 1 or unmatched == [key]):
             selected, how = target_subject.pk, "nahráno z testovacího dne"
         rows.append({**info, "key": key, "options": options, "selected": selected,
-                     "navrh": how})
+                     "navrh": how, "preskocit": key in skipped})
     rows.sort(key=lambda r: (r["selected"] is not None, r.get("hint", "")))
     return rows
 
@@ -504,17 +505,51 @@ def _tokens(name) -> frozenset:
     return frozenset(normalize_name(name or "").split())
 
 
+SKIP = "preskocit"   # volba v náhledu: tohoto sportovce ze souboru neimportovat
+
+
+def skipped_keys(batch) -> set[str]:
+    return set((batch.summary or {}).get("preskocit") or [])
+
+
+def set_skipped(batch, keys) -> None:
+    """Zapamatuje, kteří sportovci ze souboru se při uložení přeskočí."""
+    summary = dict(batch.summary or {})
+    if set(keys) != set(summary.get("preskocit") or []):
+        summary["preskocit"] = sorted(keys)
+        batch.summary = summary
+        batch.save(update_fields=["summary"])
+
+
 def apply_assignments(batch, assignments: dict, user) -> int:
-    """Ruční přiřazení z náhledu: {klíč ze souboru: pk sportovce | None = nový}."""
+    """
+    Ruční přiřazení z náhledu: {klíč ze souboru: pk sportovce | None = nový
+    | SKIP = neimportovat}. Přeskočený sportovec se při uložení vynechá
+    i s hodnotami; soubor jde kdykoli nahrát znovu.
+    """
     changed = 0
     allowed = Subject.objects.for_user(user) if user else Subject.objects.all()
+    skipped = skipped_keys(batch)
     for key, value in assignments.items():
+        if value == SKIP:
+            skipped.add(key)
+            continue
+        skipped.discard(key)
         subject = allowed.filter(pk=value).first() if value else None
         if value and subject is None:
             continue
         changed += batch.staged.filter(subject_key=key).exclude(subject=subject).update(
             subject=subject)
+    set_skipped(batch, skipped)
     return changed
+
+
+def restrict_to_subject(batch, subject_id) -> set[str]:
+    """„Načíst jen tohoto sportovce“: klíče všech ostatních ze souboru, které se přeskočí."""
+    keys = set(batch.staged.values_list("subject_key", flat=True).distinct())
+    mine = set(batch.staged.filter(subject_id=subject_id)
+               .values_list("subject_key", flat=True).distinct())
+    return keys - mine
 
 
 def clear_personal_data(batch):
@@ -568,6 +603,9 @@ def commit_batch(batch, *, user, default_date=None, skip_out_of_range=False) -> 
         return empty_run(session, protocol)
 
     rows = list(batch.staged.select_related("metric", "protocol", "subject"))
+    skipped = set(summary.get("preskocit") or [])
+    result["preskoceni_sportovci"] = len({r.subject_key for r in rows if r.subject_key in skipped})
+    rows = [r for r in rows if r.subject_key not in skipped]
 
     # 1) sportovci – existující doplnit o nové identifikátory, chybějící založit
     subjects: dict[str, Subject] = {}

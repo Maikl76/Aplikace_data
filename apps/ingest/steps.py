@@ -62,7 +62,7 @@ def _watch_text(watched) -> str:
 
 def import_detail_steps(batch, sportovci, problems) -> list[dict]:
     committed = batch.status == ImportBatch.Status.COMMITTED
-    unmatched = [s for s in sportovci if s.get("selected") is None]
+    unmatched = [s for s in sportovci if s.get("selected") is None and not s.get("preskocit")]
     return [
         step(1, "Nahráno", True, f"Soubor načten {batch.created_at:%d.%m.%Y %H:%M}; nic se "
                                   "ještě nezapsalo." if not committed else

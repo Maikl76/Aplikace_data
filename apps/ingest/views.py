@@ -184,6 +184,16 @@ def import_detail(request, pk):
     except ValueError:
         cil_den = None
     # Nahráno k jednomu testu, ale soubor nese i jiné: ty se zapíší ke svým testům dne.
+    cil_sportovec = ""
+    if cil.get("subject"):
+        from apps.subjects.models import Subject
+        from apps.subjects.search import names_for
+
+        target_subject = Subject.objects.filter(organization=batch.organization,
+                                                pk=cil["subject"]).first()
+        if target_subject is not None:
+            cil_sportovec = names_for([target_subject], request.user).get(
+                target_subject.pk) or target_subject.code
     cil_jine = []
     if cil.get("protokol"):
         cil_jine = sorted({name for name in staged.exclude(protocol__code=cil["protokol"])
@@ -194,7 +204,7 @@ def import_detail(request, pk):
         "steps": import_detail_steps(batch, sportovci, problems),
         "batch": batch,
         "summary": summary,
-        "cil": cil, "cil_den": cil_den, "cil_jine": cil_jine,
+        "cil": cil, "cil_den": cil_den, "cil_jine": cil_jine, "cil_sportovec": cil_sportovec,
         "dlazdice": [
             ("sportovců", summary.get("sportovcu")),
             ("nepoznaných automaticky", summary.get("novych_sportovcu")),
@@ -227,6 +237,12 @@ def import_commit(request, pk):
                    for name, value in request.POST.items() if name.startswith("prirazeni_")}
     if assignments and batch.status == ImportBatch.Status.PARSED:
         services.apply_assignments(batch, assignments, request.user)
+    # Nahráno od jednoho sportovce a chceme jen jeho: ostatní ze souboru se přeskočí.
+    target = (batch.summary or {}).get("cil") or {}
+    if request.POST.get("jen_cil") and target.get("subject") \
+            and batch.status == ImportBatch.Status.PARSED:
+        services.set_skipped(batch, services.skipped_keys(batch)
+                             | services.restrict_to_subject(batch, target["subject"]))
     if problem := services.scope_problem(batch, request.user):
         messages.error(request, problem)
         return redirect("import_detail", pk=pk)
@@ -246,6 +262,11 @@ def import_commit(request, pk):
         text += f" Aktualizováno {result['aktualizovano']} hodnot, které VALD přepočítal."
     if result.get("koncepty"):
         text += (f" Koncepty zpráv ke kontrole: {', '.join(result['koncepty'])}.")
+    if n := result.get("preskoceni_sportovci"):
+        from apps.reports.narrative import plural
+
+        text += (f" {n} {plural(n, 'sportovec ze souboru přeskočen', 'sportovci ze souboru přeskočeni', 'sportovců ze souboru přeskočeno')}"
+                 " – jejich hodnoty se neuložily.")
     messages.success(request, text)
     if result.get("jmena_neulozena"):
         messages.warning(request, (
