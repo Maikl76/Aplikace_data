@@ -588,7 +588,7 @@ def test_katalog_genetiky_projde_tam_a_zpet(org):
     Domain.objects.all().delete()
 
     counts = import_catalog(data)
-    assert counts["genové karty"] == [2, 0] and counts["genové varianty"] == [1, 0]
+    assert counts["genové karty"]["nove"] == 2 and counts["genové varianty"]["nove"] == 1
     variant = GeneVariant.objects.get(rsid="rs1815739")
     assert variant.strand_note == "C/T vs. R/X" and variant.domain.code == "vykon"
     assert Domain.objects.get(code="vykon").guarantors.count() == 0  # účty se nepřenáší
@@ -605,7 +605,7 @@ def test_katalog_genetiky_projde_tam_a_zpet(org):
     assert GeneInteraction.objects.get().source_card == v1
     assert ForbiddenStatement.objects.get(card__isnull=True).text == "nevyužíváte potenciál"
     # Druhé načtení jen aktualizuje.
-    assert import_catalog(data)["genové karty"] == [0, 2]
+    assert import_catalog(data)["genové karty"] == {"nove": 0, "zmenene": 0, "beze_zmeny": 2}
 
 
 # --- administrace: skupiny rolí ---------------------------------------------------------

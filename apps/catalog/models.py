@@ -10,6 +10,7 @@ v administraci.
 Záznamy s ``organization = NULL`` jsou sdílené napříč pracovišti.
 """
 
+from django.conf import settings
 from django.db import models
 
 from apps.core.models import Organization, OrgScopedModel, TimeStampedModel
@@ -636,3 +637,38 @@ class Question(models.Model):
     @property
     def has_states(self) -> bool:
         return self.allow_unknown or self.allow_na
+
+
+class SettingsTransfer(OrgScopedModel):
+    """
+    Přenos nastavení: balíček stažený z této instance, nebo nahraný do ní
+    (Nastavení → Přenos nastavení). U nahraného zůstane, odkud byl, co by
+    změnil (náhled) a co změnil (po načtení). Soubor se po načtení maže.
+    """
+
+    class Direction(models.TextChoices):
+        OUT = "ven", "staženo"
+        IN = "dovnitr", "nahráno"
+
+    direction = models.CharField("směr", max_length=10, choices=Direction.choices)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="kdo", null=True, blank=True,
+                             on_delete=models.SET_NULL, related_name="+")
+    file = models.FileField("balíček", upload_to="prenos/", blank=True)
+    original_name = models.CharField("název souboru", max_length=255, blank=True)
+    source = models.CharField("odkud", max_length=200, blank=True)
+    source_created = models.CharField("vytvořeno tam", max_length=40, blank=True)
+    counts = models.JSONField("počty", default=dict, blank=True)
+    error = models.TextField("chyba", blank=True)
+    applied_at = models.DateTimeField("načteno", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "přenos nastavení"
+        verbose_name_plural = "přenosy nastavení"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.get_direction_display()} {self.created_at:%d.%m.%Y %H:%M}"
+
+    @property
+    def pending(self) -> bool:
+        return self.direction == self.Direction.IN and self.applied_at is None and not self.error

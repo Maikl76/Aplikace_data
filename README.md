@@ -64,7 +64,8 @@ aplikace poběží i v ostrém nasazení. Reálná data sem nepatří.
 | `ulozit-katalog.bat` | po změně katalogu v administraci: uloží ho do repozitáře a nahraje |
 | `nacist-katalog.bat` | na druhém počítači: načte uložený katalog |
 
-Postup pro práci na víc počítačích je v [docs/vice-pocitacu.md](docs/vice-pocitacu.md),
+Postup pro práci na víc počítačích a přenos nastavení mezi instancemi je v [docs/vice-pocitacu.md](docs/vice-pocitacu.md),
+přístup přes web a kde má aplikace běžet (otevřené rozhodnutí) v [docs/pristup-pres-web.md](docs/pristup-pres-web.md),
 import z VALD v [docs/import-vald.md](docs/import-vald.md),
 nový přístroj (DEXA, InBody…) bez programování v [docs/novy-pristroj.md](docs/novy-pristroj.md),
 DSI, ODS a kontrola pokusů v [docs/diagnostika.md](docs/diagnostika.md),

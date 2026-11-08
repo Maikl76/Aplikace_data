@@ -463,7 +463,9 @@
           </tbody>
         </table>
       </div>
-      <p class="text-sm text-muted mt-2">Katalog se přenáší mezi počítači souborem přes git: <code>ulozit-katalog.bat</code> a <code>nacist-katalog.bat</code>.</p>
+      <h3>Přenos nastavení mezi instancemi</h3>
+      <p>Co se nastaví na jednom místě (zkušební provoz na webu, laboratorní počítač, server), jde přenést na druhé jedním souborem: {% if pristup.manage %}<a class="link" href="{% url 'transfer_settings' %}">Nastavení → Přenos nastavení</a>{% else %}Nastavení → Přenos nastavení{% endif %} → <em>Stáhnout balíček</em>; v druhé instanci <em>Nahrát balíček</em>. Před zápisem se ukáže, co je nové, co se změní a co je stejné; nic se nezapíše bez potvrzení. Funguje oběma směry, jen pro správce.</p>
+      <p class="text-sm text-muted">Přenáší se sporty a týmy, testy a ukazatele s MDC, baterie, normy, pravidla, články (bez PDF), dotazníky, přístroje a profily importu, nabídka objednávek, pokyny pro model, genetika a volby pracoviště. Nepřenáší se sportovci, měření, zprávy, objednávky, účty, klíče ani modely. Načtení nikdy nemaže. Přes git jde totéž příkazy <code>ulozit-katalog.bat</code> a <code>nacist-katalog.bat</code>.</p>
     </section>
 
     {# ================================================================== #}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Náhled balíčku – FTVS{% endblock %}
+{% block content %}
+<div class="max-w-4xl">
+  <a href="{% url 'transfer_settings' %}" class="text-sm link">← Přenos nastavení</a>
+  <h1 class="text-2xl font-semibold leading-tight">{% if nasucho %}Co balíček změní{% else %}Co balíček změnil{% endif %}</h1>
+  <p class="text-sm text-2 mt-1 mb-4">
+    Soubor <strong>{{ item.original_name }}</strong>{% if item.source %}, z instance <strong>{{ item.source }}</strong>{% endif %}{% if item.source_created %}, vytvořený {{ item.source_created|slice:":16"|default:"" }}{% endif %}.
+    {% if item.applied_at %}Načteno {{ item.applied_at|date:"d.m.Y H:i" }}.{% elif not item.error %}Zatím se nic nezapsalo – níže je zkouška nasucho.{% endif %}
+  </p>
+
+  {% if item.error %}
+    <div class="card p-4 mb-4 text-sm border-l-4" style="border-left-color: var(--bad)">
+      <div class="font-medium">Balíček nejde načíst</div>
+      <p class="text-2 mt-1">{{ item.error }}</p>
+      <p class="text-xs text-muted mt-2">Obvykle chybí položka, na kterou se balíček odkazuje (test, metrika, článek). Nejdřív načtěte úplný balíček, nebo chybějící položku založte.</p>
+    </div>
+  {% endif %}
+
+  {% if rows %}
+    <div class="grid grid-cols-3 gap-3 mb-4">
+      <div class="card p-4"><div class="kpi-value tabular-nums">{{ totals.nove }}</div><div class="text-sm text-muted">nových položek</div></div>
+      <div class="card p-4"><div class="kpi-value tabular-nums">{{ totals.zmenene }}</div><div class="text-sm text-muted">změněných položek</div></div>
+      <div class="card p-4"><div class="kpi-value tabular-nums">{{ totals.beze_zmeny }}</div><div class="text-sm text-muted">beze změny</div></div>
+    </div>
+    <section class="card min-w-0 mb-4">
+      <table class="table">
+        <thead><tr><th>Část</th><th class="text-right">Nové</th><th class="text-right">Změněné</th><th class="text-right">Beze změny</th></tr></thead>
+        <tbody>
+          {% for label, e in rows %}
+            <tr class="{% if not e.nove and not e.zmenene %}text-muted{% endif %}">
+              <td>{{ label }}</td>
+              <td class="text-right tabular-nums">{% if e.nove %}<span class="badge badge-good">+{{ e.nove }}</span>{% else %}—{% endif %}</td>
+              <td class="text-right tabular-nums">{% if e.zmenene %}<span class="badge badge-accent">{{ e.zmenene }}</span>{% else %}—{% endif %}</td>
+              <td class="text-right tabular-nums">{{ e.beze_zmeny|default:"—" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% elif not item.error %}
+    <div class="card p-4 mb-4 text-sm text-2">Balíček je prázdný, nebo neobsahuje nic, co by tu šlo načíst.</div>
+  {% endif %}
+
+  {% if polozky %}
+    <p class="text-xs text-muted mb-4">Balíček obsahuje: {% for label, n in polozky.items %}{{ label|s_poctem:n }}{% if not forloop.last %}, {% endif %}{% endfor %}.</p>
+  {% endif %}
+
+  <form method="post" class="flex flex-wrap gap-2 items-center">
+    {% csrf_token %}
+    {% if item.pending %}
+      <button type="submit" name="akce" value="nacist" class="btn btn-primary" onclick="this.textContent='Načítám…'">{% icon "check" %}Načíst do této aplikace</button>
+      <button type="submit" name="akce" value="zrusit" class="btn">Zrušit</button>
+      <span class="text-xs text-muted">Načtení přidá a změní, co je výše; nic nemaže. Položky beze změny se nepřepisují.</span>
+    {% elif item.error %}
+      <button type="submit" name="akce" value="zrusit" class="btn">Zahodit balíček</button>
+    {% else %}
+      <a href="{% url 'transfer_settings' %}" class="btn">Zpět na přenos nastavení</a>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

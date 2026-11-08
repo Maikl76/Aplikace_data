@@ -39,5 +39,6 @@ class Command(BaseCommand):
             raise CommandError(str(exc)) from exc
 
         self.stdout.write(self.style.SUCCESS(f"Katalog načten z {path}"))
-        for label, (created, updated) in counts.items():
-            self.stdout.write(f"  {label}: nových {created}, aktualizovaných {updated}")
+        for label, entry in counts.items():
+            self.stdout.write(f"  {label}: nových {entry['nove']}, změněných {entry['zmenene']}, "
+                              f"beze změny {entry['beze_zmeny']}")

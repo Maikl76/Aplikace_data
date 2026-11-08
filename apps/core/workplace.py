@@ -209,4 +209,9 @@ def settings_sections(user) -> list[dict]:
                 "Denní záloha a úklid, týdenní stav správci e-mailem, místo na disku; "
                 "co a kdy naposledy proběhlo.",
                 url=reverse("operations"), button="Provoz a zálohy"),
+        section("Přenos nastavení",
+                "Balíček se vším, co se tu nastavuje (katalog, normy, pravidla, články, genetika, "
+                "sporty, nabídka): stáhnout tady a nahrát v druhé instanci, nebo naopak. "
+                "Bez sportovců a měření.",
+                url=reverse("transfer_settings"), button="Přenos nastavení", admin_only=True),
     ]

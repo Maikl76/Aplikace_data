@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Přenos nastavení – FTVS{% endblock %}
+{% block content %}
+<div class="max-w-4xl">
+  <a href="{% url 'workplace' %}" class="text-sm link">← Nastavení</a>
+  <h1 class="text-2xl font-semibold leading-tight">Přenos nastavení</h1>
+  <p class="text-sm text-2 mt-1 mb-4">Co se v jedné instanci nastaví, jde přenést do druhé jedním souborem: tady ho
+    <strong>stáhnete</strong>, v druhé instanci (zkušební provoz na webu, laboratorní počítač, server) ho
+    <strong>nahrajete</strong> a před zápisem uvidíte, co se změní. Funguje oběma směry.
+    Tato instance: <strong>{{ instance }}</strong>.</p>
+
+  {% if pending %}
+    <div class="card px-4 py-3 mb-4 text-sm flex flex-wrap items-center gap-3 border-l-4" style="border-left-color: var(--accent)">
+      <span class="flex-1">{{ pending|length }} nahran{% if pending|length == 1 %}ý balíček čeká{% else %}é balíčky čekají{% endif %} na načtení.</span>
+      {% for p in pending %}<a href="{% url 'transfer_preview' p.pk %}" class="btn btn-sm">{{ p.original_name|default:"balíček" }}</a>{% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="grid sm:grid-cols-2 gap-3 mb-4">
+    <section class="card p-4">
+      <h2 class="card-title mb-1">Stáhnout balíček</h2>
+      <p class="text-sm text-2">Soubor JSON se vším, co se tu nastavuje. Uložte ho a v druhé instanci nahrajte vpravo.</p>
+      <ul class="text-xs text-muted mt-2 grid grid-cols-2 gap-x-3">
+        {% for label, n in inventory.items %}<li>{{ label|s_poctem:n }}</li>{% endfor %}
+      </ul>
+      <form method="post" class="mt-3">
+        {% csrf_token %}
+        <input type="hidden" name="akce" value="stahnout">
+        <button type="submit" class="btn btn-primary">{% icon "download" %}Stáhnout balíček</button>
+      </form>
+    </section>
+    <section class="card p-4">
+      <h2 class="card-title mb-1">Nahrát balíček</h2>
+      <p class="text-sm text-2">Balíček stažený v jiné instanci. Nejdřív se ukáže náhled: co je nové, co se změní a co je stejné. Nic se nezapíše, dokud náhled nepotvrdíte.</p>
+      <form method="post" enctype="multipart/form-data" class="mt-3 flex flex-wrap gap-2 items-center">
+        {% csrf_token %}
+        <input type="file" name="balicek" accept=".json,application/json" required class="input w-auto text-sm">
+        <button type="submit" class="btn">{% icon "upload" %}Nahrát a ukázat změny</button>
+      </form>
+    </section>
+  </div>
+
+  <section class="card p-4 mb-4 text-sm">
+    <h2 class="card-title mb-1">Co se přenáší a co ne</h2>
+    <p class="text-2"><strong>Přenáší se:</strong> sporty a týmy, testy a ukazatele s MDC, baterie testů s intervalem opakování,
+      normy, pravidla, články (bez PDF), dotazníky, přístroje a profily importu, nabídka objednávek, pokyny pro model,
+      genetika (oblasti, varianty, panely, karty, interakce) a volby pracoviště (koncept sám, interní reference).</p>
+    <p class="text-2 mt-1"><strong>Nepřenáší se:</strong> sportovci, měření, zprávy, objednávky a termíny, účty kolegů a jejich přístupy,
+      klíče a nastavení v souboru <code>.env</code>, jazykové modely. Načtení přidává a mění, <strong>nikdy nemaže</strong>:
+      co jste v druhé instanci smazali, tady zůstane.</p>
+    <p class="text-2 mt-1">Záznamy se párují podle kódů; stejné položky se nepřepisují. Když se totéž upraví na obou stranách,
+      platí to, co se načetlo později. Alternativa přes GitHub pro počítače s gitem: <code>ulozit-katalog.bat</code> a <code>nacist-katalog.bat</code>.</p>
+  </section>
+
+  <section class="card min-w-0">
+    <div class="px-4 pt-4 pb-2"><h2 class="card-title">Historie přenosů</h2></div>
+    <table class="table">
+      <thead><tr><th>Kdy</th><th>Co</th><th>Odkud / soubor</th><th>Výsledek</th><th class="max-md:hidden">Kdo</th></tr></thead>
+      <tbody>
+        {% for h in history %}
+          <tr>
+            <td class="whitespace-nowrap tabular-nums">{{ h.created_at|date:"d.m.Y H:i" }}</td>
+            <td>{% if h.direction == "ven" %}<span class="badge">staženo</span>{% elif h.applied_at %}<span class="badge badge-good">načteno</span>{% elif h.error %}<span class="badge badge-bad">chyba</span>{% else %}<a href="{% url 'transfer_preview' h.pk %}" class="badge badge-accent">náhled čeká</a>{% endif %}</td>
+            <td class="text-sm break-all">{% if h.direction == "dovnitr" and h.source %}{{ h.source }}{% if h.source_created %} <span class="text-muted">({{ h.source_created|slice:":10" }})</span>{% endif %} · {% endif %}{{ h.original_name }}</td>
+            <td class="text-sm">
+              {% if h.counts.vysledek %}{% with t=h.counts.vysledek %}{% for label, e in t.items %}{% if e.nove or e.zmenene %}{{ label }}: {% if e.nove %}+{{ e.nove }}{% endif %}{% if e.zmenene %}{% if e.nove %} / {% endif %}~{{ e.zmenene }}{% endif %}{% if not forloop.last %}; {% endif %}{% endif %}{% endfor %}{% endwith %}
+              {% elif h.error %}<span class="text-muted">{{ h.error|truncatechars:90 }}</span>
+              {% elif h.direction == "ven" %}<span class="text-muted">{% for label, n in h.counts.polozky.items %}{{ label|s_poctem:n }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>{% endif %}
+            </td>
+            <td class="text-sm max-md:hidden">{{ h.user.get_full_name|default:h.user.username|default:"—" }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="px-4 py-4 text-sm text-muted">Zatím žádný přenos.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}

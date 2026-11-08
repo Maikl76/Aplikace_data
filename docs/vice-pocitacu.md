@@ -5,8 +5,8 @@ Kód je na GitHubu a každý počítač má jeho kopii. Co se přenáší a co n
 | Co | Kde je | Jak se přenáší |
 |---|---|---|
 | kód aplikace | GitHub | `spustit.bat` (dělá `git pull`) |
-| katalog – testy, metriky, MDC, normy, pravidla, články | databáze počítače | `ulozit-katalog.bat` → `nacist-katalog.bat` |
-| sportovci, měření, zprávy | databáze počítače (`db.sqlite3`) | **nepřenáší se** |
+| nastavení – sporty a týmy, testy, metriky, MDC, baterie, normy, pravidla, články, dotazníky, přístroje, nabídka, genetika, volby pracoviště | databáze počítače | **Nastavení → Přenos nastavení** (balíček ke stažení a nahrání), nebo `ulozit-katalog.bat` → `nacist-katalog.bat` přes GitHub |
+| sportovci, měření, zprávy, objednávky, účty | databáze počítače (`db.sqlite3`) | **nepřenáší se** |
 | nastavení (`.env`), LM Studio a model | počítač | **nepřenáší se** – každý stroj má svoje |
 
 Na počítačích jsou jen vymyšlená data (`seed_demo`), takže každý má svoje
@@ -36,24 +36,39 @@ dostala skutečná data sportovců tam, kam nepatří.
 Dvojklik na **`spustit.bat`**. Stáhne nejnovější verzi, upraví databázi,
 spustí aplikaci a otevře prohlížeč. Okno nechte otevřené.
 
-## Katalog
+## Přenos nastavení mezi instancemi
 
-Co nastavíte v **Katalogu** (nový test, MDC, norma, zapnuté pravidlo,
-článek), uloží se do databáze toho počítače. Aby to měl i druhý počítač
-(a jednou fakultní server):
+Co nastavíte v aplikaci (nový test, MDC, norma, pravidlo, článek, genová
+karta, baterie, sport, nabídka objednávek, dotazník, volby pracoviště),
+uloží se do databáze té instance. Aby to měla i druhá instance – zkušební
+provoz na webu, druhý počítač, jednou fakultní server:
 
-1. Na počítači, kde jste katalog změnil: **`ulozit-katalog.bat`**.
-   Uloží ho do `katalog/katalog.json` a nahraje na GitHub. Poprvé se
-   otevře prohlížeč s přihlášením do GitHubu.
-2. Na druhém počítači: **`nacist-katalog.bat`**.
+1. V instanci, kde jste to nastavili: **Nastavení → Přenos nastavení →
+   Stáhnout balíček**. Uloží se soubor `nastaveni-<zkratka>-<datum>.json`.
+2. V druhé instanci: **Nastavení → Přenos nastavení → Nahrát balíček**.
+   Ukáže se náhled, co je nové, co se změní a co je stejné; nic se nezapíše,
+   dokud nekliknete **Načíst do této aplikace**.
 
-Katalog upravujte vždy jen na jednom počítači a hned ho uložte. Načtení
-přepíše změny v katalogu, které na tom druhém počítači uložené nebyly.
+Funguje oběma směry (web → počítač i počítač → web) a jen pro správce.
+Historie přenosů na téže stránce říká, kdy se co stáhlo a načetlo.
 
-Na serveru se katalog načte příkazem
+Pravidla:
+
+- Načtení **přidává a mění, nikdy nemaže**: co jste v jedné instanci
+  smazali, v druhé zůstane (smažte to tam ručně).
+- Záznamy se párují podle kódů; stejné položky se nepřepisují, takže je
+  v náhledu vidět, co přenos opravdu změní.
+- Když se totéž upraví na obou stranách, platí to, co se načetlo později.
+  Dokud se nastavení teprve tvoří, domluvte se, kde se co upravuje,
+  a přenášejte často.
+- Nepřenáší se sportovci, měření, zprávy, objednávky a termíny, účty
+  kolegů a jejich přístupy, klíče v `.env` ani jazykové modely.
+
+Alternativa přes GitHub (počítače s gitem): **`ulozit-katalog.bat`** uloží
+balíček do `katalog/katalog.json` a nahraje ho, **`nacist-katalog.bat`** ho
+na druhém počítači načte. Na serveru totéž příkazem
 `python manage.py import_katalog --organizace <zkratka>`; zkratku
 organizace je potřeba zadat, pokud se na serveru jmenuje jinak.
-Načítání nic nemaže – co v souboru není, zůstane beze změny.
 
 
 ## Záloha laboratorního počítače

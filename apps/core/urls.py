@@ -2,7 +2,7 @@ from django.urls import path
 from django.views.generic import RedirectView
 
 from apps.analytics import reference_views
-from apps.catalog import norm_views, questionnaire_views, settings_views
+from apps.catalog import norm_views, questionnaire_views, settings_views, transfer_views
 from apps.rules import setup_views as rule_views
 
 from . import views
@@ -16,6 +16,8 @@ urlpatterns = [
     path("stav/", RedirectView.as_view(url="/nastaveni/", permanent=True)),  # starý odkaz
     path("nastaveni/pracoviste/", views.organization_settings, name="workplace_org"),
     path("nastaveni/provoz/", views.operations, name="operations"),
+    path("nastaveni/prenos/", transfer_views.transfer_settings, name="transfer_settings"),
+    path("nastaveni/prenos/<int:pk>/", transfer_views.transfer_preview, name="transfer_preview"),
     path("nastaveni/mdc/", settings_views.mdc_settings, name="mdc_settings"),
     path("nastaveni/popisy/", settings_views.client_texts, name="client_texts"),
     path("nastaveni/import/", settings_views.import_profiles, name="import_profiles"),

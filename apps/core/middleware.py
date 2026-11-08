@@ -46,6 +46,7 @@ SECTION_RULES = [
     (r"^/import/", None, "measure"),
     (r"^/kolegove/", None, "manage"),
     (r"^/nastaveni/pracoviste/", None, "manage"),
+    (r"^/nastaveni/prenos/", None, "manage"),
     (r"^/zpravy/ai/", None, "manage"),
     # nastavení testování: číst může každý v laboratoři, měnit jen s oprávněním
     (r"^/nastaveni/(mdc|import|popisy)/", WRITE, "settings_tests"),

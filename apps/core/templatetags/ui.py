@@ -156,3 +156,11 @@ def steps(context, steps, heading, may_act=True, compact=False, done_label="vše
     return {"steps": steps, "next_step": next_step(steps), "heading": heading,
             "may_act": may_act, "compact": compact, "done_label": done_label, "intro": intro,
             "is_admin": is_admin, "grid": grid_class(len(steps)), "remark_url": remark_url}
+
+
+@register.filter
+def s_poctem(label, n):
+    """Část balíčku nastavení s počtem: „1 sport“, „3 články“."""
+    from apps.catalog.transfer import with_count
+
+    return with_count(label, int(n or 0))

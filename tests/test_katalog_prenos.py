@@ -69,7 +69,8 @@ def test_opakovany_import_nic_nezdvoji_a_aktualizuje(katalog):
 
     assert MetricDef.objects.count() == 1 and Norm.objects.count() == 1
     assert MetricDef.objects.get().mdc == 0.1
-    assert counts["metriky"] == [0, 1]
+    assert counts["metriky"] == {"nove": 0, "zmenene": 1, "beze_zmeny": 0}
+    assert counts["protokoly"] == {"nove": 0, "zmenene": 0, "beze_zmeny": 1}
 
 
 def test_cizi_organizace_se_prevede_na_zadanou(katalog):
