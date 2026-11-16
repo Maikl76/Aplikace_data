@@ -29,6 +29,7 @@ def session_steps(session, runs, unstable, reports, followup=None) -> list[dict]
                   .exclude(quality=Measurement.Quality.OK).count())
     released = [r for r in reports if r.status == Report.Status.RELEASED]
     drafts = [r for r in reports if r.status == Report.Status.DRAFT]
+    withdrawn = [r for r in reports if r.status == Report.Status.WITHDRAWN]
     conditions = (session.temperature_c is not None or session.humidity_pct is not None
                   or bool(session.fatigue_rating))
 
@@ -68,6 +69,10 @@ def session_steps(session, runs, unstable, reports, followup=None) -> list[dict]
         step(6, "Zpráva", bool(released),
              (f"Vydáno: {', '.join(r.report_number for r in released)}." if released else
               f"{len(drafts)} konceptů čeká na kontrolu a vydání." if drafts else
+              f"Zpráva {', '.join(r.report_number for r in withdrawn)} je stažená z oběhu – "
+              "novou založíte tlačítkem Vytvořit zprávu." if withdrawn else
+              "Koncept k tomuto dni byl smazán, sám už nevznikne – založíte ho tlačítkem "
+              "Vytvořit zprávu." if session.draft_deleted else
               "Koncept vznikne sám, jakmile mají všechny testy hodnoty; ručně ho založíte pro "
               "sportovce, trenéra nebo lékaře. Nic se tím nevydává."
               if getattr(session.organization, "auto_draft", False) else

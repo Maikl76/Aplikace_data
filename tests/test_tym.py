@@ -135,5 +135,7 @@ def test_sjednocene_obrazovky_se_vykresli(tym):
     client.post(f"/zpravy/z-mereni/{session.pk}/")
     report = Report.objects.get()
     assert "koncept" in client.get("/zpravy/").content.decode()
-    assert "koncept" not in client.get("/zpravy/?stav=released").content.decode().split("<tbody>")[1]
+    # filtr „vydané“ nemá v tabulce žádný koncept (poznámka pod tabulkou o mazání konceptů se nepočítá)
+    vydane = client.get("/zpravy/?stav=released").content.decode()
+    assert "koncept" not in vydane.split("<tbody>")[1].split("</tbody>")[0]
     assert "Otevřít celou zprávu" in client.get(f"/zpravy/{report.pk}/").content.decode()

@@ -60,7 +60,8 @@ SECTION_RULES = [
     (r"^/mereni/", WRITE, "measure"),
     (r"^/testovani/koncepty/", WRITE, "reports_draft"),
     (r"^/testovani/", WRITE, "measure"),
-    (r"^/zpravy/\d+/(vydat|predat|upozornit|nova-verze)/", WRITE, "reports_release"),
+    (r"^/zpravy/\d+/(vydat|predat|upozornit|nova-verze|stahnout-z-obehu)/", WRITE,
+     "reports_release"),
     (r"^/zpravy/", WRITE, "reports_draft"),
     (r"^/clanky/", WRITE, "articles"),
 ]

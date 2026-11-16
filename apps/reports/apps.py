@@ -7,7 +7,20 @@ class ReportsConfig(AppConfig):
     verbose_name = "Zprávy"
 
     def ready(self):
+        from django.db.models.signals import post_delete
+
+        from .models import Report
+
         register(check_remote_model, Tags.security)
+        # Číslo smazané zprávy se už nepřidělí – ať se maže odkudkoli
+        # (aplikace, administrace, konzole).
+        post_delete.connect(_burn_number, sender=Report, dispatch_uid="reports.burn_number")
+
+
+def _burn_number(sender, instance, **kwargs):
+    from . import services
+
+    services.burn_number(instance.organization_id, instance.report_number)
 
 
 def check_remote_model(app_configs, **kwargs):

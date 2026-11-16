@@ -18,5 +18,7 @@ urlpatterns = [
     path("<int:pk>/predat/", views.report_deliver, name="report_deliver"),
     path("<int:pk>/upozornit/", views.report_notify, name="report_notify"),
     path("<int:pk>/nova-verze/", views.report_supersede, name="report_supersede"),
+    path("<int:pk>/smazat/", views.report_delete, name="report_delete"),
+    path("<int:pk>/stahnout-z-obehu/", views.report_withdraw, name="report_withdraw"),
     path("<int:pk>/pdf/", views.report_pdf, name="report_pdf"),
 ]

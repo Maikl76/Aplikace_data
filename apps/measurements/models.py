@@ -64,6 +64,10 @@ class TestSession(OrgScopedModel):
     temperature_c = models.FloatField("teplota (°C)", null=True, blank=True)
     humidity_pct = models.FloatField("vlhkost (%)", null=True, blank=True)
     note = models.TextField("poznámka", blank=True)
+    # Koncept zprávy k tomuto dni někdo smazal ručně: sám už nevznikne
+    # (jinak by se po dalším uložení hodnoty nebo importu založil znovu).
+    # Ručně ho založit jde dál.
+    draft_deleted = models.BooleanField("koncept zprávy smazán ručně", default=False)
 
     class Meta:
         verbose_name = "testovací den"

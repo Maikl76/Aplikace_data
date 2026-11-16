@@ -58,6 +58,20 @@ Hlídač sledované složky běží pod systémovým účtem bez omezení.
 Bez oprávnění *Jména* se jména nedešifrují nikde: v seznamech, ve zprávách
 (zpráva pod kódem), v e‑mailech ani v exportech.
 
+## Mazání a stahování zpráv
+
+- **Smazat koncept** (zprávu, která nikdy nebyla vydaná) smí účet
+  s oprávněním *Koncepty zpráv*, a jen u sportovců ve svém rozsahu. Smazání
+  je v auditu s číslem zprávy. Číslo se už nepřidělí a testovací den si
+  smazání pamatuje – koncept sám znovu nevznikne, ručně ho založit jde.
+- **Stáhnout vydanou zprávu z oběhu** smí účet s oprávněním *Vydávat
+  a předávat zprávy*; musí uvést důvod. Zpráva zmizí sportovci i trenérovi
+  z portálu a v laboratoři zůstane v archivu se stavem *Stažena z oběhu*.
+  Z dokumentace příjemce, kterému už byla předána, ji stažení neodstraní.
+- **Vydanou zprávu nesmaže nikdo**, ani správce v administraci Djanga – ta
+  dovolí smazat jen koncept. Výmaz osobních údajů řeší anonymizace
+  sportovce; zprávy po ní zůstávají jen pod kódem.
+
 ## Metodik
 
 Odpovídá za **sporty** (baterie, normy, pravidla, dotazníky, interní

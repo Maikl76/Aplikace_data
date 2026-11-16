@@ -22,10 +22,15 @@ def report_list(request):
     if stav in Report.Status.values:
         reports = reports.filter(status=stav)
     reports = label(reports.order_by("-created_at")[:150], request.user)
+    from apps.core import access
+
     return render(request, "reports/report_list.html", {
         "can_manage_ai": can_manage_ai(request.user),
-        "reports": reports, "stav": stav, "stavy": [(Report.Status.DRAFT, "Koncepty"), (Report.Status.RELEASED, "Vydané"),
-                  (Report.Status.SUPERSEDED, "Nahrazené")]})
+        "may_delete": access.can(request.user, "reports_draft"),
+        "reports": reports, "stav": stav,
+        "stavy": [(Report.Status.DRAFT, "Koncepty"), (Report.Status.RELEASED, "Vydané"),
+                  (Report.Status.SUPERSEDED, "Nahrazené"),
+                  (Report.Status.WITHDRAWN, "Stažené z oběhu")]})
 
 
 @login_required
@@ -300,6 +305,73 @@ def report_supersede(request, pk):
     messages.info(request, f"Vznikla nová verze {new_report.report_number}. "
                            f"Původní zpráva zůstává v dokumentaci příjemce.")
     return redirect("report_detail", pk=new_report.pk)
+
+
+def _after_delete(request, report) -> str:
+    """Kam po smazání konceptu: zpět do seznamu, odkud se mazalo, jinak ke zdroji zprávy."""
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    from apps.core import access
+
+    back = request.POST.get("zpet", "")
+    if back.startswith("/") and url_has_allowed_host_and_scheme(back, allowed_hosts=None):
+        return back
+    if report.session_id:
+        return reverse("session_detail", args=[report.session_id]) + "#zpravy"
+    if report.is_genetic and access.can(request.user, "genetics"):
+        return reverse("genetics_subject", args=[report.subject_id])
+    if report.is_period:
+        return reverse("subject_detail", args=[report.subject_id]) + "#zpravy"
+    return reverse("report_list")
+
+
+@login_required
+def report_delete(request, pk):
+    """Smazání konceptu. Vydanou zprávu nesmaže nikdo – tu lze jen stáhnout z oběhu."""
+    from django.db import transaction
+
+    report = get_object_or_404(Report.objects.for_user(request.user).select_related(
+        "subject", "session", "organization"), pk=pk)
+    if request.method != "POST":
+        return redirect("report_detail", pk=pk)
+    back = _after_delete(request, report)
+    try:
+        with transaction.atomic():
+            info = services.delete_draft(report, user=request.user)
+            record(request, AuditLog.Action.DELETE, report, subject_code=report.subject.code,
+                   **info)
+    except services.ReportError as exc:
+        messages.error(request, str(exc))
+        return redirect("report_detail", pk=pk)
+    tail = ""
+    if report.session_id and report.organization.auto_draft:
+        tail = (" K tomuto testovacímu dni už koncept sám nevznikne; založíte ho tlačítkem "
+                "Vytvořit zprávu.")
+    messages.success(request, f"Koncept {info['cislo']} je smazaný. Číslo se už nepoužije." + tail)
+    return redirect(back)
+
+
+@login_required
+def report_withdraw(request, pk):
+    """Stažení vydané zprávy z oběhu – s důvodem; v laboratoři zůstává v archivu."""
+    report = get_object_or_404(Report.objects.for_user(request.user), pk=pk)
+    if request.method != "POST":
+        return redirect("report_detail", pk=pk)
+    try:
+        services.withdraw(report, user=request.user, reason=request.POST.get("duvod", ""))
+    except services.ReportError as exc:
+        messages.error(request, str(exc))
+        return redirect(reverse("report_detail", args=[pk]) + "#stazeni")
+    record(request, AuditLog.Action.UPDATE, report, subject_code=report.subject.code,
+           akce="stazeni_z_obehu", duvod=report.withdrawn_reason)
+    recipients = ", ".join(d.recipient for d in report.deliveries.all())
+    messages.success(
+        request,
+        f"Zpráva {report.report_number} je stažená z oběhu. Sportovec ani trenér ji v portálu "
+        "neuvidí; v laboratoři zůstává v archivu."
+        + (f" Už byla předána ({recipients}) – příjemce informujte sami, z jeho dokumentace "
+           "ji stažení neodstraní." if recipients else ""))
+    return redirect("report_detail", pk=pk)
 
 
 @login_required

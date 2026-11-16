@@ -7,9 +7,13 @@ Zpráva vzniká ve třech krocích a jen ten poslední je nevratný:
 2. **vydání** – vědomý krok s potvrzením; od té chvíle se zpráva needituje
 3. **předání** – záznam o tom, co komu kdy odešlo
 
-Vydanou zprávu nelze změnit ani stáhnout zpět: jakmile ji převezme
-poskytovatel zdravotních služeb, stává se součástí jeho dokumentace.
-Oprava se proto řeší vydáním nové verze, která tu starou nahrazuje.
+Vydanou zprávu nelze změnit ani smazat: jakmile ji převezme poskytovatel
+zdravotních služeb, stává se součástí jeho dokumentace. Oprava se proto
+řeší vydáním nové verze, která tu starou nahrazuje.
+
+Smazat jde jen koncept (``delete_draft``). Zprávu vydanou omylem lze
+stáhnout z oběhu (``withdraw``): zmizí z portálu, v archivu laboratoře
+zůstane s důvodem. Z dokumentace příjemce ji to neodstraní.
 """
 
 import json
@@ -25,7 +29,7 @@ from apps.rules import engine, evidence
 from apps.subjects.models import Consent
 
 from . import narrative, results, svg
-from .models import Audience, ModelTrial, Report, ReportDelivery
+from .models import Audience, ModelTrial, Report, ReportDelivery, ReportSeries
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +44,24 @@ def next_report_number(organization, series: str = "FT") -> str:
     last = (Report.objects.filter(organization=organization,
                                   report_number__startswith=prefix)
             .order_by("-report_number").values_list("report_number", flat=True).first())
-    counter = int(last.rsplit("-", 1)[1]) + 1 if last else 1
-    return f"{prefix}{counter:04d}"
+    counter = int(last.rsplit("-", 1)[1]) if last else 0
+    # Číslo smazaného konceptu se už nepřidělí (burn_number): jedno číslo
+    # nesmí nikdy označovat dva různé dokumenty.
+    used = (ReportSeries.objects.filter(organization=organization, prefix=prefix)
+            .values_list("last", flat=True).first()) or 0
+    return f"{prefix}{max(counter, used) + 1:04d}"
+
+
+def burn_number(organization_id, report_number: str) -> None:
+    """Číslo smazané zprávy se už nepoužije – zapíše se jako použité v řadě."""
+    prefix, _, tail = (report_number or "").rpartition("-")
+    if not prefix or not tail.isdigit() or organization_id is None:
+        return
+    series, _ = ReportSeries.objects.get_or_create(organization_id=organization_id,
+                                                   prefix=f"{prefix}-")
+    if int(tail) > series.last:
+        series.last = int(tail)
+        series.save(update_fields=["last"])
 
 
 @transaction.atomic
@@ -499,8 +519,71 @@ def release(report, *, user) -> Report:
     report.save()
 
     if report.supersedes_id:
-        Report.objects.filter(pk=report.supersedes_id).update(
+        # jen platnou vydanou zprávu; stažená z oběhu zůstane staženou
+        Report.objects.filter(pk=report.supersedes_id, status=Report.Status.RELEASED).update(
             status=Report.Status.SUPERSEDED)
+    return report
+
+
+@transaction.atomic
+def delete_draft(report, *, user=None) -> dict:
+    """
+    Smazání konceptu – zprávy, která nikdy nebyla vydaná.
+
+    S konceptem zmizí jeho text, úpravy a historie přepisů modelem. Měření,
+    dotazník ani genetický vzorek se nedotknou; je-li koncept novou verzí
+    vydané zprávy, ta platí dál. Číslo se už nepřidělí (``burn_number`` po
+    smazání) a testovací den si zapamatuje, že koncept smazal člověk – sám
+    už nevznikne, ručně ho založit jde. Vrací údaje pro záznam v auditu.
+    """
+    from apps.measurements.models import TestSession
+
+    current = Report.objects.select_for_update().filter(pk=report.pk).first()
+    if current is None:
+        raise ReportError("Zpráva už neexistuje.")
+    if current.status != Report.Status.DRAFT:
+        raise ReportError("Smazat lze jen koncept. Vydaná zpráva zůstává v archivu – "
+                          "vydanou omylem lze stáhnout z oběhu.")
+    if current.is_writing:
+        raise ReportError("Model právě píše souhrn – koncept smažte, až dopíše.")
+    info = {"cislo": current.report_number, "verze": current.version,
+            "pro": current.audience, "druh": current.kind,
+            "vznikl_sam": current.auto_created}
+    if current.session_id:
+        info["mereni"] = str(current.session.date)
+        TestSession.objects.filter(pk=current.session_id).update(draft_deleted=True)
+    for stored in (current.pdf, current.data_json):
+        if stored:
+            stored.delete(save=False)
+    current.delete()
+    return info
+
+
+@transaction.atomic
+def withdraw(report, *, user, reason: str) -> Report:
+    """
+    Stažení vydané zprávy z oběhu (vydána omylem, chybný obsah).
+
+    Zpráva zůstává v archivu laboratoře se stavem „Stažena z oběhu“,
+    s důvodem a s tím, kdo ji stáhl; sportovec ani trenér ji v portálu
+    neuvidí a jako vzor pro model se nepoužije. Z dokumentace příjemce,
+    kterému už byla předána, ji stažení neodstraní – toho informuje laboratoř.
+    """
+    reason = " ".join((reason or "").split())
+    if report.status == Report.Status.DRAFT:
+        raise ReportError("Koncept nebyl vydán – stáhnout z oběhu ho nejde, můžete ho smazat.")
+    if report.status != Report.Status.RELEASED:
+        raise ReportError("Stáhnout z oběhu lze jen platnou vydanou zprávu.")
+    if len(reason) < 5:
+        raise ReportError("Uveďte důvod stažení (aspoň pár slov) – zůstane u zprávy v archivu.")
+    report.status = Report.Status.WITHDRAWN
+    report.withdrawn_at = timezone.now()
+    report.withdrawn_by = user
+    report.withdrawn_reason = reason[:500]
+    report.is_example = False
+    report.in_test_set = False
+    report.save(update_fields=["status", "withdrawn_at", "withdrawn_by", "withdrawn_reason",
+                               "is_example", "in_test_set"])
     return report
 
 
@@ -667,8 +750,9 @@ def rate(report, *, rating: str, note: str = "") -> None:
 
 def set_flags(report, *, example: bool | None = None, test_set: bool | None = None) -> None:
     """Vzorová zpráva a zkušební sada – jen u vydaných zpráv (text už zkontroloval člověk)."""
-    if report.status == Report.Status.DRAFT and (example or test_set):
-        raise ReportError("Jako vzor nebo do zkušební sady lze dát jen vydanou zprávu.")
+    if report.status in (Report.Status.DRAFT, Report.Status.WITHDRAWN) and (example or test_set):
+        raise ReportError("Jako vzor nebo do zkušební sady lze dát jen vydanou zprávu "
+                          "(ne koncept ani zprávu staženou z oběhu).")
     fields = []
     if example is not None:
         report.is_example = example

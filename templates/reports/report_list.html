@@ -18,7 +18,7 @@
 <div class="card overflow-x-auto">
   <table class="table">
     <thead>
-      <tr><th>Sportovec</th><th>Číslo</th><th class="max-md:hidden">Pro koho</th><th>Měření</th><th>Stav</th><th class="max-md:hidden">Vydáno</th><th class="max-md:hidden">Otevřeno</th></tr>
+      <tr><th>Sportovec</th><th>Číslo</th><th class="max-md:hidden">Pro koho</th><th>Měření</th><th>Stav</th><th class="max-md:hidden">Vydáno</th><th class="max-md:hidden">Otevřeno</th>{% if may_delete %}<th></th>{% endif %}</tr>
     </thead>
     <tbody>
       {% for r in reports %}
@@ -35,13 +35,25 @@
           <td>{% include "reports/_status.html" %}</td>
           <td class="tabular-nums text-2 max-md:hidden">{{ r.released_at|date:"d.m.Y H:i"|default:"—" }}</td>
           <td class="tabular-nums text-2 max-md:hidden">{% if r.status == "released" and r.audience != "lekar" %}{% if r.opened_at %}<span title="Poprvé otevřeno v portálu">{{ r.opened_at|date:"d.m.Y" }}</span>{% else %}<span class="text-muted" title="V portálu zatím neotevřeno">ne</span>{% endif %}{% else %}—{% endif %}</td>
+          {% if may_delete %}
+            <td class="text-right whitespace-nowrap" onclick="event.stopPropagation()">
+              {% if r.can_delete %}
+                <form method="post" action="{% url 'report_delete' r.pk %}" class="inline" data-jednou="Mažu…">{% csrf_token %}
+                  <input type="hidden" name="zpet" value="{{ request.get_full_path }}">
+                  <button type="submit" class="btn btn-sm" style="color: var(--bad)" title="Smazat koncept {{ r.report_number }} – nikdy nebyl vydán"
+                          onclick="return confirm('Smazat koncept {{ r.report_number }}?\n\nZmizí text souhrnu, úpravy i historie. Měření zůstanou. Číslo zprávy se už nepoužije.')">{% icon "trash" %}Smazat</button>
+                </form>
+              {% endif %}
+            </td>
+          {% endif %}
         </tr>
       {% empty %}
-        <tr><td colspan="7" class="text-muted py-6 text-center">
-          Zatím žádné zprávy. Zprávu založíte z <a class="link" href="{% url 'session_list' %}">testovacího dne</a>.
+        <tr><td colspan="8" class="text-muted py-6 text-center">
+          {% if stav %}V tomto stavu není žádná zpráva.{% else %}Zatím žádné zprávy. Zprávu založíte z <a class="link" href="{% url 'session_list' %}">testovacího dne</a>.{% endif %}
         </td></tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+<p class="text-xs text-muted mt-3">Smazat jde jen koncept – zprávu, která nikdy nebyla vydaná. Vydaná zpráva zůstává v archivu; vydanou omylem lze na její stránce stáhnout z oběhu (zmizí z portálu sportovce i trenéra).</p>
 {% endblock %}

@@ -332,3 +332,22 @@ def test_dvoji_kliknuti_nezalozi_druhy_koncept(laborator):
     # jiný čtenář je jiná zpráva
     client.post(f"/genetika/sportovec/{subject.pk}/zprava/", {"vzorek": sample.pk, "pro": Audience.CLINICIAN})
     assert Report.objects.filter(kind=Report.Kind.GENETICS).count() == 2
+
+
+def test_koncept_geneticke_zpravy_jde_smazat(laborator):
+    """Zdvojený koncept jde smazat; číslo řady FTG se už nepřidělí a vzorek zůstane."""
+    L = laborator
+    client, sample, subject = L["client"], L["sample"], L["subject"]
+    client.post(f"/genetika/sportovec/{subject.pk}/zprava/", {"vzorek": sample.pk, "pro": Audience.ATHLETE})
+    draft = Report.objects.get(kind=Report.Kind.GENETICS)
+    page = client.get(f"/zpravy/{draft.pk}/").content.decode()
+    assert "Smazat koncept" in page and "dotazník ani genetický vzorek se nedotknou" in page
+    response = client.post(f"/zpravy/{draft.pk}/smazat/")
+    assert response.url == f"/genetika/sportovec/{subject.pk}/"
+    assert not Report.objects.filter(kind=Report.Kind.GENETICS).exists()
+    sample.refresh_from_db()
+    assert sample.is_usable and sample.genotypes.exists()
+    # nový koncept ze stejného vzorku vznikne hned (pojistka proti dvojímu kliknutí hledá jen existující)
+    client.post(f"/genetika/sportovec/{subject.pk}/zprava/", {"vzorek": sample.pk, "pro": Audience.ATHLETE})
+    again = Report.objects.get(kind=Report.Kind.GENETICS)
+    assert again.report_number == f"FTG-{timezone.localdate().year}-0002"

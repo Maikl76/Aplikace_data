@@ -60,6 +60,12 @@ Laboratoř u zprávy, v seznamu zpráv i na kartě sportovce vidí, kdy byla
 zpráva v portálu poprvé otevřena (a kým). Zpráva pro lékaře se předává
 jako dosud, se záznamem o předání a souhlasem.
 
+Zprávu vydanou omylem laboratoř **stáhne z oběhu** (stránka zprávy, účet
+s oprávněním vydávat, s důvodem): sportovci i trenérovi z portálu zmizí –
+ze seznamu i z přímého odkazu v dřívějším e‑mailu – a v laboratoři zůstane
+v archivu jako stažená. Opravená zpráva se vydá jako nová verze a upozornění
+na ni odejde znovu.
+
 ## Co sportovec vidí
 
 - klíčové ukazatele s posouzením proti pásmu chyby měření, srovnáním od

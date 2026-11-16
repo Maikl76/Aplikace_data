@@ -39,12 +39,14 @@ def audience_for(session) -> str:
 def ensure_draft(session, *, user):
     """
     Založí koncept, pokud je den kompletní, žádná zpráva k němu ještě není
-    a pracoviště to má zapnuté. Vrací koncept, nebo None.
+    a pracoviště to má zapnuté. Vrací koncept, nebo None. Den, u kterého
+    koncept někdo smazal ručně, se přeskočí – jinak by se koncept po dalším
+    uložení hodnoty vracel; ručně ho založit jde dál.
     """
     organization = session.organization
     if organization is None or not organization.auto_draft:
         return None
-    if session.reports.exists() or not session_complete(session):
+    if session.draft_deleted or session.reports.exists() or not session_complete(session):
         return None
     try:
         report = services.build_draft(session, user=user, audience=audience_for(session))

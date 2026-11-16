@@ -54,6 +54,8 @@ _PATHS = {
     "inbox": '<path d="M3 13h5l1.5 3h5L16 13h5"/><path d="M5 5h14l2 8v6H3v-6z"/>',
     "grid": '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 4v16"/>',
     "download": '<path d="M12 4v12"/><path d="M7 11l5 5 5-5"/><path d="M4 20h16"/>',
+    "trash": '<path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/>'
+             '<path d="M10 11v6M14 11v6"/>',
     "dna": '<path d="M7 3c0 6 10 6 10 12M17 3c0 6-10 6-10 12M7 15c0 2 .5 4 1 6M17 15c0 2-.5 4-1 6M8 7h8M8 11h8"/>',
 }
 

@@ -7,7 +7,9 @@ from .models import Audience, Report
 
 def report_steps(report, *, has_consent: bool, number_problems=(), text_problems=(),
                  recommendations: int = 0) -> list[dict]:
-    released = report.status in (Report.Status.RELEASED, Report.Status.SUPERSEDED)
+    released = report.status in (Report.Status.RELEASED, Report.Status.SUPERSEDED,
+                                 Report.Status.WITHDRAWN)
+    withdrawn = report.is_withdrawn
     editable = report.is_editable
     writing = report.is_writing
     deliveries = list(report.deliveries.all())
@@ -52,18 +54,24 @@ def report_steps(report, *, has_consent: bool, number_problems=(), text_problems
              url="#souhrn" if (number_problems or text_problems) else "#vydat",
              button="Opravit" if checks and editable else ""),
         step(5, "Vydání", released,
-             (f"Vydáno {report.released_at:%d.%m.%Y}." if released and report.released_at else
+             (f"Vydáno {report.released_at:%d.%m.%Y}, staženo z oběhu "
+              f"{report.withdrawn_at:%d.%m.%Y} – v portálu není."
+              if withdrawn and report.released_at and report.withdrawn_at else
+              f"Vydáno {report.released_at:%d.%m.%Y}." if released and report.released_at else
               "Vydání je nevratné; oprava se dělá novou verzí."),
              url="#vydat",
              button="Vydat" if editable and not writing and not report.note_pending_review
              and not text_problems and not (clinician and not has_consent) else ""),
-        step(6, "Předání", bool(deliveries),
+        # stažená zpráva: nic dalšího se s ní nedělá, krok nečeká
+        step(6, "Předání", bool(deliveries) or withdrawn,
              (f"Předáno: {', '.join(d.recipient for d in deliveries)}." if deliveries else
+              "Stažená zpráva se nepředává." if withdrawn else
               "Zaznamenejte, komu a jak byla zpráva předána." if released and has_consent else
               "Jen se souhlasem s předáním zprávy poskytovateli zdravotních služeb."
               if released else "Po vydání."),
-             url="#predani", optional=not (clinician and has_consent),
-             button="Zaznamenat předání" if released and has_consent and not deliveries else ""),
+             url="#predani", optional=withdrawn or not (clinician and has_consent),
+             button=("Zaznamenat předání" if released and not withdrawn and has_consent
+                     and not deliveries else "")),
     ]
 
 

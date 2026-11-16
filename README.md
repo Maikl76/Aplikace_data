@@ -198,7 +198,7 @@ Přístup*; viz [docs/pristupy.md](docs/pristupy.md). Výchozí šablony:
 | Role | Co smí (výchozí) |
 |---|---|
 | **Správce** | vše včetně uživatelů, přístupů a provozu |
-| **Laborant / diagnostik** | zadávat a opravovat měření, importovat, sportovci, koncepty zpráv – pro přidělené sporty, se jmény; **nevydává a nesmí mazat** |
+| **Laborant / diagnostik** | zadávat a opravovat měření, importovat, sportovci, koncepty zpráv (i jejich smazání) – pro přidělené sporty, se jmény; **nevydává a nesmí mazat měření** |
 | **Metodik** | odpovídá za sporty a metodiky měření: baterie, normy, pravidla, testy a MDC, vydává zprávy pro své sporty; bez jmen |
 | **Výzkumník** | jen číst; identitu sportovců nevidí. Aplikace mu každé uložení odmítne. |
 | **Sportovec / zákonný zástupce** | vlastní portál `/muj/`: své výsledky, zprávy pro sportovce, dotazníky, souhlasy a sdílení s trenérem; účet vzniká z pozvánky (karta sportovce, potvrzení objednávky) nebo odkazem na e‑mail uložený v laboratoři (viz [docs/portal.md](docs/portal.md)) |

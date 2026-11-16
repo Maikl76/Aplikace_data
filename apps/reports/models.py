@@ -5,6 +5,10 @@ Vydaná zpráva je nevratná: jakmile ji převezme poskytovatel zdravotních
 služeb, stává se součástí jeho dokumentace a drží se tam podle jeho
 pravidel. Oprava se proto řeší vydáním NOVÉ verze, nikdy přepsáním.
 
+Smazat jde jen koncept – zprávu, která nikdy nebyla vydaná. Vydanou zprávu
+nesmaže nikdo; vydanou omylem lze stáhnout z oběhu: zmizí z portálu
+sportovce i trenéra, v laboratoři zůstane v archivu s důvodem.
+
 Zpráva obsahuje výhradně výsledky funkčního testování a končí větou,
 která přenáší posouzení kontraindikací na ošetřujícího lékaře.
 """
@@ -47,6 +51,7 @@ class Report(OrgScopedModel):
         DRAFT = "draft", "Koncept"
         RELEASED = "released", "Vydáno"
         SUPERSEDED = "superseded", "Nahrazeno novější verzí"
+        WITHDRAWN = "withdrawn", "Stažena z oběhu"
 
     class Rating(models.TextChoices):
         GOOD = "dobry", "Dobrý – stačily drobnosti"
@@ -156,6 +161,13 @@ class Report(OrgScopedModel):
     released_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="vydal",
                                     on_delete=models.PROTECT, null=True, blank=True,
                                     related_name="released_reports")
+    # Stažení z oběhu: zpráva vydaná omylem nebo s chybou. Zůstává v archivu
+    # laboratoře, v portálu ji sportovec ani trenér nevidí.
+    withdrawn_at = models.DateTimeField("staženo z oběhu", null=True, blank=True)
+    withdrawn_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="stáhl",
+                                     on_delete=models.PROTECT, null=True, blank=True,
+                                     related_name="withdrawn_reports")
+    withdrawn_reason = models.CharField("důvod stažení", max_length=500, blank=True)
 
     class Meta:
         verbose_name = "zpráva"
@@ -168,6 +180,15 @@ class Report(OrgScopedModel):
     @property
     def is_editable(self) -> bool:
         return self.status == self.Status.DRAFT
+
+    @property
+    def is_withdrawn(self) -> bool:
+        return self.status == self.Status.WITHDRAWN
+
+    @property
+    def can_delete(self) -> bool:
+        """Smazat jde jen koncept (nikdy nevydaná zpráva), a ne když ho model právě píše."""
+        return self.status == self.Status.DRAFT and not self.is_writing
 
     @property
     def is_genetic(self) -> bool:
@@ -220,6 +241,31 @@ class Report(OrgScopedModel):
         """Otisk vstupů, ze kterých zpráva vznikla."""
         payload = json.dumps(inputs, sort_keys=True, ensure_ascii=False, default=str)
         return hashlib.sha256(payload.encode()).hexdigest()
+
+
+class ReportSeries(models.Model):
+    """
+    Nejvyšší už použité pořadové číslo v číselné řadě zpráv (např. „FT-2026-“).
+
+    Zapisuje se při smazání konceptu: jeho číslo se už nepřidělí, aby jedno
+    číslo nikdy neoznačovalo dva různé dokumenty. Mezeru v řadě vysvětlí
+    záznam o smazání v auditu.
+    """
+
+    organization = models.ForeignKey("core.Organization", verbose_name="organizace",
+                                     on_delete=models.CASCADE, related_name="report_series")
+    prefix = models.CharField("řada", max_length=40, help_text="Např. FT-2026-.")
+    last = models.PositiveIntegerField("poslední použité číslo", default=0)
+
+    class Meta:
+        verbose_name = "číselná řada zpráv"
+        verbose_name_plural = "číselné řady zpráv"
+        constraints = [
+            models.UniqueConstraint(fields=["organization", "prefix"], name="uniq_report_series"),
+        ]
+
+    def __str__(self):
+        return f"{self.prefix}{self.last:04d}"
 
 
 class ReportDelivery(TimeStampedModel):

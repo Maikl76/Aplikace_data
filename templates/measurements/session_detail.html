@@ -33,7 +33,7 @@
       {% icon "file" %}<span>Vytvořit zprávu</span></button>
   </form>
   </div>
-  {% if session.organization.auto_draft %}<p class="text-xs text-muted w-full">Koncept vzniká sám, jakmile mají všechny testy dne hodnoty (pro trenéra při sdílení s trenérem, jinak pro sportovce). Tady ho založíte ručně nebo pro jiného čtenáře.</p>{% endif %}
+  {% if session.draft_deleted %}<p class="text-xs text-muted w-full">Koncept zprávy k tomuto dni byl smazán ručně{% if session.organization.auto_draft %}, sám už nevznikne{% endif %}. Založíte ho tlačítkem „Vytvořit zprávu“.</p>{% elif session.organization.auto_draft %}<p class="text-xs text-muted w-full">Koncept vzniká sám, jakmile mají všechny testy dne hodnoty (pro trenéra při sdílení s trenérem, jinak pro sportovce). Tady ho založíte ručně nebo pro jiného čtenáře.</p>{% endif %}
 </div>
 
 {% steps steps heading="Postup dne" compact=True may_act=read_only|yesno:"False,True" %}
