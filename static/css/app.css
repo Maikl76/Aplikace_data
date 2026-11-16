@@ -28,6 +28,8 @@
   --warn-soft: #fdf4e3;
   --bad: #c2372f;
   --bad-soft: #fcebea;
+  --nav-hlavni: #1f63b8;          /* Přehled v menu: plná barva, bílé písmo (kontrast 6 : 1) */
+  --nav-hlavni-hover: #18529b;
   --shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .06);
   --radius: 12px;
   color-scheme: light;
@@ -51,6 +53,8 @@
   --warn-soft: #2b2112;
   --bad: #ef6a60;
   --bad-soft: #2d1614;
+  --nav-hlavni: #2160ad;
+  --nav-hlavni-hover: #2a6fc4;
   --shadow: 0 1px 2px rgba(0, 0, 0, .4);
   color-scheme: dark;
 }
@@ -81,6 +85,14 @@ body {
 .nav-link:hover { background: var(--surface-2); color: var(--text); }
 .nav-link.active { background: var(--accent-soft); color: var(--accent-strong); }
 .nav-link svg { width: 18px; height: 18px; flex: none; }
+/* Menu laboratoře ve skupinách oddělených čarou. */
+.nav-skupina > * + * { margin-top: .25rem; }
+.nav-skupina + .nav-skupina { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--border); }
+/* Přehled: plná barva – odliší se od ostatních položek i od světle modře
+   zvýrazněné stránky, na které právě jste. Na samotném Přehledu má světlý rámeček. */
+.nav-link.nav-hlavni { background: var(--nav-hlavni); color: #fff; font-weight: 600; }
+.nav-link.nav-hlavni:hover { background: var(--nav-hlavni-hover); color: #fff; }
+.nav-link.nav-hlavni.active { box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .45); }
 .app-topbar {
   background: color-mix(in srgb, var(--page) 85%, transparent);
   backdrop-filter: blur(8px);

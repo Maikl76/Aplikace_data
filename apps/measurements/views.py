@@ -102,7 +102,7 @@ def _battery_subjects(request, battery):
 
 @login_required
 def today(request):
-    """Dnešní testování: skupina sportovců × testy baterie, co je hotové a co chybí."""
+    """Týmové testování: skupina sportovců × testy baterie, co je hotové a co chybí."""
     from datetime import date as date_cls
 
     from apps.subjects.search import names_for

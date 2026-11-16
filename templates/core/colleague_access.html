@@ -20,7 +20,7 @@
 
     <section class="card p-4" id="rozsah">
       <h2 class="card-title mb-1">Na které sporty vidí</h2>
-      <p class="text-xs text-muted mb-2">Sportovci, měření, zprávy, Dnešní testování a týmový přehled se omezí na vybrané sporty. Účet bez sportů neuvidí žádného sportovce.</p>
+      <p class="text-xs text-muted mb-2">Sportovci, měření, zprávy, Týmové testování a týmový přehled se omezí na vybrané sporty. Účet bez sportů neuvidí žádného sportovce.</p>
       <div class="text-sm space-y-2">
         <label class="flex items-center gap-2"><input type="radio" name="rozsah" value="vse" {% if profile.all_sports %}checked{% endif %}> všechny sporty pracoviště</label>
         <label class="flex items-center gap-2"><input type="radio" name="rozsah" value="sporty" {% if not profile.all_sports %}checked{% endif %}> jen vybrané sporty:</label>

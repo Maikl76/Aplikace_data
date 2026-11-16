@@ -50,6 +50,6 @@
   {% endif %}
   {% if pending %}<a href="{% url 'run_device' pending.0.pk %}" class="btn px-6 py-4 text-lg">Doměřit: {{ pending.0.protocol.name }}</a>{% endif %}
   <a href="{% url 'session_detail' session.pk %}" class="btn px-6 py-4 text-lg">Detail dne</a>
-  <a href="{% url 'today' %}?datum={{ session.date|date:'Y-m-d' }}" class="btn px-6 py-4 text-lg">Dnešní testování</a>
+  <a href="{% url 'today' %}?datum={{ session.date|date:'Y-m-d' }}" class="btn px-6 py-4 text-lg">Týmové testování</a>
 </div>
 {% endblock %}

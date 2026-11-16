@@ -75,7 +75,7 @@ def daily_steps(user, today=None) -> list[dict]:
              (f"{len(sessions)} testovacích dnů." if sessions else
               "Dnes není založený žádný testovací den. Založte ho ze skupiny, nebo vznikne sám "
               "z exportu přístroje."),
-             url=reverse("today"), button="Dnešní testování"),
+             url=reverse("today"), button="Týmové testování"),
         step(2, "Hodnoty", not without_values,
              (f"{len(without_values)} testů čeká na hodnoty – zadejte je u přístroje, nebo "
               "nahrajte export." if without_values else "Všechny dnešní testy mají hodnoty."),

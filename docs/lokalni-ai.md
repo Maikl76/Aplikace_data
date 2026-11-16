@@ -301,7 +301,7 @@ Pak `python manage.py runserver` jako obvykle.
 
 ## Zkouška na zprávě
 
-**Měření → testovací den → Vytvořit zprávu z tohoto měření.** Na stránce
+**Přehled testování → testovací den → Vytvořit zprávu z tohoto měření.** Na stránce
 zprávy vpravo v části *Doložitelnost* uvidíte, kdo text sestavil
 a za jak dlouho.
 

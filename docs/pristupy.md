@@ -48,7 +48,7 @@ verze dostane jen správce.
 ## Co rozsah sportů ovlivní
 
 Seznam a hledání sportovců, karta sportovce (mimo rozsah neexistuje),
-měření, zprávy, Dnešní testování, týmový přehled, Kdo je na řadě, exporty
+měření, zprávy, Týmové testování, týmový přehled, Kdo je na řadě, exporty
 a interní reference na kartě. Nastavení sportů ukazuje jen přidělené
 sporty. **Import**: účet s rozsahem uloží jen soubor, jehož sportovci jsou
 v jeho rozsahu; nové sportovce z importu nezakládá (nový sportovec by neměl

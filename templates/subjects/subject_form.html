@@ -137,7 +137,7 @@
         {% csrf_token %}
         {% if subject.is_active %}
           <button type="submit" name="akce" value="deaktivovat" class="btn btn-sm">Deaktivovat</button>
-          <span class="text-muted">Sportovec, který už nechodí: zmizí z výběrů (baterie, Dnešní testování, našeptávač), měření a zprávy zůstanou. Jde vrátit.</span>
+          <span class="text-muted">Sportovec, který už nechodí: zmizí z výběrů (baterie, Týmové testování, našeptávač), měření a zprávy zůstanou. Jde vrátit.</span>
         {% else %}
           <button type="submit" name="akce" value="aktivovat" class="btn btn-sm">Znovu aktivovat</button>
           <span class="text-muted">Sportovec je deaktivovaný.</span>

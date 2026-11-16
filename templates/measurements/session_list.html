@@ -3,11 +3,11 @@
 {% block content %}
 <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
   <div>
-    <div class="eyebrow">Měření</div>
+    <div class="eyebrow">Přehled testování</div>
     <h1 class="text-2xl font-semibold">Testovací dny</h1>
   </div>
   <div class="flex flex-wrap gap-2">
-    <a href="{% url 'today' %}" class="btn">{% icon "calendar" %}Dnešní testování</a>
+    <a href="{% url 'today' %}" class="btn">{% icon "calendar" %}Týmové testování</a>
     {% if pristup.measure %}<a href="{% url 'session_create' %}" class="btn btn-primary">{% icon "plus" %}Nový testovací den</a>{% endif %}
   </div>
 </div>

@@ -76,7 +76,7 @@ def import_upload(request):
             continue
         ready.append(batch)
 
-    # Nahráno z testovacího dne nebo z Dnešního testování: náhled předvybere
+    # Nahráno z testovacího dne nebo z Týmového testování: náhled předvybere
     # jeho sportovce a po uložení se aplikace vrátí tam, odkud se nahrávalo.
     if ready and (target := upload_target(request)):
         for batch in ready:
@@ -94,7 +94,7 @@ def import_upload(request):
 def upload_target(request) -> dict:
     """
     Odkud se export nahrál: z testovacího dne (jeden sportovec), nebo
-    z Dnešního testování (skupina v jeden den). Drží se v souhrnu náhledu
+    z Týmového testování (skupina v jeden den). Drží se v souhrnu náhledu
     jako ``cil``: koho nabídnout první, kam zapsat řádky bez data a kam se
     po uložení vrátit.
     """

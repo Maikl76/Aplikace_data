@@ -30,7 +30,7 @@
       <li><a href="#sportovci">Sportovci</a></li>
       <li><a href="#baterie">Sporty a baterie testů</a></li>
       <li><a href="#den">Testovací den</a></li>
-      <li><a href="#dnes">Dnešní testování</a></li>
+      <li><a href="#dnes">Týmové testování</a></li>
       <li><a href="#zadavani">Zadávání hodnot</a></li>
       <li><a href="#rpe">RPE a QR kódy</a></li>
       <li><a href="#import">Import z přístrojů</a></li>
@@ -178,7 +178,7 @@
       <ol class="napoveda-kroky">
         <li><strong>Jednou na začátku:</strong> v <a class="link" href="{% url 'sport_list' %}">Sporty a testy</a> nastavte, které testy se u sportu měří (baterie).</li>
         <li><strong>Sportovci:</strong> noví se založí sami při importu z přístroje nebo schválení objednávky, nebo je přidáte v <a class="link" href="{% url 'subject_list' %}">Sportovcích</a> tlačítkem <strong>Nový sportovec</strong> (jméno, datum narození, sport, kategorie, souhlasy). Údaje opravíte tužkou na kartě sportovce.</li>
-        <li><strong>Ráno:</strong> <a class="link" href="{% url 'today' %}">Dnešní testování</a> → vyberte skupinu → zaškrtněte, kdo přijde → <em>Založit testování pro vybrané</em>.</li>
+        <li><strong>Ráno:</strong> <a class="link" href="{% url 'today' %}">Týmové testování</a> → vyberte skupinu → zaškrtněte, kdo přijde → <em>Založit testování pro vybrané</em>.</li>
         <li><strong>Během měření:</strong> u přístroje otevřete test a zadejte pokusy, nebo po měření nahrajte export v <a class="link" href="{% url 'import_list' %}">Importu</a>. Po zátěžových testech zaznamenejte RPE.</li>
         <li><strong>Kontrola:</strong> v testovacím dni upozornění na nestabilní pokusy – pokud je sportovec ještě v laboratoři, test zopakujte.</li>
         <li><strong>Zpráva:</strong> v testovacím dni <em>Vytvořit zprávu</em> → projděte souhrn (případně nechte AI navrhnout doporučení) → opravte → <em>Uložit</em> → <em>Vydat</em>.</li>
@@ -242,7 +242,7 @@
         <li><strong>Nový test</strong> (správce): <a class="link" href="{% url 'test_list' %}">Sporty a testy → Testy</a> → <em>Nový test</em>. Na jedné stránce název, počet pokusů, pauza a RPE; metriky z katalogu nebo nové (<em>＋ Nová metrika</em>); strany a části těla zaškrtnutím; rovnou i zařazení do baterií. Zadávací formulář vznikne sám. Existující test upravíte tlačítkem <em>upravit</em> – naměřená data zůstávají.</li>
         <li><strong>Kategorie:</strong> sport může mít vedle obecné baterie i baterii pro kategorii (např. <em>Lední hokej – dorost</em>). Sportovec s vyplněnou kategorií dostane baterii své kategorie, ostatní obecnou.</li>
         <li><strong>Opakování:</strong> u baterie nastavte <em>Opakování po N týdnech</em>; od posledního měření se počítá termín dalšího a sportovci se objeví v <em>Kdo je na řadě</em>.</li>
-        <li>Baterie předvyplní nový testovací den, řídí <em>Dnešní testování</em>, pořadí testů při zadávání a sloupce <em>Týmového přehledu</em>.</li>
+        <li>Baterie předvyplní nový testovací den, řídí <em>Týmové testování</em>, pořadí testů při zadávání a sloupce <em>Týmového přehledu</em>.</li>
         <li>Odvozené ukazatele (DSI, EUR) se do baterie nepřidávají – dopočítají se samy z CMJ, IMTP a SJ.</li>
       </ul>
     </section>
@@ -251,11 +251,11 @@
     <section id="den" class="card p-5" data-kapitola>
       <h2>Testovací den</h2>
       <p>Jedna návštěva sportovce v laboratoři. Vzniká třemi způsoby: tlačítkem <em>Nové měření</em>,
-        hromadně v <em>Dnešním testování</em>, nebo sám při importu exportu z přístroje.</p>
+        hromadně v <em>Týmovém testování</em>, nebo sám při importu exportu z přístroje.</p>
       <ul>
         <li><strong>Nový testovací den:</strong> vyberte sportovce – testy se zaškrtnou podle baterie jeho sportu; další jde přidat. Vyplnit lze místo, fázi sezóny, subjektivní únavu, teplotu a vlhkost.</li>
         <li><strong>Zopakovat poslední den</strong> (karta sportovce; v detailu minulého dne <em>Zopakovat dnes</em>): dnešní testovací den se stejnými testy jako minule, i mimo baterii; přenese se místo a fáze sezóny, hodnoty ne. Existuje-li dnešní den, jen se doplní chybějící testy.</li>
-        <li><strong>Detail dne</strong> (<a class="link" href="{% url 'session_list' %}">Měření</a> → datum): testy s počtem hodnot (<span class="badge badge-good">hotovo</span> / <span class="badge badge-accent">zadat hodnoty</span>), přidání dalšího testu, zprávy z tohoto dne, RPE a prostředí.</li>
+        <li><strong>Detail dne</strong> (<a class="link" href="{% url 'session_list' %}">Přehled testování</a> → datum): testy s počtem hodnot (<span class="badge badge-good">hotovo</span> / <span class="badge badge-accent">zadat hodnoty</span>), přidání dalšího testu, zprávy z tohoto dne, RPE a prostředí.</li>
         <li><strong>Opakované měření v jednom dni</strong> (např. před a po zátěži): každé provedení má svůj čas; hodnotou dne je první (hlavní) měření, opakování se ve zprávě ukážou vedle sebe.</li>
         <li><strong>Prostředí:</strong> teplota a vlhkost se dají doplnit i dodatečně v kartě <em>Prostředí</em> – objeví se ve zprávě.</li>
       </ul>
@@ -263,7 +263,7 @@
 
     {# ================================================================== #}
     <section id="dnes" class="card p-5" data-kapitola>
-      <h2>Dnešní testování</h2>
+      <h2>Týmové testování</h2>
       <ol>
         <li>Nahoře vyberte skupinu (baterii) a datum.</li>
         <li>Tabulka ukazuje sportovce skupiny × testy baterie: <span class="badge badge-good">hotovo</span> změřeno, <span class="badge badge-accent">zadat</span> založeno a čeká, — nic.</li>
@@ -287,7 +287,7 @@
         <li><strong>Mimo věrohodný rozsah:</strong> hodnota se uloží, ale zbarví oranžově – zkontrolujte překlep.</li>
         <li><strong>Kontrola hned při zadávání:</strong> když se pokusy liší víc, než je u ukazatele obvyklé (mez rozptylu v katalogu), nebo je hodnota mimo věrohodný rozsah, napíše to mřížka ještě při psaní („pokus 2 se liší o 14 % od ostatních – změřit znovu?“). Odkaz <em>+ přidat pokus</em> přidá sloupec pro opakovaný pokus.</li>
         <li><strong>Uložit hodnoty</strong> uloží a zůstane na místě; <strong>Uložit a další</strong> přejde na další test dne v pořadí baterie.</li>
-        <li><strong>Režim u přístroje:</strong> tlačítko v testovacím dni (a odkaz <em>u přístroje</em> v Dnešním testování) otevře celou obrazovku bez menu: postup baterií nahoře, velká tlačítka <em>Uložit a další test</em>, RPE po zátěžovém testu hned pod mřížkou, Enter skáče na další políčko. Po posledním testu shrnutí dne (co chybí, nestabilní pokusy, RPE) a tlačítko <em>Další sportovec</em>.</li>
+        <li><strong>Režim u přístroje:</strong> tlačítko v testovacím dni (a odkaz <em>u přístroje</em> v Týmovém testování) otevře celou obrazovku bez menu: postup baterií nahoře, velká tlačítka <em>Uložit a další test</em>, RPE po zátěžovém testu hned pod mřížkou, Enter skáče na další políčko. Po posledním testu shrnutí dne (co chybí, nestabilní pokusy, RPE) a tlačítko <em>Další sportovec</em>.</li>
         <li><strong>Importované testy</strong> jdou otevřít stejně – hodnoty lze opravit ručně.</li>
       </ul>
       <p class="text-sm text-muted">Tablet v laboratoři: viz <a class="link" href="#technika">Spuštění a technika</a>.</p>
@@ -326,8 +326,8 @@
         <li><strong>Sledovaná složka:</strong> místo nahrávání může složku s exporty hlídat aplikace sama. Správce do <code>.env</code> doplní <code>IMPORT_WATCH_DIR</code> (složka, kam VALD Hub ukládá exporty); <code>spustit.bat</code> pak otevře okno „Sledovana slozka“, které každých 30 s projde složku. Nový export se načte do Importu a když aplikace sportovce jednoznačně pozná a má naplánovaný testovací den, rovnou se uloží; jinak čeká na kontrolu jako po ručním nahrání. Stav je v Importu (karta <em>Sledovaná složka</em>). Soubory se nepřesouvají ani nemažou.</li>
         <li><strong>Z testovacího dne a z testu:</strong> tlačítko <em>Nahrát export z přístroje</em> v testovacím dni nahraje soubor a v náhledu rovnou předvybere tohoto sportovce; na stránce testu <em>Nahrát export k tomuto testu</em> zapíše hodnoty přesně do tohoto provedení, řádky bez typu testu bere jako tento test a po uložení se vrátí na test. U každého testu je napsáno, z čeho ho aplikace umí načíst, nebo že je jen na ruční zadání. Hodnoty se zapíšou do naplánovaných testů toho dne – datum se bere z exportu, musí tedy sedět s datem testovacího dne.</li>
         <li><strong>Opakovaný import</strong> téhož souboru nic nezdvojí – chybějící hodnoty doplní, přepočítané aktualizuje.</li>
-        <li><strong>Za celou skupinu:</strong> v Dnešním testování tlačítko <em>Nahrát export za skupinu</em> – sportovci skupiny jsou v náhledu v nabídce první (i bez založeného dne), řádky bez data jdou k vybranému dni. Po uložení se aplikace vrátí do Dnešního testování; z testovacího dne zpět do něj.</li>
-        <li><strong>Založené testy</strong> z Dnešního testování import vyplní, nevzniknou druhé.</li>
+        <li><strong>Za celou skupinu:</strong> v Týmovém testování tlačítko <em>Nahrát export za skupinu</em> – sportovci skupiny jsou v náhledu v nabídce první (i bez založeného dne), řádky bez data jdou k vybranému dni. Po uložení se aplikace vrátí do Týmového testování; z testovacího dne zpět do něj.</li>
+        <li><strong>Založené testy</strong> z Týmového testování import vyplní, nevzniknou druhé.</li>
         <li><strong>Co se importuje</strong> určují <a class="link" href="/admin/catalog/importprofile/">profily importu</a> (sloupec exportu → metrika). Po doplnění profilu tlačítko <em>načíst znovu</em> u starého importu doplní nové metriky.</li>
       </ul>
       <h3 id="novy-pristroj">Nový přístroj (DEXA, InBody, Biodex…)</h3>
@@ -423,7 +423,7 @@
         <li><strong>Nabídka a ceny:</strong> <em>Objednávky → Nabídka a ceny</em> – položky (balíček / test), cena za osobu a které testy se po schválení založí.</li>
         <li><strong>Volné termíny:</strong> <em>Objednávky → Volné termíny</em> – vypíšete je hromadně (např. celý měsíc, po–pá, 8–14 h po hodině). Kapacita = kolik osob se na termín vejde; pro týmy vypište delší termín s větší kapacitou.</li>
         <li><strong>Žádosti:</strong> nové mají v menu modrý počet. V detailu jsou účastníci s věkem a zraněními a u každého, zda <span class="badge badge-good">už u nás byl</span> (pozná se podle jména a data narození), nebo se <span class="badge badge-accent">založí</span>.</li>
-        <li><strong>Schválit</strong> (případně s jiným termínem a zprávou pro klienta) – aplikace najde nebo založí sportovce (jméno šifrovaně), uloží souhlasy a na termín založí testovací dny s objednanými testy. Cíl a zranění se zapíší do poznámky testovacího dne. V den testování je najdete v <em>Dnešním testování</em>.</li>
+        <li><strong>Schválit</strong> (případně s jiným termínem a zprávou pro klienta) – aplikace najde nebo založí sportovce (jméno šifrovaně), uloží souhlasy a na termín založí testovací dny s objednanými testy. Cíl a zranění se zapíší do poznámky testovacího dne. V den testování je najdete v <em>Týmovém testování</em>.</li>
         <li><strong>Zamítnout</strong> – termín se uvolní; klient dostane zprávu.</li>
       </ul>
       <p class="text-sm text-muted">Termín drží i žádost, která čeká na schválení, takže se na jedno místo nemohou objednat dva. Klientovi chodí e-maily (přijato, potvrzeno, zamítnuto) a má odkaz, kde vidí stav objednávky. E-maily fungují, až bude nastavený poštovní server – do té doby se jen zapíší do záznamu serveru a laborant klienta kontaktuje sám.</p>
@@ -561,7 +561,7 @@
       <h2>Časté otázky</h2>
       <details><summary>Proč aplikace píše „v pásmu chyby měření“, i když se hodnota změnila?</summary>
         <p>Změna je menší než MDC dané metriky – mohla vzniknout jen nepřesností měření. Bez vyplněné MDC aplikace napíše „nelze posoudit“. MDC doplňte v katalogu z literatury nebo z vlastní reliability studie.</p></details>
-      <details><summary>Týmový přehled nebo Dnešní testování jsou prázdné.</summary>
+      <details><summary>Týmový přehled nebo Týmové testování jsou prázdné.</summary>
         <p>Sport nemá baterii testů (nastavte v Sporty a testy), nebo sportovci nemají vyplněný sport či kategorii odpovídající baterii.</p></details>
       <details><summary>Jak přidám nový test?</summary>
         <p><em>Sporty a testy → Testy → Nový test</em> (role Správce). Vyplníte název a průběh, přidáte metriky – existující z katalogu, nebo novou s jednotkou a směrem „co je lepší“ – a zaškrtnete strany (levá/pravá) či části těla. Každá kombinace je pak při zadávání vlastní řádek. Test se přenáší s katalogem.</p></details>

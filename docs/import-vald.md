@@ -41,7 +41,7 @@ Co hlídač dělá s novým souborem (`apps/ingest/watch.py`):
 - načte ho do Importu stejně jako ruční nahrání (nic se nezapisuje bez kontroly),
 - když aplikace **všechny sportovce ze souboru jednoznačně pozná** (ID ve
   VALD, nebo jméno v jiném pořadí u někoho s naplánovaným testováním) a každý
-  má na datum testu **naplánovaný testovací den** (Dnešní testování), import
+  má na datum testu **naplánovaný testovací den** (Týmové testování), import
   rovnou **uloží**; hodnoty mimo rozsah se uloží označené jako jindy,
 - jinak import **čeká na kontrolu** v Importu – nepoznaný sportovec, neznámý
   ukazatel, hodnoty bez data, nenaplánovaný den,
@@ -71,7 +71,7 @@ Typicky nový klient z objednávky, kterého VALD zná pod jinak napsaným jmén
 sportovce ze souboru výběr **Patří k**:
 
 - nabízejí se ti, kdo mají ve dnech ze souboru naplánované testování
-  (Dnešní testování, schválená objednávka);
+  (Týmové testování, schválená objednávka);
 - stejná jména v jiném pořadí aplikace navrhne sama (s poznámkou „zkontrolujte“);
 - „nový sportovec“ ho založí.
 
@@ -102,11 +102,11 @@ Export nemusíte nahrávat přes menu Import:
   ho aplikace umí načíst (*import: VALD ForceDecks*), nebo že je *jen na
   ruční zadání*; pak buď zadáte hodnoty ručně, nebo přidáte přístroj
   průvodcem (`docs/novy-pristroj.md`).
-- **V Dnešním testování** tlačítko *Nahrát export za skupinu* (pod tabulkou)
+- **V Týmovém testování** tlačítko *Nahrát export za skupinu* (pod tabulkou)
   nahraje jeden export pro celou skupinu. V náhledu jsou sportovci skupiny
   v nabídce přiřazení první – i ti, kdo ten den založený nemají –, řádky
   bez data se zapíší k vybranému dni a hodnoty se doplní do založených
-  testů. Po uložení se aplikace vrátí do Dnešního testování stejného dne
+  testů. Po uložení se aplikace vrátí do Týmového testování stejného dne
   a skupiny.
 
 V obou případech náhled říká, odkud se nahrávalo; sportovce, které aplikace

@@ -4,7 +4,7 @@ Přehled na týden: co laboratoř čeká den po dni.
 Naplánované testovací dny po skupinách (baterie testů), objednávky na
 termíny v týdnu, kdo má v týdnu termín dalšího měření a které dny týdne
 ještě čekají na zprávu. Všechno se počítá z dat – nic se tu nezadává;
-plánuje se v Dnešním testování a v objednávkách.
+plánuje se v Týmovém testování a v objednávkách.
 """
 
 from dataclasses import dataclass, field

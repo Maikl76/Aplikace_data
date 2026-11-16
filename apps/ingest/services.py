@@ -427,10 +427,10 @@ def assignment_choices(batch, user) -> list[dict]:
     Sportovci ze souboru a koho jim lze v náhledu přiřadit.
 
     Nabízí se hlavně ten, kdo má ve dnech ze souboru naplánované testování
-    (Dnešní testování, schválená objednávka) – tak se export spáruje i se
+    (Týmové testování, schválená objednávka) – tak se export spáruje i se
     sportovcem, kterého VALD zná pod jinak napsaným jménem. Import spuštěný
     z testovacího dne předvybere jeho sportovce, pokud je to jednoznačné;
-    import spuštěný z Dnešního testování nabídne sportovce skupiny.
+    import spuštěný z Týmového testování nabídne sportovce skupiny.
     """
     from apps.subjects.search import names_for
 
@@ -451,7 +451,7 @@ def assignment_choices(batch, user) -> list[dict]:
                    .select_related("subject"))
     target_subject = Subject.objects.filter(organization=batch.organization,
                                             pk=target.get("subject")).first()
-    # skupina z Dnešního testování: její sportovci jsou v nabídce hned za naplánovanými
+    # skupina z Týmového testování: její sportovci jsou v nabídce hned za naplánovanými
     group = list(Subject.objects.filter(organization=batch.organization,
                                         pk__in=target.get("subjects") or []))
     pool = {s.subject for s in planned} | ({target_subject} if target_subject else set())

@@ -70,7 +70,7 @@ import z VALD v [docs/import-vald.md](docs/import-vald.md),
 nový přístroj (DEXA, InBody…) bez programování v [docs/novy-pristroj.md](docs/novy-pristroj.md),
 DSI, ODS a kontrola pokusů v [docs/diagnostika.md](docs/diagnostika.md),
 vědecké články ve zprávách a dohledání podle DOI/PMID v [docs/clanky.md](docs/clanky.md),
-baterie testů, Dnešní testování, Přehled na týden a týmový přehled v [docs/baterie.md](docs/baterie.md),
+baterie testů, Týmové testování, Přehled na týden a týmový přehled v [docs/baterie.md](docs/baterie.md),
 stopky, RPE, QR karty a tablet v síti v [docs/terenni-testovani.md](docs/terenni-testovani.md),
 plán opakování, Kdo je na řadě a připomínky v [docs/opakovane-mereni.md](docs/opakovane-mereni.md),
 objednávky od klientů v [docs/objednavky.md](docs/objednavky.md),
@@ -228,7 +228,7 @@ výzkumných dat obvykle to, co se po výmazu požaduje.
 
 ## Zadávání u přístroje
 
-**Měření → Nový testovací den → přidat protokol → zadat hodnoty.**
+**Přehled testování → Nový testovací den → přidat protokol → zadat hodnoty.**
 
 Zadávací mřížka se **generuje z definice protokolu**, ne z kódu. Protokol
 v katalogu říká, jaké kombinace se u něj měří:

@@ -3,7 +3,7 @@
 {% block content %}
 <div class="flex flex-wrap items-end justify-between gap-3 mb-5">
   <div>
-    <div class="eyebrow">Měření · {{ week_number }}. týden</div>
+    <div class="eyebrow">Týmové testování · {{ week_number }}. týden</div>
     <h1 class="text-2xl font-semibold">Týden {{ title }}</h1>
   </div>
   <div class="flex flex-wrap gap-2 items-center">
@@ -13,7 +13,7 @@
     <form method="get" class="inline-flex">
       <input type="date" name="od" value="{{ monday|date:'Y-m-d' }}" class="input w-auto" onchange="this.form.submit()" title="Kterýkoli den týdne">
     </form>
-    <a href="{% url 'today' %}" class="btn">{% icon "calendar" %}Dnešní testování</a>
+    <a href="{% url 'today' %}" class="btn">{% icon "calendar" %}Týmové testování</a>
   </div>
 </div>
 
@@ -89,5 +89,5 @@
 
 <p class="mt-6 text-xs text-muted">Týden se skládá z dat: testovací dny podle skupin (baterií), objednávky na termíny v týdnu,
   termíny dalšího měření podle plánu opakování a dny, které mají hodnoty, ale zatím ne zprávu. Plánuje se
-  v <a class="link" href="{% url 'today' %}">Dnešním testování</a>{% if pristup.bookings %} a v <a class="link" href="{% url 'booking_list' %}">Objednávkách</a>{% endif %}.</p>
+  v <a class="link" href="{% url 'today' %}">Týmovém testování</a>{% if pristup.bookings %} a v <a class="link" href="{% url 'booking_list' %}">Objednávkách</a>{% endif %}.</p>
 {% endblock %}

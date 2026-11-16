@@ -113,7 +113,7 @@ def test_smazany_koncept_sam_znovu_nevznikne(org):
     steps = {s["title"]: s for s in page.context["steps"]}
     assert "byl smazán, sám už nevznikne" in steps["Zpráva"]["text"]
 
-    # ručně založit jde dál – tlačítkem i hromadně z Dnešního testování
+    # ručně založit jde dál – tlačítkem i hromadně z Týmového testování
     assert report_auto.drafts_for([d["session"]], user=lab)["vytvoreno"] == 1
     manual = Report.objects.get()
     client.post(reverse("report_delete", args=[manual.pk]))

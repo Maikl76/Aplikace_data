@@ -34,6 +34,6 @@ def booking_steps(request) -> list[dict]:
              url=reverse("booking_list"), button="Vyřídit", count=new or None),
         step(5, "Po schválení", approved > 0,
              "Schválená žádost založí sportovce a testovací dny; v den testování je najdete "
-             "v Dnešním testování.",
-             url=reverse("today"), button="Dnešní testování", optional=True),
+             "v Týmovém testování.",
+             url=reverse("today"), button="Týmové testování", optional=True),
     ]

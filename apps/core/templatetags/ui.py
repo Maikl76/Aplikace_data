@@ -93,8 +93,11 @@ def initials(name: str) -> str:
 
 @register.simple_tag(takes_context=True)
 def nav_link(context, url_name: str, label: str, icon_name: str, prefix: str = "",
-             badge: int = 0):
-    """Položka menu; aktivní podle začátku cesty. ``badge`` = počet k vyřízení."""
+             badge: int = 0, css: str = ""):
+    """
+    Položka menu; aktivní podle začátku cesty. ``badge`` = počet k vyřízení,
+    ``css`` = třída navíc (např. nav-hlavni – Přehled odlišený barvou).
+    """
     from django.urls import reverse
 
     request = context.get("request")
@@ -102,8 +105,9 @@ def nav_link(context, url_name: str, label: str, icon_name: str, prefix: str = "
     path = request.path if request else ""
     active = path == url if url == "/" else path.startswith(prefix or url)
     count = format_html('<span class="nav-pocet" title="k vyřízení">{}</span>', badge) if badge else ""
-    return format_html('<a href="{}" class="nav-link{}">{}<span>{}</span>{}</a>',
-                       url, " active" if active else "", mark_safe(icon(icon_name)), label, count)
+    classes = "nav-link" + (" active" if active else "") + (f" {css}" if css else "")
+    return format_html('<a href="{}" class="{}">{}<span>{}</span>{}</a>',
+                       url, classes, mark_safe(icon(icon_name)), label, count)
 
 
 @register.simple_tag

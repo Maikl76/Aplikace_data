@@ -37,7 +37,7 @@ def import_list_steps(user, batches, watched=None) -> list[dict]:
         step(4, "Výsledky v testovacích dnech", bool(committed),
              (f"Poslední uložený import {committed[0].created_at:%d.%m.%Y}; hodnoty jsou "
               "v testovacích dnech sportovců." if committed else "Po uložení importu."),
-             url=reverse("session_list"), button="Měření", optional=True),
+             url=reverse("session_list"), button="Přehled testování", optional=True),
         step(5, "Sledovaná složka", bool(watched and watched["running"]),
              _watch_text(watched), url="#slozka", button="Sledovaná složka", optional=True,
              count=len(watched["waiting"]) if watched and watched["waiting"] else None),

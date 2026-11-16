@@ -1,6 +1,6 @@
 {% load ui %}
 {% comment %}Nahrání exportu z přístroje přímo z testu (run_pk + protocol_pk: hodnoty do tohoto provedení,
-řádky bez typu testu jako tento test), z testovacího dne (session_pk) nebo z Dnešního testování
+řádky bez typu testu jako tento test), z testovacího dne (session_pk) nebo z Týmového testování
 (skupina_datum + skupina_baterie): náhled předvybere sportovce, po uložení se sem aplikace vrátí.{% endcomment %}
 <form method="post" action="{% url 'import_upload' %}" enctype="multipart/form-data" class="inline-flex">
   {% csrf_token %}

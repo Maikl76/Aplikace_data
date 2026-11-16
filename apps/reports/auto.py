@@ -60,7 +60,7 @@ def ensure_draft(session, *, user):
 
 def drafts_for(sessions, *, user, audience=None) -> dict:
     """
-    Koncepty pro víc testovacích dnů najednou (Dnešní testování): jen pro
+    Koncepty pro víc testovacích dnů najednou (Týmové testování): jen pro
     kompletní dny bez zprávy. ``audience`` None = pro každého podle sdílení,
     jako u konceptu, který vzniká sám. Vrací počty: ``vytvoreno``,
     ``uz_ma``, ``nekompletni`` a kódy sportovců, u kterých koncept nevznikl.

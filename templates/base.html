@@ -60,7 +60,7 @@
         <span class="block text-xs text-muted">FTVS UK</span>
       </span>
     </a>
-    <nav class="flex-1 p-3 space-y-1">
+    <nav class="flex-1 min-h-0 overflow-y-auto p-3{% if portal %} space-y-1{% endif %}">
       {% if portal %}
       {% if user.role == "coach" %}
       {% nav_link "coach_home" "Moji sportovci" "users" "/trener/" %}
@@ -73,19 +73,26 @@
         {% nav_link "about" "O aplikaci" "info" %}
       </div>
       {% else %}
-      {% nav_link "dashboard" "Přehled" "home" %}
-      {% nav_link "subject_list" "Sportovci" "users" %}
-      {% nav_link "team" "Týmový přehled" "grid" %}
-      {% nav_link "today" "Dnešní testování" "calendar" %}
-      {% nav_link "session_list" "Měření" "activity" %}
-      {% nav_link "report_list" "Zprávy" "file" %}
-      {% nav_link "article_list" "Články" "book" %}
-      {% nav_link "genetics_home" "Genetika" "dna" %}
-      {% if pristup.bookings %}{% nav_link "booking_list" "Objednávky" "inbox" "/objednavky/" nove_objednavky %}{% endif %}
-      {% if pristup.measure %}{% nav_link "import_list" "Import" "upload" %}{% endif %}
-      {% nav_link "sport_list" "Sporty a testy" "list" %}
-      <div class="pt-3 mt-3 border-t" style="border-color: var(--border)">
+      {# skupiny oddělené čarou: přehledy · testování a zprávy · podklady · nastavení #}
+      <div class="nav-skupina">
+        {% nav_link "dashboard" "Přehled" "home" css="nav-hlavni" %}
+        {% nav_link "subject_list" "Sportovci" "users" %}
+        {% nav_link "team" "Týmový přehled" "grid" %}
+      </div>
+      <div class="nav-skupina">
+        {% nav_link "today" "Týmové testování" "calendar" %}
+        {% nav_link "session_list" "Přehled testování" "activity" %}
+        {% nav_link "genetics_home" "Genetika" "dna" %}
+        {% nav_link "report_list" "Zprávy" "file" %}
+      </div>
+      <div class="nav-skupina">
+        {% nav_link "article_list" "Články" "book" %}
+        {% if pristup.measure %}{% nav_link "import_list" "Import" "upload" %}{% endif %}
+        {% nav_link "sport_list" "Sporty a testy" "list" %}
+      </div>
+      <div class="nav-skupina">
         {% nav_link "workplace" "Nastavení" "settings" "/nastaveni/" %}
+        {% if pristup.bookings %}{% nav_link "booking_list" "Objednávky" "inbox" "/objednavky/" nove_objednavky %}{% endif %}
         {% if pristup.manage %}{% nav_link "colleagues" "Kolegové" "users" %}{% nav_link "remarks" "Připomínky" "inbox" "/pripominky/" nove_pripominky %}{% endif %}
         {% nav_link "about" "O aplikaci" "info" %}
       </div>

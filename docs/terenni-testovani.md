@@ -5,7 +5,7 @@ při dvouměsíčním měření v terénu.
 
 ## Zadávání u přístroje
 
-Otevřete test v testovacím dni (**Měření → den → test**).
+Otevřete test v testovacím dni (**Přehled testování → den → test**).
 
 - **Stopky** – u ukazatelů v sekundách je v políčku ikona stopek. Start a stop
   jde i mezerníkem, **Zapsat** vloží čas do políčka.
@@ -34,7 +34,7 @@ upozornění nezávisí na JavaScriptu. Neplatný pokus se do rozptylu nepočít
 ## Režim u přístroje
 
 Pro měření skupiny s tabletem u desky: v testovacím dni tlačítko **Režim
-u přístroje** (nebo odkaz *u přístroje* v Dnešním testování) otevře celou
+u přístroje** (nebo odkaz *u přístroje* v Týmovém testování) otevře celou
 obrazovku bez menu:
 
 - nahoře postup baterií (hotové testy zeleně, aktuální zvýrazněný, „test 2 z 5“),

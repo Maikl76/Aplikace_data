@@ -1,4 +1,4 @@
-# Baterie testů a Dnešní testování
+# Baterie testů a Týmové testování
 
 ## Baterie testů (Sporty a testy)
 
@@ -25,7 +25,7 @@ minulý – i s testy mimo baterii; přenese se místo a fáze sezóny, hodnoty
 ne. Když dnešní den už existuje, jen se do něj doplní chybějící testy.
 Hodí se, když se sportovec vrací na kontrolu a má se měřit totéž.
 
-## Dnešní testování
+## Týmové testování
 
 Vyberete baterii a datum a vidíte všechny sportovce daného sportu
 (a kategorie) proti testům baterie:
@@ -57,11 +57,11 @@ Pod tabulkou jsou dvě akce **za celou skupinu**:
 
 ## Přehled na týden
 
-Tlačítko **Přehled na týden** v Dnešním testování (a proužek *Tento týden*
+Tlačítko **Přehled na týden** v Týmovém testování (a proužek *Tento týden*
 na Přehledu) ukáže týden den po dni:
 
 - **testovací dny po skupinách** (baterie) s počty hotovo / rozpracováno /
-  čeká a jmény; odkaz vede do Dnešního testování toho dne a skupiny,
+  čeká a jmény; odkaz vede do Týmového testování toho dne a skupiny,
 - **objednávky** na termíny v týdnu (schválené i čekající na schválení) –
   jen s přístupem k objednávkám,
 - **termíny dalšího měření** podle plánu opakování, které padnou do týdne,
@@ -69,7 +69,7 @@ na Přehledu) ukáže týden den po dni:
 - **dny s hodnotami bez zprávy** s odkazem do detailu dne.
 
 Listuje se po týdnech (nebo zadáte kterýkoli den týdne). Nic se tu
-nezadává – plánuje se v Dnešním testování a v Objednávkách.
+nezadává – plánuje se v Týmovém testování a v Objednávkách.
 
 ## Týmový přehled
 

@@ -208,7 +208,7 @@ def test_export_za_skupinu_nabidne_sportovce_a_vrati_se(lab):
     assert sorted(batch.summary["cil"]["subjects"]) == sorted([a.pk, b.pk, c.pk])
 
     html = client.get(f"/import/{batch.pk}/").content.decode()
-    assert "Nahráno z Dnešního testování" in html and "skupina <strong>Florbal</strong>" in html
+    assert "Nahráno z Týmového testování" in html and "skupina <strong>Florbal</strong>" in html
     assert "FTVS-0002 – skupina Florbal" in html       # i sportovec bez založeného dne
     assert f"FTVS-0001 (FTVS-0001) – testování {today:%d.%m.}" in html or \
         f"FTVS-0001 – testování {today:%d.%m.}" in html

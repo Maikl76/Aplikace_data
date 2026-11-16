@@ -130,7 +130,7 @@ def test_vyzkumnik_vidi_den_bez_tlacitek(org):
     _, client = _user(org, Role.RESEARCHER, "vyzkumnik")
     page = client.get(reverse("dashboard"))
     assert page.status_code == 200 and not page.context["may_act"]
-    assert "Dnešní testování</a>" not in page.content.decode()
+    assert "Týmové testování</a>" not in page.content.decode()
 
 
 # --- stav pracoviště ------------------------------------------------------------------------
