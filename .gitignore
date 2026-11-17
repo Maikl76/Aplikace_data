@@ -27,6 +27,13 @@ db.sqlite3-*
 *.xlsx
 !legacy/**/*.xlsx
 .predchozi-verze
+# výzkumná data a podklady studií (např. sešit PRODEF, prezentace) – jen na počítači
+# laboratoře; import je čte z místa, kde leží (docs/import-prodef.md)
+/vyzkum/
+*.xls
+*.xlsm
+*.pptx
+*.pkl
 
 # balíčky pro server bez internetu (deploy/offline/)
 /dist/

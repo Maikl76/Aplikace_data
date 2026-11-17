@@ -128,6 +128,11 @@ Katalog zakládá dva **neaktivní** příklady: *semafor připravenosti červen
 Zapíná je ten, kdo za prahy ručí – pro jiné sporty a skupiny mohou být
 potřeba jinak.
 
+Na datech studie PRODEF (import viz [import-prodef.md](import-prodef.md)) je
+v testovacím dni vidět i **opakování v rámci dne**: měřicí body po zátěžových
+blocích jsou opakovaná měření téhož dne a jejich změna proti prvnímu měření
+dne se ve zprávě posuzuje proti MDC (tučně, když je větší než MDC).
+
 ### Odkud prahy jsou
 
 Prahy barev (0–1 / 2–3 / 4+) i otázky vycházejí z pilotního vyhodnocení

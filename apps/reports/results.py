@@ -284,34 +284,47 @@ def session_conditions(session) -> list[tuple[str, str]]:
 
 
 def _repeat_table(first_run, rows, repeats) -> dict:
-    """Opakovaná měření téhož dne vedle prvního: řádek = ukazatel, sloupec = čas."""
+    """
+    Opakovaná měření téhož dne vedle prvního: řádek = ukazatel, sloupec = čas.
+    Změna proti 1. měření se posuzuje proti MDC jako změna mezi dny – po zátěži
+    tak zpráva řekne, co je skutečný pokles a co šum.
+    """
     columns = [_run_values(r)[0] for r in repeats]
     table = []
     for row in rows:
-        d = row["metric"].decimals
+        metric = row["metric"]
+        d = metric.decimals
         cells = []
         for values in columns:
             vals = values.get(row["key"])
             if vals:
-                value = row["metric"].day_value(vals)
+                value = metric.day_value(vals)
+                verdict, kind = change_verdict(metric, value - row["value"])
                 cells.append({"value_txt": cz(value, d),
-                              "delta_txt": signed(round(value, d) - round(row["value"], d), d)})
+                              "delta_txt": signed(round(value, d) - round(row["value"], d), d),
+                              "verdict": verdict, "kind": kind,
+                              "real": kind in ("better", "worse", "shift")})
             else:
                 cells.append(None)
-        table.append({"metric": row["metric"], "label": row["label"],
+        table.append({"metric": metric, "label": row["label"],
                       "first_of_metric": row["first_of_metric"],
                       "first_txt": row["value_txt"], "cells": cells})
+    conditions = [_conditions_text(r.conditions) for r in repeats]
+    times = [_time(r) or f"{i}. opakování" for i, r in enumerate(repeats, start=2)]
     return {
         "first_time": _time(first_run),
-        "times": [_time(r) or f"{i}. opakování" for i, r in enumerate(repeats, start=2)],
-        "conditions": [_conditions_text(r.conditions) for r in repeats],
+        "first_conditions": _conditions_text(first_run.conditions),
+        "times": times,
+        "conditions": conditions,
+        "headers": [{"time": t, "conditions": c} for t, c in zip(times, conditions, strict=True)],
         "rows": table,
+        "any_real": any(c and c["real"] for r in table for c in r["cells"]),
     }
 
 
 CONDITION_LABELS = {"parametry": "", "zatez_kg": "zátěž {} kg",
                     "opakovani": "opakování: {}", "stitky": "štítky: {}",
-                    "kofein_mg_kg": "kofein {} mg/kg"}
+                    "kofein_mg_kg": "kofein {} mg/kg", "pozice": ""}
 
 
 def _conditions_text(conditions: dict) -> str:

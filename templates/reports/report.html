@@ -112,12 +112,12 @@
   {% endif %}
   {% if block.repeats %}
     <p class="protokol-meta" style="margin:2mm 0 0">Opakovaná měření téhož dne
-      (hodnota dne z pokusů; v závorce rozdíl proti 1. měření)</p>
+      (hodnota dne z pokusů; v závorce rozdíl proti 1. měření{% if block.repeats.any_real %}, tučně změna větší než MDC{% endif %})</p>
     <table class="vysledky">
       <thead><tr>
         <th style="width:34%">Ukazatel</th>
-        <th class="cislo" style="text-align:right">1. měření{% if block.repeats.first_time %}<br>{{ block.repeats.first_time }}{% endif %}</th>
-        {% for t in block.repeats.times %}<th class="cislo" style="text-align:right">{{ t }}</th>{% endfor %}
+        <th class="cislo" style="text-align:right">1. měření{% if block.repeats.first_time %}<br>{{ block.repeats.first_time }}{% endif %}{% if block.repeats.first_conditions %}<br><span class="pokusy">{{ block.repeats.first_conditions }}</span>{% endif %}</th>
+        {% for h in block.repeats.headers %}<th class="cislo" style="text-align:right">{{ h.time }}{% if h.conditions %}<br><span class="pokusy">{{ h.conditions }}</span>{% endif %}</th>{% endfor %}
       </tr></thead>
       <tbody>
       {% for r in block.repeats.rows %}
@@ -128,7 +128,7 @@
           </td>
           <td class="cislo">{{ r.first_txt }}</td>
           {% for c in r.cells %}
-            <td class="cislo">{% if c %}{{ c.value_txt }}<br><span class="pokusy">({{ c.delta_txt }})</span>{% else %}—{% endif %}</td>
+            <td class="cislo">{% if c %}{{ c.value_txt }}<br><span class="pokusy">{% if c.real %}<strong>({{ c.delta_txt }}) {{ c.verdict }}</strong>{% else %}({{ c.delta_txt }}){% endif %}</span>{% else %}—{% endif %}</td>
           {% endfor %}
         </tr>
       {% endfor %}

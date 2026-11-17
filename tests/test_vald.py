@@ -274,7 +274,10 @@ def test_opakovane_mereni_dne(lab):
     assert block["repeats"]["times"] == ["13:06"]
     row = next(r for r in block["repeats"]["rows"] if r["metric"].code == "cmj_height")
     assert row["first_txt"] == "34,0"
-    assert row["cells"][0] == {"value_txt": "30,0", "delta_txt": "−4,0"}
+    assert row["cells"][0] == {"value_txt": "30,0", "delta_txt": "−4,0",
+                               # bez MDC se o změně po zátěži nic netvrdí
+                               "verdict": "nelze posoudit (chybí MDC)", "kind": "unknown",
+                               "real": False}
 
 
 # --- zbytek -------------------------------------------------------------------------
