@@ -56,6 +56,7 @@ SECTION_RULES = [
     (r"^/sportovci/\d+/vysetreni/", None, "exams"),
     (r"^/sportovci/\d+/dnes/", WRITE, "measure"),
     (r"^/sportovci/", WRITE, "subjects_edit"),
+    (r"^/tym/vychozi/", WRITE, "subjects_edit"),
     (r"^/mereni/\d+/doporuceni-minule/", WRITE, "reports_draft"),
     (r"^/mereni/", WRITE, "measure"),
     (r"^/testovani/koncepty/", WRITE, "reports_draft"),

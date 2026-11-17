@@ -79,7 +79,12 @@ def compose(session, findings, citations, facts: dict | None = None) -> str:
     if nove := _names(m for m in klicove if "zmena" not in m):
         parts.append(f"Poprvé měřeno: {nove}.")
 
-    # dlouhodobě: od začátku sezóny, nové osobní maximum, cíle
+    # dlouhodobě: proti výchozímu měření, od začátku sezóny, nové osobní maximum, cíle
+    if vychozi := [m for m in klicove if isinstance(m.get("proti_vychozimu_mereni"), dict)]:
+        b = vychozi[0]["proti_vychozimu_mereni"]
+        parts.append(f"Proti výchozímu měření {b['vychozi_mereni']}"
+                     + (f" ({b['popis']})" if b.get("popis") else "") + ":\n"
+                     + "\n".join(_baseline_line(m) for m in vychozi))
     if sezona := [m for m in klicove if isinstance(m.get("od_zacatku_sezony"), dict)]:
         parts.append("Od začátku sezóny:\n" + "\n".join(_season_line(m) for m in sezona))
     nova = [m for m in klicove if str(m.get("osobni_maximum", {}).get("stav", "")).startswith("nov")]
@@ -165,6 +170,17 @@ def _season_line(m: dict) -> str:
     sign = "+" if c["zmena"] > 0 else ""
     return (f"• {name}: {sign}{_cz(c['zmena'])}{unit} od prvního měření v sezóně "
             f"{c['prvni_mereni']} ({_cz(c['hodnota'])}{unit}) – {c['posouzeni']}")
+
+
+def _baseline_line(m: dict) -> str:
+    unit = f" {m['jednotka']}" if m["jednotka"] and m["jednotka"] != "-" else ""
+    name = m["metrika"] + (f" ({m['upresneni']})" if m["upresneni"] else "")
+    b = m["proti_vychozimu_mereni"]
+    sign = "+" if b["zmena"] > 0 else ""
+    pct = (f" ({'+' if b['procent'] > 0 else ''}{_cz(b['procent'])} %)"
+           if b.get("procent") not in (None, 0) else "")
+    return (f"• {name}: {sign}{_cz(b['zmena'])}{unit}{pct}, výchozí hodnota "
+            f"{_cz(b['hodnota'])}{unit} – {b['posouzeni']}")
 
 
 def _goal_line(c: dict) -> str:

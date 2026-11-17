@@ -384,6 +384,34 @@ EXAMPLE_RULES = [
             "Zvážit zařazení rozvoje aerobní kapacity."
         ),
     },
+    {
+        "code": "pripravenost_cervena",
+        "name": "PŘÍKLAD: semafor připravenosti červený",
+        "condition": {"readiness": "*", "op": ">=", "value": 4},
+        "contraindication": {},
+        "severity": "medium",
+        "finding_template": (
+            "Semafor připravenosti je červený: {pocet} signálů ({signaly}); výkon se "
+            "posuzuje proti {proti}."
+        ),
+        "recommendation_template": (
+            "Dnes snížit objem a intenzitu zátěže, zaměřit se na regeneraci (spánek, příjem "
+            "energie a tekutin) a připravenost ověřit dalším měřením. Prahy semaforu je "
+            "třeba ověřit pro daný sport a skupinu."
+        ),
+    },
+    {
+        "code": "pripravenost_oranzova",
+        "name": "PŘÍKLAD: semafor připravenosti oranžový",
+        "condition": {"all": [{"readiness": "*", "op": ">=", "value": 2},
+                              {"readiness": "*", "op": "<=", "value": 3}]},
+        "contraindication": {},
+        "severity": "low",
+        "finding_template": "Semafor připravenosti je oranžový: {pocet} signály ({signaly}).",
+        "recommendation_template": (
+            "Zátěž podle plánu s průběžnou kontrolou; při dalším zhoršení ji snížit."
+        ),
+    },
 ]
 
 
@@ -468,8 +496,10 @@ METRIC_EXTRAS = {
 }
 
 
-# Dotazníky, které vyplňuje sportovec. Zatím jen RPE – další se přidají
-# v administraci nebo sem.
+# Dotazníky, které vyplňuje sportovec: RPE po testu a ranní připravenost
+# k testovacímu dni (semafor). Další se přidají v Nastavení → Dotazníky.
+# U otázky může být „signal“ (operátor, práh, slovy) – odpověď za prahem
+# je jeden signál semaforu připravenosti.
 QUESTIONNAIRES = [
     {
         "code": "rpe",
@@ -483,6 +513,41 @@ QUESTIONNAIRES = [
                 "anchors": {"0": "klid", "1": "velmi, velmi lehké", "2": "lehké",
                             "3": "středně těžké", "4": "poněkud těžké", "5": "těžké",
                             "7": "velmi těžké", "10": "maximální"},
+            },
+        ],
+    },
+    {
+        "code": "ranni",
+        "name": "Ranní připravenost",
+        "description": "Vyplňte ráno před testováním nebo tréninkem. Odpovídejte podle "
+                       "toho, jak se cítíte právě teď.",
+        "questions": [
+            {
+                "code": "spanek_h", "kind": "number", "unit": "h",
+                "text": "Kolik hodin jste dnes v noci spali?",
+                "help": "Přibližně, např. 7,5.",
+                "signal": ("<", 6, "málo spánku"),
+            },
+            {
+                # Karolinská škála ospalosti (Åkerstedt a Gillberg 1990), 1–9.
+                "code": "kss", "text": "Jak ospalý/á se teď cítíte?", "min": 1, "max": 9,
+                "anchors": {"1": "velmi bdělý/á", "3": "bdělý/á",
+                            "5": "ani bdělý/á, ani ospalý/á",
+                            "7": "ospalý/á, ale bez potíží zůstat vzhůru",
+                            "9": "velmi ospalý/á, bojuji se spánkem"},
+                "signal": (">=", 7, "ospalost"),
+            },
+            {
+                "code": "unava", "text": "Jak velkou únavu teď cítíte?", "min": 0, "max": 10,
+                "anchors": {"0": "žádná", "5": "střední", "10": "maximální"},
+                "signal": (">=", 7, "únava"),
+            },
+            {
+                "code": "bolest_svalu", "text": "Jak velkou bolest svalů teď cítíte?",
+                "min": 1, "max": 5,
+                "anchors": {"1": "žádná", "2": "mírná", "3": "střední", "4": "silná",
+                            "5": "velmi silná"},
+                "signal": (">=", 4, "bolest svalů"),
             },
         ],
     },

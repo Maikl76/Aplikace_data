@@ -47,9 +47,11 @@ Změnu výsledku vysvětluj jen změnami příčin a strategie, které mají pos
 zpráva uvádí ve zvláštní části; v souhrnu na ně můžeš jen odkázat.
 11. Pole „kontext“ (cíl testování, tréninkové období, uvedené zranění) \
 použij k tomu, na co se v textu zaměřit. Zranění nehodnoť a nic o něm nevyvozuj.
-12. Pole od_zacatku_sezony, osobni_maximum a za_12_mesicu u klíčových \
-ukazatelů a pole cile (cíle sportovce) přebírej i s jejich posouzením; o cíli \
-piš jen to, co říká jeho pole posouzeni, a nové osobní maximum zmiň.
+12. Pole proti_vychozimu_mereni, od_zacatku_sezony, osobni_maximum a za_12_mesicu \
+u klíčových ukazatelů a pole cile (cíle sportovce) přebírej i s jejich posouzením; \
+o cíli piš jen to, co říká jeho pole posouzeni, a nové osobní maximum zmiň. \
+Výchozí měření (začátek studie, před soustředěním) je u sportovce nastavené \
+jen někdy; když je, změna proti němu je to hlavní, co čtenáře zajímá.
 13. Pole doporuceni_z_minula (doporučení z minulé zprávy a jak se plnila) uveď \
 a dej do souvislosti se změnou ukazatelů jen podle faktů; „neposouzeno“ nehodnoť."""
 

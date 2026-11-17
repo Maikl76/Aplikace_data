@@ -98,7 +98,7 @@ def test_odpovedi_podle_druhu_a_stavy(org):
     assert answers["zmena_objemu"].state == "unknown" and answers["zmena_objemu"].display() == "nevím"
     assert answers["kofein_davky"].display() == "netýká se"
     assert answers["cil"].state == "missing" and answers["cil"].display() == "bez odpovědi"
-    assert answers["praxe_let"].display() == "12.5 let" and answers["obtize_nyni"].display() == "ne"
+    assert answers["praxe_let"].display() == "12,5 let" and answers["obtize_nyni"].display() == "ne"
     assert answers["slozka"].display() == "silová"
     assert answers["stres"].display() == "4"
     assert questionnaires.latest(subject, "genetika") == response

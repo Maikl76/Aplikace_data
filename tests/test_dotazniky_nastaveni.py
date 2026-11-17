@@ -133,7 +133,8 @@ def test_dotaznik_s_otazkami_se_zalozi_nabidne_v_testovacim_dni_a_chrani(org):
     sport = Sport.objects.create(organization=org, name="Florbal", code="florbal")
     subject = Subject.objects.create(organization=org, code="FTVS-0001", sport=sport, sex="M")
     session = TestSession.objects.create(organization=org, subject=subject, date=date(2026, 3, 1))
-    assert [x.code for x in questionnaires.available(org)] == ["unava_a_spanek"]
+    # vedle vlastního dotazníku i sdílený ranní dotazník připravenosti z katalogu
+    assert [x.code for x in questionnaires.available(org)] == ["ranni", "unava_a_spanek"]
     page = lab.get(reverse("session_detail", args=[session.pk]))
     text = page.content.decode()
     assert "Další dotazníky" in text and reverse("session_questionnaire_form",
@@ -181,7 +182,7 @@ def test_dotaznik_s_otazkami_se_zalozi_nabidne_v_testovacim_dni_a_chrani(org):
     assert not Question.objects.filter(pk=yesno.pk).exists()
     client.post(edit, {"name": "Únava a spánek", "description": "", "is_active": "",
                        f"q{spanek.pk}_order": "5", f"q{unava.pk}_order": "1"})
-    assert questionnaires.available(org) == []
+    assert [x.code for x in questionnaires.available(org)] == ["ranni"]
     steps = {s["title"]: s for s in client.get(reverse("questionnaires_settings")).context["steps"]}
     assert steps["Vyplnění"]["done"]
 

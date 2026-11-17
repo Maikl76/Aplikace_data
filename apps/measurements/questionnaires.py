@@ -192,7 +192,8 @@ def summary(session) -> list[dict]:
     for response in (session.responses.select_related("questionnaire", "protocol_run__protocol")
                      .prefetch_related("answers__question")):
         answers = [{"question": a.question, "value": a.value,
-                    "value_txt": f"{a.value:g}" if a.value is not None else a.display(),
+                    "value_txt": (f"{a.value:g}".replace(".", ",") if a.value is not None
+                                  else a.display()),
                     "label": a.question.label(a.value) if a.value is not None else "",
                     "display": a.display(), "max": a.question.scale_max}
                    for a in sorted(response.answers.all(), key=lambda a: a.question.order)

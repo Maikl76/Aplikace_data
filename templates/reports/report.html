@@ -168,6 +168,7 @@
     <thead>
       <tr>
         <th style="width:28%">Klíčový ukazatel</th>
+        {% if baseline_shown %}<th>Proti výchozímu</th>{% endif %}
         <th>Od začátku sezóny</th>
         <th>Osobní maximum</th>
         <th>Za 12 měsíců</th>
@@ -177,6 +178,7 @@
     {% for r in long_term %}
       <tr>
         <td><span class="klicova">{{ r.metric.name }}</span>{% if r.label %}<br><span class="upresneni">{{ r.label }}</span>{% endif %}<br><span class="pokusy">nyní {{ r.value_txt }} {{ r.unit }}</span></td>
+        {% if baseline_shown %}<td>{% with b=r.compare.baseline %}{% if b and not b.is_baseline %}{{ b.delta_txt }} {{ r.unit }}{% if b.pct_txt %} ({{ b.pct_txt }}){% endif %} <span class="pokusy">od {{ b.date|date:"d.m.y" }} ({{ b.value_txt }})</span><br><span class="pokusy">{% if b.kind == "worse" %}<strong>{{ b.verdict }}</strong>{% else %}{{ b.verdict }}{% endif %}</span>{% elif b %}<span class="pokusy">výchozí měření</span>{% else %}—{% endif %}{% endwith %}</td>{% endif %}
         <td>{% with c=r.compare.season %}{% if c %}{{ c.delta_txt }} {{ r.unit }} <span class="pokusy">od {{ c.date|date:"d.m.y" }} ({{ c.value_txt }})</span><br><span class="pokusy">{{ c.verdict }}</span>{% elif r.compare.season_first %}<span class="pokusy">první měření v sezóně</span>{% else %}—{% endif %}{% endwith %}</td>
         <td>{% with b=r.compare.best %}{% if b %}{{ b.value_txt }} {{ r.unit }} <span class="pokusy">({{ b.date|date:"d.m.y" }})</span><br><span class="pokusy">{% if b.is_current %}<strong>{{ b.state }}</strong>{% else %}{{ b.state }}{% endif %}</span>{% else %}—{% endif %}{% endwith %}</td>
         <td>{% with p=r.compare.period %}{% if p %}{{ p.delta_txt }} {{ r.unit }}{% if p.pct_txt %} ({{ p.pct_txt }}){% endif %}<br><span class="pokusy">{{ p.count }} měření · {{ p.verdict }}</span>{% else %}—{% endif %}{% endwith %}</td>
@@ -184,7 +186,8 @@
     {% endfor %}
     </tbody>
   </table>
-  <p class="vysvetlivka">Od začátku sezóny = změna proti prvnímu měření v této sezóně (sezóna {{ season_phrase }});
+  <p class="vysvetlivka">{% if baseline_shown %}Proti výchozímu = změna proti {{ baseline_text }}; v grafech je to modré pásmo ± MDC.
+    {% endif %}Od začátku sezóny = změna proti prvnímu měření v této sezóně (sezóna {{ season_phrase }});
     osobní maximum (u časů rekord) = nejlepší dosud naměřená hodnota; za 12 měsíců = změna proti
     nejstaršímu měření v posledním roce. Posouzení proti MDC stejně jako u změny proti minule.</p>
 {% endif %}

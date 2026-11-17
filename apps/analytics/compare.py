@@ -8,7 +8,9 @@ MDC) a s normou. Tady se k řadě hodnot jedné metriky dopočítá:
   měsícem u sportu, bez něj lednem),
 * **osobní maximum** – nejlepší hodnota řady podle žádoucího směru a jak
   daleko od ní je poslední měření,
-* **vývoj za období** – změna za posledních 12 měsíců a počet měření.
+* **vývoj za období** – změna za posledních 12 měsíců a počet měření,
+* **proti výchozímu měření** – když ho má sportovec nastavené (začátek studie,
+  před soustředěním; viz baseline.py).
 
 Všechno se posuzuje stejně jako změna proti minule: proti MDC. Bez MDC se
 o zlepšení ani zhoršení nemluví.
@@ -54,18 +56,26 @@ def best_label(metric) -> str:
     return "osobní rekord" if metric.direction == Direction.LOWER else "osobní maximum"
 
 
-def compare(metric, points, *, sport=None) -> dict:
+def percent(delta_shown: float, base: float, decimals: int):
+    """Změna v procentech výchozí hodnoty (celá procenta); u nulové výchozí None."""
+    base = round(base, decimals)
+    return round(delta_shown / abs(base) * 100) if base else None
+
+
+def compare(metric, points, *, sport=None, baseline_date=None, baseline_label="") -> dict:
     """
     Pro řadu ``points`` [(datum, hodnota)] od nejstaršího vrátí srovnání
-    posledního měření se začátkem sezóny, osobním maximem a vývojem za
-    období. Každý klíč je None, když není s čím srovnávat.
+    posledního měření se začátkem sezóny, osobním maximem, vývojem za
+    období a (s ``baseline_date``) s výchozím měřením. Každý klíč je None,
+    když není s čím srovnávat.
     """
     from apps.reports.results import change_verdict, signed
 
     from .charts import cz
 
-    out = {"season": None, "season_first": False, "best": None, "period": None}
-    if len(points) < 2:
+    out = {"season": None, "season_first": False, "best": None, "period": None,
+           "baseline": None}
+    if not points:
         return out
     d = metric.decimals
     last_day, last = points[-1]
@@ -73,6 +83,26 @@ def compare(metric, points, *, sport=None) -> dict:
     def shown_delta(value):
         # rozdíl zobrazených čísel, aby seděl při kontrole (37,5 − 36,9 = 0,6)
         return round(last, d) - round(value, d)
+
+    # proti výchozímu měření – jen když se ukazatel ten den měřil
+    base = (next((v for day, v in points if day == baseline_date), None)
+            if baseline_date is not None and baseline_date <= last_day else None)
+    if base is not None:
+        out["baseline"] = {"date": baseline_date, "label": baseline_label,
+                           "is_baseline": baseline_date == last_day,
+                           "value": base, "value_txt": cz(base, d)}
+        if baseline_date != last_day:
+            delta = last - base
+            pct = percent(shown_delta(base), base, d)
+            text, kind = change_verdict(metric, delta)
+            out["baseline"].update({
+                "delta": delta, "delta_txt": signed(shown_delta(base), d), "pct": pct,
+                "pct_txt": (signed(pct, 0) + " %") if pct is not None else "",
+                "verdict": text, "kind": kind,
+                "count": sum(1 for day, _ in points if day >= baseline_date),
+            })
+    if len(points) < 2:
+        return out
 
     # od začátku sezóny
     start = season_start(last_day, sport)
@@ -116,7 +146,7 @@ def compare(metric, points, *, sport=None) -> dict:
     if len(window) >= 2:
         first_day, first = window[0]
         delta = last - first
-        pct = round(shown_delta(first) / abs(round(first, d)) * 100) if round(first, d) else None
+        pct = percent(shown_delta(first), first, d)
         text, kind = change_verdict(metric, delta)
         out["period"] = {
             "months": PERIOD_MONTHS, "from": first_day, "value": first, "delta": delta,

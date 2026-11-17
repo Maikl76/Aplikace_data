@@ -340,17 +340,20 @@ def trend_series(session, *, limit: int = 8, norms=None) -> list[dict]:
 
 def long_term(session, *, norms=None, limit: int = 12) -> list[dict]:
     """
-    Dlouhodobé srovnání klíčových ukazatelů dne: od začátku sezóny, osobní
-    maximum, vývoj za 12 měsíců. Jen řady, které mají hodnotu z tohoto dne
-    a aspoň jedno starší měření.
+    Dlouhodobé srovnání klíčových ukazatelů dne: proti výchozímu měření (je-li
+    nastavené), od začátku sezóny, osobní maximum, vývoj za 12 měsíců. Jen řady,
+    které mají hodnotu z tohoto dne a aspoň jedno starší měření.
     """
     from apps.analytics.compare import compare
 
     out = []
     for s in trend_series(session, limit=limit, norms=norms):
         metric = s["metric"]
-        cmp = compare(metric, s["points"], sport=session.subject.sport)
-        if not (cmp["season"] or cmp["season_first"] or cmp["best"] or cmp["period"]):
+        subject = session.subject
+        cmp = compare(metric, s["points"], sport=subject.sport,
+                      baseline_date=subject.baseline_date, baseline_label=subject.baseline_label)
+        if not (cmp["season"] or cmp["season_first"] or cmp["best"] or cmp["period"]
+                or cmp["baseline"]):
             continue
         out.append({
             "metric": metric, "label": qualifier_label(s["qualifiers"]),

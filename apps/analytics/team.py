@@ -68,11 +68,18 @@ def _key(protocol_id, metric_id, side, mode, speed, segment):
             float(speed) if speed is not None else None, segment or "")
 
 
-def team_table(subjects, columns, *, today, reference=None) -> dict:
+AGAINST = {"minule": "minulému měření", "vychozi": "výchozímu měření"}
+
+
+def team_table(subjects, columns, *, today, reference=None, against: str = "minule") -> dict:
     """
     Řádky (sportovec a buňky) a souhrn sloupců (průměr, SD, počet).
     S ``reference`` (ReferenceIndex) navíc postavení vůči internímu pásmu
     v buňkách a pásmo nejčastější skupiny v souhrnu sloupce.
+
+    ``against`` říká, s čím se změna v buňce srovnává: „minule“ s předchozím
+    měřením, „vychozi“ s výchozím měřením sportovce (kdo ho nemá, nebo se ten
+    den ukazatel neměřil, je bez posouzení).
     """
     from apps.reports.results import change_verdict, signed
 
@@ -119,16 +126,26 @@ def team_table(subjects, columns, *, today, reference=None) -> dict:
                 band = reference.band_for(subject, metric, _qualifiers(col))
                 if band is not None:
                     cell["reference"] = {"band": band, "position": band.position(value)}
-            if len(history) >= 2:
-                delta = round(value, metric.decimals) - round(history[-2][1], metric.decimals)
-                text, kind = change_verdict(metric, value - history[-2][1])
+            if against == "vychozi":
+                base_day = subject.baseline_date
+                before = next(((d, v) for d, v in history if d == base_day), None)
+                if before is not None and before[0] == day:
+                    cell["is_baseline"] = True
+                    before = None
+            else:
+                before = history[-2] if len(history) >= 2 else None
+            if before is not None:
+                delta = round(value, metric.decimals) - round(before[1], metric.decimals)
+                text, kind = change_verdict(metric, value - before[1])
                 css, icon, _ = VERDICTS.get(kind, VERDICTS["noise"])
-                cell["verdict"] = {"css": css, "icon": icon, "text": text,
+                cell["verdict"] = {"css": css, "icon": icon, "text": text, "kind": kind,
                                    "delta_txt": signed(delta, metric.decimals),
-                                   "previous_date": history[-2][0]}
+                                   "previous_date": before[0]}
             cells.append(cell)
         rows.append({"subject": subject, "cells": cells,
-                     "measured": sum(c is not None for c in cells)})
+                     "measured": sum(c is not None for c in cells),
+                     "worse": sum(1 for c in cells if c and c["verdict"]
+                                  and c["verdict"]["kind"] == "worse")})
 
     summary = []
     for index, col in enumerate(columns):

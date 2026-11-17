@@ -51,11 +51,13 @@ def _text(x, y, content, *, size=11, color=None, anchor="start", weight="normal"
             f'text-anchor="{anchor}" font-weight="{weight}">{escape(content)}</text>')
 
 
-def trend_svg(metric, points, *, norm=None, goal=None, season_from=None) -> str:
+def trend_svg(metric, points, *, norm=None, goal=None, season_from=None, baseline=None) -> str:
     """
     Vývoj jedné metriky v čase; poslední bod je měření, o kterém je zpráva.
     ``goal`` je čárkovaná čára cíle, ``season_from`` tečkovaná svislá čára
-    začátku sezóny (jen když leží uvnitř zobrazeného období).
+    začátku sezóny (jen když leží uvnitř zobrazeného období). ``baseline``
+    (datum, hodnota) je výchozí měření: od jeho dne modré pásmo ± MDC
+    a čárkovaná čára výchozí hodnoty.
     """
     width, height = 340, 180
     left, right, top, bottom = 46, 16, 20, 28
@@ -63,6 +65,10 @@ def trend_svg(metric, points, *, norm=None, goal=None, season_from=None) -> str:
 
     values = [v for _, v in points]
     with_goal = values + ([goal] if goal is not None else [])
+    if baseline is not None and not points[0][0] <= baseline[0] < points[-1][0]:
+        baseline = None
+    if baseline is not None and metric.mdc:
+        with_goal += [baseline[1] - metric.mdc, baseline[1] + metric.mdc]
     low, high = _y_range(metric, with_goal, norm) or [min(with_goal) - 1, max(with_goal) + 1]
 
     first, last = points[0][0], points[-1][0]
@@ -95,6 +101,19 @@ def trend_svg(metric, points, *, norm=None, goal=None, season_from=None) -> str:
                      f'stroke-dasharray="2 3"/>')
 
     unit = f" {metric.unit}" if metric.unit and metric.unit != "-" else ""
+    # výchozí měření: pásmo ± MDC od jeho dne a čárkovaná výchozí hodnota
+    if baseline is not None:
+        base_day, base = baseline
+        x0 = x(base_day)
+        if metric.mdc:
+            band_top, band_bottom = y(min(base + metric.mdc, high)), y(max(base - metric.mdc, low))
+            parts.append(f'<rect x="{x0:.1f}" y="{band_top:.1f}" width="{width - right - x0:.1f}" '
+                         f'height="{band_bottom - band_top:.1f}" fill="{C["baseline_band"]}"/>')
+        parts.append(f'<line x1="{x0:.1f}" x2="{width - right}" y1="{y(base):.1f}" '
+                     f'y2="{y(base):.1f}" stroke="{C["series_1"]}" stroke-width="1" '
+                     f'stroke-dasharray="4 3"/>')
+        parts.append(_text(x0 + 3, y(base) + 12, "výchozí ± MDC" if metric.mdc else "výchozí",
+                           size=9, color=C["series_1"]))
     # cíl: čárkovaná čára s popiskem vpravo
     if goal is not None and low <= goal <= high:
         parts.append(f'<line x1="{left}" x2="{width - right}" y1="{y(goal):.1f}" '

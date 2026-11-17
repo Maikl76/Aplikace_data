@@ -389,3 +389,10 @@ th[aria-sort] .tym-razeni { color: var(--accent-strong); }
 .ukazka { font-size: .75rem; color: var(--muted); font-variant-numeric: tabular-nums;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 640px) { .sloupec-radek { grid-template-columns: minmax(0, 1fr); } }
+
+/* Semafor připravenosti: barevná tečka doprovází vždy i slovo a počet signálů. */
+.semafor { display: inline-block; width: .8rem; height: .8rem; border-radius: 9999px; flex-shrink: 0;
+           box-shadow: 0 0 0 2px var(--surface); }
+.semafor-zelena { background: var(--good); }
+.semafor-oranzova { background: var(--warn); }
+.semafor-cervena { background: var(--bad); }

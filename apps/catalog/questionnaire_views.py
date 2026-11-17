@@ -182,7 +182,7 @@ def questionnaire_delete(request, pk):
 # --- otázka ----------------------------------------------------------------------------------
 
 QFIELDS = ("code", "text", "help_text", "section", "kind", "unit", "scale_min", "scale_max",
-           "anchors", "options")
+           "anchors", "options", "signal_op", "signal_value", "signal_label")
 FLAGS = ("required", "allow_unknown", "allow_na")
 
 
@@ -217,6 +217,9 @@ def _question_data(question, post=None) -> dict:
                              for o in (question.options or [])),
         "required": question.required, "allow_unknown": question.allow_unknown,
         "allow_na": question.allow_na,
+        "signal_op": question.signal_op, "signal_label": question.signal_label,
+        "signal_value": (f"{question.signal_value:g}".replace(".", ",")
+                         if question.signal_value is not None else ""),
     }
 
 
@@ -278,9 +281,22 @@ def _parse_question(data: dict, questionnaire, question) -> tuple[dict, list[str
                                       f"({scenario.card}); nejde ji odebrat ani přejmenovat.")
     elif question is not None and question.gene_scenarios.exists() and question.kind != kind:
         errors.append("Otázku používají scénáře genových karet – druh odpovědi se nemění.")
+    signal_op = data.get("signal_op", "")
+    signal_value = None
+    if signal_op not in Question.SignalOp.values:
+        signal_op = ""
+    if signal_op and kind not in (Kind.SCALE, Kind.NUMBER, Kind.YESNO):
+        errors.append("Signál do semaforu jde jen u škály, čísla a ano/ne.")
+    elif signal_op:
+        try:
+            signal_value = float((data.get("signal_value") or "").replace(",", ".").replace(" ", ""))
+        except ValueError:
+            errors.append("Práh signálu musí být číslo (u ano/ne 1 = ano, 0 = ne).")
     values = {
         "code": code, "text": text, "help_text": data["help_text"][:300],
         "section": data["section"][:120], "kind": kind,
+        "signal_op": signal_op, "signal_value": signal_value,
+        "signal_label": data.get("signal_label", "")[:60] if signal_op else "",
         "unit": data["unit"][:20] if kind == Kind.NUMBER else "",
         "scale_min": scale_min, "scale_max": scale_max, "anchors": anchors, "options": options,
         "required": data["required"], "allow_unknown": data["allow_unknown"],
@@ -333,6 +349,7 @@ def question_edit(request, pk, qpk=None):
     scenarios = question.gene_scenarios.count() if question else 0
     return render(request, "catalog/question_form.html", {
         "questionnaire": questionnaire, "question": question, "data": data, "kinds": KIND_HELP,
+        "signal_ops": Question.SignalOp.choices,
         "sections": sections, "answers": answers, "scenarios": scenarios,
         "preview": {"question": _preview(question, values, questionnaire), "answer": None},
     })

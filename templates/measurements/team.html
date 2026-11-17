@@ -11,7 +11,10 @@
     <select name="baterie" class="input w-auto" onchange="this.form.submit()" aria-label="Skupina a baterie testů">
       {% for b in batteries %}<option value="{{ b.pk }}" {% if b == battery %}selected{% endif %}>{{ b.label }}</option>{% endfor %}
     </select>
-    <a href="?baterie={{ battery.pk }}&format=csv" class="btn">{% icon "download" %}CSV pro Excel</a>
+    <select name="srovnani" class="input w-auto" onchange="this.form.submit()" aria-label="S čím srovnat změnu">
+      {% for value, text in against_choices %}<option value="{{ value }}" {% if value == against %}selected{% endif %}>změna proti {{ text }}</option>{% endfor %}
+    </select>
+    <a href="?baterie={{ battery.pk }}&srovnani={{ against }}&format=csv" class="btn">{% icon "download" %}CSV pro Excel</a>
     <a href="{% url 'team_qr' %}?baterie={{ battery.pk }}" class="btn" title="Kartičky s QR kódem pro celou skupinu">{% icon "qr" %}QR karty</a>
   </form>
   {% endif %}
@@ -33,14 +36,18 @@
     (metrika protokolu → „klíčová metrika“).
   </div>
 {% else %}
+  {% if against == "vychozi" and not with_baseline %}
+    <div class="card px-4 py-3 mb-3 text-sm text-2">Nikdo ze skupiny zatím nemá výchozí měření – nastavte ho níže pro celou skupinu, nebo u sportovce na kartě (Testovací dny → Výchozí měření).</div>
+  {% endif %}
   <div class="card overflow-x-auto tym">
     <table class="table" id="tym">
       <thead>
         <tr>
           <th class="tym-prvni"><button type="button" class="tym-razeni" data-col="0">Sportovec</button></th>
+          {% if with_readiness %}<th class="text-center align-bottom"><button type="button" class="tym-razeni" data-col="1" title="Semafor připravenosti posledního testovacího dne – řadit">Připravenost</button></th>{% endif %}
           {% for c in columns %}
             <th class="text-right align-bottom">
-              <button type="button" class="tym-razeni text-right" data-col="{{ forloop.counter }}"
+              <button type="button" class="tym-razeni text-right" data-col="{% if with_readiness %}{{ forloop.counter|add:1 }}{% else %}{{ forloop.counter }}{% endif %}"
                       title="{{ c.protocol.name }} – řadit">
                 <span class="block text-muted font-normal">{{ c.protocol.name }}</span>
                 <span class="block font-medium" style="color: var(--text)">{{ c.metric.name }}</span>
@@ -59,11 +66,16 @@
                 <span class="font-medium">{{ row.subject.jmeno }}</span>
               </a>
             </td>
+            {% if with_readiness %}{% with r=row.readiness %}
+              {% if r %}<td class="text-center whitespace-nowrap" data-v="{{ r.count }}" title="{{ r.date|date:'j. n. Y' }}: {{ r.count }} z {{ r.evaluated }} signálů{% if r.signals_txt %} – {{ r.signals_txt }}{% endif %}; výkon proti {{ r.against }}">
+                <a href="{% url 'session_detail' r.session.pk %}#pripravenost" class="inline-flex items-center gap-1.5"><span class="semafor semafor-{{ r.level }}" aria-hidden="true"></span><span class="text-xs tabular-nums">{{ r.count }}</span><span class="sr-only">{{ r.label }}</span>{% if r.date != today %}<span class="text-xs text-muted">{{ r.date|date:"j. n." }}</span>{% endif %}</a></td>
+              {% else %}<td class="text-center text-muted" data-v="">—</td>{% endif %}
+            {% endwith %}{% endif %}
             {% for cell in row.cells %}
               {% if cell %}
                 <td class="text-right whitespace-nowrap tym-{{ cell.tier|default:'nic' }}{% if cell.stale %} tym-stare{% endif %}"
                     data-v="{{ cell.value|stringformat:'f' }}"
-                    title="naměřeno {{ cell.date|date:'j. n. Y' }}{% if cell.z_txt %} · {{ cell.z_txt }} SD od průměru týmu{% endif %}{% if cell.verdict %} · proti {{ cell.verdict.previous_date|date:'j. n. Y' }}: {{ cell.verdict.delta_txt }} ({{ cell.verdict.text }}){% endif %}{% if cell.stale %} · starší než {{ stale_days }} dní{% endif %}{% if cell.reference %} · interní pásmo {{ cell.reference.band.range_txt }} ({{ cell.reference.band.group_text }}, n = {{ cell.reference.band.n }}): {{ cell.reference.position.text }}{% endif %}">
+                    title="naměřeno {{ cell.date|date:'j. n. Y' }}{% if cell.is_baseline %} · výchozí měření{% endif %}{% if cell.z_txt %} · {{ cell.z_txt }} SD od průměru týmu{% endif %}{% if cell.verdict %} · proti {% if against == 'vychozi' %}výchozímu {% endif %}{{ cell.verdict.previous_date|date:'j. n. Y' }}: {{ cell.verdict.delta_txt }} ({{ cell.verdict.text }}){% endif %}{% if cell.stale %} · starší než {{ stale_days }} dní{% endif %}{% if cell.reference %} · interní pásmo {{ cell.reference.band.range_txt }} ({{ cell.reference.band.group_text }}, n = {{ cell.reference.band.n }}): {{ cell.reference.position.text }}{% endif %}">
                   <span class="tabular-nums font-medium">{{ cell.value_txt }}</span>
                   {% if cell.verdict %}
                     <span class="badge {{ cell.verdict.css }} ml-1 px-1" aria-label="{{ cell.verdict.text }}">{% icon cell.verdict.icon "w-3 h-3" %}</span>
@@ -79,6 +91,7 @@
       <tfoot>
         <tr>
           <td class="tym-prvni text-xs text-muted">Průměr ± SD (n)</td>
+          {% if with_readiness %}<td></td>{% endif %}
           {% for c, s in summary %}
             <td class="text-right text-xs text-muted whitespace-nowrap tabular-nums">
               {% if s.mean_txt %}{{ s.mean_txt }} ± {{ s.sd_txt }} ({{ s.n }}){% elif s.n %}({{ s.n }}){% else %}—{% endif %}
@@ -88,6 +101,7 @@
         {% if reference %}
         <tr id="interni-reference">
           <td class="tym-prvni text-xs text-muted whitespace-nowrap"><span class="badge">interní</span> P25–P75 (n) · {{ reference.group_text }}</td>
+          {% if with_readiness %}<td></td>{% endif %}
           {% for c, s in summary %}
             <td class="text-right text-xs text-muted whitespace-nowrap tabular-nums" title="{% if s.ref %}medián {{ s.ref.median_txt }} · {{ s.ref.group_text }}{% endif %}">
               {% if s.ref %}{{ s.ref.range_txt }} ({{ s.ref.n }}){% else %}—{% endif %}
@@ -102,7 +116,8 @@
   <div class="flex flex-wrap gap-x-5 gap-y-2 mt-4 text-xs text-2">
     <span class="flex items-center gap-1.5"><span class="tym-vzorek tym-top"></span>o 1 SD a víc lepší než průměr týmu</span>
     <span class="flex items-center gap-1.5"><span class="tym-vzorek tym-low"></span>o 1 SD a víc horší než průměr týmu</span>
-    <span class="flex items-center gap-1.5"><span class="badge badge-good px-1">{% icon "arrow-up" "w-3 h-3" %}</span>zlepšení proti minulému měření (nad MDC)</span>
+    {% if with_readiness %}<span class="flex items-center gap-1.5"><span class="semafor semafor-zelena"></span><span class="semafor semafor-oranzova"></span><span class="semafor semafor-cervena"></span>připravenost: 0–1 / 2–3 / 4+ signálů</span>{% endif %}
+    <span class="flex items-center gap-1.5"><span class="badge badge-good px-1">{% icon "arrow-up" "w-3 h-3" %}</span>zlepšení proti {{ against_text }} (nad MDC)</span>
     <span class="flex items-center gap-1.5"><span class="badge badge-warn px-1">{% icon "arrow-down" "w-3 h-3" %}</span>zhoršení (nad MDC)</span>
     <span class="flex items-center gap-1.5"><span class="badge px-1">{% icon "minus" "w-3 h-3" %}</span>změna v pásmu chyby</span>
     <span class="flex items-center gap-1.5"><span class="tym-vzorek tym-far"></span><span class="badge badge-accent px-1">{% icon "activity" "w-3 h-3" %}</span>u ukazatelů bez „lepší–horší“ (hmotnost): výrazná odchylka od týmu / skutečný posun</span>
@@ -110,10 +125,28 @@
   </div>
   <p class="text-xs text-muted mt-2">
     Ukazuje se poslední hlavní měření každého sportovce; podrobnosti po najetí myší na hodnotu.
+    {% if against == "vychozi" %}Změna se srovnává s výchozím měřením každého sportovce ({{ with_baseline }} z {{ rows|length }} ho má); kdo ho nemá, je bez posouzení.{% endif %}
+    {% if with_readiness %}Připravenost je semafor posledního testovacího dne (dotazník dne a klíčové ukazatele proti výchozímu, bez něj proti minulému měření); klepnutím se otevře den.{% endif %}
     Srovnání s týmem je orientační a počítá se až od {{ min_group }} změřených sportovců.
     Klepnutím na záhlaví sloupce se řadí.
     {% if reference %}Řádek <em>interní</em> je referenční pásmo laboratoře (P25–P75 z vlastních měření všech sportovců pracoviště stejného sportu, pohlaví a věku); kde v něm sportovec leží, říká popisek buňky. Jen pro orientaci, necitovatelné – nikdy do zprávy. Nastavení: <a class="link" href="{% url 'reference_settings' %}">Interní reference</a>.{% endif %}
   </p>
+
+  {% if may_set_baseline %}
+  <details class="card mt-4" id="vychozi-skupiny">
+    <summary class="px-4 py-3 cursor-pointer card-title">Výchozí měření skupiny <span class="text-xs text-muted font-normal">({{ with_baseline }} z {{ rows|length }} sportovců ho má)</span></summary>
+    <div class="px-4 pb-4 text-sm">
+      <p class="text-2">Výchozí měření je den, ke kterému se vztahují další měření – začátek studie, den před soustředěním. Každý sportovec skupiny dostane svůj první měřený testovací den od zvoleného data (ve studii s víc bloky má každý blok svá data). Kdo od data nic naměřeného nemá, zůstane beze změny. Jednotlivě se mění na kartě sportovce.</p>
+      <form method="post" action="{% url 'team_baseline' %}" class="flex flex-wrap items-end gap-2 mt-3">{% csrf_token %}
+        <input type="hidden" name="baterie" value="{{ battery.pk }}">
+        <label class="block"><span class="text-xs text-2">první měření od</span><input type="date" name="od" required class="input mt-1 text-sm py-1.5" style="width: 11rem"></label>
+        <label class="block"><span class="text-xs text-2">popis</span><input name="popis" maxlength="80" class="input mt-1 text-sm py-1.5" style="width: 16rem" placeholder="např. začátek studie"></label>
+        <button class="btn btn-sm btn-primary mb-0.5">Nastavit celé skupině</button>
+      </form>
+      {% if with_baseline %}<form method="post" action="{% url 'team_baseline' %}" class="mt-2">{% csrf_token %}<input type="hidden" name="baterie" value="{{ battery.pk }}"><input type="hidden" name="akce" value="zrusit"><button class="btn btn-sm" onclick="return confirm('Zrušit výchozí měření všem sportovcům skupiny?')">Zrušit výchozí měření celé skupině</button></form>{% endif %}
+    </div>
+  </details>
+  {% endif %}
 
   <script>
     (function () {

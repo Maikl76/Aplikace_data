@@ -10,6 +10,7 @@ from apps.core.steps import step
 
 from .engine import (
     KINDS,
+    METRIC_KINDS,
     RuleError,
     template_fields,
     validate_condition,
@@ -64,11 +65,23 @@ def metric_codes(condition) -> list[str]:
             for part in condition[group]:
                 out.extend(c for c in metric_codes(part) if c not in out)
             return out
-    for kind in KINDS:
+    for kind in METRIC_KINDS:
         code = condition.get(kind)
         if isinstance(code, str) and code and code != "*" and code not in out:
             out.append(code)
     return out
+
+
+def question_text(code: str) -> str:
+    """„ranni.spanek_h“ → text otázky (pro popis pravidla); neznámá otázka → kód."""
+    from apps.catalog.models import Question
+
+    questionnaire, _, question = (code or "").rpartition(".")
+    found = Question.objects.filter(code=question)
+    if questionnaire:
+        found = found.filter(questionnaire__code=questionnaire)
+    first = found.first()
+    return f"„{first.text}“" if first else code
 
 
 def describe(condition, metrics: dict) -> str:
@@ -96,9 +109,14 @@ def describe(condition, metrics: dict) -> str:
         elif kind == "asymmetry":
             core = f"asymetrie {name} {op} {value} %"
         elif kind == "change":
-            core = f"změna {name} proti minulému měření {op} {value}{unit}"
+            against = ("výchozímu" if condition.get("against") == "vychozi" else "minulému")
+            core = f"změna {name} proti {against} měření {op} {value}{unit}"
             if condition.get("require_mdc", True):
                 core += " (jen nad MDC)"
+        elif kind == "answer":
+            return f"odpověď na {question_text(code)} {op} {value}"
+        elif kind == "readiness":
+            return f"semafor připravenosti: počet signálů {op} {value}"
         else:
             core = f"z-skóre {name} vůči normě {op} {value}"
         where = condition.get("where") or {}
@@ -152,6 +170,8 @@ def _warnings(condition, metrics, metrics_with_norm) -> list[str]:
                 out.extend(w for w in _warnings(part, metrics, metrics_with_norm) if w not in out)
             return out
     kind = next(k for k in KINDS if k in condition)
+    if kind not in METRIC_KINDS:
+        return out
     metric = metrics.get(condition[kind])
     if metric is None:
         return out

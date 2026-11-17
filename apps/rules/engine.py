@@ -15,7 +15,13 @@ Podporované tvary podmínky
     {"asymmetry": "*", "op": ">", "value": 10}          # |rozdíl L-P| v %
     {"asymmetry": "grip_strength", "op": ">", "value": 10}
     {"change": "cmj_height", "op": "<", "value": 0, "require_mdc": true}
+    {"change": "imtp_peak_force", "op": "<", "value": 0, "against": "vychozi"}
+    („against“: „minule“ = proti minulému měření (výchozí), „vychozi“ = proti
+    výchozímu měření sportovce – bez něj podmínka nesedí)
     {"z": "vo2max", "op": "<", "value": -1.0}           # z-skóre proti normě
+    {"answer": "ranni.spanek_h", "op": "<", "value": 6}  # odpověď v dotazníku dne
+    („dotaznik.otazka“, nebo jen kód otázky – pak v kterémkoli dotazníku dne)
+    {"readiness": "*", "op": ">=", "value": 4}           # počet signálů semaforu
     {"all": [...]}  {"any": [...]}
 
 Kontraindikace (pravidlo se potlačí, pokud platí)
@@ -54,15 +60,22 @@ class RuleError(Exception):
 # mimo "where" se ignorovalo a pravidlo pro 210 °/s našlo nález při každé
 # rychlosti. Tady se tvar zkontroluje dřív, než se pravidlo uloží.
 
-KINDS = ("metric", "asymmetry", "change", "z")
+KINDS = ("metric", "asymmetry", "change", "z", "answer", "readiness")
+METRIC_KINDS = ("metric", "asymmetry", "change", "z")
 WHERE_KEYS = ("side", "mode", "speed", "segment")
+AGAINST = ("minule", "vychozi")
 
 _BASE_FIELDS = {"metric", "metric_code", "unit", "value", "side", "mode", "speed", "segment",
                 "mdc", "threshold", "value_txt", "threshold_txt", "mdc_txt", "speed_txt"}
 TEMPLATE_FIELDS = {
     "metric": _BASE_FIELDS,
-    "change": _BASE_FIELDS | {"delta", "predchozi", "delta_txt"},
+    "change": _BASE_FIELDS | {"delta", "predchozi", "delta_txt", "proti", "srovnani_datum",
+                              "delta_pct_txt"},
     "z": _BASE_FIELDS | {"z", "norma", "citace"},
+    "answer": {"otazka", "odpoved", "dotaznik", "unit", "value", "value_txt", "threshold",
+               "threshold_txt"},
+    "readiness": {"pocet", "signaly", "barva", "proti", "value", "value_txt", "threshold",
+                  "threshold_txt"},
     "asymmetry": {"metric", "unit", "left", "right", "index_pct", "threshold", "silnejsi",
                   "mode", "speed", "segment", "side", "value", "value_txt", "index_txt",
                   "speed_txt", "threshold_txt", "left_txt", "right_txt"},
@@ -96,11 +109,20 @@ def validate_condition(condition, *, metrics=None) -> None:
                         f"{', '.join(KINDS)}, all, any (má: {', '.join(kinds) or 'žádný'}).")
     kind = kinds[0]
     code = condition[kind]
-    if not isinstance(code, str) or not code:
+    if kind == "readiness":
+        if code != "*":
+            raise RuleError('U semaforu připravenosti je „readiness“ vždy „*“: '
+                            '{"readiness": "*", "op": ">=", "value": 4}.')
+    elif kind == "answer":
+        if not isinstance(code, str) or not code or code.count(".") > 1:
+            raise RuleError("„answer“ musí být kód otázky, nebo „dotaznik.otazka“ "
+                            "(např. ranni.spanek_h).")
+    elif not isinstance(code, str) or not code:
         raise RuleError(f"„{kind}“ musí být kód ukazatele"
                         + (" nebo „*“ (všechny ukazatele)" if kind == "asymmetry" else "")
                         + ".")
-    if metrics is not None and code not in metrics and not (kind == "asymmetry" and code == "*"):
+    if (metrics is not None and kind in METRIC_KINDS and code not in metrics
+            and not (kind == "asymmetry" and code == "*")):
         raise RuleError(f"Ukazatel s kódem „{code}“ v katalogu není.")
     if condition.get("op") not in OPERATORS:
         raise RuleError(f"Neznámý operátor {condition.get('op')!r}; povolené: "
@@ -109,7 +131,11 @@ def validate_condition(condition, *, metrics=None) -> None:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise RuleError("„value“ (práh) musí být číslo.")
 
-    allowed = {kind, "op", "value", "where"} | ({"require_mdc"} if kind == "change" else set())
+    allowed = {kind, "op", "value"}
+    if kind in METRIC_KINDS:
+        allowed.add("where")
+    if kind == "change":
+        allowed |= {"require_mdc", "against"}
     if unknown := sorted(set(condition) - allowed):
         hint = ""
         if misplaced := [k for k in unknown if k in WHERE_KEYS]:
@@ -132,6 +158,9 @@ def validate_condition(condition, *, metrics=None) -> None:
             raise RuleError(f"„{key}“ ve „where“ musí být text.")
     if "require_mdc" in condition and not isinstance(condition["require_mdc"], bool):
         raise RuleError("„require_mdc“ musí být true nebo false.")
+    if "against" in condition and condition["against"] not in AGAINST:
+        raise RuleError("„against“ je „minule“ (proti minulému měření) nebo „vychozi“ "
+                        "(proti výchozímu měření sportovce).")
 
 
 def _json(value) -> str:
@@ -156,6 +185,8 @@ def validate_contraindication(contraindication) -> None:
 
 def template_fields(condition) -> set[str]:
     """Pole, která může šablona nálezu u této podmínky použít."""
+    if not isinstance(condition, dict):
+        return set()
     if "all" in condition:
         return set().union(*(template_fields(p) for p in condition["all"]))
     if "any" in condition:
@@ -277,15 +308,45 @@ def evaluate(condition, context) -> list[dict]:
     return _evaluate(condition, context)
 
 
+class _Context(dict):
+    """
+    Kontext dne; výchozí měření, odpovědi a semafor se dopočítají, až když
+    je některé pravidlo potřebuje (většina pravidel je nepotřebuje).
+    """
+
+    def __missing__(self, key):
+        from apps.analytics import baseline, readiness
+
+        if key == "baseline":
+            value = baseline.values_for(self["session"])
+        elif key == "answers":
+            value = _answers(self["session"])
+        elif key == "readiness":
+            value = readiness.for_session(self["session"], values=self["values"],
+                                          previous=self["previous"],
+                                          baseline_values=self["baseline"])
+        else:
+            raise KeyError(key)
+        self[key] = value
+        return value
+
+
+def _answers(session) -> list:
+    from apps.measurements.models import Answer
+
+    return list(Answer.objects.filter(response__session=session)
+                .select_related("question", "response__questionnaire"))
+
+
 def _build_context(session) -> dict:
-    return {
+    return _Context({
         "session": session,
         "values": queries.session_metric_values(session),
         "previous": queries.previous_session_values(session),
         "asymmetries": queries.session_asymmetries(session),
         "subject": session.subject,
         "norms": NormIndex(),
-    }
+    })
 
 
 def _evaluate(condition, context) -> list[dict]:
@@ -309,6 +370,10 @@ def _evaluate(condition, context) -> list[dict]:
         return _eval_change(condition, context)
     if "z" in condition:
         return _eval_z(condition, context)
+    if "answer" in condition:
+        return _eval_answer(condition, context)
+    if "readiness" in condition:
+        return _eval_readiness(condition, context)
 
     raise RuleError(f"Neznámý tvar podmínky: {sorted(condition)}")
 
@@ -397,11 +462,16 @@ def _eval_asymmetry(condition, context) -> list[dict]:
 
 
 def _eval_change(condition, context) -> list[dict]:
-    """Změna proti předchozímu měření. Bez MDC se o ní nic netvrdí."""
+    """
+    Změna proti předchozímu měření, s "against": "vychozi" proti výchozímu
+    měření sportovce. Bez MDC se o ní nic netvrdí.
+    """
     compare = _op(condition)
     threshold = condition["value"]
     require_mdc = condition.get("require_mdc", True)
     where = condition.get("where", {})
+    against = condition.get("against", "minule")
+    reference = context["baseline"] if against == "vychozi" else context["previous"]
 
     matches = []
     for key, entry in context["values"].items():
@@ -409,7 +479,7 @@ def _eval_change(condition, context) -> list[dict]:
             continue
         if not _matches_where(entry, where):
             continue
-        before = context["previous"].get(key)
+        before = reference.get(key)
         if before is None:
             continue
         delta = entry["value"] - before["value"]
@@ -417,10 +487,57 @@ def _eval_change(condition, context) -> list[dict]:
         if require_mdc and not metric.change_is_real(delta):
             continue
         if compare(delta, threshold):
-            matches.append(_values_for(entry, threshold=threshold, delta=delta,
-                                       predchozi=round(before["value"], metric.decimals),
-                                       mdc=metric.mdc))
+            d = metric.decimals
+            base = round(before["value"], d)
+            shown = round(entry["value"], d) - base
+            pct = round(shown / abs(base) * 100) if base else None
+            matches.append(_values_for(
+                entry, threshold=threshold, delta=delta, predchozi=base, mdc=metric.mdc,
+                proti="výchozímu měření" if against == "vychozi" else "minulému měření",
+                srovnani_datum=f"{before['date']:%d. %m. %Y}" if before.get("date") else "",
+                delta_pct_txt=(f"{'+' if pct > 0 else '−'}{abs(pct)} %" if pct else "0 %")))
     return matches
+
+
+def _eval_answer(condition, context) -> list[dict]:
+    """Odpověď v dotazníku dne proti prahu; „nevím“ a „netýká se“ nikdy nesedí."""
+    compare = _op(condition)
+    threshold = condition["value"]
+    wanted = condition["answer"]
+    questionnaire, _, question = wanted.rpartition(".")
+
+    matches = []
+    for answer in context["answers"]:
+        if answer.question.code != question:
+            continue
+        if questionnaire and answer.response.questionnaire.code != questionnaire:
+            continue
+        if not answer.is_answered or answer.value is None:
+            continue
+        if compare(answer.value, threshold):
+            q = answer.question
+            matches.append({
+                "otazka": q.text, "odpoved": answer.display(),
+                "dotaznik": answer.response.questionnaire.name, "unit": q.unit,
+                "value": answer.value, "value_txt": _cz(answer.value, 1).replace(",0", ""),
+                "threshold": threshold, "threshold_txt": _cz(threshold, 1).replace(",0", ""),
+            })
+    return matches
+
+
+def _eval_readiness(condition, context) -> list[dict]:
+    """Počet signálů semaforu připravenosti proti prahu; bez semaforu nesedí."""
+    state = context["readiness"]
+    if state is None:
+        return []
+    threshold = condition["value"]
+    if not _op(condition)(state["count"], threshold):
+        return []
+    return [{
+        "pocet": state["count"], "signaly": state["signals_txt"], "barva": state["color"],
+        "proti": state["against"], "value": state["count"], "value_txt": str(state["count"]),
+        "threshold": threshold, "threshold_txt": _cz(threshold, 0),
+    }]
 
 
 def _eval_z(condition, context) -> list[dict]:

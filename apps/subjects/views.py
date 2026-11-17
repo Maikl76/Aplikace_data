@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.analytics import charts, compare, overview, queries, reference
+from apps.analytics import baseline, charts, compare, overview, queries, reference
 from apps.core.audit import record
 from apps.core.models import AuditLog
 from apps.external.models import ExternalExam
@@ -122,6 +122,8 @@ def subject_detail(request, pk):
         "external_exams": exams, "may_edit": _may_edit(request.user),
         "may_see_exams": may_see_exams,
         "plan": plan, "reminders": list(subject.retest_reminders.all()[:3]),
+        "baseline_text": baseline.describe(subject),
+        "baseline_days": [s.date for s in measured],
         "email_enabled": bool(settings.EMAIL_HOST),
         # Stejná logika jako v pravidlech: karta nesmí tvrdit něco jiného než zpráva.
         "restriction": ExternalExam.active_restriction_for(subject),
@@ -440,6 +442,49 @@ def subject_invite(request, pk):
     invitation = accounts.create_invitation(subject, kind, user=request.user)
     record(request, AuditLog.Action.CREATE, invitation, subject_code=subject.code, druh=kind)
     return redirect("subject_invitation", pk=pk, inv_pk=invitation.pk)
+
+
+@login_required
+def subject_baseline(request, pk):
+    """
+    Výchozí měření sportovce: zvolený testovací den s hodnotami, nebo zrušit.
+    Další měření se s ním srovnávají proti MDC (zpráva, dlaždice, grafy, týmový
+    přehled, pravidla).
+    """
+    from django.contrib import messages
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    from apps.analytics import baseline
+
+    subject = get_object_or_404(Subject.objects.for_user(request.user), pk=pk)
+    back = request.POST.get("zpet", "")
+    if not url_has_allowed_host_and_scheme(back, allowed_hosts={request.get_host()},
+                                           require_https=request.is_secure()):
+        back = ""
+    back = back or reverse("subject_detail", args=[pk]) + "#vychozi"
+    if request.method != "POST" or not _may_edit(request.user):
+        return redirect(back)
+    if request.POST.get("akce") == "zrusit":
+        baseline.set_baseline(subject, None)
+        record(request, AuditLog.Action.UPDATE, subject, subject_code=subject.code,
+               vychozi_mereni=None)
+        messages.success(request, "Výchozí měření je zrušené – srovnává se jen s minulým "
+                                  "měřením, sezónou a maximem.")
+        return redirect(back)
+    try:
+        day = date.fromisoformat(request.POST.get("datum", "").strip())
+    except ValueError:
+        day = None
+    if day is None or day not in baseline.measured_days(subject):
+        messages.error(request, "Výchozím měřením může být jen testovací den, kdy se něco "
+                                "naměřilo.")
+        return redirect(back)
+    baseline.set_baseline(subject, day, request.POST.get("popis", ""))
+    record(request, AuditLog.Action.UPDATE, subject, subject_code=subject.code,
+           vychozi_mereni=day.isoformat())
+    messages.success(request, f"Nastaveno: {baseline.describe(subject)}. Další měření se s ním "
+                              "srovnávají proti MDC.")
+    return redirect(back)
 
 
 @login_required

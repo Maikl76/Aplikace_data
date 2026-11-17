@@ -9,7 +9,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Q
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from apps.core import access
 from apps.core.audit import record
@@ -97,6 +98,98 @@ def mdc_settings(request):
         "rows": in_batteries, "others": others, "can_edit": can_edit,
         "steps": catalog_steps(request.user, status),
         "key_total": len(status["key_metrics"]), "key_missing": len(status["no_mdc"]),
+    })
+
+
+# --- MDC z vlastních dat ---------------------------------------------------------------
+
+def _estimate_params(request, user):
+    """Skupina (tým, sport, všichni v rozsahu účtu), období a největší odstup měření."""
+    from datetime import date, timedelta
+
+    from django.utils import timezone
+
+    from apps.subjects.models import Sport, Subject, Team
+
+    params = request.POST if request.method == "POST" else request.GET
+    teams = list(Team.objects.for_user(user).select_related("sport").order_by("name"))
+    sports = list(Sport.objects.for_user(user).order_by("name"))
+    group = params.get("skupina", "")
+    subjects = Subject.objects.for_user(user)
+    label = "všichni sportovci"
+    if group.startswith("tym-"):
+        team = next((t for t in teams if f"tym-{t.pk}" == group), None)
+        if team is not None:
+            subjects, label = subjects.filter(team=team), f"tým {team.name}"
+    elif group.startswith("sport-"):
+        sport = next((sp for sp in sports if f"sport-{sp.pk}" == group), None)
+        if sport is not None:
+            subjects, label = subjects.filter(sport=sport), f"sport {sport.name}"
+    today = timezone.localdate()
+    try:
+        date_to = date.fromisoformat(params.get("do", "")) if params.get("do") else today
+        date_from = (date.fromisoformat(params.get("od", "")) if params.get("od")
+                     else date_to - timedelta(days=365))
+    except ValueError:
+        date_from, date_to = today - timedelta(days=365), today
+    if date_from > date_to:
+        date_from, date_to = date_to, date_from
+    try:
+        max_gap = min(max(int(params.get("odstup", "") or 14), 1), 365)
+    except ValueError:
+        max_gap = 14
+    return {"team_choices": [(f"tym-{t.pk}", t.name + (f" ({t.sport.name})" if t.sport else ""))
+                             for t in teams],
+            "sport_choices": [(f"sport-{sp.pk}", sp.name) for sp in sports],
+            "group": group, "group_label": label,
+            "subjects": subjects, "date_from": date_from, "date_to": date_to,
+            "max_gap": max_gap}
+
+
+@login_required
+def mdc_estimate(request, pk):
+    """
+    MDC z vlastních opakovaných měření: TE ze sousedních měřených dnů skupiny
+    v období, MDC90 / MDC95 a SWC; uloží se k ukazateli i se zdrojem.
+    """
+    from apps.analytics import reliability
+
+    metric = get_object_or_404(MetricDef.objects.filter(_shared(request.user)), pk=pk)
+    params = _estimate_params(request, request.user)
+    editable = setup.can_edit(request.user) and access.family_allowed(request.user, metric.family)
+    results = reliability.estimate(metric, params["subjects"], params["date_from"],
+                                   params["date_to"], max_gap=params["max_gap"])
+    if request.method == "POST":
+        if not editable:
+            return _denied(request, "MDC u ukazatelů ukládá správce nebo metodik měření.")
+        chosen = next((r for r in results if r["ok"] and r["label"] == request.POST.get("kombinace", "")
+                       ), None)
+        level = 95 if request.POST.get("uroven") == "95" else 90
+        if chosen is None:
+            messages.error(request, "Z vybraných dat se MDC spočítat nedá – zkontrolujte "
+                                    "skupinu, období a odstup měření.")
+            return redirect(request.get_full_path())
+        old = (metric.typical_error, metric.mdc, metric.swc, metric.mdc_source)
+        d = metric.decimals + 1
+        metric.typical_error = round(chosen["te"], d)
+        metric.mdc = round(chosen["mdc95" if level == 95 else "mdc90"], d)
+        if request.POST.get("swc") and chosen["swc"] is not None:
+            metric.swc = round(chosen["swc"], d)
+        metric.mdc_source = reliability.source_text(
+            chosen, level=level, group=params["group_label"], date_from=params["date_from"],
+            date_to=params["date_to"], metric=metric)
+        metric.save(update_fields=["typical_error", "mdc", "swc", "mdc_source", "updated_at"])
+        record(request, AuditLog.Action.UPDATE, metric, nastaveni="mdc_z_dat",
+               ukazatel=metric.code, puvodne={"te": old[0], "mdc": old[1], "swc": old[2]},
+               nove={"te": metric.typical_error, "mdc": metric.mdc, "swc": metric.swc},
+               zdroj=metric.mdc_source)
+        messages.success(request, f"{metric.name}: uložena MDC{level} "
+                                  f"{str(metric.mdc).replace('.', ',')} {metric.unit} "
+                                  "z vlastních dat. Další srovnání ji použijí hned.")
+        return redirect(reverse("mdc_settings") + f"#mdc-{metric.pk}")
+    return render(request, "catalog/mdc_estimate.html", {
+        "metric": metric, "results": results, "editable": editable, **params,
+        "query": request.GET.urlencode(),
     })
 
 

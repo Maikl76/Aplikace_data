@@ -18,6 +18,7 @@ urlpatterns = [
     path("<int:pk>/sdileni/", views.subject_sharing, name="subject_sharing"),
     path("<int:pk>/ucet/odebrat/", views.subject_account_remove, name="subject_account_remove"),
     path("<int:pk>/plan/", views.subject_retest, name="subject_retest"),
+    path("<int:pk>/vychozi/", views.subject_baseline, name="subject_baseline"),
     path("<int:pk>/cil/", views.subject_goal, name="subject_goal"),
     path("<int:pk>/cil/<int:gpk>/zrusit/", views.subject_goal_delete, name="subject_goal_delete"),
 ]

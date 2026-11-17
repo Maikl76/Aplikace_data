@@ -118,10 +118,15 @@ class Command(BaseCommand):
                 organization=None, code=spec["code"],
                 defaults={"name": spec["name"], "description": spec["description"]})
             for order, q in enumerate(spec["questions"]):
+                signal_op, signal_value, signal_label = q.get("signal", ("", None, ""))
                 Question.objects.get_or_create(
                     questionnaire=questionnaire, code=q["code"],
-                    defaults={"text": q["text"], "order": order, "scale_min": q["min"],
-                              "scale_max": q["max"], "anchors": q["anchors"]})
+                    defaults={"text": q["text"], "order": order,
+                              "kind": q.get("kind", Question.Kind.SCALE),
+                              "unit": q.get("unit", ""), "help_text": q.get("help", ""),
+                              "scale_min": q.get("min", 0), "scale_max": q.get("max", 10),
+                              "anchors": q.get("anchors", {}), "signal_op": signal_op,
+                              "signal_value": signal_value, "signal_label": signal_label})
 
         from apps.evidence.models import Article
         from apps.rules.models import Rule, RuleArticle

@@ -7,7 +7,7 @@
   <div>
     <div class="eyebrow">Nastavení testování</div>
     <h1 class="text-2xl font-semibold">MDC u ukazatelů</h1>
-    <p class="text-sm text-muted mt-1 max-w-2xl">MDC je nejmenší změna, kterou měření odliší od své chyby. Bez ní zpráva u opakovaného měření neřekne „zlepšení“, jen že změnu nelze odlišit od chyby měření. Každá hodnota potřebuje zdroj: citaci, nebo vlastní reliability studii (kdy, kolik osob). SWC je nejmenší prakticky významná změna, nepovinná.</p>
+    <p class="text-sm text-muted mt-1 max-w-2xl">MDC je nejmenší změna, kterou měření odliší od své chyby. Bez ní zpráva u opakovaného měření neřekne „zlepšení“, jen že změnu nelze odlišit od chyby měření. Každá hodnota potřebuje zdroj: citaci, nebo vlastní reliability studii (kdy, kolik osob) – tu aplikace spočítá sama z opakovaných měření („spočítat z dat“ u ukazatele). SWC je nejmenší prakticky významná změna, nepovinná.</p>
   </div>
 </div>
 
@@ -20,8 +20,9 @@
       <thead><tr><th>Ukazatel</th><th class="max-md:hidden">Testy</th><th>MDC</th><th class="max-md:hidden">SWC</th><th>Zdroj hodnoty</th></tr></thead>
       <tbody>
         {% for r in rows %}
-          <tr>
-            <td class="font-medium">{{ r.metric.name }}{% if r.metric.unit %} <span class="text-muted font-normal">[{{ r.metric.unit }}]</span>{% endif %}{% if r.key %} <span class="badge badge-accent" title="Klíčový ukazatel: jde na kartu sportovce a do týmového přehledu">klíčový</span>{% endif %}</td>
+          <tr id="mdc-{{ r.metric.pk }}">
+            <td class="font-medium">{{ r.metric.name }}{% if r.metric.unit %} <span class="text-muted font-normal">[{{ r.metric.unit }}]</span>{% endif %}{% if r.key %} <span class="badge badge-accent" title="Klíčový ukazatel: jde na kartu sportovce a do týmového přehledu">klíčový</span>{% endif %}
+              <a href="{% url 'mdc_estimate' r.metric.pk %}" class="link text-xs font-normal whitespace-nowrap ml-1" title="Typická chyba a MDC z opakovaných měření vašich sportovců">spočítat z dat</a></td>
             <td class="text-2 max-md:hidden">{{ r.tests|join:", " }}</td>
             <td><input name="mdc_{{ r.metric.pk }}" value="{{ r.metric.mdc|default_if_none:'' }}" inputmode="decimal" class="input w-24 text-sm py-1" {% if not r.editable %}readonly{% endif %}></td>
             <td class="max-md:hidden"><input name="swc_{{ r.metric.pk }}" value="{{ r.metric.swc|default_if_none:'' }}" inputmode="decimal" class="input w-24 text-sm py-1" {% if not r.editable %}readonly{% endif %}></td>

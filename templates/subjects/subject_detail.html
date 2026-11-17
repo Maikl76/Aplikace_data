@@ -131,6 +131,28 @@
           </form>
         </details>
       {% endif %}
+      <div class="mt-2 flex flex-wrap items-center gap-2" id="vychozi">
+        {% if baseline_text %}<span class="badge badge-accent">výchozí</span><span class="text-2">{{ baseline_text|capfirst }} – další měření se s ním srovnávají proti MDC.</span>
+        {% else %}<span class="text-xs text-muted">Výchozí měření není nastavené – srovnává se s minulým měřením, začátkem sezóny a maximem.</span>{% endif %}
+      </div>
+      {% if may_edit and baseline_days %}
+        <details class="mt-1">
+          <summary class="cursor-pointer link text-xs">Výchozí měření</summary>
+          <form method="post" action="{% url 'subject_baseline' subject.pk %}" class="mt-2 p-3 rounded-lg space-y-2 text-sm" style="background: var(--surface-2)">{% csrf_token %}
+            <p class="text-xs text-2">Den, ke kterému se vztahují další měření: začátek studie, den před soustředěním, první měření po zranění. Změna proti němu se ve zprávě, na dlaždicích, v grafech (modré pásmo ± MDC) i v týmovém přehledu posuzuje proti MDC.</p>
+            <label class="flex flex-wrap items-center gap-2">testovací den
+              <select name="datum" class="input w-auto text-sm py-1">
+                {% for d in baseline_days %}<option value="{{ d|date:'Y-m-d' }}" {% if d == subject.baseline_date %}selected{% endif %}>{{ d|date:"j. n. Y" }}</option>{% endfor %}
+              </select>
+            </label>
+            <label class="flex flex-wrap items-center gap-2">popis <input name="popis" value="{{ subject.baseline_label }}" maxlength="80" class="input text-sm py-1" style="width: 16rem" placeholder="např. začátek studie"></label>
+            <div class="flex flex-wrap gap-2">
+              <button class="btn btn-sm btn-primary">Uložit výchozí měření</button>
+              {% if subject.baseline_date %}<button class="btn btn-sm" name="akce" value="zrusit">Zrušit výchozí měření</button>{% endif %}
+            </div>
+          </form>
+        </details>
+      {% endif %}
       {% if reminders %}<p class="text-xs text-muted mt-1">Připomínky odeslány: {% for r in reminders %}{{ r.created_at|date:"d.m.Y" }}{% if r.manual %} (ručně){% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}.</p>
       {% elif may_edit and not email_enabled %}<p class="text-xs text-muted mt-1">Poštovní server není nastavený – připomínky se neposílají, termín předejte sami.</p>{% endif %}
     </div>
@@ -146,6 +168,7 @@
               {% for p in s.protokoly %}<span class="badge">{{ p }}</span>{% empty %}<span class="text-sm text-muted">bez protokolu</span>{% endfor %}
             </span>
             {% if not s.hodnot %}<span class="badge">naplánováno</span>{% endif %}
+            {% if s.date == subject.baseline_date %}<span class="badge badge-accent" title="Výchozí měření: další měření se s ním srovnávají">výchozí</span>{% endif %}
             {% if s.reports.all %}<span class="badge badge-accent">{% icon "file" "w-3.5 h-3.5" %}zpráva</span>{% endif %}
             <span class="text-muted">{% icon "chevron-right" "w-4 h-4" %}</span>
           </a>

@@ -28,6 +28,7 @@ PALETTE = {
         "grid": "#e1e0d9",
         "axis": "#c3c2b7",
         "band": "rgba(137,135,129,0.14)",
+        "baseline_band": "rgba(42,120,214,0.10)",
     },
     "dark": {
         "series_1": "#3987e5",
@@ -39,6 +40,7 @@ PALETTE = {
         "grid": "#2c2c2a",
         "axis": "#383835",
         "band": "rgba(137,135,129,0.20)",
+        "baseline_band": "rgba(57,135,229,0.16)",
     },
 }
 
@@ -136,7 +138,7 @@ def _element_id(prefix: str, metric, qualifiers: dict | None) -> str:
 
 
 def trend_chart(metric, points, *, qualifiers=None, norm=None, goal=None, season_from=None,
-                band=None, theme: str = "light") -> ChartSpec:
+                band=None, baseline=None, theme: str = "light") -> ChartSpec:
     """
     Vývoj jedné metriky v čase proti normě.
 
@@ -148,6 +150,9 @@ def trend_chart(metric, points, *, qualifiers=None, norm=None, goal=None, season
     ``band`` je interní reference laboratoře (apps/analytics/reference.Band):
     kreslí se stejně šedě jako norma, ale jen když ukazatel normu nemá –
     dvě pásma přes sebe by nešla číst. Patří jen do laboratoře, ne do zprávy.
+    ``baseline`` (datum, hodnota) je výchozí měření: od jeho dne čárkovaná
+    čára a modré pásmo ± MDC – bod uvnitř pásma se od výchozího neliší víc
+    než chyba měření.
     """
     colors = PALETTE[theme]
     dates = [d.isoformat() for d, _ in points]
@@ -217,6 +222,34 @@ def trend_chart(metric, points, *, qualifiers=None, norm=None, goal=None, season
         note = (f"Šedé pásmo = interní reference laboratoře (P25–P75, tečkovaně medián): "
                 f"{band.group_text}, n = {band.n}. Jen pro orientaci, necitovatelné.")
 
+    base_extent = []
+    if baseline is not None and points[0][0] <= baseline[0] < points[-1][0]:
+        base_day, base = baseline[0].isoformat(), baseline[1]
+        span = [base_day, dates[-1]]
+        if metric.mdc:
+            low, high = base - metric.mdc, base + metric.mdc
+            base_extent = [low, high]
+            traces.append({
+                "type": "scatter", "x": span + span[::-1], "y": [high, high, low, low],
+                "mode": "lines", "fill": "toself", "fillcolor": colors["baseline_band"],
+                "line": {"width": 0}, "hoverinfo": "skip",
+                "name": "výchozí ± MDC", "showlegend": False,
+            })
+        traces.append({
+            "type": "scatter", "x": span, "y": [base, base], "mode": "lines",
+            "line": {"color": colors["series_1"], "width": 1, "dash": "dash"},
+            "hovertemplate": f"výchozí měření {cz(base, metric.decimals)}{unit}<extra></extra>",
+            "name": "výchozí měření", "showlegend": False,
+        })
+        annotations.append({
+            "x": base_day, "y": base, "xanchor": "left", "yanchor": "top", "showarrow": False,
+            "text": "výchozí ± MDC" if metric.mdc else "výchozí",
+            "font": {"size": 10, "color": colors["series_1"]},
+        })
+        note = (note + " " if note else "") + (
+            "Modré pásmo = výchozí měření ± MDC: změna uvnitř pásma je v chybě měření."
+            if metric.mdc else "Čárkovaně výchozí měření; bez MDC nelze posoudit, zda je změna skutečná.")
+
     traces.append({
         "type": "scatter", "x": dates, "y": values, "mode": "lines+markers+text",
         "line": {"color": colors["series_1"], "width": 2},
@@ -237,8 +270,8 @@ def trend_chart(metric, points, *, qualifiers=None, norm=None, goal=None, season
     span_days = (points[-1][0] - points[0][0]).days if len(points) > 1 else 0
     layout["xaxis"]["tickformat"] = "%d.%m." if span_days < 90 else "%m/%Y"
     layout["xaxis"]["nticks"] = 6
-    layout["yaxis"]["range"] = _y_range(metric, values + ([goal] if goal is not None else []), norm,
-                                        band=band)
+    layout["yaxis"]["range"] = _y_range(metric, values + ([goal] if goal is not None else [])
+                                        + base_extent, norm, band=band)
     if shapes:
         layout["shapes"] = shapes
     if annotations:

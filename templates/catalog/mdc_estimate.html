@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}MDC z vlastních dat – FTVS{% endblock %}
+{% block content %}
+{% include "catalog/_tabs.html" with tab="mdc" %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <div class="eyebrow"><a href="{% url 'mdc_settings' %}" class="hover:underline">MDC u ukazatelů</a></div>
+    <h1 class="text-2xl font-semibold">MDC z vlastních dat: {{ metric.name }}{% if metric.unit %} <span class="text-muted font-normal text-lg">[{{ metric.unit }}]</span>{% endif %}</h1>
+    <p class="text-sm text-muted mt-1 max-w-3xl">Typická chyba měření z opakovaných měření stejných lidí v době, kdy se neměli změnit: test a retest po pár dnech, kontrolní skupina studie, klidné období. Z každého sportovce se vezmou po sobě jdoucí měřené dny, systematický posun celé skupiny (učení, únava) se odečte a ze zbytku rozdílů se spočítá TE = SD rozdílů / √2. Období, kdy se skupina zlepšovala, chybu nadhodnotí.</p>
+  </div>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-4">
+  <form method="get" class="card p-4 space-y-3 text-sm min-w-0" id="vyber">
+    <h2 class="card-title">Ze kterých měření</h2>
+    <label class="block"><span class="text-xs text-2">Skupina</span>
+      <select name="skupina" class="input mt-1 text-sm">
+        <option value="" {% if not group %}selected{% endif %}>všichni sportovci (v rozsahu vašeho účtu)</option>
+        {% if team_choices %}<optgroup label="Týmy">{% for value, text in team_choices %}<option value="{{ value }}" {% if group == value %}selected{% endif %}>{{ text }}</option>{% endfor %}</optgroup>{% endif %}
+        {% if sport_choices %}<optgroup label="Sporty">{% for value, text in sport_choices %}<option value="{{ value }}" {% if group == value %}selected{% endif %}>{{ text }}</option>{% endfor %}</optgroup>{% endif %}
+      </select></label>
+    <div class="flex flex-wrap gap-2">
+      <label class="block"><span class="text-xs text-2">od</span><input type="date" name="od" value="{{ date_from|date:'Y-m-d' }}" class="input mt-1 text-sm" style="width: 10.5rem"></label>
+      <label class="block"><span class="text-xs text-2">do</span><input type="date" name="do" value="{{ date_to|date:'Y-m-d' }}" class="input mt-1 text-sm" style="width: 10.5rem"></label>
+    </div>
+    <label class="block"><span class="text-xs text-2">měření nejvýš dní od sebe</span>
+      <input name="odstup" value="{{ max_gap }}" inputmode="numeric" class="input mt-1 text-sm" style="width: 6rem"></label>
+    <p class="text-xs text-muted">Páry vzdálenější než tolik dní se nepočítají – mezi nimi se sportovec mohl skutečně změnit.</p>
+    <button class="btn btn-primary btn-sm">Spočítat</button>
+    <div class="pt-3 border-t text-xs text-2 space-y-1" style="border-color: var(--border)">
+      <div>Teď uloženo: MDC <strong class="tabular-nums">{{ metric.mdc|default_if_none:"—" }}</strong>{% if metric.typical_error is not None %} · TE {{ metric.typical_error }}{% endif %}{% if metric.swc is not None %} · SWC {{ metric.swc }}{% endif %}</div>
+      {% if metric.mdc_source %}<div class="text-muted">{{ metric.mdc_source }}</div>{% endif %}
+    </div>
+  </form>
+
+  <div class="lg:col-span-2 space-y-3 min-w-0">
+    {% for r in results %}
+      <section class="card p-4 text-sm">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 class="card-title">{{ r.label|default:"oboustranně / celek" }}</h2>
+          <span class="text-xs text-muted">{{ r.n_subjects }} sportovců · {{ r.n_pairs }} párů · {{ r.df }} stupňů volnosti</span>
+        </div>
+        {% if r.ok %}
+          <dl class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 tabular-nums">
+            <div><dt class="text-xs text-muted">Typická chyba (TE)</dt><dd class="text-lg font-semibold">{{ r.te_txt }} <span class="text-xs font-normal text-muted">{{ metric.unit }}</span></dd>
+              <dd class="text-xs text-muted">{% if r.te_pct_txt %}{{ r.te_pct_txt }} % · {% endif %}90% IS {{ r.ci_low_txt }}–{{ r.ci_high_txt }}</dd></div>
+            <div><dt class="text-xs text-muted">MDC90 = 1,645·√2·TE</dt><dd class="text-lg font-semibold">{{ r.mdc90_txt }} <span class="text-xs font-normal text-muted">{{ metric.unit }}</span></dd>
+              {% if r.mdc90_pct_txt %}<dd class="text-xs text-muted">≈ {{ r.mdc90_pct_txt }} % průměru</dd>{% endif %}</div>
+            <div><dt class="text-xs text-muted">MDC95 = 1,96·√2·TE</dt><dd class="text-lg font-semibold">{{ r.mdc95_txt }} <span class="text-xs font-normal text-muted">{{ metric.unit }}</span></dd></div>
+            <div><dt class="text-xs text-muted">SWC = 0,2 × SD mezi osobami</dt><dd class="text-lg font-semibold">{% if r.swc_txt %}{{ r.swc_txt }} <span class="text-xs font-normal text-muted">{{ metric.unit }}</span>{% else %}—{% endif %}</dd></div>
+          </dl>
+          {% if r.swc is not None and r.swc < r.mdc90 %}<p class="text-xs text-2 mt-2">SWC je menší než MDC: prakticky významnou změnu tohle měření u jednotlivce spolehlivě nerozliší – pomůže průměr víc pokusů nebo víc dnů.</p>{% endif %}
+        {% endif %}
+        {% for w in r.warnings %}<p class="text-xs mt-2 flex gap-1.5" style="color: var(--warn)">{% icon "alert" "w-3.5 h-3.5 shrink-0 mt-0.5" %}{{ w }}</p>{% endfor %}
+        {% if r.ok and editable %}
+          <form method="post" class="mt-3 pt-3 border-t flex flex-wrap items-center gap-3" style="border-color: var(--border)" data-jednou="Ukládám…">{% csrf_token %}
+            <input type="hidden" name="skupina" value="{{ group }}"><input type="hidden" name="od" value="{{ date_from|date:'Y-m-d' }}"><input type="hidden" name="do" value="{{ date_to|date:'Y-m-d' }}"><input type="hidden" name="odstup" value="{{ max_gap }}"><input type="hidden" name="kombinace" value="{{ r.label }}">
+            <label class="inline-flex items-center gap-1"><input type="radio" name="uroven" value="90" checked> MDC90</label>
+            <label class="inline-flex items-center gap-1"><input type="radio" name="uroven" value="95"> MDC95</label>
+            {% if r.swc is not None %}<label class="inline-flex items-center gap-1"><input type="checkbox" name="swc" value="1"> uložit i SWC</label>{% endif %}
+            <button class="btn btn-sm btn-primary">{% icon "check" %}Uložit jako MDC ukazatele</button>
+            <span class="text-xs text-muted">Zdroj se doplní sám (skupina, období, počet osob a párů, výpočet).</span>
+          </form>
+        {% endif %}
+      </section>
+    {% empty %}
+      <div class="card p-6 text-sm text-2">V tomto období a skupině nejsou žádná měření ukazatele {{ metric.name }}. Zkuste delší období nebo jinou skupinu.</div>
+    {% endfor %}
+    <p class="text-xs text-muted">Výpočet: Hopkins WG. Measures of reliability in sports medicine and science. <em>Sports Med</em> 2000;30(1):1–15 (<a class="link" href="https://doi.org/10.2165/00007256-200030010-00001" target="_blank" rel="noopener">doi:10.2165/00007256-200030010-00001</a>); Weir JP. Quantifying test–retest reliability using the intraclass correlation coefficient and the SEM. <em>J Strength Cond Res</em> 2005;19(1):231–240 (<a class="link" href="https://doi.org/10.1519/15184.1" target="_blank" rel="noopener">doi:10.1519/15184.1</a>). Interval spolehlivosti TE z rozdělení χ². MDC se ukládá v jednotkách ukazatele; TE v % (z logaritmů) je pro orientaci.</p>
+  </div>
+</div>
+{% endblock %}

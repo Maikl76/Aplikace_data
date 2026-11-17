@@ -14,8 +14,10 @@ a maximem, cíl. reader = "lab" | "sportovec" | "trener" – podle čtenáře se
     <div class="w-28 shrink-0" title="Vývoj za posledních {{ t.count }} měření">{{ t.spark }}</div>
   </div>
   {% with c=t.compare %}
-    {% if c.season or c.season_first or c.best or c.period %}
+    {% if c.season or c.season_first or c.best or c.period or c.baseline %}
       <ul class="text-xs text-2 space-y-0.5 tabular-nums">
+        {% if c.baseline %}{% with b=c.baseline %}{% if b.is_baseline %}<li><span class="badge badge-accent">výchozí měření</span>{% if b.label %} <span class="text-muted">{{ b.label }}</span>{% endif %}</li>
+        {% else %}<li>proti výchozímu <span class="font-medium">{{ b.delta_txt }} {{ t.unit }}</span>{% if b.pct_txt %} <span class="text-muted">({{ b.pct_txt }})</span>{% endif %} <span class="text-muted">({{ b.date|date:"d.m.Y" }}) ·</span> {% if b.kind == "worse" %}<span class="badge badge-warn">{{ b.verdict }}</span>{% elif b.kind == "better" %}<span class="badge badge-good">{{ b.verdict }}</span>{% else %}<span class="text-muted">{{ b.verdict }}</span>{% endif %}</li>{% endif %}{% endwith %}{% endif %}
         {% if c.season %}<li>od začátku sezóny <span class="font-medium">{{ c.season.delta_txt }} {{ t.unit }}</span> <span class="text-muted">({{ c.season.date|date:"d.m.Y" }}) · {{ c.season.verdict }}</span></li>
         {% elif c.season_first and t.count > 1 %}<li class="text-muted">první měření v sezóně</li>{% endif %}
         {% if c.best %}<li>{% if c.best.is_current %}<span class="badge badge-good">{% icon "arrow-up" "w-3.5 h-3.5" %}{{ c.best.state }}</span>{% else %}{{ c.best.label }} <span class="font-medium">{{ c.best.value_txt }} {{ t.unit }}</span> <span class="text-muted">({{ c.best.date|date:"d.m.Y" }}) · {{ c.best.state }}</span>{% endif %}</li>{% endif %}

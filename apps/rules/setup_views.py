@@ -47,14 +47,20 @@ KIND_LABELS = [
     ("metric", "Hodnota ukazatele", "naměřená hodnota proti prahu, např. poměr IR/ER < 1"),
     ("asymmetry", "Asymetrie stran", "rozdíl levé a pravé v % proti prahu; „všechny ukazatele“ "
                                       "= každý ukazatel měřený oboustranně"),
-    ("change", "Změna proti minulému měření", "rozdíl proti poslednímu dřívějšímu měření téhož "
-                                              "ukazatele; bez MDC se o změně nic netvrdí"),
+    ("change", "Změna proti minulému / výchozímu měření",
+     "rozdíl proti poslednímu dřívějšímu měření téhož ukazatele, nebo proti výchozímu "
+     "měření sportovce; bez MDC se o změně nic netvrdí"),
     ("z", "Z-skóre vůči normě", "o kolik SD se hodnota liší od normy, která sportovci sedí"),
+    ("answer", "Odpověď v dotazníku", "odpověď sportovce v dotazníku dne (ranní připravenost, "
+                                      "RPE) proti prahu; „nevím“ nikdy nesedí"),
+    ("readiness", "Semafor připravenosti", "počet signálů dne: odpovědi za prahem a klíčové "
+                                           "ukazatele zhoršené nad MDC; 4 a víc = červená"),
 ]
 MODES = [c for c in Mode.choices if c[0]]
-ROW_FIELDS = ("kind", "metric", "op", "value", "side", "mode", "speed", "segment")
+ROW_FIELDS = ("kind", "metric", "op", "value", "side", "mode", "speed", "segment", "against",
+              "question")
 EMPTY_ROW = {"kind": "metric", "metric": "", "op": "<", "value": "", "side": "", "mode": "",
-             "speed": "", "segment": "", "mdc": True}
+             "speed": "", "segment": "", "mdc": True, "against": "minule", "question": ""}
 MAX_ROWS = 12
 
 # Pole šablon slovy – nabídka pod textem nálezu. Pořadí = pořadí v nabídce.
@@ -69,10 +75,15 @@ FIELD_HELP = {
     "left": "levá (číslo)", "right": "pravá (číslo)", "left_txt": "levá s čárkou",
     "right_txt": "pravá s čárkou", "index_pct": "rozdíl stran v % (číslo)",
     "index_txt": "rozdíl stran v % s čárkou", "silnejsi": "silnější strana (levá / pravá)",
+    "proti": "proti čemu (minulému / výchozímu měření)", "srovnani_datum": "datum srovnání",
+    "delta_pct_txt": "změna v %", "otazka": "text otázky", "odpoved": "odpověď slovy",
+    "dotaznik": "název dotazníku", "pocet": "počet signálů", "signaly": "signály slovy",
+    "barva": "barva semaforu",
 }
 PREFERRED = ("value_txt", "threshold_txt", "unit", "metric", "speed_txt", "side", "mode",
-             "delta_txt", "predchozi", "mdc_txt", "z", "norma", "citace", "index_txt", "left_txt",
-             "right_txt", "silnejsi")
+             "delta_txt", "delta_pct_txt", "proti", "predchozi", "mdc_txt", "z", "norma",
+             "citace", "index_txt", "left_txt", "right_txt", "silnejsi", "otazka", "odpoved",
+             "pocet", "signaly", "barva")
 
 
 def palette() -> list[dict]:
@@ -135,11 +146,15 @@ def _row(part) -> dict | None:
     if kind is None:
         return None
     where = part.get("where") if isinstance(part.get("where"), dict) else {}
-    return {"kind": kind, "metric": str(part.get(kind) or ""), "op": str(part.get("op") or "<"),
+    code = str(part.get(kind) or "")
+    return {"kind": kind, "metric": code if kind in engine.METRIC_KINDS else "",
+            "question": code if kind == "answer" else "",
+            "op": str(part.get("op") or "<"),
             "value": _num_txt(part.get("value")), "side": str(where.get("side") or ""),
             "mode": str(where.get("mode") or ""), "speed": _num_txt(where.get("speed")),
             "segment": str(where.get("segment") or ""),
-            "mdc": bool(part.get("require_mdc", True))}
+            "mdc": bool(part.get("require_mdc", True)),
+            "against": "vychozi" if part.get("against") == "vychozi" else "minule"}
 
 
 def rows_from_condition(condition) -> tuple[list[dict], str] | None:
@@ -161,11 +176,18 @@ def condition_from_rows(rows: list[dict], group: str) -> tuple[dict, list[str]]:
     parts, errors = [], []
     for i, row in enumerate(rows, start=1):
         kind = row["kind"] if row["kind"] in KINDS else "metric"
-        metric = row["metric"].strip()
-        if not metric:
-            errors.append(f"Podmínka {i}: vyberte ukazatel.")
-        elif metric == "*" and kind != "asymmetry":
-            errors.append(f"Podmínka {i}: „všechny ukazatele“ jde jen u asymetrie stran.")
+        if kind == "readiness":
+            metric = "*"
+        elif kind == "answer":
+            metric = row.get("question", "").strip()
+            if not metric:
+                errors.append(f"Podmínka {i}: vyberte otázku dotazníku.")
+        else:
+            metric = row["metric"].strip()
+            if not metric:
+                errors.append(f"Podmínka {i}: vyberte ukazatel.")
+            elif metric == "*" and kind != "asymmetry":
+                errors.append(f"Podmínka {i}: „všechny ukazatele“ jde jen u asymetrie stran.")
         part = {kind: metric, "op": row["op"] if row["op"] in OPERATORS else "<"}
         try:
             value = _num(row["value"])
@@ -186,10 +208,12 @@ def condition_from_rows(rows: list[dict], group: str) -> tuple[dict, list[str]]:
             errors.append(f"Podmínka {i}: rychlost musí být číslo (°/s).")
         if speed is not None:
             where["speed"] = speed
-        if where:
+        if where and kind in engine.METRIC_KINDS:
             part["where"] = where
         if kind == "change":
             part["require_mdc"] = bool(row["mdc"])
+            if row.get("against") == "vychozi":
+                part["against"] = "vychozi"
         parts.append(part)
     if not parts:
         errors.append("Přidejte aspoň jednu podmínku.")
@@ -215,7 +239,7 @@ def _form_data(rule, post=None) -> dict:
         for i in range(count):
             row = {f: post.get(f"r{i}_{f}", "").strip() for f in ROW_FIELDS}
             row["mdc"] = bool(post.get(f"r{i}_mdc"))
-            if row["metric"] or row["value"]:
+            if row["metric"] or row["value"] or row["question"] or row["kind"] == "readiness":
                 data["rows"].append(row)
         try:
             count = min(int(post.get("nra_count") or 0), 10)
@@ -377,6 +401,7 @@ def rule_edit(request, pk=None):
         "severities": Severity.choices, "kinds": KIND_LABELS, "operators": list(OPERATORS),
         "sides": Side.choices, "modes": MODES, "palette": palette(),
         "articles": article_choices(), "max_rows": MAX_ROWS,
+        "questions": _question_choices(user),
         "findings": rule.findings.count() if rule else 0,
         "condition_text": describe(rule.condition, metrics) if rule else "",
         "empty_row": dict(EMPTY_ROW),
@@ -401,6 +426,28 @@ def rule_delete(request, pk):
     rule.delete()
     messages.info(request, f"Pravidlo {label} je smazané.")
     return redirect("rules_settings")
+
+
+def _question_choices(user) -> list[dict]:
+    """Otázky dotazníků s číselnou odpovědí (škála, číslo, ano/ne) pro podmínku „odpověď“."""
+    from apps.catalog.models import Question
+
+    out = []
+    for q in (Question.objects.filter(questionnaire__in=_questionnaires(user),
+                                      kind__in=[Question.Kind.SCALE, Question.Kind.NUMBER,
+                                                Question.Kind.YESNO])
+              .select_related("questionnaire").order_by("questionnaire__name", "order")):
+        out.append({"code": f"{q.questionnaire.code}.{q.code}", "text": q.text,
+                    "questionnaire": q.questionnaire.name,
+                    "hint": q.signal_text() or (f"{q.scale_min}–{q.scale_max}"
+                                                if q.kind == Question.Kind.SCALE else q.unit)})
+    return out
+
+
+def _questionnaires(user):
+    from apps.catalog.models import Questionnaire
+
+    return Questionnaire.objects.filter(_shared(user), is_active=True)
 
 
 # --- zkouška na datech -------------------------------------------------------------------------
@@ -429,6 +476,24 @@ def why_not(rule, session, metrics: dict) -> str:
         return f"pravidlo platí jen pro sport {rule.applies_to_sport.name}"
     context = engine.build_context(session)
     codes, kinds = metric_codes(rule.condition), kinds_in(rule.condition)
+    if "readiness" in kinds:
+        state = context["readiness"]
+        if state is None:
+            return ("ten den není co posoudit: žádná odpověď s prahem signálu ani klíčový "
+                    "ukazatel s MDC a s čím srovnat")
+        if kinds == ["readiness"]:
+            return (f"semafor ten den: {state['count']} z {state['evaluated']} signálů "
+                    f"({state['color']}) – podmínka nesedí")
+    if "answer" in kinds and not context["answers"]:
+        return "ten den nikdo nevyplnil dotazník"
+    if kinds == ["answer"]:
+        shown = "; ".join(f"{a.question.text} – {a.display()}" for a in context["answers"]
+                          if a.question.has_signal or a.value is not None)
+        return "odpověď podmínku nesplnila" + (f": {shown}" if shown else "")
+    if ("change" in kinds and _against_baseline(rule.condition)
+            and not context["baseline"]):
+        return ("sportovec nemá výchozí měření starší než tento den – změna proti němu "
+                "se nepočítá")
     measured = {}
     for key, entry in context["values"].items():
         if entry["metric"].code in codes:
@@ -453,6 +518,16 @@ def why_not(rule, session, metrics: dict) -> str:
             for entries in measured.values() for _, entry in entries):
         return "na sportovce nesedí žádná norma ukazatele; naměřeno: " + "; ".join(values)
     return "hodnoty podmínku nesplnily: " + "; ".join(values)
+
+
+def _against_baseline(condition) -> bool:
+    """Srovnává některá část podmínky s výchozím měřením?"""
+    if not isinstance(condition, dict):
+        return False
+    for group in ("all", "any"):
+        if isinstance(condition.get(group), list):
+            return any(_against_baseline(p) for p in condition[group])
+    return condition.get("against") == "vychozi"
 
 
 @login_required

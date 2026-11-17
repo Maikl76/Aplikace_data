@@ -34,11 +34,11 @@
   <section class="card p-5">
     <div class="flex items-start gap-3 mb-4">
       <span class="krok-cislo">2</span>
-      <div><h2 class="card-title">Podmínka</h2><p class="text-sm text-muted">Co se porovnává a s jakým prahem. Hodnota ukazatele, asymetrie stran, změna proti minulému měření, nebo z-skóre vůči normě. Strana, režim, rychlost a segment podmínku zúží – prázdné platí při každé variantě měření.</p></div>
+      <div><h2 class="card-title">Podmínka</h2><p class="text-sm text-muted">Co se porovnává a s jakým prahem. Hodnota ukazatele, asymetrie stran, změna proti minulému nebo výchozímu měření, z-skóre vůči normě, odpověď v dotazníku dne, nebo počet signálů semaforu připravenosti. Strana, režim, rychlost a segment podmínku zúží – prázdné platí při každé variantě měření.</p></div>
     </div>
     {% if data.json_mode %}
       <input type="hidden" name="json_mode" value="1">
-      <p class="text-sm text-2 mb-2">Tahle podmínka má vnořené skupiny (all / any uvnitř sebe), které stavitel neumí – upravuje se jako JSON. Druhy: metric, asymmetry, change, z; strana, režim, rychlost a segment patří do „where“.</p>
+      <p class="text-sm text-2 mb-2">Tahle podmínka má vnořené skupiny (all / any uvnitř sebe), které stavitel neumí – upravuje se jako JSON. Druhy: metric, asymmetry, change (s „against“: „vychozi“ proti výchozímu měření), z, answer („dotaznik.otazka“), readiness („*“, počet signálů); strana, režim, rychlost a segment patří do „where“.</p>
       <textarea name="condition_json" rows="10" class="input font-mono text-sm">{{ data.condition_json }}</textarea>
     {% else %}
       <input type="hidden" name="row_count" id="row_count" value="{{ data.rows|length }}">
@@ -149,7 +149,13 @@
       paleta.forEach(g => { g.style.display = (kinds.size > 0 && !kinds.has(g.dataset.paleta)) ? 'none' : ''; });
       document.querySelectorAll('[data-radek]').forEach(row => {
         const kind = row.querySelector('[data-kind]').value;
+        const metric = kind !== 'answer' && kind !== 'readiness';
         row.querySelector('[data-mdc]').style.display = kind !== 'change' ? 'none' : '';
+        row.querySelector('[data-proti]').style.display = kind !== 'change' ? 'none' : '';
+        row.querySelector('[data-ukazatel]').style.display = metric ? '' : 'none';
+        row.querySelector('[data-otazka]').style.display = kind === 'answer' ? '' : 'none';
+        row.querySelector('[data-semafor]').style.display = kind === 'readiness' ? '' : 'none';
+        row.querySelector('[data-kde]').style.display = metric ? '' : 'none';
       });
       const group = document.getElementById('skupina');
       if (group) group.style.display = document.querySelectorAll('[data-radek]').length < 2 ? 'none' : '';

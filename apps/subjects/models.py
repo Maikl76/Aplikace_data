@@ -96,6 +96,15 @@ class Subject(OrgScopedModel):
     next_test_date = models.DateField(
         "další měření naplánováno na", null=True, blank=True,
         help_text="Konkrétní termín má přednost před intervalem; po měření přestane platit.")
+    # Výchozí měření: den, ke kterému se vztahují další měření (začátek studie,
+    # před soustředěním). Změna proti němu se posuzuje stejně jako proti minule –
+    # přes MDC. Bez něj se srovnává jen s minulým měřením, sezónou a maximem.
+    baseline_date = models.DateField(
+        "výchozí měření", null=True, blank=True,
+        help_text="Testovací den, proti kterému se posuzují další měření.")
+    baseline_label = models.CharField(
+        "popis výchozího měření", max_length=80, blank=True,
+        help_text="Např. „začátek studie“, „před soustředěním“.")
 
     class Meta:
         verbose_name = "sportovec"

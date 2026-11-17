@@ -19,6 +19,7 @@ urlpatterns = [
     path("nastaveni/prenos/", transfer_views.transfer_settings, name="transfer_settings"),
     path("nastaveni/prenos/<int:pk>/", transfer_views.transfer_preview, name="transfer_preview"),
     path("nastaveni/mdc/", settings_views.mdc_settings, name="mdc_settings"),
+    path("nastaveni/mdc/<int:pk>/z-dat/", settings_views.mdc_estimate, name="mdc_estimate"),
     path("nastaveni/popisy/", settings_views.client_texts, name="client_texts"),
     path("nastaveni/import/", settings_views.import_profiles, name="import_profiles"),
     path("nastaveni/normy/", norm_views.norm_list, name="norms_settings"),

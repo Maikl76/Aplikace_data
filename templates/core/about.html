@@ -222,6 +222,7 @@
         <li><strong>Karta sportovce:</strong> dlaždice s posledními hodnotami klíčových ukazatelů, šipka změny proti minulému měření, minigraf, grafy vývoje, stranové rozdíly a seznam testovacích dnů. Dlaždice srovnávají i <strong>od začátku sezóny</strong> (měsíc začátku sezóny je u sportu), s <strong>osobním maximem</strong> a <strong>za 12 měsíců</strong>; posouzení vždy proti MDC jako u změny proti minule.</li>
         <li><strong>Cíle:</strong> cílová hodnota klíčového ukazatele domluvená s trenérem (a dokdy) se nastavuje na kartě sportovce (<em>Cíle → Nastavit cíl</em>). Karta, portál sportovce i trenéra a zpráva pak ukážou postup k cíli: kolik zbývá a zda je rozdíl nad chybou měření; v grafech vývoje je cíl čárkovaná čára. Podrobně v dokumentaci <em>srovnani-a-cile.md</em>.</li>
         <li><strong>Další měření:</strong> termín plyne z posledního měření a intervalu (u baterie sportu, nebo vlastní plán u sportovce; konkrétní termín má přednost). Přehled ukazuje <em>Kdo je na řadě</em>, seznam sportovců má filtr <em>jen na řadě</em>, portál sportovce <em>Příští měření</em>. Připomínky e‑mailem odcházejí samy 14 dní před termínem (Přehled je kontroluje jednou denně, nebo příkaz <code>pripomenout_mereni</code>), ručně tlačítkem na kartě sportovce. Podrobně v dokumentaci <em>opakovane-mereni.md</em>.</li>
+        <li><strong>Výchozí měření:</strong> den, ke kterému se vztahují další měření (začátek studie, před soustředěním) – na kartě sportovce <em>Testovací dny → Výchozí měření</em>, v testovacím dni tlačítkem, nebo pro celou skupinu v Týmovém přehledu. Dlaždice, zpráva (sloupec <em>Proti výchozímu</em>), týmový přehled i pravidla pak srovnávají s ním, v grafech je modré pásmo výchozí ± MDC. Podrobně v dokumentaci <em>vychozi-mereni-a-pripravenost.md</em>.</li>
         <li><strong>Tlačítka na kartě:</strong> <em>Nové měření</em> (testy předvyplní baterie), <em>Zpráva z posledního měření</em>, ikona QR (karta pro tablet) a tužka (úprava údajů).</li>
         <li><strong>Úprava údajů</strong> (jméno, datum narození, kontakt, sport, kategorie, úroveň, dominantní strana, souhlasy): tužka na kartě sportovce.</li>
         <li><strong>Deaktivace, smazání, anonymizace</strong> – dole na stránce úprav (<em>Další akce</em>):
@@ -349,6 +350,8 @@
       <ul>
         <li><strong>Šipka</strong> = změna proti minulému měření téhož sportovce: <span class="badge badge-good">{% icon "arrow-up" "w-3 h-3" %}</span> zlepšení / <span class="badge badge-warn">{% icon "arrow-down" "w-3 h-3" %}</span> zhoršení přesahující chybu měření, <span class="badge">{% icon "minus" "w-3 h-3" %}</span> v pásmu chyby.</li>
         <li><strong>Barva pozadí</strong> = postavení v týmu: <span class="tym-vzorek tym-top"></span> o 1 SD a víc lepší než průměr, <span class="tym-vzorek tym-low"></span> o 1 SD a víc horší (s ohledem na to, zda je lepší vyšší, nebo nižší hodnota). Počítá se od 4 změřených.</li>
+        <li><strong>Změna proti</strong> minulému, nebo výchozímu měření (volba nahoře); CSV proti výchozímu má i změnu a posouzení. <em>Výchozí měření skupiny</em> dole nastaví každému jeho první měřený den od data.</li>
+        <li><strong>Připravenost</strong> = semafor posledního testovacího dne: <span class="semafor semafor-zelena"></span> 0–1, <span class="semafor semafor-oranzova"></span> 2–3, <span class="semafor semafor-cervena"></span> 4 a víc signálů (odpovědi ranního dotazníku za prahem a klíčové ukazatele zhoršené víc než o MDC). Klepnutím se otevře den s rozpisem.</li>
         <li>Zašedlá hodnota je starší než 120 dní. Po najetí myší: datum, změna, odchylka od průměru.</li>
         <li>Klepnutím na záhlaví se řadí. <em>CSV pro Excel</em> stáhne tabulku, <em>QR karty</em> vytiskne kartičky skupiny.</li>
       </ul>
@@ -499,6 +502,12 @@
         <dd>Nejlepší dosud naměřená hodnota dne podle žádoucího směru. Poslední měření je „nové maximum“, „na úrovni maxima“ (rozdíl pod MDC), nebo „o X pod maximem“.</dd>
         <dt>Za 12 měsíců</dt>
         <dd>Změna proti nejstaršímu měření v posledním roce (i v procentech) a počet měření za tu dobu.</dd>
+        <dt>Výchozí měření</dt>
+        <dd>Den, proti kterému se posuzují další měření sportovce (začátek studie, před soustředěním). Posouzení proti MDC jako u změny proti minule; v grafech modré pásmo výchozí ± MDC.</dd>
+        <dt>Semafor připravenosti</dt>
+        <dd>Počet signálů dne: odpovědi dotazníků za prahem u otázky (ranní dotazník: spánek pod 6 h, ospalost KSS 7 a víc, únava 7 a víc, bolest svalů 4 a víc) a klíčové ukazatele zhoršené proti výchozímu (bez něj minulému) měření víc než o MDC. 0–1 zelená, 2–3 oranžová, 4 a víc červená. Ukazatele bez MDC a otázky bez odpovědi se nepočítají; semafor se ukáže, až když jsou posouzené aspoň 4 ukazatele (typicky den s ranním dotazníkem).</dd>
+        <dt>MDC z vlastních dat</dt>
+        <dd>Nastavení → MDC u ukazatelů → <em>spočítat z dat</em>: typická chyba z opakovaných měření skupiny v klidném období (TE = SD rozdílů / √2 po odečtení posunu skupiny), MDC90 = 1,645·√2·TE, MDC95 = 1,96·√2·TE; uloží se i se zdrojem.</dd>
         <dt>Cíl</dt>
         <dd>Cílová hodnota klíčového ukazatele. Zbývá = rozdíl aktuální hodnoty a cíle; pod MDC je cíl „prakticky splněn“, jinak „zbývá více než chyba měření“. Ukazatel postupu vede od hodnoty při nastavení cíle k cílové.</dd>
       </dl>

@@ -19,7 +19,9 @@ dopočítá (`apps/analytics/compare.py`):
   v jednotkách i v procentech, a počet měření za tu dobu.
 
 Posouzení je vždy proti MDC, stejnými slovy jako změna proti minule. Bez
-MDC se o zlepšení nemluví. Ukazuje se na dlaždicích (karta sportovce,
+MDC se o zlepšení nemluví. Má-li sportovec nastavené **výchozí měření**
+(začátek studie, před soustředěním), přibude srovnání proti němu – viz
+[vychozi-mereni-a-pripravenost.md](vychozi-mereni-a-pripravenost.md). Ukazuje se na dlaždicích (karta sportovce,
 portál sportovce i trenéra), ve zprávě (tabulka *Vývoj v čase* a fakta pro
 jazykový model: `od_zacatku_sezony`, `osobni_maximum`, `za_12_mesicu`)
 a v grafech (tečkovaná čára začátku sezóny).

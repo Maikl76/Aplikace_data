@@ -199,13 +199,28 @@ def _series_of_day(session) -> dict:
     return out
 
 
-def _long_term(metric, points, value, sport) -> dict:
-    """Od začátku sezóny, osobní maximum a vývoj za 12 měsíců – do položky klíčové metriky."""
+def _long_term(metric, points, value, subject) -> dict:
+    """
+    Proti výchozímu měření, od začátku sezóny, osobní maximum a vývoj za 12 měsíců
+    – do položky klíčové metriky.
+    """
     from apps.analytics.compare import compare
 
     d = metric.decimals
-    cmp = compare(metric, points, sport=sport)
+    cmp = compare(metric, points, sport=subject.sport, baseline_date=subject.baseline_date,
+                  baseline_label=subject.baseline_label)
     item = {}
+    if (b := cmp["baseline"]) and not b["is_baseline"]:
+        item["proti_vychozimu_mereni"] = {
+            "vychozi_mereni": b["date"].strftime("%d. %m. %Y"),
+            **({"popis": b["label"]} if b["label"] else {}),
+            "hodnota": round(b["value"], d),
+            "zmena": round(round(value, d) - round(b["value"], d), d),
+            "procent": b["pct"],
+            "posouzeni": _assessment(metric, value - b["value"]),
+        }
+    elif b:
+        item["proti_vychozimu_mereni"] = "toto je výchozí měření"
     if cmp["season"]:
         c = cmp["season"]
         item["od_zacatku_sezony"] = {
@@ -282,7 +297,7 @@ def _key_metrics(session) -> list[dict]:
             if metric.mdc is not None:
                 item["mdc"] = round(metric.mdc, d)
         if (points := series.get(key)) and len(points) > 1:
-            item.update(_long_term(metric, points, entry["value"], session.subject.sport))
+            item.update(_long_term(metric, points, entry["value"], session.subject))
 
         norm = find_norm(metric, session.subject, side=entry["side"],
                          mode=entry["mode"], speed=entry["speed"], day=session.date,

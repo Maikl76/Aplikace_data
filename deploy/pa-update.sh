@@ -157,6 +157,8 @@ main() {
         "$PY" manage.py ukazkove_ucty
         # Ukázkové genetické vzorky (fiktivní genotypy) prvním třem dospělým sportovcům – jen při DEMO_MODE.
         "$PY" manage.py ukazkova_genetika
+        # Ukázkové výchozí měření a ranní dotazník (fiktivní odpovědi) prvním sportovcům – jen při DEMO_MODE.
+        "$PY" manage.py ukazkova_pripravenost
     fi
     "$PY" manage.py collectstatic --noinput --verbosity 0
 

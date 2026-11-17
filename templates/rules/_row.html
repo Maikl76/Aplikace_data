@@ -4,19 +4,26 @@
   <div class="grid sm:grid-cols-12 gap-2 items-end">
     <label class="block sm:col-span-3"><span class="text-xs text-2">Druh</span>
       <select name="r{{ i }}_kind" class="input mt-1 text-sm py-1.5" data-kind>{% for value, label, help in kinds %}<option value="{{ value }}" {% if row.kind == value %}selected{% endif %} title="{{ help }}">{{ label }}</option>{% endfor %}</select></label>
-    <label class="block sm:col-span-4"><span class="text-xs text-2">Ukazatel</span>
+    <label class="block sm:col-span-4" data-ukazatel><span class="text-xs text-2">Ukazatel</span>
       <select name="r{{ i }}_metric" class="input mt-1 text-sm py-1.5">
         <option value="">— vyberte —</option>
         <option value="*" {% if row.metric == "*" %}selected{% endif %}>všechny ukazatele měřené oboustranně (jen u asymetrie)</option>
         {% for m in metrics %}<option value="{{ m.code }}" {% if row.metric == m.code %}selected{% endif %}>{{ m.name }}{% if m.unit %} [{{ m.unit }}]{% endif %}</option>{% endfor %}
       </select></label>
+    <label class="block sm:col-span-4" data-otazka><span class="text-xs text-2">Otázka dotazníku</span>
+      <select name="r{{ i }}_question" class="input mt-1 text-sm py-1.5">
+        <option value="">— vyberte —</option>
+        {% regroup questions by questionnaire as by_questionnaire %}
+        {% for group in by_questionnaire %}<optgroup label="{{ group.grouper }}">{% for q in group.list %}<option value="{{ q.code }}" {% if row.question == q.code %}selected{% endif %}>{{ q.text }}{% if q.hint %} ({{ q.hint }}){% endif %}</option>{% endfor %}</optgroup>{% endfor %}
+      </select></label>
+    <div class="block sm:col-span-4 text-xs text-2 pb-2" data-semafor>počet signálů dne: odpovědi za prahem otázky a klíčové ukazatele zhoršené víc než o MDC (0–1 zelená, 2–3 oranžová, 4 a víc červená)</div>
     <label class="block sm:col-span-2"><span class="text-xs text-2">Operátor</span>
       <select name="r{{ i }}_op" class="input mt-1 text-sm py-1.5">{% for op in operators %}<option value="{{ op }}" {% if row.op == op %}selected{% endif %}>{{ op }}</option>{% endfor %}</select></label>
     <label class="block sm:col-span-2"><span class="text-xs text-2">Práh</span>
       <input name="r{{ i }}_value" value="{{ row.value }}" inputmode="decimal" class="input mt-1 text-sm py-1.5" placeholder="např. 1,0"></label>
     <div class="sm:col-span-1 text-right"><button type="button" class="btn btn-sm" data-odebrat title="Odebrat podmínku">{% icon "minus" %}</button></div>
   </div>
-  <div class="grid sm:grid-cols-12 gap-2 items-end mt-2">
+  <div class="grid sm:grid-cols-12 gap-2 items-end mt-2" data-kde>
     <label class="block sm:col-span-3"><span class="text-xs text-2">Strana</span>
       <select name="r{{ i }}_side" class="input mt-1 text-sm py-1.5"><option value="">každá strana</option>{% for value, label in sides %}<option value="{{ value }}" {% if row.side == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
     <label class="block sm:col-span-3"><span class="text-xs text-2">Režim</span>
@@ -26,5 +33,10 @@
     <label class="block sm:col-span-2"><span class="text-xs text-2">Segment</span>
       <input name="r{{ i }}_segment" value="{{ row.segment }}" maxlength="32" class="input mt-1 text-sm py-1.5" placeholder="každý"></label>
     <label class="flex items-center gap-2 sm:col-span-2 text-xs pb-2" data-mdc><input type="checkbox" name="r{{ i }}_mdc" {% if row.mdc %}checked{% endif %}> jen změna nad MDC</label>
+  </div>
+  <div class="mt-2 text-xs flex flex-wrap items-center gap-3" data-proti>
+    <span class="text-2">Změna proti:</span>
+    <label class="inline-flex items-center gap-1"><input type="radio" name="r{{ i }}_against" value="minule" {% if row.against != "vychozi" %}checked{% endif %}> minulému měření</label>
+    <label class="inline-flex items-center gap-1"><input type="radio" name="r{{ i }}_against" value="vychozi" {% if row.against == "vychozi" %}checked{% endif %}> výchozímu měření sportovce</label>
   </div>
 </div>

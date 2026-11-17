@@ -332,7 +332,8 @@ def report_context(report) -> dict:
     if session is None:
         return context
 
-    from apps.analytics import compare
+    from apps.analytics import baseline, compare
+    from apps.analytics.overview import baseline_point
     from apps.subjects import goals as goals_module
 
     from . import followup
@@ -345,6 +346,9 @@ def report_context(report) -> dict:
     # dlouhodobě: od začátku sezóny, osobní maximum, za 12 měsíců; cíle k datu měření
     context["long_term"] = results.long_term(session, norms=norms)
     context["season_phrase"] = compare.season_phrase(session.subject.sport)
+    # výchozí měření (začátek studie, před soustředěním) – sloupec v Vývoji v čase
+    context["baseline_text"] = baseline.describe(session.subject, case="3")
+    context["baseline_shown"] = any(r["compare"]["baseline"] for r in context["long_term"])
     goal_progress = goals_module.goals_for(session.subject, until=session.date, today=session.date)
     context["goals"] = [p for p in goal_progress if p.current is not None]
     goals_by = goals_module.by_metric(goal_progress)
@@ -361,7 +365,8 @@ def report_context(report) -> dict:
             "label": results.qualifier_label(s["qualifiers"]),
             "unit": s["metric"].unit,
             "svg": svg.trend_svg(s["metric"], s["points"], norm=s["norm"], goal=goal_of(s),
-                                 season_from=season_from),
+                                 season_from=season_from,
+                                 baseline=baseline_point(session.subject, s["points"])),
             "caption": svg.trend_caption(s["metric"], s["points"]),
             "norm": s["norm"],
         }

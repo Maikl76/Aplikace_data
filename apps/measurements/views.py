@@ -222,23 +222,36 @@ def week(request):
 @login_required
 def team(request):
     """Týmový přehled: sportovci skupiny × klíčové ukazatele její baterie testů."""
+    from apps.analytics import readiness
     from apps.analytics.reference import ReferenceIndex
-    from apps.analytics.team import MIN_GROUP, STALE_DAYS, columns_for, team_table
+    from apps.analytics.team import AGAINST, MIN_GROUP, STALE_DAYS, columns_for, team_table
+    from apps.core import access
     from apps.subjects.search import label
 
     batteries, battery = _pick_battery(request)
+    against = request.GET.get("srovnani") if request.GET.get("srovnani") in AGAINST else "minule"
     context = {"batteries": batteries, "battery": battery, "rows": [], "columns": [],
-               "min_group": MIN_GROUP, "stale_days": STALE_DAYS, "reference": None}
+               "min_group": MIN_GROUP, "stale_days": STALE_DAYS, "reference": None,
+               "against": against, "against_text": AGAINST[against],
+               "against_choices": list(AGAINST.items()),
+               "may_set_baseline": access.can(request.user, "subjects_edit"),
+               "readiness_levels": readiness.LEVELS, "today": timezone.localdate()}
     if battery:
         subjects = label(_battery_subjects(request, battery), request.user, subject=lambda s: s)
         subjects.sort(key=lambda s: s.jmeno.lower())
         columns = columns_for(battery.protocols())
         reference = ReferenceIndex(request.user.organization)
-        table = team_table(subjects, columns, today=timezone.localdate(), reference=reference)
+        table = team_table(subjects, columns, today=timezone.localdate(), reference=reference,
+                           against=against)
         summary = list(zip(columns, table["summary"], strict=True))
         bands = [s["ref"] for _, s in summary if s["ref"] is not None]
+        lights = readiness.latest_for(subjects)
+        for row in table["rows"]:
+            row["readiness"] = lights.get(row["subject"].pk)
         context.update(columns=columns, rows=table["rows"], summary=summary,
-                       reference=bands[0] if bands else None)
+                       reference=bands[0] if bands else None,
+                       with_baseline=sum(1 for s in subjects if s.baseline_date),
+                       with_readiness=any(lights.values()))
         if request.GET.get("format") == "csv":
             from apps.core import access
 
@@ -248,11 +261,55 @@ def team(request):
             # Tabulka odchází z aplikace (se jmény, pokud je uživatel vidí) – do auditu.
             record(request, AuditLog.Action.EXPORT, battery, baterie=battery.label,
                    sportovci=[r["subject"].code for r in table["rows"]])
-            return _team_csv(battery, columns, table["rows"])
+            return _team_csv(battery, columns, table["rows"], against=against)
     return render(request, "measurements/team.html", context)
 
 
-def _team_csv(battery, columns, rows):
+@login_required
+def team_baseline(request):
+    """
+    Výchozí měření celé skupině: každému jeho první měřený testovací den od data
+    (ve studii s víc bloky má každý blok svá data), nebo zrušit všem.
+    """
+    from datetime import date as date_cls
+
+    from apps.analytics import baseline
+    from apps.core import access
+
+    _, battery = _pick_battery(request)
+    back = reverse("team") + (f"?baterie={battery.pk}&srovnani=vychozi" if battery else "")
+    if request.method != "POST" or battery is None:
+        return redirect(back)
+    if not access.can(request.user, "subjects_edit"):
+        return render(request, "core/odepreno.html", {"duvod": access.reason("subjects_edit")},
+                      status=403)
+    subjects = _battery_subjects(request, battery)
+    if request.POST.get("akce") == "zrusit":
+        count = baseline.clear_for_group(subjects)
+        record(request, AuditLog.Action.UPDATE, battery, baterie=battery.label,
+               vychozi_mereni=None, sportovcu=count)
+        messages.success(request, f"Výchozí měření zrušeno u {count} sportovců skupiny.")
+        return redirect(back)
+    try:
+        since = date_cls.fromisoformat(request.POST.get("od", "").strip())
+    except ValueError:
+        messages.error(request, "Zadejte datum, od kterého se hledá první měření.")
+        return redirect(back)
+    result = baseline.set_for_group(subjects, since, request.POST.get("popis", ""))
+    record(request, AuditLog.Action.UPDATE, battery, baterie=battery.label,
+           vychozi_mereni_od=since.isoformat(),
+           sportovci=[s.code for s in result["changed"]])
+    parts = [f"Výchozí měření nastaveno {len(result['changed'])} sportovcům "
+             f"(první měřený den od {since:%d.%m.%Y})."]
+    if result["unchanged"]:
+        parts.append(f"Beze změny: {len(result['unchanged'])}.")
+    if result["missing"]:
+        parts.append(f"Bez měření od toho dne (ponecháno, jak bylo): {len(result['missing'])}.")
+    messages.success(request, " ".join(parts))
+    return redirect(back)
+
+
+def _team_csv(battery, columns, rows, *, against="minule"):
     """Tabulka pro Excel: středník a desetinná čárka, jak je v Česku zvykem."""
     import csv
 
@@ -263,16 +320,24 @@ def _team_csv(battery, columns, rows):
                                        f'{timezone.localdate():%Y-%m-%d}.csv"')
     response.write("\ufeff")  # ať Excel pozná UTF-8
     writer = csv.writer(response, delimiter=";")
+    # Proti výchozímu měření i změna a posouzení – podklad pro vyhodnocení studie.
+    with_change = against == "vychozi"
     header = ["Sportovec"]
     for c in columns:
         name = f"{c['metric'].name}{' – ' + c['label'] if c['label'] else ''}"
         header += [f"{name} [{c['unit']}]" if c["unit"] else name, f"{name} – datum"]
+        if with_change:
+            header += [f"{name} – změna proti výchozímu", f"{name} – posouzení"]
     writer.writerow(header)
     for row in rows:
         line = [row["subject"].jmeno]
         for cell in row["cells"]:
             line += ([cell["value_txt"], f"{cell['date']:%d.%m.%Y}"]
                      if cell else ["", ""])
+            if with_change:
+                verdict = cell["verdict"] if cell else None
+                line += ([verdict["delta_txt"], verdict["text"]] if verdict
+                         else ["", "výchozí měření" if cell and cell.get("is_baseline") else ""])
         writer.writerow(line)
     return response
 
@@ -300,8 +365,16 @@ def session_detail(request, pk):
     reports = list(session.reports.order_by("-created_at"))
     previous = followup.state(session)
     steps = session_steps(session, runs, unstable, reports, followup=previous)
+    from apps.analytics import baseline, readiness
+    from apps.core import access
+
+    measured = any(r.hodnot for r in runs)
     return render(request, "measurements/session_detail.html", {
         "session": session,
+        "is_baseline": session.subject.baseline_date == session.date,
+        "baseline_text": baseline.describe(session.subject, case="3"),
+        "may_set_baseline": measured and access.can(request.user, "subjects_edit"),
+        "readiness": readiness.for_session(session),
         "je_minuly": session.date < timezone.localdate(),
         "unstable": unstable,
         "runs": runs,

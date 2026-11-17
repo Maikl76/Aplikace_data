@@ -84,7 +84,9 @@ def kpi_tiles(subject, *, limit: int = 6, goals=None, reference=None) -> list[di
             "delta_txt": "",
             "verdict": None,
             # srovnání se začátkem sezóny, osobním maximem a za 12 měsíců
-            "compare": compare(metric, points, sport=subject.sport),
+            "compare": compare(metric, points, sport=subject.sport,
+                               baseline_date=subject.baseline_date,
+                               baseline_label=subject.baseline_label),
             # postup k cíli, je-li u ukazatele nastavený
             "goal": goals.get(metric.pk),
             # interní pásmo laboratoře a kde v něm poslední hodnota leží
@@ -101,6 +103,14 @@ def kpi_tiles(subject, *, limit: int = 6, goals=None, reference=None) -> list[di
             tile["verdict"] = {"css": css, "icon": icon, "text": text}
         tiles.append(tile)
     return tiles
+
+
+def baseline_point(subject, points):
+    """(datum, hodnota) výchozího měření v řadě, nebo None (nenastaveno, ten den neměřeno)."""
+    day = subject.baseline_date
+    if day is None:
+        return None
+    return next(((d, v) for d, v in points if d == day), None)
 
 
 def trend_specs(subject, *, goals=None, reference=None) -> list:
@@ -120,8 +130,10 @@ def trend_specs(subject, *, goals=None, reference=None) -> list:
         since = season_start(s["points"][-1][0], subject.sport) if len(s["points"]) > 1 else None
         band = (reference.band_for(subject, s["metric"], s["qualifiers"])
                 if reference is not None else None)
-        specs.append(both_themes(lambda theme, s=s, goal=goal, since=since, band=band: trend_chart(
+        base = baseline_point(subject, s["points"])
+        specs.append(both_themes(lambda theme, s=s, goal=goal, since=since, band=band,
+                                 base=base: trend_chart(
             s["metric"], s["points"], qualifiers=s["qualifiers"], norm=s["norm"], goal=goal,
-            season_from=since, band=band, theme=theme)))
+            season_from=since, band=band, baseline=base, theme=theme)))
     return specs
 

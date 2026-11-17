@@ -607,6 +607,23 @@ class Question(models.Model):
         help_text='Např. {"0": "klid", "10": "maximální úsilí"}. Body bez popisku '
                   "se ukážou jen číslem.")
 
+    # Signál do semaforu připravenosti: odpověď za prahem (spánek pod 6 h,
+    # ospalost KSS 7 a víc) je jeden signál. Jen u škály, čísla a ano/ne.
+    class SignalOp(models.TextChoices):
+        NONE = "", "bez signálu"
+        LT = "<", "méně než"
+        LE = "<=", "nejvýš"
+        GT = ">", "víc než"
+        GE = ">=", "aspoň"
+        EQ = "==", "rovno"
+
+    signal_op = models.CharField("signál, když je odpověď", max_length=2,
+                                 choices=SignalOp.choices, blank=True)
+    signal_value = models.FloatField("práh signálu", null=True, blank=True,
+                                     help_text="U ano/ne: 1 = ano, 0 = ne.")
+    signal_label = models.CharField("signál slovy", max_length=60, blank=True,
+                                    help_text="Krátce do semaforu, např. „málo spánku“.")
+
     class Meta:
         verbose_name = "otázka"
         verbose_name_plural = "otázky"
@@ -637,6 +654,31 @@ class Question(models.Model):
     @property
     def has_states(self) -> bool:
         return self.allow_unknown or self.allow_na
+
+    @property
+    def has_signal(self) -> bool:
+        return bool(self.signal_op) and self.signal_value is not None and self.kind in (
+            self.Kind.SCALE, self.Kind.NUMBER, self.Kind.YESNO)
+
+    def is_signal(self, value) -> bool:
+        """Je odpověď ``value`` za prahem signálu? Bez prahu nebo hodnoty ne."""
+        import operator
+
+        if not self.has_signal or value is None:
+            return False
+        compare = {"<": operator.lt, "<=": operator.le, ">": operator.gt, ">=": operator.ge,
+                   "==": operator.eq}[self.signal_op]
+        return compare(float(value), float(self.signal_value))
+
+    def signal_text(self) -> str:
+        """„méně než 6 h“ – práh slovy pro nápovědu a semafor."""
+        if not self.has_signal:
+            return ""
+        if self.kind == self.Kind.YESNO:
+            return "odpověď " + ("ano" if self.signal_value else "ne")
+        value = f"{self.signal_value:g}".replace(".", ",")
+        unit = f" {self.unit}" if self.unit else ""
+        return f"{self.get_signal_op_display()} {value}{unit}"
 
 
 class SettingsTransfer(OrgScopedModel):

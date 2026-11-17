@@ -313,11 +313,12 @@ class Answer(models.Model):
             if self.value is None:
                 return ""
             label = question.label(self.value)
-            return f"{self.value:g}" + (f" – {label}" if label else "")
+            return f"{self.value:g}".replace(".", ",") + (f" – {label}" if label else "")
         if kind == Kind.NUMBER:
             if self.value is None:
                 return ""
-            return f"{self.value:g}" + (f" {question.unit}" if question.unit else "")
+            return (f"{self.value:g}".replace(".", ",")
+                    + (f" {question.unit}" if question.unit else ""))
         if kind == Kind.YESNO:
             return "" if self.value is None else ("ano" if self.value else "ne")
         if kind in (Kind.CHOICE, Kind.MULTI):
