@@ -24,9 +24,24 @@ připravenosti, opakování v rámci dne) → doporučení.
 
 ## Jak načíst
 
-**Na počítači laboratoře (Windows):** přetáhněte sešit myší na
-`nacist-prodef.bat` ve složce aplikace (nebo ho spusťte a zadejte cestu).
-Zeptá se na heslo, ukáže, co v sešitu našel, a načte po potvrzení `ANO`.
+**Na počítači laboratoře (Windows), krok za krokem:**
+
+1. Spusťte `spustit.bat` – stáhne poslední verzi aplikace (i knihovnu na
+   odšifrování sešitu) a upraví databázi. Okno s aplikací nechte běžet.
+2. Pro jistotu zálohujte: dvojklik na `zalohovat.bat`.
+3. Sešit mějte mimo složku aplikace (třeba v Dokumentech) a **přetáhněte ho
+   myší na `nacist-prodef.bat`** ve složce aplikace. Nebo `nacist-prodef.bat`
+   spusťte dvojklikem a cestu k sešitu vložte (v Průzkumníku pravé tlačítko
+   na sešitu → *Kopírovat jako cestu*, do okna vložit Ctrl+V; uvozovky
+   nevadí) a Enter.
+4. Když je v aplikaci víc pracovišť, vyberte číslem, do kterého.
+5. Napište heslo k sešitu a Enter – při psaní se nic nezobrazuje, ani
+   hvězdičky; to je v pořádku.
+6. Okno ukáže, co v sešitu našel (probandi, testovací dny, pokusy, ranní
+   dotazníky). Když to sedí, napište `ANO` a Enter. Načítání trvá asi půl
+   minuty; aplikace přitom může běžet.
+7. V prohlížeči obnovte stránku (F5) – *Týmový přehled* nabídne týmy
+   *PRODEF Stres* a *PRODEF Kontrola*. Co dál ukázat, je níže.
 
 **Příkazem:**
 
@@ -46,7 +61,7 @@ u probanda import nepřepíše. Když je v aplikaci víc pracovišť, přidejte
 
 | v sešitu | v aplikaci |
 |---|---|
-| list Probandi (kdo nastoupil) | sportovci `PRODEF-Pxx`, sport *PRODEF – simulovaný operační stres*, tým *PRODEF Stres* / *PRODEF Kontrola*, kategorie = rameno, přibližný rok narození z věku, v poznámce blok |
+| list Probandi (kdo nastoupil a má aspoň jedno měření VALD; kdo nemá žádné, se nenačte a souhrn ho jmenuje) | sportovci `PRODEF-Pxx`, sport *PRODEF – simulovaný operační stres*, tým *PRODEF Stres* / *PRODEF Kontrola*, kategorie = rameno, přibližný rok narození z věku, v poznámce blok |
 | den 1–5, datum | testovací den (místo „PRODEF, Den 3 – sobota (SMOS)“) |
 | měřicí bod 1–4 | provedení testu; **bod 1 je hlavní měření dne**, body 2–4 opakování dne s pozicí „po zátěžovém bloku N“ (z listu MASTER) |
 | VALD_CMJ, VALD_IMTP, VALD_SLS (pokus = řádek) | pokusy a hodnoty přes **profily importu VALD ForceDecks** – stejné sloupce → ukazatele jako běžný export z VALD Hubu, i levá a pravá strana |
@@ -83,10 +98,15 @@ by prázdný testovací den, který by se tvářil jako naplánovaný.
 
 - **IMTP:** sešit (list MASTER) bere u vrcholové síly nejlepší pokus,
   katalog aplikace průměr pokusů. Pro stejné hodnoty jako MASTER nastavte
-  u *Vrcholová síla (IMTP)* hodnotu dne „nejlepší pokus“ (Nastavení →
-  Testy) – změní se tím ale hodnota dne u všech sportovců pracoviště.
+  v *Administraci* (odkaz v Nastavení) → *Metriky* → *Vrcholová síla (IMTP)*
+  → *Hodnota dne z pokusů*: **Nejlepší pokus**. Změní se tím hodnota dne
+  u všech sportovců pracoviště, a to hned i zpětně (hodnota dne se z pokusů
+  počítá při zobrazení); vrátí se stejnou cestou (*Průměr platných pokusů*).
+  Import na to upozorní, jen dokud je nastavený průměr.
 - **MDC** se ukládá ke sdílenému ukazateli – platí pro všechny sportovce
   pracoviště. Na počítači, kde jsou i běžní sportovci laboratoře, zvažte,
-  jestli MDC z vojenské studie chcete i pro ně.
+  jestli MDC z vojenské studie chcete i pro ně; pro ukázku stačí *spočítat
+  z dat* a výsledek neuložit. Původní TE a MDC se při uložení zapíší do
+  auditu (v Nastavení i příkazem `--mdc-z-kontroly`), takže jdou vrátit.
 - Semafor potřebuje aspoň 4 posouzené ukazatele, takže ho mají dny
   s ranním dotazníkem (dny 2–5).

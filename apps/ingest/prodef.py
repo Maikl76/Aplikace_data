@@ -232,6 +232,7 @@ class TrialRow:
 class Plan:
     probands: dict = field(default_factory=dict)        # pid → Proband
     excluded: list = field(default_factory=list)        # pid, kdo nenastoupil
+    no_data: list = field(default_factory=list)         # pid, kdo nemá v sešitu žádné měření
     trials: list = field(default_factory=list)
     positions: dict = field(default_factory=dict)       # (pid, den, bod) → pozice
     day_names: dict = field(default_factory=dict)       # (pid, datum) → (den, název dne)
@@ -241,20 +242,50 @@ class Plan:
     notes: list = field(default_factory=list)
     skipped: int = 0
 
+    def runs(self) -> dict:
+        """Řádky pokusů po provedeních testu: (pid, datum, protokol, měřicí bod) → řádky."""
+        groups = defaultdict(list)
+        for t in self.trials:
+            groups[(t.pid, t.date, t.protocol, t.point)].append(t)
+        return groups
+
     def summary(self) -> dict:
         days = {(t.pid, t.date) for t in self.trials}
-        runs = {(t.pid, t.date, t.protocol, t.point) for t in self.trials}
+        runs = self.runs()
         per_arm = defaultdict(int)
         for proband in self.probands.values():
             per_arm[proband.arm] += 1
         return {
             "probandu": len(self.probands), "ramena": dict(per_arm),
-            "nenastoupili": len(self.excluded), "testovacich_dnu": len(days),
-            "provedeni": len(runs), "pokusu": len(self.trials),
+            "nenastoupili": len(self.excluded),
+            "bez_mereni": [subject_code(pid) for pid in self.no_data],
+            "testovacich_dnu": len(days),
+            # pokusy stejně jako při zápisu (levá a pravá strana s jedním číslem = jeden pokus)
+            "provedeni": len(runs),
+            "pokusu": sum(len(_place_trials(rows)[0]) for rows in runs.values()),
             "hodnot": sum(len(t.values) for t in self.trials),
             "dotazniku": len([k for k in self.answers if k in days]),
             "preskoceno_radku": self.skipped,
         }
+
+
+def _place_trials(rows) -> tuple[list[int], list]:
+    """
+    Čísla pokusů jednoho provedení testu ze sešitu. U stoje na jedné noze má levá
+    i pravá „(1)“ a patří do téhož pokusu; kdyby se hodnota (ukazatel a strana)
+    v pokusu opakovala, dostane řádek další číslo. Vrátí čísla pokusů a dvojice
+    (číslo, řádek).
+    """
+    used = defaultdict(set)     # číslo pokusu → {(ukazatel, strana)}
+    placed = []
+    for row in sorted(rows, key=lambda r: (r.number, r.moment or time())):
+        number = row.number
+        while any((code, side) in used[number] for code, side, _ in row.values):
+            number += 1
+        for code, side, _ in row.values:
+            used[number].add((code, side))
+        placed.append((number, row))
+    return sorted(used), placed
 
 
 def _profile(adapter: str, test_type: str, organization=None):
@@ -315,6 +346,12 @@ def read_plan(workbook, organization=None) -> Plan:
                      humantrak=adapter == "vald_humantrak")
     if not found:
         raise ProdefError("V sešitu nejsou listy VALD_CMJ / VALD_IMTP s pokusy.")
+    # Proband bez jediného pokusu by byl v týmech prázdný řádek bez testovacích dnů
+    # (dotazníky se načítají jen ke dnům s měřením) – nenačte se, souhrn ho jmenuje.
+    measured = {t.pid for t in plan.trials}
+    plan.no_data = sorted(pid for pid in plan.probands if pid not in measured)
+    for pid in plan.no_data:
+        del plan.probands[pid]
 
     _read_environment(plan, sheet_rows(workbook, "Prostředí", first="blok") or [])
     _read_answers(plan, sheet_rows(workbook, "Dotazníky_skóry") or [])
@@ -543,9 +580,7 @@ def apply_plan(plan: Plan, organization) -> dict:
             sessions[(pid, day_date)] = session
 
         # provedení testů: první bod dne je hlavní měření dne
-        groups = defaultdict(list)
-        for t in plan.trials:
-            groups[(t.pid, t.date, t.protocol, t.point)].append(t)
+        groups = plan.runs()
         first_point = defaultdict(lambda: 99)
         for pid, day_date, protocol, point in groups:
             key = (pid, day_date, protocol)
@@ -574,19 +609,9 @@ def apply_plan(plan: Plan, organization) -> dict:
                 run.save(update_fields=["started_at", "is_primary", "conditions", "updated_at"])
                 run.trials.all().delete()
             counts["provedeni"] += 1
-            # Čísla pokusů ze sešitu; u stoje na jedné noze má levá i pravá „(1)“
-            # a patří do téhož pokusu. Kdyby se hodnota opakovala, dostane další číslo.
-            used = defaultdict(set)     # číslo pokusu → {(ukazatel, strana)}
-            placed = []
-            for row in sorted(rows, key=lambda r: (r.number, r.moment or time())):
-                number = row.number
-                while any((code, side) in used[number] for code, side, _ in row.values):
-                    number += 1
-                for code, side, _ in row.values:
-                    used[number].add((code, side))
-                placed.append((number, row))
+            numbers, placed = _place_trials(rows)
             trials = {t.number: t for t in Trial.objects.bulk_create(
-                [Trial(protocol_run=run, number=n) for n in sorted(used)])}
+                [Trial(protocol_run=run, number=n) for n in numbers])}
             counts["pokusu"] += len(trials)
             items = []
             for number, row in placed:
@@ -681,6 +706,29 @@ def delete_imported(organization) -> dict:
     return counts
 
 
+def imtp_rule_note(organization=None) -> str:
+    """
+    Upozornění, když se vrcholová síla IMTP v aplikaci počítá z pokusů jinak než
+    v sešitu (list MASTER bere nejlepší pokus, katalog průměr). Prázdné, když už
+    je nastavený nejlepší pokus.
+    """
+    from django.db.models import Q
+
+    from apps.catalog.models import MetricDef
+
+    scope = Q(organization__isnull=True)
+    if organization is not None:
+        scope |= Q(organization=organization)
+    rules = set(MetricDef.objects.filter(scope, code="imtp_peak_force")
+                .values_list("trial_rule", flat=True))
+    if not rules or rules == {MetricDef.TrialRule.BEST}:
+        return ""
+    return ("Pozor: v sešitu (list MASTER) je u vrcholové síly IMTP nejlepší pokus, v aplikaci "
+            "průměr pokusů. Pro stejné hodnoty jako MASTER: Administrace → Metriky → Vrcholová "
+            "síla (IMTP) → Hodnota dne z pokusů: Nejlepší pokus. Platí pro všechny sportovce "
+            "pracoviště a hned i zpětně (hodnota dne se z pokusů počítá při zobrazení).")
+
+
 # --- MDC z kontrolní skupiny ----------------------------------------------------------------
 
 KEY_METRICS = ("cmj_height", "imtp_peak_force", "sls_cop_area")
@@ -710,7 +758,8 @@ def control_mdc(organization, *, save: bool = False, max_gap: int = 1) -> list[d
         if not results:
             continue
         result = results[0]
-        item = {"metric": metric, "result": result, "saved": False}
+        item = {"metric": metric, "result": result, "saved": False,
+                "puvodne": {"te": metric.typical_error, "mdc": metric.mdc}}
         if save:
             d = metric.decimals + 1
             metric.typical_error = round(result["te"], d)

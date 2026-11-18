@@ -80,3 +80,14 @@ def test_zacatek_az_po_git_pull_se_nemeni(name):
     assert hashlib.sha256(prefix).hexdigest()[:16] == FROZEN[name], (
         f"{name}: řádky až po git pull nemeňte – soubor, který git pull za běhu přepíše, "
         "by cmd četl od staré pozice. Nové příkazy patří až za git pull.")
+
+
+def test_nacteni_prodef_snese_cestu_v_uvozovkach():
+    """„Kopírovat jako cestu“ v Průzkumníku vloží cestu i s uvozovkami. Porovnání
+    if "%SESIT%"=="" by s nimi a s mezerou v cestě skončilo syntaktickou chybou
+    a okno by se bez vysvětlení zavřelo."""
+    text = (ROOT / "nacist-prodef.bat").read_text()
+    strip = 'set "SESIT=%SESIT:"=%"'
+    assert '"%SESIT%"==""' not in text
+    assert text.index("if not defined SESIT goto chyba") < text.index(strip)
+    assert text.index(strip) < text.index('import_prodef "%SESIT%" --zeptat')

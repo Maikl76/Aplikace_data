@@ -48,7 +48,7 @@ class Command(BaseCommand):
                 "Tohle je veřejný zkušební provoz. Data studie PRODEF sem patří jen se souhlasem "
                 "vedoucího projektu – pokud ho máte, spusťte příkaz s --souhlas-vedouciho. "
                 "Jinak data načtěte na počítači laboratoře.")
-        organization = self._organization(options.get("pracoviste"))
+        organization = self._organization(options.get("pracoviste"), ask=options["zeptat"])
 
         if options["smazat"]:
             return self._delete(organization, confirm=options["ano"])
@@ -62,7 +62,7 @@ class Command(BaseCommand):
 
     # ------------------------------------------------------------------------------------
 
-    def _organization(self, short_name):
+    def _organization(self, short_name, *, ask=False):
         if short_name:
             organization = Organization.objects.filter(short_name=short_name).first()
             if organization is None:
@@ -71,10 +71,23 @@ class Command(BaseCommand):
         organizations = list(Organization.objects.filter(is_active=True).order_by("pk"))
         if not organizations:
             raise CommandError("V aplikaci zatím není žádné pracoviště.")
-        if len(organizations) > 1:
-            names = ", ".join(o.short_name for o in organizations)
-            raise CommandError(f"Pracovišť je víc ({names}) – vyberte --pracoviste.")
-        return organizations[0]
+        if len(organizations) == 1:
+            return organizations[0]
+        if ask:
+            return self._choose(organizations)
+        names = ", ".join(o.short_name for o in organizations)
+        raise CommandError(f"Pracovišť je víc ({names}) – vyberte --pracoviste.")
+
+    def _choose(self, organizations):
+        """S --zeptat (nacist-prodef.bat) se pracoviště vybere číslem – při přetažení
+        sešitu na .bat se --pracoviste zadat nedá."""
+        self.stdout.write("V aplikaci je víc pracovišť – do kterého studii načíst?")
+        for number, organization in enumerate(organizations, 1):
+            self.stdout.write(f"  {number}  {organization.name} ({organization.short_name})")
+        answer = input("Číslo pracoviště: ").strip()
+        if answer.isdigit() and 1 <= int(answer) <= len(organizations):
+            return organizations[int(answer) - 1]
+        raise CommandError("Pracoviště nevybráno – nic se nenačetlo.")
 
     def _password(self, path):
         password = os.environ.get("XLSX_HESLO") or ""
@@ -103,6 +116,9 @@ class Command(BaseCommand):
             f"pokusů, {summary['hodnot']} hodnot, {summary['dotazniku']} ranních dotazníků.")
         if summary["nenastoupili"]:
             self.stdout.write(f"Nenačtou se {summary['nenastoupili']} probandi, kteří nenastoupili.")
+        if summary["bez_mereni"]:
+            self.stdout.write("Bez jediného měření VALD v sešitu, nenačtou se: "
+                              + ", ".join(summary["bez_mereni"]) + ".")
         if summary["preskoceno_radku"]:
             self.stdout.write(f"Přeskočeno řádků bez probanda, data nebo hodnot: "
                               f"{summary['preskoceno_radku']}.")
@@ -130,9 +146,9 @@ class Command(BaseCommand):
             "Dál: Týmový přehled → PRODEF Stres / PRODEF Kontrola (změna proti výchozímu "
             "měření). MDC z kontrolní skupiny spočítá Nastavení → MDC u ukazatelů → „spočítat "
             "z dat“ (skupina PRODEF Kontrola, odstup 1 den), nebo tento příkaz s --mdc-z-kontroly.")
-        self.stdout.write(
-            "Pozor: v sešitu je u IMTP nejlepší pokus, v katalogu aplikace průměr pokusů – pro "
-            "stejné hodnoty jako MASTER nastavte u Vrcholové síly (IMTP) „nejlepší pokus“.")
+        note = prodef.imtp_rule_note(organization)
+        if note:
+            self.stdout.write(note)
 
     def _mdc(self, organization):
         results = prodef.control_mdc(organization, save=True)
@@ -148,10 +164,15 @@ class Command(BaseCommand):
                 + (f" ({r['te_pct_txt']} %)" if r["te_pct_txt"] else "")
                 + f", MDC90 {r['mdc90_txt']} {metric.unit} – {r['n_subjects']} osob, "
                   f"{r['n_pairs']} párů; uloženo.")
+        # původní hodnoty do auditu – MDC platí pro všechny sportovce pracoviště a musí jít vrátit
         AuditLog.objects.create(user=None, action=AuditLog.Action.UPDATE,
                                 object_type="MetricDef", object_id="prodef-mdc",
                                 detail={"nastaveni": "mdc_z_kontroly_prodef",
-                                        "ukazatele": [i["metric"].code for i in results]})
+                                        "ukazatele": [i["metric"].code for i in results],
+                                        "puvodne": {i["metric"].code: i["puvodne"]
+                                                    for i in results}})
+        self.stdout.write("Původní TE a MDC jsou v auditu (Administrace → Audit), vrátit je jde "
+                          "v Nastavení → MDC u ukazatelů.")
 
     def _delete(self, organization, *, confirm):
         count = prodef.imported_subjects(organization).count()

@@ -8,8 +8,11 @@ cd /d "%~dp0"
 call .venv\Scripts\activate.bat || goto chyba
 
 set "SESIT=%~1"
-if "%SESIT%"=="" set /p SESIT=Cesta k sesitu PRODEF (xlsx): 
-if "%SESIT%"=="" goto chyba
+if not defined SESIT set /p "SESIT=Cesta k sesitu PRODEF (xlsx): "
+if not defined SESIT goto chyba
+rem "Kopirovat jako cestu" v Pruzkumniku pridava uvozovky - pryc s nimi.
+set "SESIT=%SESIT:"=%"
+if not defined SESIT goto chyba
 
 python manage.py import_prodef "%SESIT%" --zeptat || goto chyba
 echo.

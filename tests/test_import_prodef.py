@@ -40,19 +40,28 @@ def _person(pid, arm):
     return [pid, arm, 1, "2.–6. 7.", 22, 180, 80.0]
 
 
-def workbook(path, *, excluded=True):
-    """Dva probandi (stres, kontrola), dny 2–4, dva měřicí body, dva pokusy."""
+def workbook(path, *, excluded=True, extra_controls=0, without_data=()):
+    """
+    Dva probandi (stres, kontrola), dny 2–4, dva měřicí body, dva pokusy.
+    ``extra_controls`` přidá další kontrolní probandy s malým rozptylem mezi dny
+    (aby šla z kontrolní skupiny spočítat MDC).
+    """
     wb = openpyxl.Workbook()
     wb.remove(wb.active)
-    probandi = [_person(7, "Stres") + ["ANO"], _person(9, "Kontrola") + ["ANO"]]
+    people = [(7, "Stres"), (9, "Kontrola")] + [(11 + i, "Kontrola")
+                                                for i in range(extra_controls)]
+    probandi = [_person(pid, arm) + ["ANO"] for pid, arm in people]
+    probandi += [_person(pid, "Kontrola") + ["ANO"] for pid in without_data]
     if excluded:
         probandi.append(_person(31, "Stres") + ["NE"])
     _sheet(wb, "Probandi", COMMON + ["zarazen_do_analyzy"], probandi)
 
     master, cmj, imtp, sls, dotazniky = [], [], [], [], []
-    for pid, arm in ((7, "Stres"), (9, "Kontrola")):
+    for pid, arm in people:
+        noise = {day: ((pid * 7 + day * 3) % 5 - 2) * 0.3 if pid > 10 else 0.0 for day in DAYS}
         drop = {2: 0.0, 3: -4.0 if arm == "Stres" else -0.5,
                 4: -6.0 if arm == "Stres" else 0.3}
+        drop = {day: value + noise[day] for day, value in drop.items()}
         for day, (when, name) in DAYS.items():
             for point in (1, 2):
                 master.append(_person(pid, arm) + [day, point, when, POSITIONS[point]])
@@ -68,9 +77,11 @@ def workbook(path, *, excluded=True):
                         day, name, when, f"1{point}:1{trial}:00", point, f"Trial {trial}",
                         None, None, 2500.0 + 20 * drop[day] + 10 * trial])
                 sls.append(_person(pid, arm) + [
-                    day, name, when, f"1{point}:20:00", point, "Left (1)", None, None, 900.0])
+                    day, name, when, f"1{point}:20:00", point, "Left (1)", None, None,
+                    900.0 + 50 * noise[day]])
                 sls.append(_person(pid, arm) + [
-                    day, name, when, f"1{point}:21:00", point, "Right (1)", None, None, 950.0])
+                    day, name, when, f"1{point}:21:00", point, "Right (1)", None, None,
+                    950.0 - 40 * noise[day]])
             stres = arm == "Stres" and day >= 3
             for nastroj, polozka, value in (
                     ("Noční formulář", "hodin spánku tuto noc", 4.0 if stres else 7.5),
@@ -124,6 +135,9 @@ def test_import_zalozi_studii(lab, tmp_path):
     text = run(str(path))
     assert "Sešit: 2 probandů (Kontrola 1, Stres 1), 6 testovacích dnů" in text
     assert "Nenačtou se 1 probandi" in text and "Načteno do pracoviště ftvs" in text
+    # souhrn před zápisem počítá pokusy stejně jako zápis: CMJ 2 + IMTP 2 + stoj na jedné
+    # noze 1 (levá a pravá „(1)“ jsou jeden pokus) × 2 měřicí body × 3 dny × 2 probandi
+    assert "36 provedení testů, 60 pokusů" in text and "pokusů 60, hodnot" in text
 
     sport = Sport.objects.get(organization=lab, code="prodef")
     assert set(Team.objects.filter(sport=sport).values_list("name", flat=True)) == {
@@ -285,3 +299,55 @@ def test_zaheslovany_sesit_s_heslem(lab, tmp_path, monkeypatch):
     monkeypatch.setenv("XLSX_HESLO", "tajne-heslo-z-testu")
     assert "Načteno do pracoviště ftvs" in run(str(secret))
     assert msoffcrypto is not None
+
+
+def test_vic_pracovist_vyber_cislem(lab, tmp_path, monkeypatch):
+    """Přetažením sešitu na nacist-prodef.bat se --pracoviste zadat nedá – s --zeptat
+    se pracoviště vybere číslem."""
+    other = Organization.objects.create(name="Jiné pracoviště", short_name="jine")
+    path = str(workbook(tmp_path / "sesit.xlsx"))
+    with pytest.raises(CommandError, match="Pracovišť je víc"):
+        run(path)
+    monkeypatch.setattr("builtins.input", lambda prompt="": "7")
+    with pytest.raises(CommandError, match="Pracoviště nevybráno"):
+        run(path, "--zeptat")
+    answers = iter(["2", "ANO"])
+    monkeypatch.setattr("builtins.input", lambda prompt="": next(answers))
+    text = run(path, "--zeptat")
+    assert "  2  Jiné pracoviště (jine)" in text
+    assert "Načteno do pracoviště jine" in text
+    assert set(Subject.objects.values_list("organization", flat=True)) == {other.pk}
+
+
+def test_upozorneni_na_nejlepsi_pokus_imtp_jen_kdyz_je_potreba(lab, tmp_path):
+    from apps.catalog.models import MetricDef
+
+    path = str(workbook(tmp_path / "sesit.xlsx"))
+    assert "Hodnota dne z pokusů: Nejlepší pokus" in run(path)
+    MetricDef.objects.filter(code="imtp_peak_force").update(trial_rule=MetricDef.TrialRule.BEST)
+    assert prodef.imtp_rule_note(lab) == ""
+    assert "list MASTER" not in run(path)
+
+
+def test_mdc_z_kontroly_ulozi_a_puvodni_hodnoty_jsou_v_auditu(lab, tmp_path):
+    from apps.catalog.models import MetricDef
+
+    MetricDef.objects.filter(code="cmj_height").update(typical_error=0.9, mdc=2.1)
+    run(str(workbook(tmp_path / "sesit.xlsx", extra_controls=2)))
+    text = run("--mdc-z-kontroly")
+    assert "uloženo" in text and "Původní TE a MDC jsou v auditu" in text
+    metric = MetricDef.objects.get(code="cmj_height", organization__isnull=True)
+    assert metric.mdc != 2.1 and "PRODEF, kontrolní skupina" in metric.mdc_source
+    entry = AuditLog.objects.filter(object_id="prodef-mdc").latest("pk")
+    assert "cmj_height" in entry.detail["ukazatele"]
+    assert entry.detail["puvodne"]["cmj_height"] == {"te": 0.9, "mdc": 2.1}
+
+
+def test_proband_bez_mereni_se_nenacte(lab, tmp_path):
+    """Zařazený do analýzy, ale v sešitu bez jediného pokusu VALD: v týmu by byl
+    prázdný řádek – nenačte se a souhrn ho jmenuje."""
+    text = run(str(workbook(tmp_path / "sesit.xlsx", without_data=(29,))))
+    assert "Bez jediného měření VALD v sešitu, nenačtou se: PRODEF-P29." in text
+    assert "Sešit: 2 probandů" in text
+    assert not Subject.objects.filter(code="PRODEF-P29").exists()
+    assert prodef.imported_subjects(lab).count() == 2
