@@ -11,6 +11,18 @@ if not exist .venv (
 call .venv\Scripts\activate.bat || goto chyba
 
 echo Stahuji nejnovejsi verzi...
+rem Pojistka pred pull
+rem Mistni zmeny v souborech aplikace (treba po pokusu o nasazeni nebo uprave
+rem v editoru) by aktualizaci zastavily. Odlozi se stranou do git stash - nic
+rem se nesmaze, vratit jdou prikazem: git stash pop
+rem Radky az po git pull vcetne uz nemente: cmd cte tento soubor prubezne
+rem a git pull ho muze prepsat za behu (hlida tests/test_bat.py).
+git diff --quiet HEAD -- || (
+  echo V souborech aplikace jsou mistni zmeny, odkladam je stranou:
+  git status --short --untracked-files=no
+  git -c user.name=aplikace -c user.email=aplikace@localhost stash push -m "mistni zmeny pred aktualizaci" || goto chyba
+  echo Zmeny jsou odlozene, vratit je jde prikazem: git stash pop
+)
 git pull || goto chyba
 
 rem Kdyby pribyla nova knihovna. Kdyz nic nepribylo, trva to par sekund.

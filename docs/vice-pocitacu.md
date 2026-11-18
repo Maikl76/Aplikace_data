@@ -36,6 +36,20 @@ dostala skutečná data sportovců tam, kam nepatří.
 Dvojklik na **`spustit.bat`**. Stáhne nejnovější verzi, upraví databázi,
 spustí aplikaci a otevře prohlížeč. Okno nechte otevřené.
 
+Kdyby byl v souborech aplikace na tomto počítači ručně upravený soubor (třeba
+`fly.toml` po pokusu o nasazení), `spustit.bat` ho před stažením odloží stranou
+do `git stash` – nic se nesmaže a napíše, co odložil. Vrátit ho jde příkazem
+`git stash pop` v okně příkazového řádku ve složce aplikace.
+
+**Starší verze `spustit.bat`** (do listopadu 2026) to ještě neumí a skončí
+hláškou *Your local changes to the following files would be overwritten by
+merge*. Jednou to vyřešte ručně: v Průzkumníku otevřete složku aplikace, do
+adresního řádku napište `cmd` a Enter, v černém okně spusťte
+
+    git -c user.name=aplikace -c user.email=aplikace@localhost stash
+
+a pak znovu dvojklik na `spustit.bat`. Od té chvíle si s tím poradí sám.
+
 ## Přenos nastavení mezi instancemi
 
 Co nastavíte v aplikaci (nový test, MDC, norma, pravidlo, článek, genová
