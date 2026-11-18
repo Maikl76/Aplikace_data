@@ -1,0 +1,6 @@
+<label class="block{% if wide %} sm:col-span-2{% endif %}">
+  <span class="text-sm text-2">{{ field.label }}</span>
+  <div class="mt-1">{{ field }}</div>
+  {% if field.help_text %}<span class="text-xs text-muted">{{ field.help_text }}</span>{% endif %}
+  {% for error in field.errors %}<span class="block text-xs" style="color: var(--bad)">{{ error }}</span>{% endfor %}
+</label>

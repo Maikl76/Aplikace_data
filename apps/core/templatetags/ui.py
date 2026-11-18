@@ -17,6 +17,7 @@ register = template.Library()
 
 _PATHS = {
     "home": '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+    "user": '<circle cx="12" cy="8" r="3.5"/><path d="M5.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/>',
     "users": '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/>'
              '<path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"/><path d="M18 14.8c1.9.7 3.1 2.4 3.5 5.2"/>',
     "activity": '<path d="M3 12h4l3-7 4 14 3-7h4"/>',
@@ -93,10 +94,12 @@ def initials(name: str) -> str:
 
 @register.simple_tag(takes_context=True)
 def nav_link(context, url_name: str, label: str, icon_name: str, prefix: str = "",
-             badge: int = 0, css: str = ""):
+             badge: int = 0, css: str = "", exclude: str = ""):
     """
     Položka menu; aktivní podle začátku cesty. ``badge`` = počet k vyřízení,
-    ``css`` = třída navíc (např. nav-hlavni – Přehled odlišený barvou).
+    ``css`` = třída navíc (např. nav-hlavni – Přehled odlišený barvou),
+    ``exclude`` = začátek cesty, který patří jiné položce (Individuální
+    testování /mereni/novy/ pod Přehledem testování /mereni/).
     """
     from django.urls import reverse
 
@@ -104,6 +107,8 @@ def nav_link(context, url_name: str, label: str, icon_name: str, prefix: str = "
     url = reverse(url_name) if not url_name.startswith("/") else url_name
     path = request.path if request else ""
     active = path == url if url == "/" else path.startswith(prefix or url)
+    if active and exclude and path.startswith(exclude):
+        active = False
     count = format_html('<span class="nav-pocet" title="k vyřízení">{}</span>', badge) if badge else ""
     classes = "nav-link" + (" active" if active else "") + (f" {css}" if css else "")
     return format_html('<a href="{}" class="{}">{}<span>{}</span>{}</a>',

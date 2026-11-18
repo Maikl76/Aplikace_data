@@ -12,7 +12,7 @@ from apps.catalog.models import Protocol
 from apps.subjects.models import Subject
 
 from .models import TestSession
-from .planning import DERIVED_PROTOCOLS
+from .planning import DERIVED_PROTOCOLS, protocol_choices, protocol_label
 
 
 class TestSessionForm(forms.ModelForm):
@@ -33,7 +33,7 @@ class TestSessionForm(forms.ModelForm):
     protocols = forms.ModelMultipleChoiceField(
         queryset=Protocol.objects.filter(is_active=True).exclude(code__in=DERIVED_PROTOCOLS),
         required=False, label="Testy", widget=forms.CheckboxSelectMultiple,
-        help_text="Předvyplněno podle baterie sportu. Další test jde přidat i později.")
+        help_text="Předvyplněno podle zvolené sady testů. Další test jde přidat i později.")
 
     field_order = ["subject", "date", "protocols", "location", "season_phase",
                    "fatigue_rating", "temperature_c", "humidity_pct", "note"]
@@ -50,11 +50,24 @@ class TestSessionForm(forms.ModelForm):
             names = names_for(subjects, user)
             self.fields["subject"].label_from_instance = (
                 lambda s: f"{names[s.pk]} ({s.code})" if s.pk in names else s.code)
+            # Jen testy katalogu tohoto pracoviště (sdílené a vlastní), ne cizí.
+            self.fields["protocols"].queryset = protocol_choices(user.organization)
+        seen: dict[str, int] = {}
+        for protocol in self.fields["protocols"].queryset:
+            seen[protocol.name.lower()] = seen.get(protocol.name.lower(), 0) + 1
+        self.fields["protocols"].label_from_instance = lambda p: protocol_label(p, seen)
         for name, field in self.fields.items():
             if name == "protocols":
-                field.label_from_instance = lambda p: p.name
                 continue
             field.widget.attrs["class"] = f"{field.widget.attrs.get('class', '')} input".strip()
+        # Změna data překreslí upozornění (den už existuje) a „jako minule“;
+        # zaškrtnuté testy zůstanou, jak je operátor upravil.
+        from django.urls import reverse
+
+        self.fields["date"].widget.attrs.update({
+            "hx-get": reverse("session_battery"), "hx-trigger": "change",
+            "hx-include": "[name=subject],[name=sada],[name=protocols]",
+            "hx-vals": '{"zachovat": "1"}', "hx-target": "#sestava", "hx-swap": "outerHTML"})
 
     def clean(self):
         cleaned = super().clean()
@@ -81,9 +94,15 @@ class AddProtocolForm(forms.Form):
     # vedle hlavního, do trendů a pravidel jde dál to hlavní.
     repeat = forms.BooleanField(required=False, label="opakované měření (např. po zátěži)")
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, organization=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["protocol"].label_from_instance = lambda p: p.name
+        if organization is not None:
+            # jen testy katalogu pracoviště testovacího dne (sdílené a vlastní)
+            self.fields["protocol"].queryset = protocol_choices(organization).order_by("name")
+        seen: dict[str, int] = {}
+        for protocol in self.fields["protocol"].queryset:
+            seen[protocol.name.lower()] = seen.get(protocol.name.lower(), 0) + 1
+        self.fields["protocol"].label_from_instance = lambda p: protocol_label(p, seen)
 
 
 def field_name(protocol_metric, combo: dict, trial_number: int) -> str:

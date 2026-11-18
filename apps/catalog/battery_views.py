@@ -24,8 +24,18 @@ def _batteries(user):
     return TestBattery.objects.filter(sport__in=Sport.objects.for_user(user))
 
 
+def _catalog_protocols(user):
+    """Testy, které jde dát do baterie: sdílené z katalogu a vlastní pracoviště, ne cizí."""
+    from django.db.models import Q
+
+    scope = Q(organization__isnull=True)
+    if user.organization_id:
+        scope |= Q(organization_id=user.organization_id)
+    return Protocol.objects.filter(scope)
+
+
 def _card(request, battery):
-    battery.available = list(Protocol.objects.filter(is_active=True).exclude(
+    battery.available = list(_catalog_protocols(request.user).filter(is_active=True).exclude(
         pk__in=battery.items.values("protocol")).order_by("name"))
     return render(request, "catalog/_battery.html", {"battery": battery})
 
@@ -58,7 +68,7 @@ def sport_list(request):
               .annotate(pocet_sportovcu=Count("subjects", distinct=True)).order_by("name"))
     batteries = (_batteries(request.user).select_related("sport")
                  .prefetch_related("items__protocol"))
-    protocols = list(Protocol.objects.filter(is_active=True).order_by("name"))
+    protocols = list(_catalog_protocols(request.user).filter(is_active=True).order_by("name"))
     by_sport = {}
     for battery in batteries:
         used = {item.protocol_id for item in battery.items.all()}
@@ -152,7 +162,7 @@ def battery_delete(request, pk):
 @require_POST
 def battery_item_add(request, pk):
     battery = get_object_or_404(_batteries(request.user), pk=pk)
-    protocol = get_object_or_404(Protocol, pk=request.POST.get("protocol"))
+    protocol = get_object_or_404(_catalog_protocols(request.user), pk=request.POST.get("protocol"))
     last = battery.items.aggregate(m=Max("order"))["m"]
     BatteryItem.objects.get_or_create(battery=battery, protocol=protocol,
                                       defaults={"order": (last or 0) + 1})

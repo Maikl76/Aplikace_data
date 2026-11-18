@@ -64,6 +64,12 @@ class TestSession(OrgScopedModel):
     temperature_c = models.FloatField("teplota (°C)", null=True, blank=True)
     humidity_pct = models.FloatField("vlhkost (%)", null=True, blank=True)
     note = models.TextField("poznámka", blank=True)
+    # Podle které baterie byl den založen (Individuální i Týmové testování).
+    # Řídí pořadí testů při zadávání a v režimu u přístroje; prázdné = baterie
+    # sportu a kategorie sportovce.
+    battery = models.ForeignKey("catalog.TestBattery", verbose_name="baterie testů",
+                                on_delete=models.SET_NULL, null=True, blank=True,
+                                related_name="sessions")
     # Koncept zprávy k tomuto dni někdo smazal ručně: sám už nevznikne
     # (jinak by se po dalším uložení hodnoty nebo importu založil znovu).
     # Ručně ho založit jde dál.

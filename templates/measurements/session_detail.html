@@ -10,7 +10,7 @@
         <a href="{% url 'subject_detail' session.subject.pk %}" class="hover:underline">{{ session.jmeno }}</a>
       </h1>
       <p class="text-sm text-muted">
-        {{ session.subject.sport|default:"bez sportu" }}{% if session.location %} · {{ session.location }}{% endif %}{% if session.season_phase %} · {{ session.get_season_phase_display }}{% endif %}{% if session.fatigue_rating %} · únava {{ session.fatigue_rating }}/10{% endif %}{% if session.temperature_c is not None %} · {{ session.temperature_c|floatformat:"-1" }} °C{% endif %}{% if session.humidity_pct is not None %} · vlhkost {{ session.humidity_pct|floatformat:"0" }} %{% endif %}
+        {{ session.subject.sport|default:"bez sportu" }}{% if battery_note %} · baterie {{ battery_note }}{% endif %}{% if session.location %} · {{ session.location }}{% endif %}{% if session.season_phase %} · {{ session.get_season_phase_display }}{% endif %}{% if session.fatigue_rating %} · únava {{ session.fatigue_rating }}/10{% endif %}{% if session.temperature_c is not None %} · {{ session.temperature_c|floatformat:"-1" }} °C{% endif %}{% if session.humidity_pct is not None %} · vlhkost {{ session.humidity_pct|floatformat:"0" }} %{% endif %}
       </p>
     </div>
   </div>
@@ -44,6 +44,15 @@
   {% endif %}
   {% if session.draft_deleted %}<p class="text-xs text-muted w-full">Koncept zprávy k tomuto dni byl smazán ručně{% if session.organization.auto_draft %}, sám už nevznikne{% endif %}. Založíte ho tlačítkem „Vytvořit zprávu“.</p>{% elif session.organization.auto_draft %}<p class="text-xs text-muted w-full">Koncept vzniká sám, jakmile mají všechny testy dne hodnoty (pro trenéra při sdílení s trenérem, jinak pro sportovce). Tady ho založíte ručně nebo pro jiného čtenáře.</p>{% endif %}
 </div>
+
+{% if restriction %}
+  <div class="card px-4 py-3 mb-4 text-sm border-l-4 flex gap-3 items-start" style="border-left-color: var(--{% if restriction.load_restriction == 'full' %}bad{% else %}warn{% endif %})" role="status">
+    <span style="color: var(--{% if restriction.load_restriction == 'full' %}bad{% else %}warn{% endif %})">{% icon "alert" "w-5 h-5" %}</span>
+    <div><strong>Platné omezení zátěže</strong> ({{ restriction.get_load_restriction_display|lower }})
+      z {{ restriction.date|date:"d.m.Y" }}, {{ restriction.provider }}{% if restriction.restriction_valid_until %}, platí do {{ restriction.restriction_valid_until|date:"d.m.Y" }}{% endif %}.{% if restriction.note %} {{ restriction.note }}{% endif %}
+      Před zátěžovými testy ověřte, co lékař dovolil.</div>
+  </div>
+{% endif %}
 
 {% steps steps heading="Postup dne" compact=True may_act=read_only|yesno:"False,True" %}
 

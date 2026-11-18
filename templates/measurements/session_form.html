@@ -2,34 +2,51 @@
 {% load ui %}
 {% block content %}
 <div class="mb-5">
-  <div class="eyebrow">Přehled testování</div>
+  <div class="eyebrow">Individuální testování</div>
   <h1 class="text-2xl font-semibold">Nový testovací den</h1>
+  <p class="text-sm text-muted mt-1">Jeden sportovec, jeden den. Celou skupinu najednou založí <a class="link" href="{% url 'today' %}">Týmové testování</a>.</p>
 </div>
-<form method="post" class="card p-5 max-w-2xl space-y-4">
+<form method="post" class="card p-5 max-w-3xl space-y-5">
   {% csrf_token %}
   {% for error in form.non_field_errors %}<p class="text-sm" style="color: var(--bad)">{{ error }}</p>{% endfor %}
-  {% for field in form %}
-    {% if field.name == "protocols" %}
-      {% include "measurements/_protocol_choices.html" %}
-    {% else %}
-      <label class="block">
-        <span class="text-sm text-2">{{ field.label }}</span>
-        {% if field.name == "subject" %}
-          <select name="subject" class="input mt-1" required
-                  hx-get="{% url 'session_battery' %}" hx-target="#testy" hx-swap="outerHTML"
-                  hx-trigger="change">
-            {% for value, label in field.field.choices %}
-              <option value="{{ value }}" {% if value|stringformat:"s" == field.value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+
+  <div class="grid sm:grid-cols-[1fr_12rem] gap-4">
+    <label class="block">
+      <span class="text-sm text-2">Sportovec</span>
+      <select name="subject" class="input mt-1" required
+              hx-get="{% url 'session_battery' %}" hx-include="[name=date]"
+              hx-target="#sestava" hx-swap="outerHTML" hx-trigger="change">
+        <option value="">vyberte sportovce…</option>
+        {% for group, options in subject_groups %}
+          <optgroup label="{{ group }}">
+            {% for value, label in options %}
+              <option value="{{ value }}"{% if value|stringformat:"s" == selected_subject %} selected{% endif %}>{{ label }}</option>
             {% endfor %}
-          </select>
-        {% else %}
-          <div class="mt-1">{{ field }}</div>
-        {% endif %}
-        {% if field.help_text %}<span class="text-xs text-muted">{{ field.help_text }}</span>{% endif %}
-        {% for error in field.errors %}<span class="text-xs" style="color: var(--bad)">{{ error }}</span>{% endfor %}
-      </label>
-    {% endif %}
-  {% endfor %}
-  <button type="submit" class="btn btn-primary">Založit testovací den</button>
+          </optgroup>
+        {% endfor %}
+      </select>
+      {% for error in form.subject.errors %}<span class="block text-xs" style="color: var(--bad)">{{ error }}</span>{% endfor %}
+    </label>
+    {% include "measurements/_pole.html" with field=form.date %}
+  </div>
+
+  {% include "measurements/_session_setup.html" %}
+
+  <fieldset>
+    <legend class="text-sm font-medium mb-2">Podmínky měření <span class="font-normal text-muted">– nepovinné, doplnit jdou i později v testovacím dni</span></legend>
+    <div class="grid sm:grid-cols-2 gap-3">
+      {% include "measurements/_pole.html" with field=form.location %}
+      {% include "measurements/_pole.html" with field=form.season_phase %}
+      {% include "measurements/_pole.html" with field=form.temperature_c %}
+      {% include "measurements/_pole.html" with field=form.humidity_pct %}
+      {% include "measurements/_pole.html" with field=form.fatigue_rating %}
+      {% include "measurements/_pole.html" with field=form.note wide=True %}
+    </div>
+  </fieldset>
+
+  <div class="flex flex-wrap items-center gap-3">
+    <button type="submit" class="btn btn-primary">Založit testovací den</button>
+    <span class="text-xs text-muted">Otevře se testovací den – hodnoty zadáte ručně, v režimu u přístroje, nebo nahrajete export z přístroje.</span>
+  </div>
 </form>
 {% endblock %}

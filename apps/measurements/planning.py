@@ -26,6 +26,75 @@ def battery_protocols(subject) -> list:
     return [p for p in battery.protocols() if p.code not in DERIVED_PROTOCOLS]
 
 
+def protocol_choices(organization):
+    """
+    Testy, které jde zařadit do testovacího dne: aktivní, měřené (odvozené
+    ukazatele se dopočítají samy), sdílené z katalogu nebo vlastní tohoto
+    pracoviště – vlastní testy jiného pracoviště se nenabízejí.
+    """
+    from django.db.models import Q
+
+    from apps.catalog.models import Protocol
+
+    scope = Q(organization__isnull=True)
+    if organization is not None:
+        scope |= Q(organization=organization)
+    return (Protocol.objects.filter(scope, is_active=True).exclude(code__in=DERIVED_PROTOCOLS)
+            .order_by("family", "name", "version"))
+
+
+def protocol_label(protocol, names_seen: dict) -> str:
+    """Název testu; když se v nabídce opakuje (dvě verze, vlastní kopie), s verzí a původem."""
+    if names_seen.get(protocol.name.lower(), 0) < 2:
+        return protocol.name
+    origin = "" if protocol.organization_id is None else ", vlastní"
+    return f"{protocol.name} (v{protocol.version}{origin})"
+
+
+def battery_options(subject, user) -> dict:
+    """
+    Baterie, ze kterých jde nový testovací den předvyplnit: nejdřív baterie
+    sportu sportovce (ta, která mu podle kategorie patří, první), pak baterie
+    ostatních sportů v rozsahu účtu – třeba pro hosta z jiného sportu.
+    """
+    from apps.catalog.models import TestBattery
+    from apps.subjects.models import Sport
+
+    batteries = list(TestBattery.objects.filter(sport__in=Sport.objects.for_user(user))
+                     .select_related("sport").prefetch_related("items__protocol"))
+    default = battery_for(subject) if subject is not None else None
+    sport_id = subject.sport_id if subject is not None else None
+    own = sorted((b for b in batteries if sport_id and b.sport_id == sport_id),
+                 key=lambda b: (b.pk != getattr(default, "pk", None), b.category.lower(),
+                                b.label.lower()))
+    other = sorted((b for b in batteries if not (sport_id and b.sport_id == sport_id)),
+                   key=lambda b: (b.sport.name.lower(), b.category.lower(), b.label.lower()))
+    return {"default": default, "own": own, "other": other}
+
+
+def session_protocols(session) -> list:
+    """Testy dne v pořadí, v jakém se měřily (bez vypnutých a odvozených)."""
+    runs = (session.protocol_runs.select_related("protocol")
+            .order_by("started_at", "pk"))
+    return list({r.protocol_id: r.protocol for r in runs
+                 if r.protocol.is_active and r.protocol.code not in DERIVED_PROTOCOLS}.values())
+
+
+def last_session(subject, *, before=None):
+    """Poslední testovací den sportovce s aspoň jedním testem (před datem ``before``)."""
+    sessions = (TestSession.objects.filter(subject=subject)
+                .annotate(testu=Count("protocol_runs")).filter(testu__gt=0))
+    if before is not None:
+        sessions = sessions.filter(date__lt=before)
+    return sessions.order_by("-date", "-pk").first()
+
+
+def in_order(protocols, preferred) -> list:
+    """Testy seřazené podle ``preferred`` (pořadí baterie); ostatní za nimi podle rodiny a názvu."""
+    rank = {p.pk: i for i, p in enumerate(preferred)}
+    return sorted(protocols, key=lambda p: (rank.get(p.pk, len(rank)), p.family, p.name.lower()))
+
+
 def ensure_runs(session, protocols) -> int:
     """Založí chybějící provedení protokolů. Existující nechá být. Vrací počet nových."""
     have = set(session.protocol_runs.values_list("protocol_id", flat=True))
@@ -42,14 +111,11 @@ def repeat_session(source, *, day, user):
     už existuje, jen se do něj doplní chybějící testy.
     Vrací (den, nový?, počet přidaných testů).
     """
-    protocols = list({r.protocol_id: r.protocol for r in source.protocol_runs
-                      .select_related("protocol").order_by("started_at", "pk")
-                      if r.protocol.is_active and r.protocol.code not in DERIVED_PROTOCOLS}
-                     .values())
+    protocols = session_protocols(source)
     session, created = TestSession.objects.get_or_create(
         organization=source.organization, subject=source.subject, date=day,
         defaults={"operator": user, "location": source.location,
-                  "season_phase": source.season_phase})
+                  "season_phase": source.season_phase, "battery": source.battery})
     return session, created, ensure_runs(session, protocols)
 
 

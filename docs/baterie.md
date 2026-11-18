@@ -14,10 +14,40 @@ sportovce (úprava údajů).
 
 Baterie se přenáší s katalogem (`ulozit-katalog.bat` / `nacist-katalog.bat`).
 
-## Nový testovací den
+## Individuální testování (nový testovací den jednoho sportovce)
 
-Po výběru sportovce se testy zaškrtnou podle baterie jeho sportu
-a kategorie. Odškrtnout nebo přidat jde podle potřeby.
+V menu nad Týmovým testováním, tlačítkem vpravo nahoře, nebo *Nové měření*
+na kartě sportovce (`apps/measurements/session_setup.py`).
+
+Po výběru sportovce se ukáže:
+
+- **kdo to je:** sport, kategorie, tým; poslední testovací den a jeho testy,
+  plán dalšího měření;
+- **upozornění:** platné **omezení zátěže** od lékaře (z externího vyšetření,
+  plné omezení červeně), chybějící souhlas s funkčním testováním, sportovec
+  bez sportu, a že ve zvolený den už testovací den má – pak se nový nezaloží,
+  zaškrtnuté testy se jen doplní do existujícího.
+
+**Sada testů** předvyplní testy a jejich pořadí:
+
+| volba | co zaškrtne |
+|---|---|
+| baterie sportu (ta, která sportovci patří podle kategorie, je první) | testy baterie v jejím pořadí |
+| jiná baterie téhož sportu | třeba obecná místo kategorie |
+| stejné testy jako minule | testy posledního testovacího dne před zvoleným datem |
+| bez předvyplnění | nic, testy vyberete sami |
+| baterie jiných sportů | host z jiného sportu |
+
+Testy sady jsou nahoře s pořadovým číslem; pod nimi ostatní testy katalogu
+pracoviště po rodinách (force plate, dynamometrie…), u každého přístroj,
+počet pokusů a RPE. Zaškrtnutí jde libovolně upravit. Nabízejí se jen aktivní
+testy sdílené nebo vlastní tohoto pracoviště (ne cizí); odvozené ukazatele
+(DSI, EUR) se neměří, dopočítají se. Vypnutý test v baterii formulář jmenuje.
+
+Testovací den si zapamatuje, **podle které baterie vznikl** – její pořadí
+pak platí při zadávání, v režimu u přístroje i v Týmovém testování. Den
+založený podle jiné baterie, než jaká sportovci patří, to má v záhlaví.
+Platné omezení zátěže je vidět i v testovacím dni.
 
 **Zopakovat poslední den** (karta sportovce, nebo *Zopakovat dnes* v detailu
 minulého dne) založí dnešní testovací den se stejnými testy, jaké měl ten

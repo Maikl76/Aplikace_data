@@ -1,0 +1,71 @@
+{% load ui %}
+{# Sportovec, upozornění, sada testů a testy – překresluje se po výběru sportovce, sady nebo data. #}
+<div id="sestava" class="space-y-4">
+  {% if setup.subject %}
+    <div class="rounded-lg px-3 py-2.5 text-sm space-y-1" style="background: var(--surface-2)">
+      <div class="flex flex-wrap items-baseline justify-between gap-x-3">
+        <span class="font-medium">{{ setup.facts }}</span>
+        <a class="link text-xs" href="{% url 'subject_detail' setup.subject.pk %}">karta sportovce</a>
+      </div>
+      {% for line in setup.history %}<div class="text-xs text-muted">{{ line }}</div>{% endfor %}
+    </div>
+    {% for w in setup.warnings %}
+      <div class="card px-3 py-2 text-sm border-l-4 flex gap-2 items-start" style="border-left-color: var(--{{ w.tone }})" role="status">
+        <span class="shrink-0 mt-0.5" style="color: var(--{{ w.tone }})">{% icon "alert" "w-4 h-4" %}</span>
+        <div>{{ w.text }}{% if w.url and w.link %} <a class="link whitespace-nowrap" href="{{ w.url }}">{{ w.link }}</a>{% endif %}</div>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div>
+    <label class="block">
+      <span class="text-sm text-2">Sada testů</span>
+      <select name="sada" class="input mt-1"
+              hx-get="{% url 'session_battery' %}" hx-include="[name=subject],[name=date]"
+              hx-target="#sestava" hx-swap="outerHTML" hx-trigger="change">
+        {% if setup.sady_own %}
+          <optgroup label="Baterie sportu {{ setup.sport_name }}">
+            {% for o in setup.sady_own %}<option value="{{ o.value }}"{% if o.value == setup.sada %} selected{% endif %}>{{ o.label }}</option>{% endfor %}
+          </optgroup>
+        {% endif %}
+        {% if setup.minule %}<option value="{{ setup.minule.value }}"{% if setup.minule.value == setup.sada %} selected{% endif %}>{{ setup.minule.label }}</option>{% endif %}
+        <option value="rucne"{% if setup.sada == "rucne" %} selected{% endif %}>Bez předvyplnění – testy vyberu sám</option>
+        {% if setup.sady_other %}
+          <optgroup label="Baterie jiných sportů">
+            {% for o in setup.sady_other %}<option value="{{ o.value }}"{% if o.value == setup.sada %} selected{% endif %}>{{ o.label }}</option>{% endfor %}
+          </optgroup>
+        {% endif %}
+      </select>
+    </label>
+    <p class="text-xs text-muted mt-1">Sada předvyplní testy a jejich pořadí, zaškrtnutí jde pak libovolně upravit. Baterie sportů se nastavují ve <a class="link" href="{% url 'sport_list' %}">Sportech a testech</a>.</p>
+    {% if setup.subject and setup.sport_name and not setup.sady_own %}
+      <p class="text-xs mt-1" style="color: var(--warn)">Sport {{ setup.sport_name }} zatím nemá baterii testů – <a class="link" href="{% url 'sport_list' %}">nastavit</a>.</p>
+    {% endif %}
+    {% for note in setup.notes %}<p class="text-xs text-muted mt-1">{{ note }}</p>{% endfor %}
+  </div>
+
+  <div class="space-y-3">
+    {% for group in setup.groups %}
+      {% if group.section %}<div class="text-sm text-2 pt-1">{{ group.section }}</div>{% endif %}
+      <div>
+        <div class="flex items-baseline justify-between gap-2 mb-1">
+          <span class="text-xs font-semibold uppercase tracking-wide{% if not group.main %} text-muted{% endif %}">{{ group.title }}</span>
+          {% if group.hint %}<span class="text-xs text-muted">{{ group.hint }}</span>{% endif %}
+        </div>
+        <div class="grid{% if not group.main %} sm:grid-cols-2{% endif %} gap-1.5">
+          {% for item in group.items %}
+            <label class="flex items-start gap-2 text-sm px-2 py-1.5 rounded cursor-pointer" style="background: var(--surface-2)">
+              <input type="checkbox" name="protocols" value="{{ item.protocol.pk }}" id="id_protocols_{{ item.protocol.pk }}"{% if item.checked %} checked{% endif %} class="mt-0.5 shrink-0">
+              <span class="min-w-0">
+                <span>{% if item.number %}<span class="text-muted tabular-nums">{{ item.number }}.</span> {% endif %}{{ item.label }}</span>
+                {% if item.meta %}<span class="block text-xs text-muted">{{ item.meta }}</span>{% endif %}
+              </span>
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+    {% empty %}
+      <p class="text-sm text-muted">V katalogu pracoviště zatím nejsou žádné aktivní testy – založte je ve <a class="link" href="{% url 'sport_list' %}">Sportech a testech</a>.</p>
+    {% endfor %}
+  </div>
+</div>

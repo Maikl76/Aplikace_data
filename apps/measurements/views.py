@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from apps.core.audit import record
 from apps.core.models import AuditLog
+from apps.external.models import ExternalExam
 from apps.subjects.models import Subject
 
 from . import planning, questionnaires
@@ -39,44 +40,95 @@ def session_list(request):
     return render(request, template, {"sessions": sessions, "q": q})
 
 
+def _day(raw, default):
+    from datetime import date as date_cls
+
+    try:
+        return date_cls.fromisoformat(raw) if raw else default
+    except ValueError:
+        return default
+
+
+def _active_subject(user, raw):
+    if not raw or not str(raw).isdigit():
+        return None
+    return Subject.objects.for_user(user).filter(pk=raw, is_active=True).first()
+
+
+def _subject_groups(form) -> list:
+    """Sportovci do výběru po sportech (abecedně), sportovci bez sportu na konci."""
+    field = form.fields["subject"]
+    groups: dict[str, list] = {}
+    for subject in field.queryset.select_related("sport"):
+        name = subject.sport.name if subject.sport_id else "bez sportu"
+        groups.setdefault(name, []).append((subject.pk, field.label_from_instance(subject)))
+    return [(name, sorted(items, key=lambda item: item[1].lower()))
+            for name, items in sorted(groups.items(),
+                                      key=lambda g: (g[0] == "bez sportu", g[0].lower()))]
+
+
 @login_required
 def session_create(request):
-    initial = {"date": timezone.localdate()}
-    subject = None
-    if subject_id := request.GET.get("sportovec"):
-        subject = Subject.objects.for_user(request.user).filter(pk=subject_id).first()
-        if subject:
-            initial.update(subject=subject.pk, protocols=planning.battery_protocols(subject))
+    """
+    Individuální testování: nový testovací den jednoho sportovce. Sada testů
+    (baterie jeho sportu, jiná baterie, nebo stejné testy jako minule) testy
+    předvyplní; zvolená baterie pak řídí pořadí testů při zadávání.
+    """
+    from . import session_setup
+
+    post = request.method == "POST"
+    params = request.POST if post else request.GET
+    day = _day(params.get("date") or params.get("datum"), timezone.localdate())
+    subject = _active_subject(request.user, params.get("subject") if post
+                              else request.GET.get("sportovec"))
+    setup = session_setup.build(request.user, subject, day=day, sada=params.get("sada"),
+                                checked=request.POST.getlist("protocols") if post else None)
+    initial = {"date": day}
+    if subject is not None:
+        initial.update(subject=subject.pk, protocols=setup["checked_protocols"])
     form = TestSessionForm(request.POST or None, user=request.user, initial=initial)
-    if request.method == "POST" and form.is_valid():
+    if post and form.is_valid():
         session = form.save(commit=False)
         session.organization = request.user.organization
         session.operator = request.user
+        session.battery = setup["battery"]
         session.save()
-        planning.ensure_runs(session, form.cleaned_data["protocols"])
+        planning.ensure_runs(session, planning.in_order(form.cleaned_data["protocols"],
+                                                        setup["order"]))
         record(request, AuditLog.Action.CREATE, session, subject_code=session.subject.code)
         return redirect("session_detail", pk=session.pk)
-    if request.method == "POST" and form.existing is not None and len(form.errors) == 1:
+    if post and form.existing is not None and len(form.errors) == 1:
         # Den už existuje: druhý se nezakládá, zvolené testy se přidají do něj.
         session = form.existing
-        added = planning.ensure_runs(session, form.cleaned_data.get("protocols") or [])
+        added = planning.ensure_runs(session, planning.in_order(
+            form.cleaned_data.get("protocols") or [], setup["order"]))
+        if session.battery_id is None and setup["battery"] is not None:
+            session.battery = setup["battery"]
+            session.save(update_fields=["battery", "updated_at"])
         messages.info(request, f"Testovací den {session.date:%d.%m.%Y} pro "
                                f"{session.subject.code} už existoval – otevřen"
                                + (f", přidáno testů: {added}." if added else "."))
         return redirect("session_detail", pk=session.pk)
+    selected = form["subject"].value()
     return render(request, "measurements/session_form.html", {
-        "form": form, "battery": planning.battery_for(subject) if subject else None})
+        "form": form, "setup": setup, "subject_groups": _subject_groups(form),
+        "selected_subject": "" if selected in (None, "") else str(selected)})
 
 
 @login_required
 def session_battery(request):
-    """Po výběru sportovce: zaškrtne testy podle baterie jeho sportu (HTMX)."""
-    subject = Subject.objects.for_user(request.user).filter(pk=request.GET.get("subject")).first()
-    form = TestSessionForm(user=request.user, initial={
-        "protocols": planning.battery_protocols(subject) if subject else []})
-    return render(request, "measurements/_protocol_choices.html", {
-        "form": form, "battery": planning.battery_for(subject) if subject else None,
-        "subject": subject})
+    """
+    Po výběru sportovce, sady testů nebo data (HTMX): překreslí údaje
+    a upozornění ke sportovci, nabídku sad a testy.
+    """
+    from . import session_setup
+
+    keep = bool(request.GET.get("zachovat"))
+    setup = session_setup.build(
+        request.user, _active_subject(request.user, request.GET.get("subject")),
+        day=_day(request.GET.get("date"), timezone.localdate()), sada=request.GET.get("sada"),
+        checked=request.GET.getlist("protocols") if keep else None)
+    return render(request, "measurements/_session_setup.html", {"setup": setup})
 
 
 def _pick_battery(request):
@@ -124,7 +176,10 @@ def today(request):
             for subject in chosen:
                 session, is_new = TestSession.objects.get_or_create(
                     organization=subject.organization, subject=subject, date=day,
-                    defaults={"operator": request.user})
+                    defaults={"operator": request.user, "battery": battery})
+                if not is_new and session.battery_id is None:
+                    session.battery = battery
+                    session.save(update_fields=["battery", "updated_at"])
                 created += int(is_new)
                 runs += planning.ensure_runs(session, protocols)
             messages.success(request, f"Založeno {created} testovacích dnů a {runs} testů "
@@ -383,7 +438,9 @@ def session_detail(request, pk):
         "followup_statuses": followup.RecommendationReview.Status.choices,
         "reports": reports,
         "steps": steps, "next_step": next_step(steps),
-        "add_form": AddProtocolForm(),
+        "add_form": AddProtocolForm(organization=session.organization),
+        "restriction": ExternalExam.active_restriction_for(session.subject),
+        "battery_note": _battery_note(session),
         "rpe": rpe,
         "rpe_question": rpe.questions.first() if rpe else None,
         "rpe_runs": [r for r in runs if r.protocol.code not in planning.DERIVED_PROTOCOLS],
@@ -567,7 +624,7 @@ def questionnaire_fill(request, token):
 @login_required
 def session_add_protocol(request, pk):
     session = get_object_or_404(TestSession.objects.for_user(request.user), pk=pk)
-    form = AddProtocolForm(request.POST or None)
+    form = AddProtocolForm(request.POST or None, organization=session.organization)
     if request.method == "POST" and form.is_valid():
         protocol = form.cleaned_data["protocol"]
         existing = session.protocol_runs.filter(protocol=protocol).order_by("pk").first()
@@ -768,12 +825,29 @@ def _entry_context(run, *, columns: int | None = None, device: bool = False) -> 
 
 
 def _in_battery_order(session, runs) -> list:
-    """Testy v pořadí baterie sportu (tak se obvykle měří), ostatní podle názvu."""
-    battery = planning.battery_for(session.subject)
+    """
+    Testy v pořadí baterie (tak se měří): té, se kterou byl den založen, jinak
+    baterie sportu a kategorie sportovce; ostatní testy za nimi podle názvu.
+    """
+    battery = session.battery if session.battery_id else planning.battery_for(session.subject)
     order = ({item.protocol_id: item.order for item in battery.items.all()}
              if battery else {})
     return sorted(runs, key=lambda r: (order.get(r.protocol_id, 10_000), r.protocol.name,
                                        r.started_at or r.created_at, r.pk))
+
+
+def _battery_note(session) -> str:
+    """Baterie dne, když není ta, která sportovci podle sportu a kategorie patří."""
+    if not session.battery_id:
+        return ""
+    default = planning.battery_for(session.subject)
+    if default is not None and default.pk == session.battery_id:
+        return ""
+    battery = session.battery
+    if (battery.sport_id != session.subject.sport_id
+            and battery.sport.name.lower() not in battery.label.lower()):
+        return f"{battery.sport.name}: {battery.label}"
+    return battery.label
 
 
 def _session_runs(session):

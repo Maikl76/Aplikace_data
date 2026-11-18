@@ -80,8 +80,9 @@
         {% nav_link "team" "Týmový přehled" "grid" %}
       </div>
       <div class="nav-skupina">
+        {% if pristup.measure %}{% nav_link "session_create" "Individuální testování" "user" %}{% endif %}
         {% nav_link "today" "Týmové testování" "calendar" %}
-        {% nav_link "session_list" "Přehled testování" "activity" %}
+        {% nav_link "session_list" "Přehled testování" "activity" exclude="/mereni/novy/" %}
         {% nav_link "genetics_home" "Genetika" "dna" %}
         {% nav_link "report_list" "Zprávy" "file" %}
       </div>
@@ -144,7 +145,7 @@
         {% endif %}
         <div class="ml-auto flex items-center gap-2">
           {% block topbar_actions %}
-            {% if not portal and pristup.measure %}<a href="{% url 'session_create' %}" class="btn btn-primary btn-sm">{% icon "plus" %}<span class="hidden sm:inline">Nové měření</span></a>{% endif %}
+            {% if not portal and pristup.measure %}<a href="{% url 'session_create' %}" class="btn btn-primary btn-sm" title="Založit testovací den jednoho sportovce">{% icon "plus" %}<span class="hidden sm:inline">Individuální testování</span></a>{% endif %}
           {% endblock %}
         </div>
       </div>
