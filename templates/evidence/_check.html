@@ -1,0 +1,1 @@
+{% load ui %}{% with why=ai|klic:c.data.value.value %}<label class="flex items-start gap-2">{{ c.tag }} <span>{{ c.choice_label }}{% if why %} <span class="badge badge-accent px-1 py-0 text-[0.65rem]" title="Navrhl model: {{ why }}">AI</span>{% endif %}</span></label>{% endwith %}

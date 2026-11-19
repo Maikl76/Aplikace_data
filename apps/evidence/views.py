@@ -152,14 +152,17 @@ def article_list(request):
     })
 
 
-def _form_page(request, form, article=None, found=None, filled=None):
+def _form_page(request, form, article=None, found=None, filled=None, topics=None):
+    """``topics`` = návrh ukazatelů, testů a pravidel od AI: (návrh, navržené po polích, popis)."""
     from apps.reports import ai_models, llm
 
     from .steps import article_steps
 
+    draft_topics, suggested, filled_topics = topics or (None, {}, [])
     return render(request, "evidence/article_form.html", {
         "steps": article_steps(article) if article is not None and article.pk else None,
         "form": form, "article": article, "found": found, "filled": filled or [],
+        "topics": draft_topics, "suggested": suggested, "filled_topics": filled_topics,
         "evidence_levels": form.fields["evidence_level"].choices,
         "llm_enabled": llm.is_enabled(),
         "model_choices": ai_models.choices() if llm.is_enabled() else [],
@@ -173,6 +176,7 @@ def _save(request, form, *, created: bool):
     spustí model. Uložením formuláře se případný návrh od AI považuje za
     zkontrolovaný (jeho text je teď v polích) a zahodí se.
     """
+    action = request.POST.get("akce")
     upload = request.FILES.get("pdf_soubor")
     if upload is not None:
         try:
@@ -181,7 +185,8 @@ def _save(request, form, *, created: bool):
             form.add_error(None, str(exc))
             return None
     article = form.save(commit=False)
-    if request.POST.get("akce") != "ai":
+    if action != "ai":
+        # i „navrhnout témata“: dosavadní návrh je uložením zkontrolovaný
         article.ai_draft = None
     if request.POST.get("smazat_pdf") and article.pdf:
         article.pdf.delete(save=False)
@@ -191,23 +196,30 @@ def _save(request, form, *, created: bool):
     form.save_m2m()
     record(request, AuditLog.Action.CREATE if created else AuditLog.Action.UPDATE, article)
 
-    if request.POST.get("akce") != "ai":
+    if action not in ("ai", "ai_temata"):
         messages.success(request, f"Článek uložen ({article.get_status_display().lower()}).")
         return redirect("article_list")
     from apps.reports.ai_models import is_offered
 
-    model = request.POST.get("model", "").strip()
+    model = request.POST.get("model_temata" if action == "ai_temata" else "model", "").strip()
+    model = model if is_offered(model) else None
     try:
-        text, source = ai_draft.source_for(article, upload,
-                                           abstract_only=bool(request.POST.get("jen_abstrakt")))
-        ai_draft.start(article, model=model if is_offered(model) else None, text=text,
-                       source=source)
+        if action == "ai_temata":
+            text, source = ai_draft.topics_source(article, upload)
+            ai_draft.start(article, model=model, text=text, source=source,
+                           part=ai_draft.PART_TOPICS, organization=request.user.organization)
+        else:
+            text, source = ai_draft.source_for(
+                article, upload, abstract_only=bool(request.POST.get("jen_abstrakt")))
+            ai_draft.start(article, model=model, text=text, source=source)
     except ai_draft.DraftError as exc:
         messages.error(request, f"Článek uložen, ale návrh nejde připravit: {exc}")
     else:
-        messages.info(request, "Článek uložen. Model píše návrh z "
-                               + ("abstraktu." if source == ai_draft.SOURCE_ABSTRACT
-                                  else "celého textu článku."))
+        messages.info(request, "Článek uložen. "
+                      + ("Model vybírá ukazatele, testy a pravidla." if action == "ai_temata"
+                         else "Model píše návrh z "
+                         + ("abstraktu." if source == ai_draft.SOURCE_ABSTRACT
+                            else "celého textu článku.")))
     return redirect("article_edit", article.pk)
 
 
@@ -265,11 +277,19 @@ def article_edit(request, pk):
         return _form_page(request, form, article)
 
     ai_draft.clear_stalled(article)
-    initial, filled = {}, []
-    if article.ai_draft_ready and not article.ai_writing:
-        initial, filled = ai_draft.initial_from(article.ai_draft, article, organization)
+    initial, filled, topics = {}, [], None
+    draft = article.ai_draft or {}
+    if not article.ai_writing:
+        if article.ai_draft_ready and "hlavni_zjisteni" in draft:
+            initial, filled = ai_draft.initial_from(draft, article, organization)
+        if proposal := draft.get(ai_draft.PART_TOPICS):
+            suggested, filled_topics = {}, []
+            if "chyba" not in proposal:
+                more, suggested, filled_topics = ai_draft.topics_initial(proposal, article)
+                initial.update(more)
+            topics = (proposal, suggested, filled_topics)
     form = ArticleForm(instance=article, initial=initial, organization=organization)
-    return _form_page(request, form, article, filled=filled)
+    return _form_page(request, form, article, filled=filled, topics=topics)
 
 
 @login_required

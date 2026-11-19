@@ -57,7 +57,7 @@
           krátce a prakticky; čísla, která tu uvedete, smí model ve zprávě použít.</p></div>
     </div>
 
-    {% if article.ai_writing %}
+    {% if article.ai_writing and article.ai_writing_part != "temata" %}
       <div class="mb-4 px-3 py-2 rounded-lg text-sm" style="background: var(--accent-soft)">
         Model <strong>{{ article.ai_writing_model }}</strong> píše návrh… už
         <span hx-get="{% url 'article_ai_state' article.pk %}" hx-trigger="load, every 5s" hx-swap="innerHTML">chvíli</span>.
@@ -148,11 +148,60 @@
           ukazatel nebo test měřil (přednost mají ukazatele, které se skutečně změnily nebo mají stranový rozdíl).
           <strong>Pravidla</strong>: když pravidlo najde nález, článek se ve zprávě cituje vždy.</p></div>
     </div>
+    {% if article.ai_writing and article.ai_writing_part == "temata" %}
+      <div class="mb-4 px-3 py-2 rounded-lg text-sm" style="background: var(--accent-soft)">
+        Model <strong>{{ article.ai_writing_model }}</strong> vybírá ukazatele, testy a pravidla… už
+        <span hx-get="{% url 'article_ai_state' article.pk %}" hx-trigger="load, every 5s" hx-swap="innerHTML">chvíli</span>.
+        Stránka se po dopsání obnoví sama; mezitím můžete odejít.
+      </div>
+    {% elif topics.chyba %}
+      <div class="mb-4 px-3 py-2 rounded-lg text-sm" style="background: var(--warn-soft); color: var(--warn)">
+        Návrh ukazatelů, testů a pravidel se nepovedl: {{ topics.chyba }}
+        <button type="submit" name="akce" value="zahodit" formnovalidate class="link ml-2">skrýt</button>
+      </div>
+    {% elif topics %}
+      <div class="mb-4 px-3 py-2 rounded-lg text-sm" style="background: var(--warn-soft)">
+        {% if filled_topics %}
+          <strong>Návrh od modelu {{ topics.model }}</strong> z {% if topics.zdroj == "abstrakt" %}abstraktu{% elif topics.zdroj == "hlavní zjištění" %}hlavního zjištění{% else %}celého textu článku{% endif %} ({{ topics.sekund }} s):
+          {{ filled_topics|join:", " }} – zaškrtnuté níže se značkou <span class="badge badge-accent px-1 py-0">AI</span>, k tomu, co už bylo vybrané.
+          Zkontrolujte je; <strong>platit začnou až po uložení</strong>.
+          <ul class="mt-2 space-y-0.5 text-xs">
+            {% for item in topics.ukazatele %}<li><span class="text-muted">ukazatel</span> <strong>{{ item.nazev }}</strong>{% if item.proc %} – {{ item.proc }}{% endif %}</li>{% endfor %}
+            {% for item in topics.testy %}<li><span class="text-muted">test</span> <strong>{{ item.nazev }}</strong>{% if item.proc %} – {{ item.proc }}{% endif %}</li>{% endfor %}
+            {% for item in topics.pravidla %}<li><span class="text-muted">pravidlo</span> <strong>{{ item.nazev }}</strong>{% if item.proc %} – {{ item.proc }}{% endif %}</li>{% endfor %}
+          </ul>
+        {% else %}
+          Model <strong>{{ topics.model }}</strong> v katalogu pracoviště nenašel nic, k čemu by článek patřil.
+        {% endif %}
+        {% if topics.nezname %}<div class="mt-1 text-xs text-muted">Navrhl i kódy, které v katalogu nejsou – vynechané: {{ topics.nezname|join:", " }}.</div>{% endif %}
+        <div class="mt-1"><button type="submit" name="akce" value="zahodit" formnovalidate class="link">Zahodit návrh</button></div>
+      </div>
+    {% endif %}
     <div class="space-y-4">
-      {% include "evidence/_checks.html" with f=form.metrics %}
-      {% include "evidence/_checks.html" with f=form.protocols %}
-      {% include "evidence/_checks.html" with f=form.rules hint="Pravidla se zapínají v administraci; vypnuté pravidlo nález nenajde." %}
+      {% include "evidence/_checks.html" with f=form.metrics ai=suggested.metrics %}
+      {% include "evidence/_checks.html" with f=form.protocols ai=suggested.protocols %}
+      {% include "evidence/_checks.html" with f=form.rules ai=suggested.rules hint="Pravidla se zapínají v Nastavení → Pravidla; vypnuté pravidlo nález nenajde." %}
       {% include "evidence/_field.html" with f=form.stitky %}
+    </div>
+
+    <div class="mt-5 p-4 rounded-lg" style="background: var(--surface-2)">
+      <div class="text-sm font-medium">Navrhnout pomocí AI</div>
+      <p class="text-xs text-muted mb-3">Model dostane název, hlavní zjištění a abstrakt článku (bez nich celý text z PDF)
+        a seznam ukazatelů, testů a pravidel z katalogu pracoviště. Vybere jen z něj a u každé položky napíše proč.
+        Navržené položky zaškrtne k těm, které už jsou vybrané – nic neodškrtne – a platit začnou až po uložení.</p>
+      {% if llm_enabled %}
+        <div class="flex flex-wrap items-end gap-2">
+          {% if model_choices|length > 1 %}
+            <label class="block"><span class="text-xs text-2">Model</span>
+              <select name="model_temata" class="input mt-1 w-auto">
+                {% for value, label in model_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+              </select></label>
+          {% endif %}
+          <button type="submit" name="akce" value="ai_temata" class="btn" {% if article.ai_writing %}disabled{% endif %}>Uložit a navrhnout ukazatele, testy a pravidla</button>
+        </div>
+      {% else %}
+        <p class="text-xs" style="color: var(--warn)">Jazykový model není zapnutý (LLM_ENABLED) – návrh teď nejde.</p>
+      {% endif %}
     </div>
   </section>
 

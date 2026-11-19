@@ -104,6 +104,9 @@ class Article(TimeStampedModel):
     ai_draft = models.JSONField("návrh od AI", null=True, blank=True)
     ai_writing_model = models.CharField("návrh píše model", max_length=120, blank=True)
     ai_writing_started_at = models.DateTimeField("návrh se začal psát", null=True, blank=True)
+    # Co model právě navrhuje: "" = hlavní zjištění, omezení a populaci (krok 3),
+    # "temata" = ukazatele, testy a pravidla, u kterých se článek použije (krok 5).
+    ai_writing_part = models.CharField("co model navrhuje", max_length=10, blank=True)
 
     # Embedding pro sémantické vyhledávání (fáze 4, pgvector).
     # embedding = VectorField(dimensions=1536, null=True, blank=True)

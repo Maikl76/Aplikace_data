@@ -72,7 +72,7 @@ stejného sportu dostane takový článek k tématu přednostně.
    v PubMedu není, se dohledá v Crossrefu. Odchází jen DOI/PMID.
 2. Doplňte **hlavní zjištění**, **omezení** a **populaci**.
 3. V části **Kdy se článek použije** zaškrtněte ukazatele a testy (témata),
-   případně pravidla.
+   případně pravidla – nebo je nechte navrhnout AI (níže).
 4. Uložte a v seznamu **Zařaďte**. Zařazený článek bez hlavního zjištění
    aplikace ohlásí – model by znal jen jeho název.
 
@@ -104,6 +104,27 @@ Lokální model navrhne hlavní zjištění, omezení, úroveň evidence a popul
   číslicemi, ani anglicky slovy), aplikace vypíše k ověření.
 - Věk od–do model vyplní jen tehdy, když ho článek uvádí jako rozpětí;
   u průměru ± SD ho nechá prázdný.
+
+### Návrh ukazatelů, testů a pravidel pomocí AI
+
+V kroku *Kdy se článek použije* je **Uložit a navrhnout ukazatele, testy
+a pravidla** (`apps/evidence/ai_draft.py`, `write_topics`).
+
+- **Model dostane** název článku, hlavní zjištění a abstrakt (když chybějí
+  oba, celý text z PDF) a **katalog pracoviště**: aktivní ukazatele (s testy,
+  ve kterých se měří), testy (s přístrojem) a pravidla (s podmínkou slovy,
+  u vypnutých poznámka). Vybírat smí jen z něj; vlastní testy jiného
+  pracoviště nedostane.
+- **Odpověď:** pro každou položku kód a jednou větou proč (co studie měřila
+  nebo z čeho vyvozuje závěr). Kódy, které v katalogu nejsou, aplikace
+  vynechá a vypíše.
+- **Ve formuláři** jsou navržené položky zaškrtnuté **k dosavadnímu výběru**
+  (nic se neodškrtne) a označené značkou *AI* s důvodem; nad seznamy je
+  přehled návrhu. **Platí až po uložení**, *Zahodit návrh* ho zruší.
+- Běží na pozadí jako návrh hlavního zjištění (jeden návrh u článku naráz).
+  Uložením formuláře se případný předchozí návrh z kroku 3 bere jako
+  zkontrolovaný. Text návrhu z kroku 3 se tím nepřepíše – návrh témat mění
+  jen zaškrtnutí v kroku 5.
 
 Dohledání potřebuje internet. Na offline serveru se údaje vyplní ručně,
 nebo články přijdou s katalogem: na počítači s internetem `ulozit-katalog.bat`,

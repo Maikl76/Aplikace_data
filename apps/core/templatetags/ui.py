@@ -93,6 +93,15 @@ def initials(name: str) -> str:
     return "".join(p[0] for p in parts[:2]).upper()
 
 
+@register.filter
+def klic(mapping, key):
+    """Hodnota ze slovníku v šabloně – {{ slovnik|klic:polozka }}; prázdné, když chybí."""
+    try:
+        return mapping.get(key, "") if mapping else ""
+    except AttributeError:
+        return ""
+
+
 @register.simple_tag(takes_context=True)
 def nav_link(context, url_name: str, label: str, icon_name: str, prefix: str = "",
              badge: int = 0, css: str = "", exclude: str = ""):

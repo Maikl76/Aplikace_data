@@ -147,8 +147,22 @@ def source_for(article, uploaded=None, *, abstract_only=False) -> tuple[str, str
 # Psaní návrhu
 # ---------------------------------------------------------------------------
 
-def start(article, *, model: str | None, text: str, source: str) -> None:
-    """Zahájí psaní návrhu – na pozadí, bez LLM_BACKGROUND (testy) hned."""
+PART_TOPICS = "temata"   # Article.ai_writing_part: model vybírá ukazatele, testy a pravidla
+
+
+def _failed(part: str, message: str, model: str) -> dict:
+    """Návrh, který se nepovedl – u témat pod klíčem „temata“, ať ho ukáže krok 5."""
+    failed = {"chyba": message[:500], "model": model}
+    return {PART_TOPICS: failed} if part == PART_TOPICS else failed
+
+
+def start(article, *, model: str | None, text: str, source: str, part: str = "",
+          organization=None) -> None:
+    """
+    Zahájí psaní návrhu – na pozadí, bez LLM_BACKGROUND (testy) hned. ``part``:
+    "" = hlavní zjištění, omezení a populace; PART_TOPICS = ukazatele, testy
+    a pravidla z katalogu ``organization`` (krok 5 formuláře).
+    """
     from apps.reports import llm
     from apps.reports.ai_models import default_model
 
@@ -158,9 +172,16 @@ def start(article, *, model: str | None, text: str, source: str) -> None:
         raise DraftError("Model už návrh píše – počkejte, až dopíše.")
     model = model or default_model()
     Article.objects.filter(pk=article.pk).update(
-        ai_writing_model=model, ai_writing_started_at=timezone.now())
+        ai_writing_model=model, ai_writing_started_at=timezone.now(), ai_writing_part=part)
+    organization_id = getattr(organization, "pk", None)
+
+    def job():
+        if part == PART_TOPICS:
+            return write_topics(article.pk, model, text, source, organization_id)
+        return write(article.pk, model, text, source)
+
     if not settings.LLM_BACKGROUND:
-        write(article.pk, model, text, source)
+        job()
         return
     import threading
 
@@ -168,26 +189,32 @@ def start(article, *, model: str | None, text: str, source: str) -> None:
         from django.db import connection
 
         try:
-            write(article.pk, model, text, source)
+            job()
         except Exception as exc:  # nic nesmí nechat článek viset ve stavu „píše“
             logger.exception("Návrh k článku %s selhal", article.pk)
             Article.objects.filter(pk=article.pk).update(
-                ai_writing_started_at=None, ai_draft={"chyba": str(exc)[:500]})
+                ai_writing_started_at=None, ai_writing_part="",
+                ai_draft=_failed(part, str(exc), model))
         finally:
             connection.close()
 
     transaction.on_commit(lambda: threading.Thread(target=run, daemon=True).start())
 
 
-def write(article_pk: int, model: str, text: str, source: str) -> dict:
-    from apps.reports import llm
-
-    article = Article.objects.get(pk=article_pk)
+def _header(article) -> str:
     header = f"Název: {article.title}\n"
     if article.authors:
         header += f"Autoři: {article.authors}\n"
     if article.journal or article.year:
         header += f"Časopis: {article.journal} {article.year or ''}\n"
+    return header
+
+
+def write(article_pk: int, model: str, text: str, source: str) -> dict:
+    from apps.reports import llm
+
+    article = Article.objects.get(pk=article_pk)
+    header = _header(article)
     messages = [
         {"role": "system", "content": PROMPT},
         {"role": "user", "content": f"{header}\nZdroj: {source}\n\n{text}"},
@@ -213,19 +240,25 @@ def write(article_pk: int, model: str, text: str, source: str) -> dict:
                  "cisla_k_overeni": unsupported_numbers(
                      f"{data['hlavni_zjisteni']}\n{data['omezeni']}", text + "\n" + header),
                  "vytvoreno": timezone.now().isoformat()}
-    Article.objects.filter(pk=article_pk).update(ai_draft=draft, ai_writing_started_at=None)
+    Article.objects.filter(pk=article_pk).update(ai_draft=draft, ai_writing_started_at=None,
+                                                 ai_writing_part="")
     return draft
 
 
-def parse_reply(text: str) -> dict:
+def _json_value(text: str):
     """JSON z odpovědi modelu – i když ho model obalí do ```json … ```."""
     start_, end = text.find("{"), text.rfind("}")
     if start_ < 0 or end <= start_:
         raise DraftError("Model neodpověděl ve formátu JSON.")
     try:
-        data = json.loads(text[start_:end + 1])
+        return json.loads(text[start_:end + 1])
     except json.JSONDecodeError as exc:
         raise DraftError("Model odpověděl neplatným JSON.") from exc
+
+
+def parse_reply(text: str) -> dict:
+    """Hlavní zjištění, omezení, úroveň evidence a populace z odpovědi modelu."""
+    data = _json_value(text)
     if not isinstance(data, dict) or not str(data.get("hlavni_zjisteni") or "").strip():
         raise DraftError("V odpovědi modelu chybí hlavní zjištění.")
     population = data.get("populace") if isinstance(data.get("populace"), dict) else {}
@@ -286,10 +319,12 @@ def clear_stalled(article) -> bool:
     limit = timedelta(seconds=2 * timeout_for(article.ai_writing_model) + 60)
     if timezone.now() - article.ai_writing_started_at < limit:
         return False
+    article.ai_draft = _failed(article.ai_writing_part,
+                               "Psaní návrhu se nedokončilo (aplikace se mezitím restartovala "
+                               "nebo model neodpověděl).", article.ai_writing_model)
     article.ai_writing_started_at = None
-    article.ai_draft = {"chyba": "Psaní návrhu se nedokončilo (aplikace se mezitím restartovala "
-                                 "nebo model neodpověděl).", "model": article.ai_writing_model}
-    article.save(update_fields=["ai_writing_started_at", "ai_draft"])
+    article.ai_writing_part = ""
+    article.save(update_fields=["ai_writing_started_at", "ai_draft", "ai_writing_part"])
     return True
 
 
@@ -329,3 +364,187 @@ def initial_from(draft: dict, article, organization) -> tuple[dict, list[str]]:
             initial["population_sport"] = sport
         filled.append("sport")
     return initial, filled
+
+
+# ---------------------------------------------------------------------------
+# Kdy se článek použije: ukazatele, testy a pravidla (krok 5 formuláře)
+# ---------------------------------------------------------------------------
+
+TOPICS_PROMPT = """Jsi kurátor knihovny vědeckých článků laboratoře funkční diagnostiky \
+na fakultě tělesné výchovy a sportu. Podle článku vybereš, u kterých ukazatelů, testů \
+a pravidel laboratoře se má článek použít. Jazykový model, který píše zprávy z testování \
+sportovců, pak článek dostane u sportovce, kterému se vybraný ukazatel nebo test měřil, \
+a cituje ho, když vybrané pravidlo najde nález. Kurátor tvůj výběr zkontroluje.
+
+Dostaneš katalog laboratoře: ukazatele, testy a pravidla ve tvaru „kód – název“. \
+Vybírej JEN z něj.
+
+Odpověz POUZE jedním objektem JSON, bez dalšího textu, s klíči "ukazatele", "testy" \
+a "pravidla". Každý je seznam objektů {"kod": "…", "proc": "…"}; "proc" je jedna krátká \
+věta česky, proč článek k položce patří (co studie měřila, zkoumala nebo z čeho vyvozuje závěr).
+
+Pravidla:
+1. Vyber jen položky, se kterými studie opravdu pracuje. Obecná souvislost s tématem \
+nestačí – raději méně položek než nepřesné.
+2. Ukazatel vyber, když studie měří nebo vyhodnocuje tuto veličinu (např. výšku výskoku \
+z CMJ). Test vyber, když studie používá tento test nebo jeho obdobu se stejným pohybem \
+a měřením.
+3. Pravidlo vyber jen tehdy, když článek přímo podporuje jeho podmínku nebo doporučení \
+(např. hranici asymetrie nebo poměru, se kterou pravidlo pracuje).
+4. Když nic nesedí, vrať prázdný seznam.
+5. Kódy opiš přesně z katalogu."""
+
+SOURCE_FINDING = "hlavní zjištění"
+
+# klíč v odpovědi modelu, pole formuláře, popisek
+TOPICS = (("ukazatele", "metrics", "ukazatele"), ("testy", "protocols", "testy"),
+          ("pravidla", "rules", "pravidla"))
+
+
+def topics_source(article, uploaded=None) -> tuple[str, str]:
+    """K výběru témat stačí hlavní zjištění a abstrakt; bez nich celý text z PDF."""
+    parts = []
+    if article.key_finding.strip():
+        parts.append(f"Hlavní zjištění (od kurátora): {article.key_finding.strip()}")
+    if article.abstract.strip():
+        parts.append(f"Abstrakt:\n{article.abstract.strip()}")
+    if parts:
+        return "\n\n".join(parts), (SOURCE_ABSTRACT if article.abstract.strip()
+                                    else SOURCE_FINDING)
+    return source_for(article, uploaded)
+
+
+def topics_catalog(organization) -> dict:
+    """
+    Z čeho jde vybírat (stejně jako ve formuláři): aktivní ukazatele a testy
+    a pravidla – sdílené z katalogu a vlastní pracoviště. Kód → záznam a text
+    katalogu pro model (u ukazatele i testy, ve kterých se měří, u pravidla
+    podmínka slovy).
+    """
+    from django.db.models import Q
+
+    from apps.catalog.models import MetricDef, Protocol
+    from apps.rules.models import Rule
+    from apps.rules.steps import describe
+
+    mine = Q(organization__isnull=True)
+    if organization is not None:
+        mine |= Q(organization=organization)
+    own_last = lambda item: item.organization_id is not None  # noqa: E731  (vlastní přepíše sdílený)
+    metrics = sorted(MetricDef.objects.filter(mine, is_active=True)
+                     .prefetch_related("protocol_metrics__protocol"), key=own_last)
+    protocols = sorted(Protocol.objects.filter(mine, is_active=True), key=own_last)
+    rules = list(Rule.objects.filter(mine).order_by("code", "version"))
+    catalog = {"metrics": {m.code.lower(): m for m in metrics},
+               "protocols": {p.code.lower(): p for p in protocols},
+               "rules": {r.code.lower(): r for r in rules}}   # nejvyšší verze pravidla
+
+    by_code = {m.code: m for m in metrics}
+
+    def metric_line(m):
+        tests = sorted({pm.protocol.name for pm in m.protocol_metrics.all()
+                        if pm.protocol.is_active})
+        unit = f" [{m.unit}]" if m.unit and m.unit != "-" else ""
+        return f"{m.code} – {m.name}{unit}" + (f" (testy: {', '.join(tests)})" if tests else "")
+
+    def rule_line(r):
+        condition = describe(r.condition, by_code) if r.condition else ""
+        return (f"{r.code} – {r.name}" + (f": {condition}" if condition else "")
+                + ("" if r.is_active else " (vypnuté)"))
+
+    catalog["text"] = (
+        "UKAZATELE\n" + "\n".join(metric_line(m) for m in catalog["metrics"].values())
+        + "\n\nTESTY\n" + "\n".join(f"{p.code} – {p.name}" + (f" ({p.device})" if p.device else "")
+                                    for p in catalog["protocols"].values())
+        + "\n\nPRAVIDLA\n" + ("\n".join(rule_line(r) for r in catalog["rules"].values())
+                                or "(žádná)"))
+    return catalog
+
+
+def write_topics(article_pk: int, model: str, text: str, source: str,
+                 organization_id: int | None = None) -> dict:
+    from apps.core.models import Organization
+    from apps.reports import llm
+
+    article = Article.objects.get(pk=article_pk)
+    organization = (Organization.objects.filter(pk=organization_id).first()
+                    if organization_id else None)
+    catalog = topics_catalog(organization)
+    messages = [
+        {"role": "system", "content": TOPICS_PROMPT},
+        {"role": "user", "content": f"{_header(article)}\nZdroj: {source}\n\n{text}\n\n"
+                                    f"KATALOG LABORATOŘE – vybírej jen odtud\n\n{catalog['text']}"},
+    ]
+    try:
+        reply = llm.chat(messages, model=model, temperature=0.2)
+        try:
+            data = parse_topics(reply.text, catalog)
+        except DraftError:
+            messages += [{"role": "assistant", "content": reply.text},
+                         {"role": "user", "content": "Odpověz znovu, POUZE platným objektem "
+                                                     "JSON s klíči ukazatele, testy a pravidla, "
+                                                     "bez dalšího textu."}]
+            seconds = reply.seconds
+            reply = llm.chat(messages, model=model, temperature=0.2)
+            reply.seconds += seconds
+            data = parse_topics(reply.text, catalog)
+    except (llm.LLMError, DraftError) as exc:
+        topics = {"chyba": str(exc)[:500], "model": model}
+    else:
+        topics = {**data, "model": reply.model, "zdroj": source,
+                  "sekund": round(reply.seconds), "vytvoreno": timezone.now().isoformat()}
+    Article.objects.filter(pk=article_pk).update(
+        ai_draft={PART_TOPICS: topics}, ai_writing_started_at=None, ai_writing_part="")
+    return topics
+
+
+def parse_topics(text: str, catalog: dict) -> dict:
+    """Výběr z odpovědi modelu – jen kódy, které v katalogu jsou; ostatní jmenuje."""
+    data = _json_value(text)
+    if not isinstance(data, dict) or not any(key in data for key, _, _ in TOPICS):
+        raise DraftError("V odpovědi modelu chybí ukazatele, testy i pravidla.")
+    out, unknown = {}, []
+    for key, field, _ in TOPICS:
+        items = data.get(key)
+        picked, seen = [], set()
+        for item in items if isinstance(items, list) else []:
+            if isinstance(item, dict):
+                code = item.get("kod") or item.get("kód") or item.get("code")
+                why = item.get("proc") or item.get("proč") or ""
+            else:
+                code, why = item, ""
+            code = str(code or "").strip()
+            found = catalog[field].get(code.lower())
+            if found is None:
+                if code and code not in unknown:
+                    unknown.append(code)
+                continue
+            if found.pk in seen:
+                continue
+            seen.add(found.pk)
+            picked.append({"pk": found.pk, "kod": found.code, "nazev": found.name,
+                           "proc": " ".join(str(why).split())[:300]})
+        out[key] = picked
+    out["nezname"] = unknown[:20]
+    return out
+
+
+def topics_initial(topics: dict, article) -> tuple[dict, dict, list[str]]:
+    """
+    Návrh témat → zaškrtnutí ve formuláři: k tomu, co už je vybrané (nic se
+    neodškrtne). Vrátí počáteční hodnoty, navržené položky po polích
+    ({pk: proč} – pro značku AI) a popis, co návrh vyplnil.
+    """
+    current = {
+        "metrics": set(article.metrics.values_list("pk", flat=True)),
+        "protocols": set(article.protocols.values_list("pk", flat=True)),
+        "rules": set(article.rule_articles.values_list("rule_id", flat=True)),
+    }
+    initial, suggested, filled = {}, {}, []
+    for key, field, label in TOPICS:
+        items = topics.get(key) or []
+        suggested[field] = {item["pk"]: item.get("proc") or "navrženo AI" for item in items}
+        if items:
+            initial[field] = sorted(current[field] | set(suggested[field]))
+            filled.append(f"{label} {len(items)}")
+    return initial, suggested, filled
