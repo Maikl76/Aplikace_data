@@ -24,9 +24,12 @@
 <div class="grid lg:grid-cols-2 gap-4">
   {% for sport in sports %}
     <section class="card p-4 min-w-0">
-      <div class="flex items-baseline justify-between mb-1">
+      <div class="flex items-baseline justify-between gap-3 mb-1">
         <h2 class="text-lg font-semibold">{{ sport.name }}</h2>
-        <a class="text-sm link" href="{% url 'subject_list' %}?sport={{ sport.pk }}">{{ sport.pocet_sportovcu }} sportovců</a>
+        <span class="flex items-baseline gap-3">
+          <a class="text-sm link" href="{% url 'subject_list' %}?sport={{ sport.pk }}">{{ sport.pocet_sportovcu }} sportovců</a>
+          {% if may_add_sport %}<a class="text-xs text-muted hover:underline" href="{% url 'sport_delete' sport.pk %}" title="Ukáže, co se se sportem smaže, a zeptá se">smazat sport</a>{% endif %}
+        </span>
       </div>
       <p class="text-xs text-muted mb-2">{% if sport.metodici %}Odpovídá metodik: {{ sport.metodici }}{% else %}Bez metodika – odpovědnost za sport přidělí správce v Kolegové → Přístup.{% endif %}</p>
       <form method="post" action="{% url 'sport_season' sport.pk %}" class="flex flex-wrap items-center gap-2 text-xs mb-3" title="Od tohoto měsíce se na kartě sportovce, v portálu i ve zprávě srovnává „od začátku sezóny“.">

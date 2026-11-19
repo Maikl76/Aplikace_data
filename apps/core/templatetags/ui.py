@@ -33,6 +33,7 @@ _PATHS = {
     "moon": '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
     "logout": '<path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4"/><path d="M6 12h10"/>',
     "plus": '<path d="M12 5v14M5 12h14"/>',
+    "x": '<path d="M6 6l12 12M18 6L6 18"/>',
     "menu": '<path d="M4 7h16M4 12h16M4 17h16"/>',
     "arrow-up": '<path d="M12 19V5M6 11l6-6 6 6"/>',
     "arrow-down": '<path d="M12 5v14M6 13l6 6 6-6"/>',

@@ -55,16 +55,35 @@ def _active_subject(user, raw):
     return Subject.objects.for_user(user).filter(pk=raw, is_active=True).first()
 
 
-def _subject_groups(form) -> list:
-    """Sportovci do výběru po sportech (abecedně), sportovci bez sportu na konci."""
+def _subject_options(form, user) -> list[dict]:
+    """
+    Sportovci pro našeptávač ve formuláři (static/js/vyber_sportovce.js):
+    „Příjmení Jméno (kód)“, kde sportuje, a slova k hledání bez diakritiky.
+    Jména jen ta, která účet smí vidět – ostatní sportovci jen pod kódem.
+    """
+    from apps.subjects.search import name_parts_for, plain
+
+    def words(text):
+        return plain(text).replace("-", " ").split()
+
     field = form.fields["subject"]
-    groups: dict[str, list] = {}
-    for subject in field.queryset.select_related("sport"):
-        name = subject.sport.name if subject.sport_id else "bez sportu"
-        groups.setdefault(name, []).append((subject.pk, field.label_from_instance(subject)))
-    return [(name, sorted(items, key=lambda item: item[1].lower()))
-            for name, items in sorted(groups.items(),
-                                      key=lambda g: (g[0] == "bez sportu", g[0].lower()))]
+    subjects = list(field.queryset.select_related("sport", "team"))
+    parts = name_parts_for(subjects, user)
+    options = []
+    for subject in subjects:
+        first, last = parts.get(subject.pk, ("", ""))
+        name = " ".join(x for x in (last, first) if x)
+        where = [subject.sport.name if subject.sport_id else "bez sportu"]
+        if subject.category:
+            where.append(subject.category)
+        if subject.team_id:
+            where.append(subject.team.name)
+        options.append({
+            "id": subject.pk, "label": f"{name} ({subject.code})" if name else subject.code,
+            "kde": " · ".join(where), "jmeno": words(f"{first} {last}"), "prijmeni": words(last),
+            "kod": plain(subject.code), "ostatni": words(" ".join(where)),
+        })
+    return sorted(options, key=lambda o: plain(o["label"]))
 
 
 @login_required
@@ -111,7 +130,7 @@ def session_create(request):
         return redirect("session_detail", pk=session.pk)
     selected = form["subject"].value()
     return render(request, "measurements/session_form.html", {
-        "form": form, "setup": setup, "subject_groups": _subject_groups(form),
+        "form": form, "setup": setup, "subject_options": _subject_options(form, request.user),
         "selected_subject": "" if selected in (None, "") else str(selected)})
 
 

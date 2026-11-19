@@ -15,9 +15,30 @@ from django.db.models import Count, F, Max
 from .models import Subject
 
 
-def _plain(text: str) -> str:
+def plain(text: str) -> str:
+    """Text bez diakritiky malými písmeny – „Nováková“ → „novakova“ (pro hledání)."""
     text = unicodedata.normalize("NFD", text or "")
     return "".join(ch for ch in text if unicodedata.category(ch) != "Mn").lower()
+
+
+_plain = plain
+
+
+def _visible_identities(subjects, user):
+    """Identity sportovců, jejichž jména smí uživatel vidět (prázdné bez klíče)."""
+    from .models import SubjectIdentity
+
+    if not settings.IDENTITY_ENCRYPTION_KEY:
+        return SubjectIdentity.objects.none()
+    from .access import subject_ids_for
+
+    qs = SubjectIdentity.objects.filter(subject__in=subjects)
+    if not user.sees_identity and not user.is_superuser:
+        allowed = subject_ids_for(user)
+        if not allowed:
+            return SubjectIdentity.objects.none()
+        qs = qs.filter(subject_id__in=allowed)
+    return qs
 
 
 def names_for(subjects, user) -> dict[int, str]:
@@ -25,25 +46,24 @@ def names_for(subjects, user) -> dict[int, str]:
     Jména sportovců, která smí uživatel vidět: {pk: „Jméno Příjmení“}.
     Laboratoř všechna, sportovec svoje a dětí, trenér sdílených, výzkumník žádné.
     """
-    if not settings.IDENTITY_ENCRYPTION_KEY:
-        return {}
-    from .access import subject_ids_for
-    from .models import SubjectIdentity
-
-    qs = SubjectIdentity.objects.filter(subject__in=subjects)
-    if not user.sees_identity and not user.is_superuser:
-        allowed = subject_ids_for(user)
-        if not allowed:
-            return {}
-        qs = qs.filter(subject_id__in=allowed)
-
     names = {}
-    for identity in qs:
+    for identity in _visible_identities(subjects, user):
         try:
             names[identity.subject_id] = identity.full_name
         except Exception:  # jiný klíč, poškozený záznam – radši kód než pád
             continue
     return names
+
+
+def name_parts_for(subjects, user) -> dict[int, tuple[str, str]]:
+    """{pk: (jméno, příjmení)} – pro hledání a řazení podle příjmení; stejná práva jako names_for."""
+    parts = {}
+    for identity in _visible_identities(subjects, user):
+        try:
+            parts[identity.subject_id] = (identity.first_name, identity.last_name)
+        except Exception:  # jiný klíč, poškozený záznam – radši kód než pád
+            continue
+    return parts
 
 
 def annotate(subjects, user, *, limit: int | None = None, recent: bool = False) -> list:

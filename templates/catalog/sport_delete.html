@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block content %}
+{% include "catalog/_tabs.html" with tab="sporty" %}
+<div class="mb-5">
+  <div class="eyebrow">Sporty a baterie testů</div>
+  <h1 class="text-2xl font-semibold">Smazat sport {{ sport.name }}?</h1>
+</div>
+
+<div class="card p-5 max-w-2xl space-y-4">
+  {% if plan.blockers %}
+    <div class="border-l-4 pl-3 py-1 text-sm" style="border-left-color: var(--bad)" role="alert">
+      <p class="font-medium">Sport teď smazat nejde:</p>
+      <ul class="list-disc pl-5 mt-1 space-y-1">
+        {% for b in plan.blockers %}<li>{{ b.text }}{% if b.url %} <a class="link whitespace-nowrap" href="{{ b.url }}">{{ b.link }}</a>{% endif %}</li>{% endfor %}
+      </ul>
+    </div>
+    <a class="btn" href="{% url 'sport_list' %}">Zpět na sporty</a>
+  {% else %}
+    <div class="text-sm">
+      <p class="font-medium mb-1">Se sportem se smaže:</p>
+      <ul class="list-disc pl-5 space-y-1">
+        {% for line in plan.removed %}<li>{{ line }}</li>{% empty %}<li class="text-muted">nic dalšího – sport je prázdný</li>{% endfor %}
+      </ul>
+    </div>
+    {% for w in plan.warnings %}
+      <div class="border-l-4 pl-3 py-1 text-sm flex gap-2 items-start" style="border-left-color: var(--warn)" role="status">
+        <span class="shrink-0 mt-0.5" style="color: var(--warn)">{% icon "alert" "w-4 h-4" %}</span>
+        <div>{{ w.text }}{% if w.url %} <a class="link" href="{{ w.url }}">{{ w.link }}</a>{% endif %}</div>
+      </div>
+    {% endfor %}
+    <p class="text-sm text-muted">Smazání nejde vrátit; zůstane po něm záznam v auditu. Žádná naměřená data se nemění.</p>
+    <form method="post" class="flex flex-wrap gap-2">
+      {% csrf_token %}
+      <button type="submit" class="btn" style="color: var(--bad)">{% icon "trash" %}Smazat sport {{ sport.name }}</button>
+      <a class="btn" href="{% url 'sport_list' %}">Zrušit</a>
+    </form>
+  {% endif %}
+</div>
+{% endblock %}

@@ -245,3 +245,53 @@ def test_baterie_nabizi_jen_testy_katalogu_pracoviste(lab):
     assert "Cizí test" not in page and "Sprint 30 m" in page
     response = client.post(f"/sporty/baterie/{battery.pk}/pridat/", {"protocol": tajny.pk})
     assert response.status_code == 404 and not battery.items.filter(protocol=tajny).exists()
+
+
+def _sportovci_data(html):
+    import json
+
+    match = re.search(r'<script id="sportovci-data" type="application/json">(.*?)</script>',
+                      html, re.S)
+    return {item["id"]: item for item in json.loads(match.group(1))}
+
+
+def test_vyber_sportovce_psanim_prijmeni(lab, settings):
+    """Našeptávač dostane „Příjmení Jméno (kód)“ a slova bez diakritiky k hledání."""
+    from cryptography.fernet import Fernet
+
+    from apps.subjects.models import SubjectIdentity
+
+    settings.IDENTITY_ENCRYPTION_KEY = Fernet.generate_key().decode()
+    org, user, hokej, client = lab
+    jana = Subject.objects.create(organization=org, code="FTVS-0001", sport=hokej,
+                                  category="Dorost")
+    identity = SubjectIdentity(subject=jana)
+    identity.set_names("Jana Marie", "Svobodová-Nováková")
+    identity.save()
+    bez_jmena = Subject.objects.create(organization=org, code="FTVS-0002", sport=hokej)
+    Subject.objects.create(organization=org, code="FTVS-0003", sport=hokej, is_active=False)
+
+    html = client.get("/mereni/novy/").content.decode()
+    data = _sportovci_data(html)
+    assert set(data) == {jana.pk, bez_jmena.pk}                  # neaktivní se nenabízí
+    item = data[jana.pk]
+    assert item["label"] == "Svobodová-Nováková Jana Marie (FTVS-0001)"
+    assert item["prijmeni"] == ["svobodova", "novakova"]
+    assert item["jmeno"] == ["jana", "marie", "svobodova", "novakova"]
+    assert item["kod"] == "ftvs-0001" and item["kde"] == "Lední hokej · Dorost"
+    assert data[bez_jmena.pk]["label"] == "FTVS-0002" and data[bez_jmena.pk]["jmeno"] == []
+    assert 'name="subject" x-ref="hodnota" value=""' in html and "js/vyber_sportovce.js" in html
+
+    # z karty sportovce předvybraný; po chybě formuláře zůstane vybraný
+    html = client.get(f"/mereni/novy/?sportovec={jana.pk}").content.decode()
+    assert f"vyberSportovce('{jana.pk}')" in html and f'x-ref="hodnota" value="{jana.pk}"' in html
+    html = client.post("/mereni/novy/", {"subject": jana.pk, "date": "zítra"}).content.decode()
+    assert f"vyberSportovce('{jana.pk}')" in html
+
+    # účet bez práva na jména hledá jen podle kódu
+    from apps.core import access
+
+    access.grant(user, names=False)
+    data = _sportovci_data(client.get("/mereni/novy/").content.decode())
+    assert data[jana.pk]["label"] == "FTVS-0001" and data[jana.pk]["jmeno"] == []
+    assert "Nováková" not in client.get("/mereni/novy/").content.decode()

@@ -7,8 +7,10 @@ a ta se v stránce vymění. Žádný JavaScript navíc.
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.db.models import Count, Max
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.text import slugify
 from django.views.decorators.http import require_POST
 
@@ -109,6 +111,104 @@ def sport_season(request, sport_pk):
     record(request, AuditLog.Action.UPDATE, sport, sezona_od=month)
     messages.success(request, f"{sport.name}: sezóna začíná {season_phrase(sport, case='v')}.")
     return redirect("sport_list")
+
+
+def _count(n: int, one: str, few: str, many: str) -> str:
+    from apps.reports.narrative import plural
+
+    return f"{n} {plural(n, one, few, many)}"
+
+
+def sport_delete_plan(sport) -> dict:
+    """
+    Co smazání sportu znamená. ``blockers`` – proč teď nejde (sportovci, nálezy
+    ve zprávách z jeho pravidel); ``removed`` – co zmizí s ním; ``warnings`` –
+    účty, které by pak neviděly nikoho.
+    """
+    from apps.core.models import Access
+    from apps.evidence.models import Article
+    from apps.measurements.models import TestSession
+    from apps.rules.models import Finding, Rule
+    from apps.subjects.models import Subject
+
+    from .models import Norm
+
+    blockers, removed, warnings = [], [], []
+    subjects = Subject.objects.filter(sport=sport)
+    if total := subjects.count():
+        inactive = subjects.filter(is_active=False).count()
+        blockers.append({
+            "text": (f"Sport má {_count(total, 'sportovce', 'sportovce', 'sportovců')}"
+                     + (f" (z toho {_count(inactive, 'neaktivní', 'neaktivní', 'neaktivních')})"
+                        if inactive else "")
+                     + ". Převeďte je do jiného sportu v údajích sportovce, nebo sport "
+                       "nechte – sportovce ani jejich měření smazání sportu nesmaže."),
+            "url": reverse("subject_list") + f"?sport={sport.pk}", "link": "Sportovci sportu"})
+    if foreign := Subject.objects.filter(team__sport=sport).exclude(sport=sport).count():
+        blockers.append({"text": f"V týmech tohoto sportu je {foreign} sportovců jiného sportu "
+                                 "– nejdřív jim tým změňte.", "url": "", "link": ""})
+    if Finding.objects.filter(rule__applies_to_sport=sport).exists():
+        blockers.append({"text": "Pravidla tohoto sportu už vytvořila nálezy ve zprávách a ty "
+                                 "musí zůstat dohledatelné. Pravidla můžete místo toho vypnout.",
+                         "url": reverse("rules_settings"), "link": "Pravidla"})
+
+    batteries = list(sport.batteries.all())
+    if batteries:
+        removed.append(f"baterie testů: {', '.join(b.label for b in batteries)} – testy "
+                       "samotné v katalogu zůstanou")
+    teams = list(sport.teams.all())
+    if teams:
+        removed.append(f"týmy: {', '.join(t.name for t in teams)}")
+    if norms := Norm.objects.filter(sport=sport).count():
+        removed.append(f"normy jen pro tento sport: {norms}")
+    if rules := Rule.objects.filter(applies_to_sport=sport).count():
+        removed.append(f"pravidla jen pro tento sport: {rules}")
+    if articles := Article.objects.filter(sports=sport).count():
+        removed.append(f"sport z populace studie u článků: {articles} (články zůstanou)")
+    accesses = list(Access.objects.filter(sports=sport).select_related("user")
+                    .prefetch_related("sports"))
+    if accesses:
+        removed.append("sport z rozsahu dat účtů: "
+                       + ", ".join(_user_name(a.user) for a in accesses))
+        alone = [a for a in accesses if not a.all_sports and len(a.sports.all()) == 1]
+        if alone:
+            warnings.append({
+                "text": (f"{', '.join(_user_name(a.user) for a in alone)} "
+                         + ("má" if len(alone) == 1 else "mají")
+                         + " v rozsahu dat jen tento sport – po smazání neuvidí žádného "
+                           "sportovce. Přístup upravte v Kolegové."),
+                "url": reverse("colleagues"), "link": "Kolegové"})
+    if sessions := TestSession.objects.filter(battery__sport=sport).count():
+        removed.append(f"odkaz na baterii u testovacích dnů jiných sportovců, které podle ní "
+                       f"vznikly: {sessions} (dny i hodnoty zůstanou)")
+    return {"blockers": blockers, "removed": removed, "warnings": warnings, "teams": teams,
+            "counts": {"baterie": len(batteries), "tymy": len(teams), "normy": norms,
+                       "pravidla": rules, "clanky": articles, "ucty": len(accesses)}}
+
+
+def _user_name(user) -> str:
+    return user.get_full_name() or user.get_username()
+
+
+@login_required
+def sport_delete(request, pk):
+    """Smazání sportu: nejdřív přehled, co se smaže a co tomu brání; pak POST."""
+    sport = get_object_or_404(Sport.objects.for_user(request.user), pk=pk)
+    if not access.may_add_sport(request.user):
+        messages.error(request, "Sport maže správce nebo účet se všemi sporty.")
+        return redirect("sport_list")
+    plan = sport_delete_plan(sport)
+    if request.method == "POST" and not plan["blockers"]:
+        name = sport.name
+        with transaction.atomic():
+            record(request, AuditLog.Action.DELETE, sport, sport=name, kod=sport.code,
+                   **plan["counts"])
+            for team in plan["teams"]:
+                team.delete()     # tým je na sportu chráněný (PROTECT), jde první
+            sport.delete()        # baterie, normy a pravidla sportu se smažou s ním
+        messages.success(request, f"Sport „{name}“ smazán.")
+        return redirect("sport_list")
+    return render(request, "catalog/sport_delete.html", {"sport": sport, "plan": plan})
 
 
 @login_required

@@ -11,6 +11,13 @@ sportovce (úprava údajů).
 - **Pořadí:** šipky ↑ ↓.
 - **Odebrat:** ✕. Naměřená data zůstanou, změní se jen to, co se nabízí příště.
 - Nový sport dostane rovnou prázdnou baterii.
+- **Smazat sport** (odkaz u sportu; správce nebo účet se všemi sporty): nejdřív
+  stránka s tím, co se smaže s ním – baterie, týmy, normy a pravidla platná jen
+  pro tento sport, odkaz u článků a sport v rozsahu dat účtů (účet, který by
+  pak neviděl nikoho, jmenuje). Sport se **sportovci** (i neaktivními) smazat
+  nejde – sportovce převeďte do jiného sportu, nebo sport nechte; stejně tak,
+  když pravidla sportu už vytvořila nálezy ve zprávách. Naměřená data se
+  nemažou nikdy; smazání jde do auditu.
 
 Baterie se přenáší s katalogem (`ulozit-katalog.bat` / `nacist-katalog.bat`).
 

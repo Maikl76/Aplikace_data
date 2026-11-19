@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load ui %}
+{% block head %}<script src="{% static_v 'js/vyber_sportovce.js' %}"></script>{% endblock %}
 {% block content %}
 <div class="mb-5">
   <div class="eyebrow">Individuální testování</div>
@@ -11,22 +12,45 @@
   {% for error in form.non_field_errors %}<p class="text-sm" style="color: var(--bad)">{{ error }}</p>{% endfor %}
 
   <div class="grid sm:grid-cols-[1fr_12rem] gap-4">
-    <label class="block">
-      <span class="text-sm text-2">Sportovec</span>
-      <select name="subject" class="input mt-1" required
-              hx-get="{% url 'session_battery' %}" hx-include="[name=date]"
-              hx-target="#sestava" hx-swap="outerHTML" hx-trigger="change">
-        <option value="">vyberte sportovce…</option>
-        {% for group, options in subject_groups %}
-          <optgroup label="{{ group }}">
-            {% for value, label in options %}
-              <option value="{{ value }}"{% if value|stringformat:"s" == selected_subject %} selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-          </optgroup>
-        {% endfor %}
-      </select>
+    {# Sportovec: našeptávač (static/js/vyber_sportovce.js) – píše se příjmení, jméno nebo kód. #}
+    <div class="relative" x-data="vyberSportovce('{{ selected_subject }}')" @click.outside="otevreno = false">
+      <label for="hledat-sportovce" class="text-sm text-2">Sportovec</label>
+      <input type="hidden" name="subject" x-ref="hodnota" value="{{ selected_subject }}"
+             hx-get="{% url 'session_battery' %}" hx-include="[name=date]"
+             hx-target="#sestava" hx-swap="outerHTML" hx-trigger="vybran">
+      <div class="relative mt-1">
+        <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none">{% icon "search" "w-4 h-4" %}</span>
+        <input id="hledat-sportovce" type="text" class="input" style="padding-left: 2rem; padding-right: 2rem"
+               autocomplete="off" spellcheck="false"
+               placeholder="Začněte psát příjmení, jméno nebo kód…"
+               role="combobox" aria-autocomplete="list" aria-controls="sportovci-nabidka"
+               :aria-expanded="otevreno ? 'true' : 'false'"
+               :aria-activedescendant="otevreno && aktivni >= 0 ? 'sportovec-' + vysledky[aktivni].id : ''"
+               x-ref="vstup" x-model="dotaz" @input="hledat()" @click="hledat()" @focus="$el.select()"
+               @keydown.arrow-down.prevent="posunout(1)" @keydown.arrow-up.prevent="posunout(-1)"
+               @keydown.enter.prevent="potvrdit()" @keydown.escape.prevent="otevreno = false"
+               @keydown.tab="otevreno = false">
+        <button type="button" x-show="vybrany" x-cloak @click="zrusit()"
+                class="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:opacity-80"
+                title="Zrušit výběr" aria-label="Zrušit výběr sportovce">{% icon "x" "w-4 h-4" %}</button>
+      </div>
+      <ul id="sportovci-nabidka" role="listbox" x-show="otevreno" x-cloak
+          class="search-results absolute left-0 right-0 mt-1 z-40 max-h-80 overflow-y-auto py-1">
+        <template x-for="(s, i) in vysledky" :key="s.id">
+          <li role="option" :id="'sportovec-' + s.id" :aria-selected="i === aktivni ? 'true' : 'false'"
+              @mousedown.prevent="vybrat(s)" @mouseenter="aktivni = i"
+              class="px-3 py-1.5 cursor-pointer" :style="i === aktivni ? 'background: var(--surface-2)' : ''">
+            <span class="block text-sm" x-text="s.label"></span>
+            <span class="block text-xs text-muted" x-text="s.kde"></span>
+          </li>
+        </template>
+        <li x-show="!vysledky.length" class="px-3 py-2 text-sm text-muted">Nikdo takový – zkuste začátek příjmení, jméno nebo kód.</li>
+        <li x-show="dalsi > 0" class="px-3 py-1.5 text-xs text-muted" x-text="'… a další (' + dalsi + ') – pište dál'"></li>
+      </ul>
+      <span x-show="chyba" x-cloak x-text="chyba" class="block text-xs mt-1" style="color: var(--bad)"></span>
       {% for error in form.subject.errors %}<span class="block text-xs" style="color: var(--bad)">{{ error }}</span>{% endfor %}
-    </label>
+      {{ subject_options|json_script:"sportovci-data" }}
+    </div>
     {% include "measurements/_pole.html" with field=form.date %}
   </div>
 
