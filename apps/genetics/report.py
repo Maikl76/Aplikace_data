@@ -3,7 +3,16 @@ Genetická zpráva: deterministické sestavení ze schválených karet.
 
 Pořadí podle podkladů: cíl klienta a dostupné podklady → přehled genotypů →
 výsledky podle oblastí → praktická doporučení a jejich důvody → co doplnit
-nebo změřit → omezení interpretace a zdroje.
+nebo změřit → omezení interpretace a zdroje. U každé oblasti je zřejmé: co
+víme (laboratorní nález, odpověď klienta, měření) → co z toho lze vyvodit
+(text schválené karty) → jaký další krok dává smysl (odkaz na doporučení
+a měření).
+
+Měření z testování: u oblasti se zapnutými hodnotami (Domain.show_measurements)
+zpráva uvede hodnotu s testem, datem a kvalitou, normu jen s referenčním
+souborem; u vypnuté (první verze podle podkladů) jen to, které výsledky jsou
+k dispozici – bez hodnot a bez vyhodnocení. Měření v části 5 se nabízí podle
+cíle klienta (Recommendation.goals), ne jen proto, že varianta je v panelu.
 
 Co tu platí bez výjimky: text pro genotyp je doslova ze schválené verze
 karty; doporučení nese důvod; při rozporu se nic nevybírá – jde to
@@ -12,6 +21,7 @@ vedle genotypu, nikdy jako jeho potvrzení. Jazykový model smí napsat jen
 spojovací souhrn a ten se kontroluje proti nepřípustným výrokům i číslům.
 """
 
+import hashlib
 import json
 import logging
 from datetime import timedelta
@@ -57,6 +67,16 @@ MAX_WORDS = 160
 CAFFEINE_KEY = "kofein_mg_kg"
 MEASUREMENT_NOTE = ("Měření popisuje aktuální stav sportovce a má přednost před genotypem; "
                     "genotyp nepotvrzuje ani nevysvětluje.")
+MODE_NOTE = {
+    "hodnoty": "Měření z testování jsou u oblastí uvedena vedle genotypu (test, datum, kvalita; "
+               "norma jen s referenčním souborem). Naměřená výkonnost není potvrzením genetické "
+               "příčiny.",
+    "dostupnost": "Fenotypová měření se v této zprávě nevyhodnocují; u oblastí je jen uvedeno, "
+                  "které výsledky z testování jsou k dispozici.",
+    "smisene": "U části oblastí jsou uvedeny hodnoty měření (test, datum, kvalita; norma jen "
+               "s referenčním souborem), u ostatních jen to, které výsledky jsou k dispozici. "
+               "Naměřená výkonnost není potvrzením genetické příčiny.",
+}
 
 
 class GeneticsReportError(Exception):
@@ -116,10 +136,63 @@ def _norm_words(z: float, metric) -> str:
     return words(z, metric)
 
 
+def _trials(count: int) -> str:
+    return (f"{count} platný pokus" if count == 1 else
+            f"{count} platné pokusy" if 2 <= count <= 4 else f"{count} platných pokusů")
+
+
+def _run_info(session, protocol_code, metric, cache) -> dict:
+    """Test (protokol a verze) a kvalita měření ukazatele v daném dni."""
+    from apps.measurements.models import Measurement
+
+    key = ("run", session.pk, protocol_code, metric.pk)
+    if key in cache:
+        return cache[key]
+    run = (ProtocolRun.objects.filter(session=session, protocol__code=protocol_code,
+                                      is_primary=True)
+           .select_related("protocol").order_by("pk").first())
+    info = {"test": "", "kvalita": ""}
+    if run is not None:
+        info["test"] = f"{run.protocol.name} (v{run.protocol.version})"
+        rows = Measurement.objects.filter(trial__protocol_run=run, trial__is_valid=True,
+                                          metric=metric)
+        parts = [_trials(rows.values("trial").distinct().count())]
+        qualities = set(rows.values_list("quality", flat=True))
+        if "manual" in qualities:
+            parts.append("ručně upraveno")
+        if "suspect" in qualities:
+            parts.append("podezřelá hodnota")
+        info["kvalita"] = ", ".join(parts)
+    cache[key] = info
+    return info
+
+
+def _available(subject, domain, *, until) -> list[dict]:
+    """Které výsledky oblasti z posledního roku jsou k dispozici – bez hodnot a bez výkladu."""
+    out, seen = [], set()
+    for metric in domain.metrics.filter(is_active=True):
+        session = _latest_session(subject, until, metric=metric)
+        if session is None:
+            continue
+        runs = (ProtocolRun.objects.filter(session=session, is_primary=True,
+                                           trials__is_valid=True,
+                                           trials__measurements__metric=metric)
+                .select_related("protocol").distinct())
+        for run in runs:
+            if (run.protocol_id, session.pk) in seen:
+                continue
+            seen.add((run.protocol_id, session.pk))
+            out.append({"test": run.protocol.name, "datum": session.date.strftime("%d.%m.%Y"),
+                        "iso": session.date.isoformat()})
+    out.sort(key=lambda r: (r["test"], r["iso"]))
+    return out
+
+
 def _phenotype(subject, domain, *, until, norms, cache) -> list[dict]:
     """
-    Měření oblasti: poslední hodnota každého ukazatele oblasti, norma slovy
-    a změna proti minulému měření podle MDC. Bez výkladu vůči genotypu.
+    Měření oblasti: poslední hodnota každého ukazatele oblasti s testem,
+    datem a kvalitou, norma slovy jen se zdrojem referenčního souboru a změna
+    proti minulému měření podle MDC. Bez výkladu vůči genotypu.
     """
     rows = []
     for metric in domain.metrics.filter(is_active=True).order_by("name"):
@@ -138,11 +211,15 @@ def _phenotype(subject, domain, *, until, norms, cache) -> list[dict]:
                                                          "speed": entry["speed"],
                                                          "segment": entry["segment"]}),
                    "hodnota": _value(value, metric), "datum": session.date.strftime("%d.%m.%Y"),
-                   "norma": "", "zmena": "", "zmena_kod": ""}
+                   "norma": "", "norma_zdroj": "", "zmena": "", "zmena_kod": "",
+                   **_run_info(session, entry["protocol"], metric, cache)}
             norm = find_norm(metric, subject, side=entry["side"], mode=entry["mode"],
                              speed=entry["speed"], day=session.date, norms=norms)
-            if norm is not None and (z := norm.z_score(value)) is not None:
+            if (norm is not None and norm.source_citation.strip()
+                    and (z := norm.z_score(value)) is not None):
                 row["norma"] = _norm_words(z, metric)
+                row["norma_zdroj"] = norm.source_citation.strip() + (
+                    f", n = {norm.sample_size}" if norm.sample_size else "")
             prev = previous.get(key)
             if prev is not None:
                 verdict, kind = results.change_verdict(metric, value - prev["value"])
@@ -228,7 +305,18 @@ def _goal(answers: dict) -> dict:
         answer = answers.get(code)
         if answer is not None and answer.is_answered and answer.display():
             out[label] = answer.display()
+    answer = answers.get("cil")
+    if answer is not None and answer.is_answered and answer.choices:
+        out["kod"] = answer.choices[0]
     return out
+
+
+def questionnaire_fingerprint(questionnaire) -> str:
+    """Verze dotazníku: otisk otázek (kód, znění, druh, možnosti) – mění se s každou úpravou."""
+    rows = [[q.code, q.section, q.text, q.kind, q.options, q.help_text, q.unit, q.scale_min,
+             q.scale_max] for q in questionnaire.questions.order_by("order", "pk")]
+    return hashlib.sha256(json.dumps(rows, ensure_ascii=False, sort_keys=True)
+                          .encode("utf-8")).hexdigest()[:10]
 
 
 def _questionnaire(response) -> dict | None:
@@ -243,7 +331,8 @@ def _questionnaire(response) -> dict | None:
             sections.append({"oddil": section["name"], "odpovedi": rows})
     return {"nazev": response.questionnaire.name, "vyplneno": response.created_at.isoformat(),
             "vyplneno_txt": response.created_at.strftime("%d.%m.%Y"),
-            "zdroj": response.get_source_display(), "oddily": sections}
+            "zdroj": response.get_source_display(), "oddily": sections,
+            "otisk": questionnaire_fingerprint(response.questionnaire)}
 
 
 def _context_for(card, genotype: str, answers: dict, measurement=None) -> list[dict]:
@@ -282,7 +371,8 @@ def _recommendation(rec, variant, genotype_label) -> dict:
             "duvod": rec.get_basis_display(), "duvod_kod": rec.basis,
             "klic": rec.merge_key, "varianta": variant.label, "genotyp": genotype_label,
             "test": rec.protocol.name if rec.protocol_id else "",
-            "test_kod": rec.protocol.code if rec.protocol_id else ""}
+            "test_kod": rec.protocol.code if rec.protocol_id else "",
+            "cile": list(rec.goals or []), "hodnoty": variant.domain.show_measurements}
 
 
 def _merge(rows: list[dict]) -> tuple[list[dict], list[dict]]:
@@ -300,10 +390,15 @@ def _merge(rows: list[dict]) -> tuple[list[dict], list[dict]]:
         texts = {_norm(i["text"]) for i in items}
         if len(texts) == 1:
             first = items[0]
+            by_basis: dict[str, list[str]] = {}
+            for i in items:     # stejný důvod jednou, s variantami za ním
+                found = by_basis.setdefault(i["duvod"], [])
+                if (label := f"{i['varianta']} {i['genotyp']}") not in found:
+                    found.append(label)
             merged.append({
                 "druh": first["druh"], "druh_kod": first["druh_kod"], "text": first["text"],
-                "duvody": sorted({f"{i['duvod']} ({i['varianta']} {i['genotyp']})"
-                                  for i in items}),
+                "duvody": [f"{basis}: {', '.join(sorted(labels))}"
+                           for basis, labels in sorted(by_basis.items())],
                 "varianty": sorted({i["varianta"] for i in items}),
                 "slouceno": len(items),
             })
@@ -317,23 +412,39 @@ def _merge(rows: list[dict]) -> tuple[list[dict], list[dict]]:
     return merged, conflicts
 
 
-def _to_measure(rows: list[dict], subject) -> list[dict]:
-    """Co by bylo vhodné změřit – a zda už výsledek v aplikaci je (bez výkladu)."""
-    out, seen = [], set()
+def _to_measure(rows: list[dict], subject, goal: dict) -> tuple[list[dict], list[dict]]:
+    """
+    Co by bylo vhodné změřit – podle cíle klienta, ne jen proto, že varianta
+    je v panelu – a zda už výsledek v aplikaci je (bez výkladu). Vrací
+    (návrhy, návrhy karet mimo cíl klienta).
+    """
+    from apps.catalog.models import Protocol
+
+    code = goal.get("kod", "")
+    out, outside, seen = [], [], {}
     for row in rows:
         key = (row["test_kod"], _norm(row["text"]))
         if key in seen:
+            if row["varianta"] not in seen[key]["varianty"]:
+                seen[key]["varianty"].append(row["varianta"])
             continue
-        seen.add(key)
-        available = None
+        matched = bool(code and row["cile"] and code in row["cile"])
+        item = {"text": row["text"], "test": row["test"], "duvod": row["duvod"],
+                "varianty": [row["varianta"]], "k_dispozici": None, "hodnoty": row["hodnoty"],
+                "pro_cil": goal.get("cil", "") if matched else "",
+                "cil_neuveden": bool(row["cile"]) and not code}
+        seen[key] = item
+        if code and row["cile"] and code not in row["cile"]:
+            outside.append(item)
+            continue
         if row["test_kod"]:
-            from apps.catalog.models import Protocol
-
             protocol = Protocol.objects.filter(code=row["test_kod"]).order_by("-version").first()
             available = _availability(subject, protocol) if protocol else None
-        out.append({"text": row["text"], "test": row["test"], "duvod": row["duvod"],
-                    "varianty": [row["varianta"]], "k_dispozici": available})
-    return out
+            if available is not None and not row["hodnoty"]:
+                available = {**available, "values": []}
+            item["k_dispozici"] = available
+        out.append(item)
+    return out, outside
 
 
 def compose(sample, response=None, *, audience=Audience.ATHLETE) -> dict:
@@ -344,6 +455,7 @@ def compose(sample, response=None, *, audience=Audience.ATHLETE) -> dict:
     panel = sample.panel
     clinician = audience == Audience.CLINICIAN
     answers = response.answers_by_code() if response is not None else {}
+    goal = _goal(answers)
     genotypes = {g.variant_id: g for g in sample.genotypes.all()}
     until = timezone.localdate()
     norms = NormIndex()
@@ -391,8 +503,12 @@ def compose(sample, response=None, *, audience=Audience.ATHLETE) -> dict:
         entry = {
             **row, "text": shown, "biologie": biology,
             "ucinek": card.effect if clinician else "",
-            "omezeni": card.limitations, "frekvence": text.frequency,
-            "kontext": _context_for(card, value, answers, measurement),
+            "omezeni": card.limitations,
+            # populační frekvence jen odborníkovi a se zdrojem – klientovi nic neříká
+            "frekvence": text.frequency if clinician else "",
+            "frekvence_zdroj": variant.frequency_source if clinician and text.frequency else "",
+            "kontext": _context_for(card, value, answers,
+                                    measurement if variant.domain.show_measurements else None),
             "doporuceni": [r for r in rec_dicts if r["duvod_kod"] != Recommendation.Basis.MEASUREMENT],
             "dukazy": [{"kod": e.code, "znak": e.trait, "podklad": e.basis_text,
                         "pouziti": e.usage, "zdroje": e.source_labels}
@@ -406,13 +522,43 @@ def compose(sample, response=None, *, audience=Audience.ATHLETE) -> dict:
             sources.append({"citace": src.citation.strip(), "odkaz": src.url,
                             "oznaceni": src.label, "varianta": variant.label})
 
-    areas = [{"kod": domain.code, "nazev": domain.name, "popis": domain.description,
-              "polozky": items,
-              "mereni": (_phenotype(subject, domain, until=until, norms=norms, cache=cache)
-                         if domain.show_measurements else []),
-              "unava": _fatigue(subject, until) if domain.uses_fatigue else []}
-             for domain, items in sorted(by_domain.items(), key=lambda d: (d[0].order, d[0].name))]
+    areas = []
+    for domain, items in sorted(by_domain.items(), key=lambda d: (d[0].order, d[0].name)):
+        values = domain.show_measurements
+        answered = []
+        for e in items:
+            for k in e["kontext"]:
+                pair = {"otazka": k["otazka"], "odpoved": k["odpoved"]}
+                if k["zdroj"] == "z dotazníku" and pair not in answered:
+                    answered.append(pair)
+        areas.append({
+            "kod": domain.code, "nazev": domain.name, "popis": domain.description,
+            "polozky": items, "hodnoty_mereni": values,
+            "nalez": [f"{e['gen']} {e['genotyp_txt']}" for e in items],
+            "odpovedi": answered,
+            "mereni": (_phenotype(subject, domain, until=until, norms=norms, cache=cache)
+                       if values else []),
+            "dostupna_mereni": [] if values else _available(subject, domain, until=until),
+            "unava": _fatigue(subject, until) if domain.uses_fatigue and values else []})
+    modes = {a["hodnoty_mereni"] for a in areas}
+    mode = "smisene" if len(modes) > 1 else "hodnoty" if modes == {True} else "dostupnost"
     merged, conflicts = _merge(rec_rows)
+    for number, rec in enumerate(merged, start=1):
+        rec["cislo"] = number
+    to_measure, outside_goal = _to_measure(measure_rows, subject, goal)
+    for number, item in enumerate(to_measure, start=1):
+        item["cislo"] = number
+    for area in areas:
+        labels = {e["varianta"] for e in area["polozky"]}
+        area["dalsi_krok"] = {
+            "doporuceni": [r["cislo"] for r in merged if labels & set(r["varianty"])],
+            "k_posouzeni": sum(1 for c in conflicts if labels & set(c["varianty"])),
+            "mereni": list(dict.fromkeys(m["test"] or f"návrh č. {m['cislo']}" for m in to_measure
+                                         if labels & set(m["varianty"]))),
+        }
+    caffeine_domain = next((d for d in by_domain if d.code == "kofein"), None)
+    caffeine = (_caffeine(subject, until)
+                if caffeine_domain is None or caffeine_domain.show_measurements else [])
     numbered, seen = [], {}
     for src in sources:
         key = _norm(src["citace"])
@@ -420,7 +566,8 @@ def compose(sample, response=None, *, audience=Audience.ATHLETE) -> dict:
             if src["varianta"] not in seen[key]["varianty"]:
                 seen[key]["varianty"].append(src["varianta"])
             continue
-        seen[key] = {"cislo": len(numbered) + 1, "citace": src["citace"], "odkaz": src["odkaz"],
+        link = src["odkaz"] if src["odkaz"] and src["odkaz"] not in src["citace"] else ""
+        seen[key] = {"cislo": len(numbered) + 1, "citace": src["citace"], "odkaz": link,
                      "varianty": [src["varianta"]]}
         numbered.append(seen[key])
     limitations = list(LIMITATIONS) + sorted({
@@ -437,15 +584,19 @@ def compose(sample, response=None, *, audience=Audience.ATHLETE) -> dict:
                    "reference": sample.external_reference,
                    "overil": sample.verified_by.get_username() if sample.verified_by_id else "",
                    "overeno": sample.verified_at.isoformat() if sample.verified_at else None},
-        "cil": _goal(answers),
+        "cil": goal,
         "dotaznik": _questionnaire(response),
         "genotypy": overview,
         "oblasti": areas,
         "doporuceni": merged,
         "k_posouzeni": conflicts,
-        "co_doplnit": _to_measure(measure_rows, subject),
-        "kofein": _caffeine(subject, until),
+        "co_doplnit": to_measure,
+        "mimo_cil": [{"text": m["text"], "test": m["test"], "varianty": m["varianty"]}
+                     for m in outside_goal] if clinician else [],
+        "kofein": caffeine,
         "mereni_poznamka": MEASUREMENT_NOTE,
+        "mereni_rezim": mode,
+        "mereni_rezim_text": MODE_NOTE[mode],
         "neinterpretovano": not_interpreted,
         "omezeni": limitations,
         "zdroje": numbered,
@@ -453,6 +604,8 @@ def compose(sample, response=None, *, audience=Audience.ATHLETE) -> dict:
         "versions": {"karty": versions, "karty_text": versions_text,
                      "panel": f"{panel.code} v{panel.version}", "vzorek": sample.pk,
                      "dotaznik": response.pk if response is not None else None,
+                     "dotaznik_otisk": (questionnaire_fingerprint(response.questionnaire)
+                                        if response is not None else ""),
                      "sestaveno": timezone.now().isoformat()},
     }
 
@@ -492,6 +645,8 @@ def facts(content: dict) -> dict:
         "oblasti": [{
             "oblast": area["nazev"],
             "mereni": [_measurement_line(r) for r in area.get("mereni", [])],
+            "dostupna_mereni": [f"{r['test']} ({r['datum']})"
+                                for r in area.get("dostupna_mereni", [])],
             "unava": [f"{r['datum']}: únava {r['unava'] or '—'}/10"
                       + (f", RPE {', '.join(r['rpe'])}" if r["rpe"] else "")
                       for r in area.get("unava", [])],
@@ -507,6 +662,7 @@ def facts(content: dict) -> dict:
                         for r in k["rozdily"])
             for k in content.get("kofein", [])],
         "poznamka_k_mereni": MEASUREMENT_NOTE,
+        "rezim_mereni": content.get("mereni_rezim_text", ""),
         "doporuceni_sloucena": [r["text"] for r in content["doporuceni"]],
         "k_odbornemu_posouzeni": [c["klic"] for c in content["k_posouzeni"]],
         "co_doplnit": [m["text"] for m in content["co_doplnit"]],
@@ -517,7 +673,8 @@ def facts(content: dict) -> dict:
 
 def _measurement_line(row: dict) -> str:
     text = row["ukazatel"] + (f" {row['upresneni']}" if row["upresneni"] else "")
-    text += f": {row['hodnota']} ({row['datum']})"
+    text += f": {row['hodnota']} ({row['datum']}"
+    text += f", {row['test']})" if row.get("test") else ")"
     if row["norma"]:
         text += f", {row['norma']}"
     if row["zmena"]:
@@ -542,7 +699,8 @@ které není ve faktech. Nic neodvozuj z kombinace variant.
 5. Vykej. Nepoužívej číslované seznamy; na výčet používej odrážky „•“.
 6. Nepiš úvodní ani závěrečné fráze o sobě; nepiš doložku – tu zpráva obsahuje zvlášť.
 7. Měření (pole mereni, unava, pokus_s_kofeinem) uváděj jen jako aktuální stav; nikdy ne \
-jako potvrzení, vysvětlení nebo důsledek genotypu.
+jako potvrzení, vysvětlení nebo důsledek genotypu. Pole dostupna_mereni jen říká, které \
+výsledky jsou k dispozici – nic z nich nevyvozuj.
 Struktura: 2–3 věty, k čemu zpráva je a z čeho vychází (panel, dotazník, cíl klienta), pak \
 odrážky po oblastech – u každé jen jedna věta, o čem oblast je, bez výkladu genotypu. \
 Rozsah nejvýš 150 slov."""
@@ -768,12 +926,15 @@ def machine_readable(report, context: dict) -> dict:
         "doporuceni": content["doporuceni"],
         "k_odbornemu_posouzeni": content["k_posouzeni"],
         "co_doplnit": content["co_doplnit"],
-        "mereni": [{"oblast": a["nazev"], "ukazatele": a.get("mereni", []), "unava": a.get("unava", [])}
+        "mereni": [{"oblast": a["nazev"], "ukazatele": a.get("mereni", []), "unava": a.get("unava", []),
+                    "dostupna": a.get("dostupna_mereni", [])}
                    for a in content["oblasti"]],
+        "rezim_mereni": content.get("mereni_rezim", ""),
         "pokus_s_kofeinem": content.get("kofein", []),
         "neinterpretovano": content["neinterpretovano"],
         "omezeni": content["omezeni"],
         "zdroje": content["zdroje"],
         "verze_karet": content["versions"]["karty"],
+        "verze_dotazniku": content["versions"].get("dotaznik_otisk", ""),
         "dolozka": report.disclaimer,
     }

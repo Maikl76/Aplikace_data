@@ -116,6 +116,14 @@ QUESTIONNAIRE = {
          "text": "Máte nyní bolesti nebo obtíže pohybového aparátu?"},
         {"code": "obtize_popis", "section": "Pohybový aparát", "kind": "text",
          "text": "Kde, jak dlouho a v jakém vztahu k zátěži", "required": False},
+        {"code": "obtize_diagnoza", "section": "Pohybový aparát", "kind": "choice",
+         "text": "Byly obtíže vyšetřeny lékařem nebo fyzioterapeutem?", "required": False,
+         "allow_na": True,
+         "help_text": "Odliší subjektivní bolest od doložené diagnózy; diagnózu samotnou "
+                      "vypisovat nemusíte.",
+         "options": [("diagnoza", "ano, mám stanovenou diagnózu"),
+                     ("bez_zaveru", "vyšetřeno, bez jasného závěru"),
+                     ("nevysetreno", "nevyšetřeno – jde o můj popis obtíží")]},
         {"code": "slachy_opakovane", "section": "Pohybový aparát", "kind": "choice",
          "text": "Bolesti Achillovy nebo patelární šlachy při vyšším tréninkovém objemu",
          "allow_unknown": True,
@@ -129,13 +137,15 @@ QUESTIONNAIRE = {
          "text": "Únava mezi tréninky v posledních 4 týdnech",
          "anchors": {"0": "žádná", "5": "střední", "10": "maximální"}},
         {"code": "bolestivost", "section": "Regenerace", "kind": "choice",
-         "text": "Svalová bolestivost a zotavení po náročném tréninku", "allow_unknown": True,
+         "text": "Svalová bolestivost a zotavení po náročném tréninku (poslední 4 týdny)",
+         "allow_unknown": True,
          "options": [("vyrazna", "výrazná bolestivost, potřebuji delší čas na zotavení"),
                      ("bezna", "zotavím se rychle a mohu brzy znovu kvalitně trénovat")]},
         {"code": "spanek_h", "section": "Regenerace", "kind": "number", "unit": "h",
-         "text": "Obvyklá délka spánku"},
+         "text": "Obvyklá délka spánku (poslední 4 týdny)"},
         {"code": "stres", "section": "Regenerace", "kind": "scale", "min": 0, "max": 10,
-         "text": "Pracovní a psychická zátěž", "anchors": {"0": "žádná", "10": "maximální"}},
+         "text": "Pracovní a psychická zátěž (poslední 4 týdny)",
+         "anchors": {"0": "žádná", "10": "maximální"}},
         {"code": "odpocinek_dny", "section": "Regenerace", "kind": "number", "unit": "dny",
          "text": "Odpočinkové dny v týdnu"},
         # Kofein
@@ -147,6 +157,10 @@ QUESTIONNAIRE = {
         {"code": "kofein_casovani", "section": "Kofein", "kind": "choice",
          "text": "Kofein před výkonem", "allow_na": True,
          "options": [("pravidelne", "pravidelně"), ("obcas", "občas"), ("nikdy", "nikdy")]},
+        {"code": "kofein_vecer", "section": "Kofein", "kind": "choice",
+         "text": "Kofein méně než 6 hodin před spaním", "allow_na": True,
+         "help_text": "Načasování vůči spánku – i večerní trénink s kofeinem.",
+         "options": [("casto", "často"), ("obcas", "občas"), ("nikdy", "nikdy")]},
         {"code": "kofein_ucinek", "section": "Kofein", "kind": "choice",
          "text": "Vnímaný účinek kofeinu před výkonem", "allow_unknown": True, "allow_na": True,
          "options": [("pozitivni", "lepší soustředění a menší únava bez výrazných nežádoucích "
@@ -155,6 +169,11 @@ QUESTIONNAIRE = {
                                    "výkonu"),
                      ("zadny", "nepozoruji rozdíl")]},
         # Laktóza a sportovní výživa
+        {"code": "mleko_cetnost", "section": "Laktóza a sportovní výživa", "kind": "choice",
+         "text": "Jak často jíte mléčné výrobky nebo pijete mléčné či proteinové nápoje",
+         "allow_unknown": True,
+         "options": [("denne", "denně"), ("tydne", "několikrát týdně"), ("zridka", "zřídka"),
+                     ("vubec", "vůbec")]},
         {"code": "mleko_obtize", "section": "Laktóza a sportovní výživa", "kind": "choice",
          "text": "Po čerstvém mléce nebo mléčných výrobcích", "allow_unknown": True,
          "allow_na": True,
@@ -167,6 +186,11 @@ QUESTIONNAIRE = {
         {"code": "bezlaktozove", "section": "Laktóza a sportovní výživa", "kind": "yesno",
          "text": "Pozorujete rozdíl u bezlaktózových variant?", "allow_unknown": True,
          "allow_na": True},
+        {"code": "obtize_nacasovani", "section": "Laktóza a sportovní výživa", "kind": "choice",
+         "text": "Kdy se zažívací obtíže objevují", "allow_unknown": True, "allow_na": True,
+         "options": [("po_jidle", "do 2 hodin po jídle nebo nápoji s mlékem či proteinem"),
+                     ("pri_zatezi", "hlavně při zátěži nebo po ní"),
+                     ("bez_souvislosti", "bez jasné souvislosti")]},
         # Hmotnost a metabolický kontext
         {"code": "hmotnost_vyvoj", "section": "Hmotnost a metabolický kontext", "kind": "choice",
          "text": "Vývoj hmotnosti za posledních 6 měsíců", "allow_unknown": True,
@@ -239,14 +263,20 @@ def _norm(text: str) -> str:
 
 
 def seed_questionnaire():
-    """Založí sdílený dotazník genetiky; existující otázky nemění, chybějící doplní."""
+    """
+    Založí sdílený dotazník genetiky; existující otázky nemění, chybějící doplní
+    na jejich místo v osnově (vlastní otázky laboratoře zůstanou za otázkou,
+    za kterou byly).
+    """
     from apps.catalog.models import Question, Questionnaire
 
     questionnaire, _ = Questionnaire.objects.get_or_create(
         organization=None, code=QUESTIONNAIRE["code"],
         defaults={"name": QUESTIONNAIRE["name"], "description": QUESTIONNAIRE["description"]})
+    existing = list(questionnaire.questions.order_by("order", "pk"))
+    created = []
     for order, q in enumerate(QUESTIONNAIRE["questions"], start=1):
-        Question.objects.get_or_create(
+        question, is_new = Question.objects.get_or_create(
             questionnaire=questionnaire, code=q["code"],
             defaults={
                 "text": q["text"], "order": order, "kind": q["kind"],
@@ -258,7 +288,33 @@ def seed_questionnaire():
                 "scale_min": q.get("min", 0), "scale_max": q.get("max", 10),
                 "anchors": q.get("anchors", {}),
             })
+        if is_new:
+            created.append(question)
+    if existing and created:
+        _renumber(questionnaire, existing)
     return questionnaire
+
+
+def _renumber(questionnaire, existing) -> None:
+    """Pořadí podle osnovy; vlastní otázky laboratoře za otázkou, za kterou byly."""
+    codes = [q["code"] for q in QUESTIONNAIRE["questions"]]
+    known = set(codes)
+    after: dict = {}
+    last = None
+    for question in existing:
+        if question.code in known:
+            last = question.code
+        else:
+            after.setdefault(last, []).append(question.code)
+    by_code = {q.code: q for q in questionnaire.questions.all()}
+    sequence = list(after.get(None, []))
+    for code in codes:
+        sequence += [code] + after.get(code, [])
+    for order, code in enumerate(sequence, start=1):
+        question = by_code.get(code)
+        if question is not None and question.order != order:
+            question.order = order
+            question.save(update_fields=["order"])
 
 
 def link_scenarios(scenarios=None) -> int:

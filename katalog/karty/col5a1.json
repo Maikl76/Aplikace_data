@@ -76,7 +76,8 @@
      "basis": "",
      "merge_key": "",
      "order": 0,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CC",
@@ -85,7 +86,8 @@
      "basis": "",
      "merge_key": "",
      "order": 1,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CC",
@@ -94,7 +96,8 @@
      "basis": "",
      "merge_key": "",
      "order": 2,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CT",
@@ -103,7 +106,8 @@
      "basis": "",
      "merge_key": "",
      "order": 3,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CT",
@@ -112,7 +116,8 @@
      "basis": "",
      "merge_key": "",
      "order": 4,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CT",
@@ -121,7 +126,8 @@
      "basis": "",
      "merge_key": "",
      "order": 5,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "TT",
@@ -130,7 +136,8 @@
      "basis": "",
      "merge_key": "",
      "order": 6,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "TT",
@@ -139,7 +146,8 @@
      "basis": "",
      "merge_key": "",
      "order": 7,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "TT",
@@ -148,7 +156,8 @@
      "basis": "",
      "merge_key": "",
      "order": 8,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     }
    ],
    "dukazy": [],
@@ -354,7 +363,8 @@
      "basis": "general",
      "merge_key": "objem-postupne",
      "order": 9,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "",
@@ -363,7 +373,8 @@
      "basis": "general",
      "merge_key": "slachy-prevence",
      "order": 10,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "",
@@ -372,16 +383,20 @@
      "basis": "general",
      "merge_key": "slachy-priznaky",
      "order": 11,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "",
      "kind": "training",
-     "text": "Sílu při dopadu a asymetrii ve výskoku na silové desce sledujte v čase; zpráva porovná měření s minulým.",
+     "text": "Při cíli prevence zranění by bylo vhodné sledovat v čase sílu při dopadu a asymetrii ve výskoku na silové desce (CMJ).",
      "basis": "measurement",
      "merge_key": "dopad-mereni",
      "order": 12,
-     "protokol": "cmj"
+     "protokol": "cmj",
+     "goals": [
+      "zdravi"
+     ]
     }
    ],
    "dukazy": [
@@ -619,6 +634,89 @@
      "decided_at": null
     }
    ]
+  }
+ ],
+ "interakce": [
+  {
+   "organizace": null,
+   "karta": {
+    "varianta": "rs12722",
+    "verze": 1
+   },
+   "title": "Interakce variant COL5A1 rs12722 (3′UTR C>T) a MMP3 rs679620",
+   "areas": [
+    "Riziko poranění šlach (tendinopatie) a vytrvalostní výkon"
+   ],
+   "assumption": "Za předpokladu kombinace COL5A1 rs12722 CT nebo TT + MMP3 rs679620 rizikového genotypu",
+   "text": "Tato kombinace může dále zvyšovat genetickou náchylnost k Achillově tendinopatii nebo k přetížení šlach. Prakticky to znamená potřebu důslednější prevence, opatrnější progrese zátěže a včasného řešení příznaků přetížení.",
+   "variants": [
+    "rs12722",
+    "rs679620"
+   ],
+   "status": "hypothesis",
+   "order": 0,
+   "evidence": "Genotyp druhé varianty není v podkladu určen (např. „rizikový genotyp“, „profil“) – před posouzením doplnit konkrétní genotyp a zdroj."
+  },
+  {
+   "organizace": null,
+   "karta": {
+    "varianta": "rs12722",
+    "verze": 1
+   },
+   "title": "Interakce variant COL5A1 rs12722 a dalších genů podporujících vytrvalostní profil",
+   "areas": [
+    "Flexibilita a rozsah pohybu",
+    "Ekonomika běhu",
+    "Vytrvalostní výkon"
+   ],
+   "assumption": "Za předpokladu kombinace COL5A1 rs12722 TT + genotypů podporujících vytrvalostní adaptaci",
+   "text": "Tato kombinace může funkčně podporovat efektivnější využití elastických vlastností šlachového aparátu a příznivější běžeckou ekonomiku. Tento vztah je však třeba chápat opatrně, protože evidence není zcela jednotná a fenotyp významně ovlivňuje trénink.",
+   "variants": [
+    "rs12722"
+   ],
+   "status": "hypothesis",
+   "order": 1,
+   "evidence": "Druhou složkou kombinace není konkrétní varianta (trénink, zátěž, měřený znak nebo blíže neurčené geny) – z genetického výsledku ji nejde vyhodnotit; patří spíš ke kontextu z dotazníku nebo měření."
+  },
+  {
+   "organizace": null,
+   "karta": {
+    "varianta": "rs12722",
+    "verze": 1
+   },
+   "title": "Interakce variant COL5A1 rs12722 a dalších genů podporujících vytrvalostní profil",
+   "areas": [
+    "Flexibilita a rozsah pohybu",
+    "Ekonomika běhu",
+    "Vytrvalostní výkon"
+   ],
+   "assumption": "Za předpokladu kombinace COL5A1 rs12722 CC + vysoké pohybové mobility",
+   "text": "V takovém případě může být výhodné systematicky rozvíjet stabilitu, sílu a kontrolu pohybu, aby zvýšený rozsah pohybu nevedl k funkční nestabilitě při sportovní zátěži.",
+   "variants": [
+    "rs12722"
+   ],
+   "status": "hypothesis",
+   "order": 2,
+   "evidence": "Druhou složkou kombinace není konkrétní varianta (trénink, zátěž, měřený znak nebo blíže neurčené geny) – z genetického výsledku ji nejde vyhodnotit; patří spíš ke kontextu z dotazníku nebo měření."
+  },
+  {
+   "organizace": null,
+   "karta": {
+    "varianta": "rs12722",
+    "verze": 1
+   },
+   "title": "Interakce variant COL5A1 rs12722 a faktorů mechanické zátěže",
+   "areas": [
+    "Prevence přetížení měkkých tkání"
+   ],
+   "assumption": "Za předpokladu vysokého objemu běhu, skoků nebo plyometrie bez adekvátní regenerace",
+   "text": "I příznivější genotyp může v takové situaci vést k rozvoji tendinopatie. Genetická informace proto nenahrazuje správné řízení tréninku, ale doplňuje jej jako faktor individualizace.",
+   "variants": [
+    "rs12722"
+   ],
+   "status": "hypothesis",
+   "order": 3,
+   "evidence": "Druhou složkou kombinace není konkrétní varianta (trénink, zátěž, měřený znak nebo blíže neurčené geny) – z genetického výsledku ji nejde vyhodnotit; patří spíš ke kontextu z dotazníku nebo měření."
   }
  ]
 }

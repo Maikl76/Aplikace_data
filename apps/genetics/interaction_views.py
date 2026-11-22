@@ -6,6 +6,8 @@ a formulář ve čtyřech částech (název a oblasti, předpoklad a text, varia
 posouzení). Hypotézu posuzuje správce; schválená se ukáže na kartě.
 """
 
+import re
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
@@ -36,6 +38,18 @@ def interaction_status(user) -> dict:
     }
 
 
+def variant_interactions(user, variant) -> list:
+    """Kombinace, ve kterých varianta je (z kterékoli karty), s tím, co chybí v panelu."""
+    panel = _catalog(GenePanel, user).filter(is_active=True).order_by("pk").first()
+    rows = [i for i in _catalog(GeneInteraction, user).select_related("source_card__variant")
+            .order_by("order", "pk")
+            if variant.rsid in (i.variants or [])
+            or (i.source_card_id and i.source_card.variant_id == variant.pk)]
+    for row in rows:
+        row.missing = row.missing_variants(panel)
+    return rows
+
+
 def interaction_step(user, status: dict | None = None) -> dict:
     """Krok 5 nastavení genetiky (volitelný): hypotézy posouzené, varianty v panelu."""
     s = status or interaction_status(user)
@@ -62,7 +76,8 @@ def interaction_list(request):
     })
 
 
-FIELDS = ("title", "assumption", "text", "status")
+FIELDS = ("title", "assumption", "text", "evidence", "status", "other_variants")
+RSID = re.compile(r"^rs\d+$")
 
 
 def _form_data(interaction, post=None, *, card=None, variant=None) -> dict:
@@ -73,11 +88,13 @@ def _form_data(interaction, post=None, *, card=None, variant=None) -> dict:
         return data
     if interaction is None:
         rsids = [variant.rsid] if variant is not None else []
-        return {"title": "", "assumption": "", "text": "", "status": GeneInteraction.Status.HYPOTHESIS,
+        return {"title": "", "assumption": "", "text": "", "evidence": "",
+                "status": GeneInteraction.Status.HYPOTHESIS, "other_variants": "",
                 "areas": [variant.domain.name] if variant is not None else [],
                 "variants": rsids}
     return {"title": interaction.title, "assumption": interaction.assumption,
-            "text": interaction.text, "status": interaction.status,
+            "text": interaction.text, "evidence": interaction.evidence,
+            "status": interaction.status, "other_variants": "",
             "areas": list(interaction.areas or []), "variants": list(interaction.variants or [])}
 
 
@@ -90,18 +107,32 @@ def _parse(data: dict, variants, domains, interaction, user) -> tuple[dict, list
         errors.append("Doplňte text – co kombinace pro sportovce znamená a s jakou jistotou.")
     known = {v.rsid: v for v in variants}
     chosen = [rs for rs in data["variants"] if rs in known]
-    if len(chosen) < 2:
-        errors.append("Kombinace potřebuje aspoň dvě varianty z katalogu.")
+    tokens = [t for t in re.split(r"[\s,;]+", data["other_variants"]) if t]
+    bad = [t for t in tokens if not RSID.match(t)]
+    if bad:
+        errors.append("Varianty mimo katalog pište jako rsID, např. rs17602729 (nejde: "
+                      + ", ".join(bad[:5]) + ").")
+    extra = sorted({t for t in tokens if RSID.match(t) and t not in known})
+    if not chosen:
+        errors.append("Kombinace potřebuje aspoň jednu variantu z katalogu.")
+    elif len(chosen) + len(extra) < 2 and not data["assumption"].strip():
+        errors.append("Kombinace potřebuje druhou složku: další variantu, nebo předpoklad "
+                      "(např. trénink nebo zátěž).")
     names = {d.name for d in domains}
-    areas = [a for a in data["areas"] if a in names]
+    kept = set(interaction.areas or []) if interaction is not None else set()  # z podkladů
+    areas = [a for a in data["areas"] if a in names or a in kept]
     status = data["status"] if data["status"] in GeneInteraction.Status.values else (
         GeneInteraction.Status.HYPOTHESIS)
     if interaction is not None and status != interaction.status and not _is_admin(user):
         errors.append("Stav kombinace (hypotéza / schváleno / zamítnuto) mění správce.")
     if interaction is None and status != GeneInteraction.Status.HYPOTHESIS and not _is_admin(user):
         status = GeneInteraction.Status.HYPOTHESIS
+    rsids = chosen + extra
+    if interaction is not None and set(rsids) == set(interaction.variants or []):
+        rsids = list(interaction.variants)          # beze změny = i stejné pořadí
     return {"title": title, "assumption": data["assumption"][:2000], "text": data["text"][:5000],
-            "status": status, "areas": areas, "variants": chosen}, errors
+            "evidence": data["evidence"][:10_000], "status": status, "areas": areas,
+            "variants": rsids}, errors
 
 
 @login_required
@@ -138,10 +169,15 @@ def interaction_edit(request, pk=None):
             messages.error(request, error)
     else:
         data = _form_data(interaction, card=card, variant=card.variant if card else None)
+        known = {v.rsid for v in variants}
+        data["other_variants"] = ", ".join(rs for rs in data["variants"] if rs not in known)
     panel = _catalog(GenePanel, user).filter(is_active=True).order_by("pk").first()
     in_panel = set(panel.items.values_list("variant__rsid", flat=True)) if panel else set()
+    names = {d.name for d in domains}
     return render(request, "genetics/interaction_form.html", {
         "interaction": interaction, "data": data, "variants": variants, "domains": domains,
+        "extra_areas": [a for a in (interaction.areas if interaction else []) or []
+                        if a not in names],
         "statuses": GeneInteraction.Status.choices, "is_admin": _is_admin(user), "card": card,
         "in_panel": in_panel, "panel": panel,
     })

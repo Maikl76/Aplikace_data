@@ -81,7 +81,8 @@
      "basis": "",
      "merge_key": "",
      "order": 0,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CC",
@@ -90,7 +91,8 @@
      "basis": "",
      "merge_key": "",
      "order": 1,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CC",
@@ -99,7 +101,8 @@
      "basis": "",
      "merge_key": "",
      "order": 2,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CT",
@@ -108,7 +111,8 @@
      "basis": "",
      "merge_key": "",
      "order": 3,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CT",
@@ -117,7 +121,8 @@
      "basis": "",
      "merge_key": "",
      "order": 4,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CT",
@@ -126,7 +131,8 @@
      "basis": "",
      "merge_key": "",
      "order": 5,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "TT",
@@ -135,7 +141,8 @@
      "basis": "",
      "merge_key": "",
      "order": 6,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "TT",
@@ -144,7 +151,8 @@
      "basis": "",
      "merge_key": "",
      "order": 7,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "TT",
@@ -153,7 +161,8 @@
      "basis": "",
      "merge_key": "",
      "order": 8,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     }
    ],
    "dukazy": [],
@@ -291,7 +300,7 @@
     "Vytrvalostní výkon"
    ],
    "import_note": "Původní návrh k revizi. Zachováno 64 neprázdných odstavců včetně identifikačního nadpisu; původní anglické názvy polí jsou nahrazeny českými nadpisy. Textová tvrzení nejsou nově ověřena.\n\nNásledují původní návrhy doporučení, včetně případných dávek. Nejsou návodem k použití; jejich vazba na genotyp a použitelnost čekají na odbornou revizi.\n\nPůvodní scénáře k posouzení. Odpověď ani měření samy nepotvrzují genetickou příčinu. Scénáře založené na měření nejsou aktivní ve V1.\n\nPůvodní hypotézy k samostatnému posouzení. Kombinace obsahující varianty mimo panel nelze vyhodnotit z aktuálního testu.\n\nNásledující hodnocení je interní pracovní posouzení pro tuto kartu, nikoli standardizovaný klasifikační systém. Každé tvrzení musí mít vlastní vazbu na zdroj a přesně vymezený výsledek.\n\nZdroje byly cíleně ověřeny pro tuto revizi. Před schválením provozní verze je třeba dokončit aktualizovanou systematickou rešerši pro každý výstupní znak. Níže uvedený konsenzus z roku 2015 není prezentován jako nová publikace.",
-   "change_summary": "Návrh navazuje na revizi ACTN3 v0.2: revidované texty pro genotypy, vysvětlení pro klienta, důkazy E01–E05, nepřípustné výroky a zdroje S1–S6 zůstávají. Doplněno omezení interpretace a stručný účinek varianty; doporučení podle genotypu nahrazena obecným postupem, měřením (výskok, Wingate) a větou o kreatinu; scénáře z dotazníku mají neutrální texty, scénáře nad měřením odstraněny.",
+   "change_summary": "Návrh navazuje na revizi ACTN3 v0.2: revidované texty pro genotypy, vysvětlení pro klienta, důkazy E01–E05, nepřípustné výroky a zdroje S1–S6 zůstávají. Doplněno omezení interpretace a stručný účinek varianty; doporučení podle genotypu nahrazena obecným postupem, měřením (výskok, Wingate) a větou o kreatinu; scénáře z dotazníku mají neutrální texty, scénáře nad měřením odstraněny.\n\nZ revize ACTN3 v0.2 – Zdroje a změny proti původní kartě (doslovně):\n\nZdroje byly cíleně ověřeny pro tuto revizi. Před schválením provozní verze je třeba dokončit aktualizovanou systematickou rešerši pro každý výstupní znak. Níže uvedený konsenzus z roku 2015 není prezentován jako nová publikace.\n\nDoplněn verzovaný transkript a jednoznačné mapování genotypů. Opraven identifikátor AMPD1 z rs1760279 na rs17602729. Oddělena biologická funkce, populační asociace a individuální využitelnost. Odstraněny deterministické výroky, univerzální hranice Wingate a nepodložené přísliby pro kreatin. Interakce s ACE a AMPD1 byly vyřazeny z aktivních pravidel do samostatné odborné validace.\n\nDoplněny datové vstupy, dotazníkové otázky, fenotypový katalog, rozhodovací pravidla, zacházení s chybějícími údaji a akceptační scénáře. Genetický výsledek a subjektivní odpověď nenahrazují objektivní měření. Každá budoucí karta musí projít stejnou kontrolou zdrojů a schválením.",
    "approved_at": null,
    "texty": [
     {
@@ -320,20 +329,24 @@
     {
      "genotype": "",
      "kind": "training",
-     "text": "O zaměření tréninku rozhoduje sport, cíl, tréninková historie a měření; genotyp ACTN3 není důvod trénink měnit [S4].",
+     "text": "Zaměření a dávkování tréninku vychází z cíle, sportu, tréninkové historie a měření, ne z genotypu.",
      "basis": "general",
      "merge_key": "trenink-podle-mereni",
      "order": 9,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "",
      "kind": "training",
-     "text": "Sílu a výbušnost posoudí výskok na silové desce (CMJ) a Wingate test; zpráva porovná výsledek s normou a s minulým měřením.",
+     "text": "Pro přesnější posouzení výbušnosti a krátkodobé intenzivní zátěže ve vztahu k Vašemu sportovnímu cíli by bylo vhodné doplnit výskok na silové desce (CMJ) a Wingate test.",
      "basis": "measurement",
      "merge_key": "sila-mereni",
      "order": 10,
-     "protokol": "cmj"
+     "protokol": "cmj",
+     "goals": [
+      "sila_rychlost"
+     ]
     },
     {
      "genotype": "",
@@ -342,7 +355,8 @@
      "basis": "general",
      "merge_key": "kreatin",
      "order": 11,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     }
    ],
    "dukazy": [
@@ -593,6 +607,94 @@
      "decided_at": null
     }
    ]
+  }
+ ],
+ "interakce": [
+  {
+   "organizace": null,
+   "karta": {
+    "varianta": "rs1815739",
+    "verze": 1
+   },
+   "title": "Interakce variant ACTN3 rs1815739 (R577X, c.1729C>T) a AMPD1 rs1760279 AMPD1 c.34C>T",
+   "areas": [
+    "Anaerobní výkon s produkcí laktátu"
+   ],
+   "assumption": "Za předpokladu kombinace ACTN3 rs1815739 CC nebo CT + AMPD1 rs1760279 CC nebo CT",
+   "text": "Tato kombinace genotypů odpovídá výhodnějšímu anaerobnímu profilu a může aditivně podporovat vyšší výkon při krátkodobé intenzivní zátěži. Potencuje toleranci k intenzivní zátěži s krátkými intervaly odpočinku.",
+   "variants": [
+    "rs17602729",
+    "rs1815739"
+   ],
+   "status": "hypothesis",
+   "order": 0,
+   "evidence": "Identifikátor AMPD1 opraven z rs1760279 na rs17602729 podle revize ACTN3 (zdroj S6, NCBI ClinVar); původní znění kombinace zůstává beze změny.\nZ revize karty: Interakce s ACE a AMPD1 byly vyřazeny z aktivních pravidel do samostatné odborné validace."
+  },
+  {
+   "organizace": null,
+   "karta": {
+    "varianta": "rs1815739",
+    "verze": 1
+   },
+   "title": "Interakce variant ACTN3 rs1815739 (R577X, c.1729C>T) a ACE rs1799752 (I/D)",
+   "areas": [
+    "Svalová hypertrofie a síla",
+    "Rychlost, výbušnost, zvýšený svalový výkon",
+    "Vytrvalostní výkon",
+    "Aerobní kapacita"
+   ],
+   "assumption": "Za předpokladu kombinace ACTN3 rs1815739 CC nebo CT + ACE rs1799752 DD nebo ID",
+   "text": "Tato kombinace genotypů aditivně zesiluje predispozici k silově-rychlostnímu (anaerobnímu) výkonu; doporučujeme Vám cíleně rozvíjet explozivní sílu, rychlost a vysokointenzivní intervalový trénink při současném důrazu na kvalitní regeneraci.",
+   "variants": [
+    "rs1799752",
+    "rs1815739"
+   ],
+   "status": "hypothesis",
+   "order": 1,
+   "evidence": "Původní předpoklad pokračuje pokynem: doplnění textu pro \"Genotyp CC (RR) nebo \"Genotyp CT (RX)\" \"Tréninková doporučení\".\nZ revize karty: Interakce s ACE a AMPD1 byly vyřazeny z aktivních pravidel do samostatné odborné validace."
+  },
+  {
+   "organizace": null,
+   "karta": {
+    "varianta": "rs1815739",
+    "verze": 1
+   },
+   "title": "Interakce variant ACTN3 rs1815739 (R577X, c.1729C>T) a ACE rs1799752 (I/D)",
+   "areas": [
+    "Svalová hypertrofie a síla",
+    "Rychlost, výbušnost, zvýšený svalový výkon",
+    "Vytrvalostní výkon",
+    "Aerobní kapacita"
+   ],
+   "assumption": "Za předpokladu kombinace ACTN3 rs1815739 TT + ACE rs1799752 II",
+   "text": "Tato kombinace genotypů aditivně podporuje vytrvalostní (aerobní) profil; doporučujeme Vám zaměřit trénink na rozvoj aerobní kapacity, ekonomiky pohybu a dlouhodobé vytrvalosti s doplňkovým silovým tréninkem pro stabilitu a prevenci zranění.",
+   "variants": [
+    "rs1799752",
+    "rs1815739"
+   ],
+   "status": "hypothesis",
+   "order": 2,
+   "evidence": "Původní předpoklad pokračuje pokynem: doplnění textu pro \"Genotyp TT (XX) \"Tréninková doporučení\".\nZ revize karty: Interakce s ACE a AMPD1 byly vyřazeny z aktivních pravidel do samostatné odborné validace."
+  },
+  {
+   "organizace": null,
+   "karta": {
+    "varianta": "rs1815739",
+    "verze": 1
+   },
+   "title": "Interakce variant ACTN3 rs1815739 (R577X, c.1729C>T) a AMPD1 rs1760279 c.34C>T",
+   "areas": [
+    "Suplementace kreatinem"
+   ],
+   "assumption": "Za předpokladu kombinace ACTN3 rs1815739 CC nebo CT + AMPD1 rs1760279 CC",
+   "text": "Pokud se při silovém tréninku rozhodnete pro suplementaci kreatinem, s vysokou pravděpodobností bude pro nárůst síly účinná.",
+   "variants": [
+    "rs17602729",
+    "rs1815739"
+   ],
+   "status": "hypothesis",
+   "order": 3,
+   "evidence": "Původní předpoklad pokračuje pokynem: doplnění textu pro \"Genotyp CC (RR) nebo \"Genotyp CT (RX)\" \"Tréninková doporučení\".\nIdentifikátor AMPD1 opraven z rs1760279 na rs17602729 podle revize ACTN3 (zdroj S6, NCBI ClinVar); původní znění kombinace zůstává beze změny.\nZ revize karty: Interakce s ACE a AMPD1 byly vyřazeny z aktivních pravidel do samostatné odborné validace."
   }
  ]
 }

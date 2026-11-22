@@ -76,27 +76,43 @@ def test_mereni_mluvi_prvni(laborator):
     (area,) = content["oblasti"]
     (row,) = area["mereni"]
     assert row["ukazatel"] == "VO2max" and row["hodnota"] == "52,3 ml/kg/min"
-    assert row["norma"] == "nad normou (příznivě)"
+    assert row["norma"] == "nad normou (příznivě)" and row["norma_zdroj"] == "Norma 2020"
+    assert row["test"] == "Spiroergometrie (v1)" and row["kvalita"] == "1 platný pokus"
+    assert content["mereni_rezim"] == "hodnoty" and area["dostupna_mereni"] == []
     assert row["zmena"].startswith("zlepšení (minule 48,0 ml/kg/min") and row["zmena_kod"] == "better"
     assert area["unava"] == [{"datum": latest.date.strftime("%d.%m.%Y"), "unava": 6, "rpe": ["7"]},
                              {"datum": older.date.strftime("%d.%m.%Y"), "unava": 4, "rpe": []}]
     assert content["mereni_poznamka"].startswith("Měření popisuje")
     facts = genetics_report.facts(content)
     assert facts["oblasti"][0]["mereni"] == [
-        f"VO2max: 52,3 ml/kg/min ({latest.date.strftime('%d.%m.%Y')}), nad normou (příznivě), "
+        f"VO2max: 52,3 ml/kg/min ({latest.date.strftime('%d.%m.%Y')}, Spiroergometrie (v1)), "
+        "nad normou (příznivě), "
         f"zlepšení (minule 48,0 ml/kg/min, {older.date.strftime('%d.%m.%Y')})"]
     assert facts["poznamka_k_mereni"] == genetics_report.MEASUREMENT_NOTE
     # Čísla z měření smí model použít; cizí ne.
     assert genetics_report.verify_summary("VO2max 52,3 je nad normou.", content) == []
     assert "číslo 60" in genetics_report.verify_summary("VO2max 60.", content)
-    # Vypnuté měření v oblasti.
+    html = report_services.render_html(
+        genetics_report.build_draft(L["sample"], user=L["lab"], audience=Audience.ATHLETE))
+    assert "U každé oblasti: co víme" in html and "Test a kvalita" in html
+    assert "referenční soubor: Norma 2020" in html and "Co z toho lze vyvodit" in html
+    # Vypnuté hodnoty měření (první verze podle podkladů): jen co je k dispozici, bez hodnot.
     vykon.show_measurements = False
     vykon.save()
     content = genetics_report.compose(L["sample"], L["response"], audience=Audience.ATHLETE)
-    assert content["oblasti"][0]["mereni"] == []
+    area = content["oblasti"][0]
+    assert area["mereni"] == [] and area["unava"] == []
+    assert area["dostupna_mereni"] == [      # poslední výsledek každého ukazatele oblasti
+        {"test": "Spiroergometrie", "datum": latest.date.strftime("%d.%m.%Y"),
+         "iso": latest.date.isoformat()}]
+    assert content["mereni_rezim"] == "dostupnost"
+    assert genetics_report.facts(content)["oblasti"][0]["dostupna_mereni"] == [
+        f"Spiroergometrie ({latest.date.strftime('%d.%m.%Y')})"]
     html = report_services.render_html(
         genetics_report.build_draft(L["sample"], user=L["lab"], audience=Audience.ATHLETE))
-    assert "V každé oblasti je nejdřív to, co se změřilo" in html
+    assert "Fenotypová měření se v této zprávě nevyhodnocují" in html
+    assert f"K dispozici z testování: Spiroergometrie ({latest.date.strftime('%d.%m.%Y')})" in html
+    assert "52,3" not in html
 
 
 def test_scenar_s_merenim_a_kontrola_podminky(laborator):
@@ -206,3 +222,38 @@ def test_geneticky_kontext_ve_zprave_z_mereni(laborator):
     fresh = report_services.build_draft(session, user=L["lab"], audience=Audience.ATHLETE)
     assert report_services.report_context(fresh)["genetic_context"] is None
     assert Report.objects.filter(kind=Report.Kind.TESTING).count() == 4
+
+
+def test_jeden_prepinac_mereni_v_geneticke_zprave(laborator):
+    from django.test import Client
+    from django.urls import reverse
+
+    from apps.core.models import AuditLog, Role, User
+
+    L = laborator
+    url = reverse("genetics_measurement_mode")
+    admin = User.objects.create(username="spravce", organization=L["sample"].subject.organization,
+                                role=Role.ADMIN)
+    client = Client()
+    client.force_login(admin)
+    page = client.get(reverse("genetics_home")).content.decode()
+    assert "Měření v genetické zprávě" in page and "hodnoty měření</span>" in page
+    resp = client.post(url, {"rezim": "dostupnost"})
+    assert resp.status_code == 302 and resp.url.endswith("#mereni-ve-zprave")
+    assert not Domain.objects.filter(show_measurements=True).exists()
+    assert AuditLog.objects.get(object_type="Domain").detail["rezim"] == "dostupnost"
+    page = client.get(reverse("genetics_home")).content.decode()
+    assert "jen dostupnost</span>" in page
+    content = genetics_report.compose(L["sample"], L["response"], audience=Audience.ATHLETE)
+    assert content["mereni_rezim"] == "dostupnost"
+    # po oblastech (administrace) se ukáže, kde hodnoty jsou
+    Domain.objects.filter(code="vykon").update(show_measurements=True)
+    page = client.get(reverse("genetics_home")).content.decode()
+    assert "po oblastech</span>" in page and "Hodnoty jen u oblastí: Výkon a trénink" in page
+    client.post(url, {"rezim": "hodnoty"})
+    assert not Domain.objects.filter(show_measurements=False).exists()
+    # laborant přepnout nesmí
+    lab = Client()
+    lab.force_login(User.objects.get(username="laborant"))
+    assert lab.post(url, {"rezim": "dostupnost"}).status_code == 403
+    assert not Domain.objects.filter(show_measurements=False).exists()

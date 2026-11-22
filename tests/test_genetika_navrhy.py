@@ -74,10 +74,12 @@ def test_navrh_cyp1a2_se_nacte_a_pruvodce_ho_vede(org):
     assert list(v2.sources.values_list("label", flat=True)) == [f"S{i}" for i in range(1, 9)]
     assert v2.revisions.filter(decision="open").count() == 6
 
-    # průvodce: kroky 1–7 hotové, schválení blokují jen značky k ověření
+    # průvodce: kroky 1–7 hotové, schválení blokují jen značky k ověření a nerozhodnuté revize
     assert [s["done"] for s in card_steps(v2)] == [True] * 7 + [False]
     check = services.checklist(v2)
-    assert len(check.blocking) == 4 and all("značku k ověření" in i.text for i in check.blocking)
+    assert len(check.blocking) == 5
+    assert all("značku k ověření" in i.text for i in check.blocking[:4])
+    assert check.blocking[4].text.startswith("Nerozhodnuté revizní záznamy (6)")
     assert any("E03 má značku" in w.text for w in check.warnings)
 
     # podruhé se nic nepřepíše
@@ -156,7 +158,8 @@ def test_vsechny_navrhy_v_repozitari_se_nactou_a_jsou_po_sedmy_krok_hotove(org):
         steps = card_steps(card)
         assert [s["done"] for s in steps[:7]] == [True] * 7, (variant.label, [s["text"] for s in steps])
         check = services.checklist(card)
-        assert all("značku k ověření" in i.text for i in check.blocking), (variant.label, check.blocking)
+        assert all("značku k ověření" in i.text or i.text.startswith("Nerozhodnuté revizní")
+                   for i in check.blocking), (variant.label, check.blocking)
         assert card.revisions.filter(decision="open").exists() and card.change_summary
         assert card.limitations and card.forbidden_statements.count() >= 5
         assert all(r.basis for r in card.recommendations.all()) and card.sources.exists()
@@ -172,9 +175,10 @@ def test_vsechny_navrhy_v_repozitari_se_nactou_a_jsou_po_sedmy_krok_hotove(org):
     lct = GeneVariant.objects.get(rsid="rs4988235").cards.get(version=2)
     assert sorted(lct.scenarios.values_list("question__code", flat=True)) == [
         "mleko_obtize", "mleko_obtize", "whey_obtize", "whey_obtize"]
-    # ACTN3: revidované texty v0.2 a důkazy zůstávají, nic neblokuje
+    # ACTN3: revidované texty v0.2 a důkazy zůstávají, blokují jen nerozhodnuté revize
     actn3 = GeneVariant.objects.get(rsid="rs1815739").cards.get(version=2)
-    assert services.checklist(actn3).ok and actn3.evidence.count() == 5
+    assert [i.text[:28] for i in services.checklist(actn3).blocking] == [
+        "Nerozhodnuté revizní záznamy"] and actn3.evidence.count() == 5
     assert actn3.genotype_texts.get(genotype="TT").client_text.startswith("Byl zjištěn genotyp TT (XX)")
 
 
@@ -198,3 +202,168 @@ def test_znacky_k_overeni_zastavi_schvaleni(org):
         client_text="Ve studiích bývá spojován s rychlejším odbouráváním [S3].")
     Recommendation.objects.filter(card=card).update(text="Dávka 3 mg/kg [S4].")
     assert services.checklist(card).ok
+
+
+def test_kombinace_variant_ze_souboru_karet_jednou_i_do_existujiciho_katalogu(org):
+    """Interakce z Wordu jsou v souborech karet: založí se jednou, smazaná se nevrátí."""
+    from apps.genetics.models import GeneInteraction
+
+    call_command("seed_catalog", verbosity=0)
+    text = _load()
+    rows = GeneInteraction.objects.select_related("source_card__variant")
+    assert rows.count() == 18 and "actn3.json: ACTN3 / rs1815739 v1: 4 kombinací" in text
+    assert {r.status for r in rows} == {"hypothesis"} and not rows.exclude(organization=None)
+    assert {r.source_card.status for r in rows} == {"original"}
+    # oprava identifikátoru AMPD1: seznam variant správně, původní znění zůstává
+    ampd1 = [r for r in rows if "AMPD1" in r.title]
+    assert len(ampd1) == 2 and all("rs1760279" in r.title for r in ampd1)
+    assert all("rs17602729" in r.variants and "rs1760279" not in r.variants for r in ampd1)
+    assert all("Identifikátor AMPD1 opraven" in r.evidence for r in ampd1)
+    # pokyn „doplnění textu pro …“ není součástí předpokladu, je v poznámce
+    actn3_ace = rows.filter(source_card__variant__rsid="rs1815739", title__contains="ACE")
+    assert all("doplnění textu" not in r.assumption and "doplnění textu pro" in r.evidence
+               for r in actn3_ace)
+    assert "Interakce s ACE a AMPD1 byly vyřazeny" in actn3_ace[0].evidence
+    training = rows.get(assumption__contains="systematického vytrvalostního tréninku")
+    assert training.variants == ["rs8192678"] and "není konkrétní varianta" in training.evidence
+    # ACTN3 v2: doslovné znění „Zdroje a změny proti původní kartě“
+    actn3 = GeneCard.objects.get(variant__rsid="rs1815739", version=2)
+    assert "Zdroje byly cíleně ověřeny pro tuto revizi." in actn3.change_summary
+    assert "Opraven identifikátor AMPD1 z rs1760279 na rs17602729." in actn3.change_summary
+
+    # smazaná kombinace se při další aktualizaci nevrátí
+    rows.filter(title__contains="CRP").delete()
+    assert "kombinací" not in _load() and GeneInteraction.objects.count() == 17
+
+    # katalog z dřívější aktualizace (karty bez kombinací): doplní se; upravený přehled změn ne
+    GeneInteraction.objects.all().delete()
+    GeneCard.objects.update(interactions_loaded=False)
+    first = actn3.change_summary.split("\n\n")[0]
+    GeneCard.objects.filter(pk=actn3.pk).update(change_summary=first)
+    col5a1 = GeneCard.objects.get(variant__rsid="rs12722", version=2)
+    GeneCard.objects.filter(pk=col5a1.pk).update(change_summary="Upraveno garantem.")
+    text = _load()
+    assert GeneInteraction.objects.count() == 18
+    assert "ACTN3 / rs1815739 v2: doplněn přehled změn" in text
+    actn3.refresh_from_db()
+    col5a1.refresh_from_db()
+    assert "Zdroje byly cíleně ověřeny" in actn3.change_summary
+    assert col5a1.change_summary == "Upraveno garantem."
+
+    # převod z Wordu (kombinace už u karty jsou): jen se označí a opraví se rsID
+    GeneInteraction.objects.exclude(title__contains="AMPD1").delete()
+    GeneInteraction.objects.filter(title__contains="AMPD1").update(
+        variants=["rs1760279", "rs1815739"], evidence="")
+    GeneCard.objects.update(interactions_loaded=False)
+    _load()
+    assert GeneInteraction.objects.count() == 2 + 14     # ACTN3 jen označená, ostatní doplněné
+    assert all(r.variants == ["rs17602729", "rs1815739"] and "opraven" in r.evidence
+               for r in GeneInteraction.objects.filter(title__contains="AMPD1"))
+
+
+def test_karta_ukaze_kombinace_varianty_i_z_jinych_karet(org):
+    call_command("seed_catalog", verbosity=0)
+    _load()
+    _, client = _user(org, Role.ADMIN, "spravce")
+    ace = GeneCard.objects.get(variant__rsid="rs1799752", version=2)
+    page = client.get(reverse("genetics_card", args=[ace.pk])).content.decode()
+    assert "Interakce variant ACTN3 rs1815739 (R577X, c.1729C&gt;T) a ACE rs1799752" in page
+    assert "z karty ACTN3 / rs1815739" in page and "všechny varianty v panelu" in page
+    actn3 = GeneCard.objects.get(variant__rsid="rs1815739", version=2)
+    page = client.get(reverse("genetics_card", args=[actn3.pk])).content.decode()
+    assert "mimo panel: rs17602729" in page and "Důkazy a poznámky:" in page
+
+
+def test_texty_mereni_podle_cile_i_v_existujicim_katalogu(org):
+    """Migrace: neschválený návrh s nezměněným textem dostane nový text a cíl; jinak nic."""
+    from importlib import import_module
+
+    from django.apps import apps
+
+    from apps.genetics.draft_updates import MEASUREMENT
+
+    migration = import_module("apps.genetics.migrations.0005_mereni_podle_cile")
+    (rsid, version, old), (new, goals) = next(iter(MEASUREMENT.items()))
+    other = Organization.objects.create(name="Jiná", short_name="jina")
+    draft = _card(_variant(org, gene="ACE", rsid=rsid), version=version)
+    approved = _card(_variant(other, gene="ACE", rsid=rsid), version=version,
+                     status=GeneCard.Status.APPROVED)
+    edited = Recommendation.objects.create(card=draft, kind="training", basis="measurement",
+                                           text=old + " Upraveno garantem.")
+    for card in (draft, approved):
+        Recommendation.objects.create(card=card, kind="training", basis="measurement", text=old)
+    migration.forwards(apps, None)
+    assert draft.recommendations.get(text=new).goals == goals == ["vytrvalost"]
+    assert approved.recommendations.get().text == old
+    edited.refresh_from_db()
+    assert edited.text.endswith("Upraveno garantem.") and edited.goals == []
+    # soubory karet už nesou nový text: zpráva měření nabídne podle cíle
+    call_command("seed_catalog", verbosity=0)
+    _load()
+    ppargc1a = GeneCard.objects.get(variant__rsid="rs8192678", version=2)
+    rec = ppargc1a.recommendations.get(protocol__code="spiro_ramp")
+    assert rec.text.startswith("Reakci na vytrvalostní trénink by ukázala") and rec.goals == [
+        "vytrvalost"]
+    assert not any("zpráva porovná" in r.text
+                   for r in Recommendation.objects.filter(card__organization=None))
+
+
+def test_stejny_klic_pro_slucovani_ma_v_navrzich_jedno_zneni(org):
+    """Jinak by zpráva hlásila rozpor „k odbornému posouzení“ tam, kde karty říkají totéž."""
+    from importlib import import_module
+
+    from django.apps import apps
+
+    from apps.genetics.draft_updates import DIET, GENERAL, SPLIT, TRAINING
+
+    call_command("seed_catalog", verbosity=0)
+    _load()
+    texts: dict = {}
+    for rec in Recommendation.objects.filter(card__organization=None).exclude(merge_key="") \
+            .exclude(card__status=GeneCard.Status.ORIGINAL):
+        texts.setdefault(rec.merge_key, set()).add(rec.text)
+    assert {k: v for k, v in texts.items() if len(v) > 1} == {}
+    assert texts["trenink-podle-mereni"] == {TRAINING} and texts["strava-podle-cile"] == {DIET}
+    tcf7l2 = GeneCard.objects.get(variant__rsid="rs7903146")
+    assert tcf7l2.recommendations.filter(merge_key="metabolicke-zdravi-lekar").count() == 1
+
+    # starší katalog: migrace sjednotí nezměněné texty a doplní oddělené doporučení
+    (rsid, version, old) = next(k for k in SPLIT)
+    rec = tcf7l2.recommendations.get(merge_key="strava-podle-cile")
+    tcf7l2.recommendations.filter(merge_key="metabolicke-zdravi-lekar").delete()
+    rec.text = old
+    rec.save()
+    ace = GeneCard.objects.get(variant__rsid="rs1799752", version=2)
+    ace_old = next(k[2] for k in GENERAL if k[0] == "rs1799752")
+    ace.recommendations.filter(merge_key="trenink-podle-mereni").update(text=ace_old)
+    migration = import_module("apps.genetics.migrations.0005_mereni_podle_cile")
+    migration.forwards(apps, None)
+    migration.forwards(apps, None)                  # podruhé nic nepřidá
+    rec.refresh_from_db()
+    assert rec.text == DIET
+    assert tcf7l2.recommendations.filter(merge_key="metabolicke-zdravi-lekar").count() == 1
+    assert ace.recommendations.get(merge_key="trenink-podle-mereni").text == TRAINING
+
+
+def test_formular_kombinace_z_podkladu_nic_neztrati(org):
+    """Oblasti, varianty mimo katalog i poznámky z podkladů projdou uložením beze změny."""
+    from apps.genetics.models import GeneInteraction
+    from tests.test_genetika_karta import _form_values
+
+    call_command("seed_catalog", verbosity=0)
+    _load()
+    _, client = _user(org, Role.ADMIN, "spravce")
+    inter = GeneInteraction.objects.filter(title__contains="AMPD1").first()
+    before = (inter.areas, inter.variants, inter.evidence, inter.assumption, inter.text)
+    url = reverse("genetics_interaction_edit", args=[inter.pk])
+    page = client.get(url).content.decode()
+    assert "Oblasti z původního znění podkladů" in page and "Anaerobní výkon s produkcí laktátu" in page
+    form = _form_values(page.split('<form method="post" class="space-y-5')[1])
+    assert client.post(url, form).status_code == 302
+    inter.refresh_from_db()
+    assert (inter.areas, inter.variants, inter.evidence, inter.assumption, inter.text) == before
+    # odškrtnutá oblast z podkladů zmizí; vymyšlená se nepřidá
+    form["areas"] = ["Výkon a trénink", "Vymyšlená oblast"]
+    client.post(url, form)
+    inter.refresh_from_db()
+    assert inter.areas == ["Výkon a trénink"]

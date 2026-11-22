@@ -20,7 +20,9 @@
     <div class="mt-3"><span class="text-sm font-medium">Související oblasti</span>
       <div class="flex flex-wrap gap-3 mt-1 text-sm">
         {% for d in domains %}<label class="inline-flex items-center gap-1"><input type="checkbox" name="areas" value="{{ d.name }}" {% if d.name in data.areas %}checked{% endif %}> {{ d.name }}</label>{% endfor %}
-      </div></div>
+      </div>
+      {% if extra_areas %}<div class="flex flex-wrap gap-3 mt-2 text-sm"><span class="text-xs text-muted w-full">Oblasti z původního znění podkladů (zůstanou, dokud je neodškrtnete):</span>{% for a in extra_areas %}<label class="inline-flex items-center gap-1"><input type="checkbox" name="areas" value="{{ a }}" {% if a in data.areas %}checked{% endif %}> {{ a }}</label>{% endfor %}</div>{% endif %}
+    </div>
   </section>
 
   <section class="card p-5">
@@ -32,18 +34,24 @@
       <input name="assumption" value="{{ data.assumption }}" maxlength="2000" class="input mt-1" placeholder="např. Za předpokladu kombinace ACE DD nebo ID + ACTN3 CC nebo CT"></label>
     <label class="block mt-3"><span class="text-sm font-medium">Text</span>
       <textarea name="text" rows="5" required maxlength="5000" class="input mt-1" placeholder="Co kombinace pro sportovce znamená a jak jistý je podklad.">{{ data.text }}</textarea></label>
+    <label class="block mt-3"><span class="text-sm font-medium">Důkazy a poznámky k posouzení</span>
+      <span class="block text-xs text-muted">Co kombinaci dokládá (zdroj), co chybí, opravy proti původnímu znění. Do zprávy nejde.</span>
+      <textarea name="evidence" rows="3" maxlength="10000" class="input mt-1" placeholder="např. Identifikátor opraven podle ClinVar; genotyp druhé varianty v podkladu chybí.">{{ data.evidence }}</textarea></label>
   </section>
 
   <section class="card p-5">
     <div class="flex items-start gap-3 mb-4">
       <span class="krok-cislo">3</span>
-      <div><h2 class="card-title">Varianty kombinace</h2><p class="text-sm text-muted">Aspoň dvě varianty z katalogu. Varianta mimo panel laboratoře znamená, že se kombinace z výsledku nevyhodnotí.</p></div>
+      <div><h2 class="card-title">Varianty kombinace</h2><p class="text-sm text-muted">Aspoň jedna varianta z katalogu a druhá složka: další varianta, nebo předpoklad (trénink, zátěž). Varianta mimo katalog nebo mimo panel laboratoře znamená, že se kombinace z výsledku nevyhodnotí – zůstává hypotézou k posouzení.</p></div>
     </div>
     <div class="grid sm:grid-cols-2 gap-2 text-sm">
       {% for v in variants %}
         <label class="flex items-center gap-2 p-2 rounded-lg" style="background: var(--surface-2)"><input type="checkbox" name="variants" value="{{ v.rsid }}" {% if v.rsid in data.variants %}checked{% endif %}> <span>{{ v.label }}{% if v.rsid not in in_panel %} <span class="badge badge-warn" title="není v panelu laboratoře">mimo panel</span>{% endif %}</span></label>
       {% empty %}<p class="text-muted">V katalogu zatím není žádná varianta – nejdřív založte karty.</p>{% endfor %}
     </div>
+    <label class="block mt-3"><span class="text-sm font-medium">Varianty mimo katalog</span>
+      <span class="block text-xs text-muted">rsID oddělené čárkou, např. rs17602729 (AMPD1), rs679620 (MMP3).</span>
+      <input name="other_variants" value="{{ data.other_variants }}" maxlength="300" class="input mt-1" placeholder="rs…"></label>
   </section>
 
   <section class="card p-5">

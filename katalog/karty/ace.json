@@ -76,7 +76,8 @@
      "basis": "",
      "merge_key": "",
      "order": 0,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "II",
@@ -85,7 +86,8 @@
      "basis": "",
      "merge_key": "",
      "order": 1,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "II",
@@ -94,7 +96,8 @@
      "basis": "",
      "merge_key": "",
      "order": 2,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "ID",
@@ -103,7 +106,8 @@
      "basis": "",
      "merge_key": "",
      "order": 3,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "ID",
@@ -112,7 +116,8 @@
      "basis": "",
      "merge_key": "",
      "order": 4,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "ID",
@@ -121,7 +126,8 @@
      "basis": "",
      "merge_key": "",
      "order": 5,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "DD",
@@ -130,7 +136,8 @@
      "basis": "",
      "merge_key": "",
      "order": 6,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "DD",
@@ -139,7 +146,8 @@
      "basis": "",
      "merge_key": "",
      "order": 7,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "DD",
@@ -148,7 +156,8 @@
      "basis": "",
      "merge_key": "",
      "order": 8,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     }
    ],
    "dukazy": [],
@@ -350,29 +359,36 @@
     {
      "genotype": "",
      "kind": "training",
-     "text": "Zaměření tréninku (vytrvalost, síla, kombinace) vychází z cíle, sportu, tréninkové historie a měření, ne z genotypu.",
+     "text": "Zaměření a dávkování tréninku vychází z cíle, sportu, tréninkové historie a měření, ne z genotypu.",
      "basis": "general",
      "merge_key": "trenink-podle-mereni",
      "order": 9,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "",
      "kind": "training",
-     "text": "Vytrvalostní předpoklady a jejich vývoj ukáže spiroergometrie (VO₂max, ventilační prahy); zpráva porovná výsledek s normou a s minulým měřením.",
+     "text": "Pro přesnější posouzení aerobní kapacity ve vztahu k Vašemu sportovnímu cíli by bylo vhodné doplnit spiroergometrické vyšetření.",
      "basis": "measurement",
      "merge_key": "vytrvalost-mereni",
      "order": 10,
-     "protokol": "spiro_ramp"
+     "protokol": "spiro_ramp",
+     "goals": [
+      "vytrvalost"
+     ]
     },
     {
      "genotype": "",
      "kind": "training",
-     "text": "Silově-rychlostní předpoklady posoudí výskok na silové desce a Wingate test; zpráva porovná výsledek s normou a s minulým měřením.",
+     "text": "Pro přesnější posouzení výbušnosti a krátkodobé intenzivní zátěže ve vztahu k Vašemu sportovnímu cíli by bylo vhodné doplnit výskok na silové desce (CMJ) a Wingate test.",
      "basis": "measurement",
      "merge_key": "sila-mereni",
      "order": 11,
-     "protokol": "cmj"
+     "protokol": "cmj",
+     "goals": [
+      "sila_rychlost"
+     ]
     }
    ],
    "dukazy": [
@@ -610,6 +626,54 @@
      "decided_at": null
     }
    ]
+  }
+ ],
+ "interakce": [
+  {
+   "organizace": null,
+   "karta": {
+    "varianta": "rs1799752",
+    "verze": 1
+   },
+   "title": "Interakce variant ACE rs1799752 (I/D) a ACTN3 rs1815739 (R577X, c.1729C>T)",
+   "areas": [
+    "Svalová hypertrofie a síla",
+    "Rychlost, výbušnost, zvýšený svalový výkon",
+    "Vytrvalostní výkon",
+    "Aerobní kapacita"
+   ],
+   "assumption": "Za předpokladu kombinace ACE rs1799752 DD nebo ID + ACTN3 rs1815739 CC nebo CT",
+   "text": "Tato kombinace genotypů může aditivně podporovat silově-rychlostní a anaerobní profil. V praxi lze očekávat příznivější predispozici pro explozivní sílu, rychlost a krátkodobou intenzivní zátěž, pokud je tento profil současně podpořen vhodným tréninkem.",
+   "variants": [
+    "rs1799752",
+    "rs1815739"
+   ],
+   "status": "hypothesis",
+   "order": 0,
+   "evidence": ""
+  },
+  {
+   "organizace": null,
+   "karta": {
+    "varianta": "rs1799752",
+    "verze": 1
+   },
+   "title": "Interakce variant ACE rs1799752 (I/D) a ACTN3 rs1815739 (R577X, c.1729C>T)",
+   "areas": [
+    "Svalová hypertrofie a síla",
+    "Rychlost, výbušnost, zvýšený svalový výkon",
+    "Vytrvalostní výkon",
+    "Aerobní kapacita"
+   ],
+   "assumption": "Za předpokladu kombinace ACE rs1799752 II + ACTN3 rs1815739 TT",
+   "text": "Tato kombinace genotypů může aditivně podporovat vytrvalostní a aerobní profil. Doporučujeme zaměřit trénink na rozvoj aerobní kapacity, ekonomiky pohybu a dlouhodobé tolerance zátěže s doplňkovým silovým tréninkem pro stabilitu a prevenci přetížení.",
+   "variants": [
+    "rs1799752",
+    "rs1815739"
+   ],
+   "status": "hypothesis",
+   "order": 1,
+   "evidence": ""
   }
  ]
 }

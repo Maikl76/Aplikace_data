@@ -4,6 +4,7 @@ from datetime import date
 
 import pytest
 from cryptography.fernet import Fernet
+from django.db import models
 from django.test import Client
 
 from apps.catalog.models import Question, Questionnaire
@@ -241,3 +242,28 @@ def test_po_chybe_zustanou_vyplnene_odpovedi(org):
     page = athlete_client.post(f"/muj/{subject.pk}/dotaznik/genetika/", data).content.decode()
     assert ">tenis</textarea>" in page and 'name="q_stres" value="4" checked' in page
     assert QuestionnaireResponse.objects.count() == 0
+
+
+def test_nove_otazky_osnovy_se_doplni_na_sve_misto(org):
+    """Starší dotazník: nové otázky přijdou do svého oddílu, vlastní otázka zůstane na místě."""
+    q = Questionnaire.objects.get(code="genetika")
+    new = ["obtize_diagnoza", "kofein_vecer", "mleko_cetnost", "obtize_nacasovani"]
+    Question.objects.filter(questionnaire=q, code__in=new).delete()
+    for order, question in enumerate(q.questions.order_by("order", "pk"), start=1):
+        question.order = order
+        question.save(update_fields=["order"])
+    after = q.questions.get(code="kofein_ucinek").order
+    q.questions.filter(order__gt=after).update(order=models.F("order") + 1)
+    Question.objects.create(questionnaire=q, code="vlastni", text="Vlastní otázka laboratoře",
+                            section="Kofein", order=after + 1, kind="text")
+    seed.seed_questionnaire()
+    codes = list(q.questions.order_by("order", "pk").values_list("code", flat=True))
+    assert all(code in codes for code in new) and len(codes) == len(set(codes))
+    assert codes.index("obtize_diagnoza") == codes.index("obtize_popis") + 1
+    assert codes.index("kofein_vecer") == codes.index("kofein_casovani") + 1
+    assert codes.index("vlastni") == codes.index("kofein_ucinek") + 1
+    assert codes.index("mleko_cetnost") + 1 == codes.index("mleko_obtize")
+    names = [s["name"] for s in questionnaires.sections(q)]
+    assert len(names) == len(set(names)) == 8          # žádný oddíl se nerozdělí
+    diagnoza = q.questions.get(code="obtize_diagnoza")
+    assert diagnoza.allow_na and not diagnoza.required and "subjektivní" in diagnoza.help_text

@@ -29,7 +29,7 @@
     {% if open_revisions %}
       <section class="card p-4">
         <h2 class="card-title mb-1">Revizní záznamy k rozhodnutí <span class="badge badge-warn">{{ open_revisions }}</span></h2>
-        <p class="text-sm">Sporná tvrzení a úkoly k doplnění z podkladů. Rozhodují se v kroku 8 (Kontrola a schválení); otevřený záznam schválení neblokuje, ale zůstává v historii karty.</p>
+        <p class="text-sm">Sporná tvrzení a úkoly k doplnění z podkladů. Rozhodují se v kroku 8 (Kontrola a schválení): ponechat původní znění, upravit podle návrhu, nebo vyřadit – vždy s odůvodněním. Nerozhodnutý záznam schválení zastaví; rozhodnutí zůstává v historii karty.</p>
         <a href="{% url 'genetics_card_step' card.pk 'kontrola' %}" class="btn btn-sm mt-2">Ke kontrole</a>
       </section>
     {% endif %}

@@ -14,6 +14,10 @@
     .duvod { color: #52514e; font-size: 9pt; }
     .posouzeni-box { border: 1px solid #d03b3b; padding: 3mm; margin: 2mm 0; }
     .doporuceni li { margin-bottom: 2mm; }
+    .krok { margin: 2mm 0 3mm; break-inside: avoid; }
+    .krok-nadpis { display: block; font-size: 9pt; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #52514e; margin-bottom: 1mm; }
+    .krok p { margin: 0.8mm 0; }
+    .mereni-dostupna { font-size: 9.5pt; }
   </style>
 </head>
 <body>
@@ -47,7 +51,7 @@
     {% if c.cil.cil %}<tr><th>Hlavní cíl</th><td>{{ c.cil.cil }}{% if c.cil.upresneni %} – {{ c.cil.upresneni }}{% endif %}</td></tr>{% endif %}
   </table>
 {% else %}<p class="prazdne">Cíl klienta není v dotazníku uveden.</p>{% endif %}
-<p class="vysvetlivka">Podklady: laboratorní výsledek genotypů (panel {{ c.panel.nazev }}), {% if c.dotaznik %}odpovědi klienta v dotazníku{% else %}bez dotazníku{% endif %}, schválené genové karty laboratoře. Fenotypová měření se v této zprávě neinterpretují.</p>
+<p class="vysvetlivka">Podklady: laboratorní výsledek genotypů (panel {{ c.panel.nazev }}), {% if c.dotaznik %}odpovědi klienta v dotazníku{% else %}bez dotazníku{% endif %}, schválené genové karty laboratoře. {{ c.mereni_rezim_text|default:"Fenotypová měření se v této zprávě neinterpretují." }}</p>
 
 <h2>2. Přehled zjištěných genotypů</h2>
 <table class="vysledky genotypy">
@@ -58,33 +62,54 @@
 </table>
 
 <h2>3. Výsledky podle oblastí</h2>
-<p class="vysvetlivka">V každé oblasti je nejdřív to, co se změřilo a jak to sportovec vnímá, a teprve potom genotyp. {{ c.mereni_poznamka }}</p>
+<p class="vysvetlivka">U každé oblasti: co víme (laboratorní nález, odpověď v dotazníku, měření) → co z toho lze vyvodit (text schválené genové karty) → jaký další krok dává smysl. {{ c.mereni_poznamka }}</p>
 {% for area in c.oblasti %}
   <div class="protokol">{{ area.nazev }}{% if area.popis %} <span class="protokol-meta">· {{ area.popis }}</span>{% endif %}</div>
-  {% if area.mereni %}
-    <table class="vysledky">
-      <thead><tr><th style="width:34%">Měření</th><th class="cislo" style="text-align:right">Hodnota</th><th>Proti normě</th><th>Změna proti minulému měření</th></tr></thead>
-      <tbody>
-        {% for r in area.mereni %}<tr><td>{{ r.ukazatel }}{% if r.upresneni %} <span class="upresneni">{{ r.upresneni }}</span>{% endif %}<br><span class="pokusy">{{ r.datum }}</span></td><td class="cislo" style="white-space:nowrap">{{ r.hodnota }}</td><td>{{ r.norma|default:"bez normy" }}</td><td class="{{ r.zmena_kod }}">{{ r.zmena|default:"první měření" }}</td></tr>{% endfor %}
-      </tbody>
-    </table>
-  {% elif area.kod != "kofein" and area.kod != "laktoza" %}
-    <p class="vysvetlivka">Bez měření z posledního roku.</p>
-  {% endif %}
-  {% if area.unava %}
-    <p class="vysvetlivka">Subjektivní únava a RPE (jak je sportovec uvedl): {% for r in area.unava %}{{ r.datum }} únava {{ r.unava|default:"—" }}/10{% if r.rpe %}, RPE {{ r.rpe|join:", " }}{% endif %}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
-  {% endif %}
-  {% for e in area.polozky %}
-    <div class="polozka">
-      <div class="hlava">{{ e.gen }} {{ e.genotyp_txt }} <span>· {{ e.rsid }} · karta {{ e.karta }}{% if e.frekvence %} · frekvence {{ e.frekvence }}{% endif %}</span></div>
-      {% if e.biologie %}<p class="duvod">{{ e.biologie }}</p>{% endif %}
-      <p>{{ e.text }}</p>
-      {% if e.ucinek %}<p class="duvod">Účinek varianty: {{ e.ucinek }}</p>{% endif %}
-      {% for k in e.kontext %}<div class="kontext"><span class="stitek">{{ k.zdroj }}</span> {{ k.otazka }}{% if k.odpoved %}: „{{ k.odpoved }}“{% endif %} — {{ k.text }}</div>{% endfor %}
-      {% for r in e.doporuceni %}<p><span class="stitek">{{ r.druh }}</span>{{ r.text }} <span class="duvod">(důvod: {{ r.duvod|lower }})</span></p>{% endfor %}
-      {% if e.dukazy %}<table class="vysledky"><thead><tr><th>Důkaz</th><th>Podklad a omezení</th><th>Použití</th></tr></thead><tbody>{% for d in e.dukazy %}<tr><td>{{ d.kod }} {{ d.znak }}</td><td>{{ d.podklad }}</td><td>{{ d.pouziti }}</td></tr>{% endfor %}</tbody></table>{% endif %}
-    </div>
-  {% endfor %}
+  <div class="krok">
+    <span class="krok-nadpis">Co víme</span>
+    <p><span class="stitek">laboratorní nález</span>{% for e in area.polozky %}{{ e.gen }} {{ e.genotyp_txt }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+    {% for o in area.odpovedi %}<p><span class="stitek">dotazník</span>{{ o.otazka }}: „{{ o.odpoved }}“</p>{% endfor %}
+    {% if area.mereni %}
+      <table class="vysledky">
+        <thead><tr><th style="width:30%">Měření</th><th class="cislo" style="text-align:right">Hodnota</th><th>Test a kvalita</th><th>Proti normě</th><th>Změna proti minulému měření</th></tr></thead>
+        <tbody>
+          {% for r in area.mereni %}<tr><td>{{ r.ukazatel }}{% if r.upresneni %} <span class="upresneni">{{ r.upresneni }}</span>{% endif %}<br><span class="pokusy">{{ r.datum }}</span></td><td class="cislo" style="white-space:nowrap">{{ r.hodnota }}</td><td>{{ r.test|default:"—" }}{% if r.kvalita %}<br><span class="pokusy">{{ r.kvalita }}</span>{% endif %}</td><td>{{ r.norma|default:"bez normy" }}{% if r.norma_zdroj %}<br><span class="pokusy">referenční soubor: {{ r.norma_zdroj }}</span>{% endif %}</td><td class="{{ r.zmena_kod }}">{{ r.zmena|default:"první měření" }}</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    {% elif area.dostupna_mereni %}
+      <p class="mereni-dostupna"><span class="stitek">měření</span>K dispozici z testování: {% for m in area.dostupna_mereni %}{{ m.test }} ({{ m.datum }}){% if not forloop.last %}, {% endif %}{% endfor %}. V této zprávě se nevyhodnocují.</p>
+    {% elif area.kod != "kofein" and area.kod != "laktoza" %}
+      <p class="vysvetlivka"><span class="stitek">měření</span>Bez měření z posledního roku.</p>
+    {% endif %}
+    {% if area.unava %}
+      <p class="vysvetlivka">Subjektivní únava a RPE (jak je sportovec uvedl): {% for r in area.unava %}{{ r.datum }} únava {{ r.unava|default:"—" }}/10{% if r.rpe %}, RPE {{ r.rpe|join:", " }}{% endif %}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
+    {% endif %}
+  </div>
+  <div class="krok">
+    <span class="krok-nadpis">Co z toho lze vyvodit</span>
+    {% for e in area.polozky %}
+      <div class="polozka">
+        <div class="hlava">{{ e.gen }} {{ e.genotyp_txt }} <span>· {{ e.rsid }} · karta {{ e.karta }}</span></div>
+        {% if e.biologie %}<p class="duvod">{{ e.biologie }}</p>{% endif %}
+        <p>{{ e.text }}</p>
+        {% if e.ucinek %}<p class="duvod">Účinek varianty: {{ e.ucinek }}</p>{% endif %}
+        {% if e.frekvence %}<p class="duvod">Populační frekvence genotypu: {{ e.frekvence }}{% if e.frekvence_zdroj %} (zdroj: {{ e.frekvence_zdroj }}){% else %} (zdroj neuveden){% endif %}</p>{% endif %}
+        {% for k in e.kontext %}<div class="kontext"><span class="stitek">{{ k.zdroj }}</span> {{ k.otazka }}{% if k.odpoved %}: „{{ k.odpoved }}“{% endif %} — {{ k.text }}</div>{% endfor %}
+        {% if e.dukazy %}<table class="vysledky"><thead><tr><th>Důkaz</th><th>Podklad a omezení</th><th>Použití</th></tr></thead><tbody>{% for d in e.dukazy %}<tr><td>{{ d.kod }} {{ d.znak }}</td><td>{{ d.podklad }}</td><td>{{ d.pouziti }}</td></tr>{% endfor %}</tbody></table>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+  <div class="krok">
+    <span class="krok-nadpis">Další krok</span>
+    {% with k=area.dalsi_krok %}
+      {% if k %}
+        {% if k.doporuceni %}<p>Praktická doporučení č. {{ k.doporuceni|join:", " }} v části 4.</p>{% endif %}
+        {% if k.k_posouzeni %}<p>{{ k.k_posouzeni }}× k odbornému posouzení (část 4) – karty se v doporučení liší, zpráva nevybírá.</p>{% endif %}
+        {% if k.mereni %}<p>Co doplnit nebo změřit: {{ k.mereni|join:", " }} (část 5).</p>{% endif %}
+        {% if not k.doporuceni and not k.k_posouzeni and not k.mereni %}<p class="vysvetlivka">Karty pro tuto oblast žádné konkrétní doporučení ani měření nenavrhují; rozhoduje Váš cíl, trénink a měření.</p>{% endif %}
+      {% else %}<p class="vysvetlivka">Doporučení a měření k této oblasti jsou v částech 4 a 5.</p>{% endif %}
+    {% endwith %}
+  </div>
 {% empty %}
   <p class="prazdne">Žádná varianta nemá interpretaci (viz část 6).</p>
 {% endfor %}
@@ -102,7 +127,7 @@
 <h2>4. Praktická doporučení a jejich důvody</h2>
 {% if c.doporuceni %}
   <ul class="doporuceni">
-    {% for r in c.doporuceni %}<li><span class="stitek">{{ r.druh }}</span>{{ r.text }}<br><span class="duvod">důvod: {{ r.duvody|join:"; " }}</span></li>{% endfor %}
+    {% for r in c.doporuceni %}<li>{% if r.cislo %}<strong>{{ r.cislo }}.</strong> {% endif %}<span class="stitek">{{ r.druh }}</span>{{ r.text }}<br><span class="duvod">důvod: {{ r.duvody|join:"; " }}</span></li>{% endfor %}
   </ul>
 {% else %}<p class="prazdne">Žádné doporučení.</p>{% endif %}
 {% if c.k_posouzeni %}
@@ -114,12 +139,15 @@
 {% if report.custom_note %}<h3 style="font-size:11pt; margin:4mm 0 1mm">Komentář diagnostika</h3><div>{{ report.custom_note|linebreaks }}</div>{% endif %}
 
 <h2>5. Co by bylo vhodné doplnit nebo změřit</h2>
+<p class="vysvetlivka">Měření se navrhuje podle cíle klienta{% if c.cil.cil %} („{{ c.cil.cil }}“){% endif %} a kontextu, ne proto, že je varianta v panelu. Samotný genotyp povinnost testu nezakládá.</p>
 {% if c.co_doplnit %}
   <ul class="doporuceni">
     {% for m in c.co_doplnit %}<li>{{ m.text }}{% if m.test %} <span class="stitek">{{ m.test }}</span>{% endif %}
-      {% if m.k_dispozici %}<br><span class="duvod">Výsledek z {{ m.k_dispozici.date_txt }} je k dispozici{% if m.k_dispozici.values %}: {{ m.k_dispozici.values|join:", " }}{% endif %} – v této zprávě se neinterpretuje.</span>{% elif m.test %}<br><span class="duvod">Výsledek za poslední rok není k dispozici.</span>{% endif %}</li>{% endfor %}
+      {% if m.pro_cil %}<br><span class="duvod">Souvisí s Vaším cílem: {{ m.pro_cil }}.</span>{% elif m.cil_neuveden %}<br><span class="duvod">Cíl klienta není v dotazníku uveden – vhodnost měření posoudí diagnostik.</span>{% endif %}
+      {% if m.k_dispozici %}<br><span class="duvod">Výsledek z {{ m.k_dispozici.date_txt }} je k dispozici ve zprávě z testování{% if m.k_dispozici.values %}: {{ m.k_dispozici.values|join:", " }}{% endif %} – v této zprávě se nevyhodnocuje.</span>{% elif m.test %}<br><span class="duvod">Jeho výsledek v této zprávě není k dispozici.</span>{% endif %}</li>{% endfor %}
   </ul>
-{% else %}<p class="prazdne">Karty v této verzi žádné měření nenavrhují.</p>{% endif %}
+{% else %}<p class="prazdne">{% if c.mimo_cil %}Karty navrhují jen měření, která s cílem klienta nesouvisí (níže pro odborníka).{% else %}Karty v této verzi žádné měření nenavrhují.{% endif %}</p>{% endif %}
+{% if c.mimo_cil %}<p class="duvod">Mimo cíl klienta (jen pro odborníka): {% for m in c.mimo_cil %}{{ m.test|default:m.text }} ({{ m.varianty|join:", " }}){% if not forloop.last %}; {% endif %}{% endfor %}.</p>{% endif %}
 
 <h2>6. Omezení interpretace a použité zdroje</h2>
 {% if c.neinterpretovano %}
@@ -130,7 +158,7 @@
 {% if c.zdroje %}
   <ol class="citace">{% for z in c.zdroje %}<li value="{{ z.cislo }}">[{{ z.cislo }}] {{ z.citace }}{% if z.odkaz %} {{ z.odkaz }}{% endif %} <span class="duvod">({{ z.varianty|join:", " }})</span></li>{% endfor %}</ol>
 {% endif %}
-<p class="vysvetlivka">Verze karet: {{ c.versions.karty_text|default:"—" }} · panel {{ c.versions.panel }}{% if c.versions.dotaznik %} · dotazník č. {{ c.versions.dotaznik }}{% endif %}.</p>
+<p class="vysvetlivka">Verze karet: {{ c.versions.karty_text|default:"—" }} · panel {{ c.versions.panel }}{% if c.dotaznik %} · dotazník „{{ c.dotaznik.nazev }}“{% if c.versions.dotaznik_otisk %}, verze otázek {{ c.versions.dotaznik_otisk }}{% endif %}, vyplněno {{ c.dotaznik.vyplneno_txt }} (záznam č. {{ c.versions.dotaznik }}){% endif %}. Pozdější úprava karet ani dotazníku vydanou zprávu nemění.</p>
 
 <div class="dolozka">{{ report.disclaimer }}</div>
 <footer>Zpráva {{ report.report_number }} · vygenerováno {{ generated_at|date:"d.m.Y H:i" }}{% if report.released_at %} · vydáno {{ report.released_at|date:"d.m.Y H:i" }}{% endif %}</footer>

@@ -13,15 +13,18 @@
 {% if revisions %}
   <section class="card p-4">
     <h2 class="card-title mb-1">Revizní záznamy</h2>
-    <p class="text-xs text-muted mb-2">Sporná tvrzení a úkoly k doplnění z podkladů. Rozhodnutí zůstává v historii karty; otevřený záznam schválení neblokuje.</p>
+    <p class="text-xs text-muted mb-2">Sporná tvrzení a úkoly z podkladů. U každého rozhodněte: <strong>ponechat</strong> původní znění, <strong>upravit</strong> podle návrhu, nebo <strong>vyřadit</strong> z karty – vždy s odůvodněním. U interpretací genotypů a vysvětlení pro klienta se rozhodnutí propíše do textu karty (ručně upravený text zůstane). Nerozhodnutý záznam schválení zastaví; původní znění i rozhodnutí zůstávají v historii karty.</p>
     {% for r in revisions %}
       <div class="text-sm mb-3 pb-3 border-b" style="border-color: var(--border)">
-        <div class="font-medium">{{ r.part }}</div>
-        {% if r.original %}<div class="text-xs text-muted">původně: {{ r.original }}</div>{% endif %}
-        {% if r.proposal %}<div>návrh: {{ r.proposal }}</div>{% endif %}
-        {% if r.reason %}<div class="text-xs text-muted">{{ r.reason }}</div>{% endif %}
+        <div class="flex flex-wrap items-center gap-2"><span class="font-medium">{{ r.part }}</span>{% if r.decision != "open" %}<span class="badge {% if r.decision == 'accepted' %}badge-good{% endif %}">{{ r.get_decision_display }}</span>{% if r.decided_by %}<span class="text-xs text-muted">{{ r.decided_by.get_full_name|default:r.decided_by.get_username }}, {{ r.decided_at|date:"d.m.Y" }}</span>{% endif %}{% endif %}</div>
+        {% if r.original %}<div class="text-xs text-muted mt-1">původně: {{ r.original }}</div>{% endif %}
+        {% if r.proposal %}<div class="mt-1">návrh: {{ r.proposal }}</div>{% endif %}
+        {% if r.reason %}<div class="text-xs text-muted mt-1">{{ r.reason }}</div>{% endif %}
         {% if r.source %}<div class="text-xs text-muted">zdroj: {{ r.source }}</div>{% endif %}
-        <select name="rev_decision_{{ r.pk }}" class="input w-auto text-sm py-1 mt-1">{% for value, label in decisions %}<option value="{{ value }}" {% if r.decision == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+        <div class="grid sm:grid-cols-[auto_1fr] gap-2 mt-2 items-start">
+          <select name="rev_decision_{{ r.pk }}" class="input w-auto text-sm py-1" aria-label="Rozhodnutí: {{ r.part }}">{% for value, label in decisions %}<option value="{{ value }}" {% if r.decision == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+          <textarea name="rev_note_{{ r.pk }}" rows="1" maxlength="5000" class="input text-sm py-1" placeholder="Odůvodnění (povinné u rozhodnutí) – např. zdroj, proč ponechat nebo vyřadit" aria-label="Odůvodnění: {{ r.part }}">{{ r.decision_note }}</textarea>
+        </div>
       </div>
     {% endfor %}
   </section>

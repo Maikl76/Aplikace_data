@@ -209,6 +209,18 @@ def test_krok_doporuceni_upravi_prida_a_smaze(org):
     client.post(url, data)
     assert list(card.recommendations.values_list("text", "basis")) == [("Spánek 8 h.", "general")]
 
+    # budoucí měření: pro jaký cíl klienta (jiný důvod cíle zahodí, neznámý kód taky)
+    assert "měření má smysl pro cíl klienta" in client.get(url).content.decode()
+    data = {"rec_count": "1", "rec_id_0": str(other.pk), "rec_kind_0": "other",
+            "rec_basis_0": "measurement", "rec_text_0": "Spiroergometrie.",
+            "rec_goals_0": ["vytrvalost", "neznamy"], "akce": "ulozit"}
+    client.post(url, data)
+    other.refresh_from_db()
+    assert other.goals == ["vytrvalost"]
+    client.post(url, {**data, "rec_basis_0": "general"})
+    other.refresh_from_db()
+    assert other.goals == []
+
 
 def test_krok_kontext_spravuje_scenare_i_jejich_texty(org):
     _, client = _user(org, Role.LAB, "laborant")
@@ -327,15 +339,25 @@ def test_kontrola_posle_k_revizi_a_garant_schvali(org):
     url = _step(card, "kontrola")
     page = client.get(url)
     text = page.content.decode()
-    assert page.status_code == 200 and "Bez blokujících nedostatků" in text
+    # nerozhodnutý revizní záznam schválení zastaví
+    assert page.status_code == 200 and "Nerozhodnuté revizní záznamy (1)" in text
     assert "Poslat k revizi garantovi" in text and "metodik" in text
     step = card_steps(card)[7]
-    assert not step["done"] and "pošlete kartu k revizi" in step["text"]
+    assert not step["done"]
 
+    # rozhodnutí bez odůvodnění se neuloží
     revision = card.revisions.get()
-    client.post(url, {f"rev_decision_{revision.pk}": "accepted", "akce": "ulozit"})
+    text = client.post(url, {f"rev_decision_{revision.pk}": "accepted", "akce": "ulozit"},
+                       follow=True).content.decode()
+    revision.refresh_from_db()
+    assert revision.decision == "open" and "potřebuje odůvodnění" in text
+    client.post(url, {f"rev_decision_{revision.pk}": "accepted", "akce": "ulozit",
+                      f"rev_note_{revision.pk}": "Mírnější znění odpovídá důkazům."})
     revision.refresh_from_db()
     assert revision.decision == "accepted" and revision.decided_by == lab
+    assert revision.decision_note == "Mírnější znění odpovídá důkazům."
+    text = client.get(url).content.decode()
+    assert "Bez blokujících nedostatků" in text and "pošlete kartu k revizi" in card_steps(card)[7]["text"]
 
     resp = client.post(url, {"akce": "k_revizi"})
     card.refresh_from_db()
@@ -402,8 +424,10 @@ class _Form(HTMLParser):
         if tag == "input" and a.get("name"):
             kind = a.get("type", "text")
             if kind == "checkbox":
-                if "checked" in a:
-                    self.data[a["name"]] = a.get("value") or "on"
+                if "checked" in a:          # víc zaškrtnutých se stejným jménem = seznam
+                    value, previous = a.get("value") or "on", self.data.get(a["name"])
+                    self.data[a["name"]] = value if previous is None else (
+                        (previous if isinstance(previous, list) else [previous]) + [value])
             elif kind not in ("submit", "button", "file"):
                 self.data[a["name"]] = a.get("value") or ""
         elif tag == "select":
@@ -444,6 +468,8 @@ def test_kazdy_krok_odesle_zpet_presne_to_co_zobrazi(org):
     Recommendation.objects.create(card=card, genotype="CC", kind="training", basis="variant",
                                   text="Plyometrie.", merge_key="plyometrie")
     Recommendation.objects.create(card=card, kind="regeneration", basis="general", text="Spánek 8 h.")
+    Recommendation.objects.create(card=card, kind="other", basis="measurement", text="Spiro.",
+                                  goals=["vytrvalost", "zdravi"])
     scenario = ContextScenario.objects.create(card=card, kind=ContextScenario.Kind.QUESTIONNAIRE,
                                               statement="Lépe zvládám delší zátěž.")
     ScenarioText.objects.create(scenario=scenario, genotype="TT", text="Text TT.")
@@ -469,7 +495,9 @@ def test_kazdy_krok_odesle_zpet_presne_to_co_zobrazi(org):
     assert card.genotype_texts.get(genotype="CC").client_text == "Zjištěn genotyp CC."
     assert list(card.recommendations.order_by("order").values_list("text", "genotype", "basis",
                                                                   "merge_key")) == [
-        ("Plyometrie.", "CC", "variant", "plyometrie"), ("Spánek 8 h.", "", "general", "")]
+        ("Plyometrie.", "CC", "variant", "plyometrie"), ("Spánek 8 h.", "", "general", ""),
+        ("Spiro.", "", "measurement", "")]
+    assert card.recommendations.get(text="Spiro.").goals == ["vytrvalost", "zdravi"]
     scenario.refresh_from_db()
     assert scenario.statement == "Lépe zvládám delší zátěž." and not scenario.is_active
     assert dict(scenario.texts.values_list("genotype", "text")) == {"TT": "Text TT."}
@@ -483,3 +511,41 @@ def test_kazdy_krok_odesle_zpet_presne_to_co_zobrazi(org):
         "E01", "znak", "podklad", "použití", "S1")
     assert card.revisions.get().decision == "open"
     assert card.status == GeneCard.Status.DRAFT
+
+
+def test_rozhodnuti_revize_se_propise_do_textu_karty(org):
+    """Ponechat = původní znění, upravit = návrh, vyřadit = text pryč; ruční úprava zůstane."""
+    lab, client = _user(org, Role.LAB, "laborant")
+    card = _card(_variant(org))
+    text = card.genotype_texts.get(genotype="CC")
+    text.client_text = "Nové znění CC."
+    text.save()
+    revision = CardRevision.objects.create(card=card, part="Interpretace genotypu CC",
+                                           original="Původní znění CC.", proposal="Nové znění CC.")
+    url = _step(card, "kontrola")
+
+    def decide(decision, note="Odůvodněno zdrojem S2."):
+        return client.post(url, {f"rev_decision_{revision.pk}": decision,
+                                 f"rev_note_{revision.pk}": note, "akce": "ulozit"},
+                           follow=True).content.decode()
+
+    page = decide("rejected")
+    text.refresh_from_db()
+    assert text.client_text == "Původní znění CC." and "text karty upraven" in page
+    decide("accepted")
+    text.refresh_from_db()
+    assert text.client_text == "Nové znění CC."
+    decide("removed")
+    text.refresh_from_db()
+    assert text.client_text == "" and "Genotyp CC nemá interpretaci" in client.get(url).content.decode()
+    # ručně upravený text rozhodnutí nepřepíše
+    text.client_text = "Garant napsal vlastní znění."
+    text.save()
+    decide("open")
+    decide("rejected")
+    text.refresh_from_db()
+    assert text.client_text == "Garant napsal vlastní znění."
+    revision.refresh_from_db()
+    assert revision.get_decision_display() == "Ponechat původní znění"
+    page = client.get(reverse("genetics_card", args=[card.pk])).content.decode()
+    assert "Odůvodnění:</span> Odůvodněno zdrojem S2." in page

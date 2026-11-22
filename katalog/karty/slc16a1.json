@@ -66,20 +66,24 @@
     {
      "genotype": "",
      "kind": "training",
-     "text": "Dávkování intenzivní intervalové zátěže vychází z cíle, sportu, tréninkové historie a měření, ne z genotypu.",
+     "text": "Zaměření a dávkování tréninku vychází z cíle, sportu, tréninkové historie a měření, ne z genotypu.",
      "basis": "general",
      "merge_key": "trenink-podle-mereni",
      "order": 0,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "",
      "kind": "training",
-     "text": "Anaerobní výkon a pokles výkonu během zátěže ukáže Wingate test; zpráva porovná výsledek s normou a s minulým měřením.",
+     "text": "Pro přesnější posouzení krátkodobé intenzivní zátěže ve vztahu k Vašemu sportovnímu cíli by bylo vhodné doplnit Wingate test (WT30).",
      "basis": "measurement",
      "merge_key": "anaerobni-mereni",
      "order": 1,
-     "protokol": "wingate"
+     "protokol": "wingate",
+     "goals": [
+      "sila_rychlost"
+     ]
     }
    ],
    "dukazy": [

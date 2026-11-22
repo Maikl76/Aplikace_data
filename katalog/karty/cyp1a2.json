@@ -76,7 +76,8 @@
      "basis": "",
      "merge_key": "",
      "order": 0,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "AA",
@@ -85,7 +86,8 @@
      "basis": "",
      "merge_key": "",
      "order": 1,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "AA",
@@ -94,7 +96,8 @@
      "basis": "",
      "merge_key": "",
      "order": 2,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "AC",
@@ -103,7 +106,8 @@
      "basis": "",
      "merge_key": "",
      "order": 3,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "AC",
@@ -112,7 +116,8 @@
      "basis": "",
      "merge_key": "",
      "order": 4,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "AC",
@@ -121,7 +126,8 @@
      "basis": "",
      "merge_key": "",
      "order": 5,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CC",
@@ -130,7 +136,8 @@
      "basis": "",
      "merge_key": "",
      "order": 6,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CC",
@@ -139,7 +146,8 @@
      "basis": "",
      "merge_key": "",
      "order": 7,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CC",
@@ -148,7 +156,8 @@
      "basis": "",
      "merge_key": "",
      "order": 8,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     }
    ],
    "dukazy": [],
@@ -375,7 +384,8 @@
      "basis": "general",
      "merge_key": "kofein-zkouska",
      "order": 9,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "",
@@ -384,7 +394,8 @@
      "basis": "general",
      "merge_key": "kofein-davka",
      "order": 10,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "",
@@ -393,16 +404,18 @@
      "basis": "general",
      "merge_key": "kofein-spanek",
      "order": 11,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "",
      "kind": "nutrition",
-     "text": "Zda vám kofein skutečně pomáhá, ukáže pokus: stejný test jednou bez kofeinu a jednou s obvyklou dávkou. Dávka se zapíše v podmínkách provedení testu a zpráva obě provedení porovná.",
+     "text": "Zda Vám kofein skutečně pomáhá, by ukázal pokus: stejný test jednou bez kofeinu a jednou s obvyklou dávkou. Dávka se zapíše v podmínkách provedení testu, aby šla obě provedení porovnat.",
      "basis": "measurement",
      "merge_key": "pokus-kofein",
      "order": 12,
-     "protokol": "spiro_ramp"
+     "protokol": "spiro_ramp",
+     "goals": []
     }
    ],
    "dukazy": [
@@ -653,6 +666,52 @@
      "decided_at": null
     }
    ]
+  }
+ ],
+ "interakce": [
+  {
+   "organizace": null,
+   "karta": {
+    "varianta": "rs762551",
+    "verze": 1
+   },
+   "title": "Interakce variant CYP1A2 rs762551 (-163C>A) a ADORA2A rs5751876",
+   "areas": [
+    "Metabolismus kofeinu",
+    "Tolerance kofeinu",
+    "Nežádoucí účinky kofeinu"
+   ],
+   "assumption": "Za předpokladu kombinace CYP1A2 rs762551 CC nebo AC + ADORA2A rizikového profilu pro vyšší citlivost na kofein",
+   "text": "Tato kombinace genotypů může zvyšovat pravděpodobnost nervozity, úzkosti, poruch spánku nebo horší tolerance kofeinu. V praxi je vhodné používat nižší dávky, testovat reakci pouze v tréninku a vyhnout se pozdnímu příjmu kofeinu.",
+   "variants": [
+    "rs5751876",
+    "rs762551"
+   ],
+   "status": "hypothesis",
+   "order": 0,
+   "evidence": "Genotyp druhé varianty není v podkladu určen (např. „rizikový genotyp“, „profil“) – před posouzením doplnit konkrétní genotyp a zdroj."
+  },
+  {
+   "organizace": null,
+   "karta": {
+    "varianta": "rs762551",
+    "verze": 1
+   },
+   "title": "Interakce variant CYP1A2 rs762551 (-163C>A) a ADORA2A rs5751876",
+   "areas": [
+    "Metabolismus kofeinu",
+    "Tolerance kofeinu",
+    "Nežádoucí účinky kofeinu"
+   ],
+   "assumption": "Za předpokladu kombinace CYP1A2 rs762551 AA + ADORA2A profilu bez zvýšené citlivosti",
+   "text": "Tato kombinace genotypů může být příznivější pro využití kofeinu jako ergogenní pomůcky. Ani v tomto případě však nelze vynechat individualizaci dávky a sledování spánku, srdeční frekvence a subjektivní tolerance.",
+   "variants": [
+    "rs5751876",
+    "rs762551"
+   ],
+   "status": "hypothesis",
+   "order": 1,
+   "evidence": "Genotyp druhé varianty není v podkladu určen (např. „rizikový genotyp“, „profil“) – před posouzením doplnit konkrétní genotyp a zdroj."
   }
  ]
 }

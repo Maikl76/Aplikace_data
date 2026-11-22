@@ -75,7 +75,8 @@
      "basis": "",
      "merge_key": "",
      "order": 0,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CC",
@@ -84,7 +85,8 @@
      "basis": "",
      "merge_key": "",
      "order": 1,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CC",
@@ -93,7 +95,8 @@
      "basis": "",
      "merge_key": "",
      "order": 2,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CT",
@@ -102,7 +105,8 @@
      "basis": "",
      "merge_key": "",
      "order": 3,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CT",
@@ -111,7 +115,8 @@
      "basis": "",
      "merge_key": "",
      "order": 4,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CT",
@@ -120,7 +125,8 @@
      "basis": "",
      "merge_key": "",
      "order": 5,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "TT",
@@ -129,7 +135,8 @@
      "basis": "",
      "merge_key": "",
      "order": 6,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "TT",
@@ -138,7 +145,8 @@
      "basis": "",
      "merge_key": "",
      "order": 7,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "TT",
@@ -147,7 +155,8 @@
      "basis": "",
      "merge_key": "",
      "order": 8,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     }
    ],
    "dukazy": [],
@@ -331,7 +340,8 @@
      "basis": "general",
      "merge_key": "laktoza-tolerance",
      "order": 9,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "",
@@ -340,7 +350,8 @@
      "basis": "general",
      "merge_key": "vapnik-vitamin-d",
      "order": 10,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "",
@@ -349,7 +360,8 @@
      "basis": "general",
      "merge_key": "novinky-v-treninku",
      "order": 11,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     }
    ],
    "dukazy": [

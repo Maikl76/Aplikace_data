@@ -14,7 +14,7 @@
     <p class="text-sm text-muted">Varianta nemá genotypy – doplňte je v kroku 1.</p>
   {% endfor %}
   <div class="grid sm:grid-cols-2 gap-3 text-sm">
-    <label class="block"><span class="text-xs text-2">Zdroj frekvencí (např. gnomAD v4, Evropané)</span>
+    <label class="block"><span class="text-xs text-2">Zdroj frekvencí – povinný u frekvencí: konkrétní soubor a odkaz (např. gnomAD v4, Evropané, https://…); klient frekvence ve zprávě nevidí</span>
       <input name="frequency_source" value="{{ variant.frequency_source }}" maxlength="500" class="input text-sm py-1.5"></label>
     <label class="block"><span class="text-xs text-2">Poznámka k frekvencím (nepovinné)</span>
       <textarea name="frequency_note" rows="2" class="input text-sm">{{ card.frequency_note }}</textarea></label>

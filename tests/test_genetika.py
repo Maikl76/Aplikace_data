@@ -569,7 +569,8 @@ def test_katalog_genetiky_projde_tam_a_zpet(org):
                                               statement="Lépe zvládám sprinty.")
     scenario.texts.create(genotype="CC", text="Odpovídá.")
     CardRevision.objects.create(card=v1, part="Interpretace CC", original="Staré.", proposal="Nové.",
-                                reason="důkazy", decision="accepted")
+                                reason="důkazy", decision="accepted",
+                                decision_note="Návrh odpovídá zdroji S3.")
     services.approve(v1, by=guarantor)
     v2 = services.new_version(v1)
     GeneInteraction.objects.create(organization=org, title="ACE × ACTN3", assumption="DD + CC",

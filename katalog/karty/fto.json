@@ -66,20 +66,24 @@
     {
      "genotype": "",
      "kind": "nutrition",
-     "text": "Stravu nastavujte podle cíle, tréninkového zatížení a měření složení těla, ne podle genotypu; při záměru měnit hmotnost se poraďte se sportovním nutričním specialistou.",
+     "text": "Stravu a hmotnost nastavujte podle cíle, tréninkového zatížení a měření složení těla, ne podle genotypu; při záměru měnit hmotnost se poraďte se sportovním nutričním specialistou.",
      "basis": "general",
      "merge_key": "strava-podle-cile",
      "order": 0,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "",
      "kind": "nutrition",
-     "text": "Vývoj hmotnosti a složení těla ukáže opakované měření složení těla; zpráva porovná měření v čase.",
+     "text": "Pro posouzení vývoje hmotnosti a složení těla ve vztahu k Vašemu cíli by bylo vhodné doplnit opakované měření složení těla (antropometrie).",
      "basis": "measurement",
      "merge_key": "slozeni-tela-mereni",
      "order": 1,
-     "protokol": "bodycomp"
+     "protokol": "bodycomp",
+     "goals": [
+      "hmotnost"
+     ]
     }
    ],
    "dukazy": [

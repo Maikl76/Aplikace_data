@@ -289,11 +289,27 @@ def checklist(card) -> Checklist:
         if len(source.citation.strip()) < 30:
             out.issues.append(Issue(f"Neúplná citace: „{source.citation.strip()}“.",
                                     blocking=False))
-    if any(t.frequency.strip() for t in texts.values()) and not variant.frequency_source.strip():
-        out.issues.append(Issue("Frekvence genotypů jsou uvedené bez zdroje frekvencí.",
-                                blocking=False))
-    if card.revisions.filter(decision=CardRevision.Decision.OPEN).exists():
-        out.issues.append(Issue("Karta má nerozhodnuté revizní záznamy.", blocking=False))
+    if any(t.frequency.strip() for t in texts.values()):
+        source = variant.frequency_source.strip()
+        if not source:
+            out.issues.append(Issue("Frekvence genotypů jsou uvedené bez zdroje – populační "
+                                    "frekvence potřebuje konkrétní soubor a dohledatelný zdroj "
+                                    "(krok Varianta), jinak frekvence smažte."))
+        elif not re.search(r"https?://|doi", source, re.I):
+            out.issues.append(Issue("Zdroj frekvencí nemá odkaz (URL nebo DOI) – ověřte, že je "
+                                    "dohledatelný a že uvádí konkrétní soubor.", blocking=False))
+    revisions = list(card.revisions.all())
+    undecided = [r for r in revisions if r.decision == CardRevision.Decision.OPEN]
+    if undecided:
+        out.issues.append(Issue(f"Nerozhodnuté revizní záznamy ({len(undecided)}) – u každého "
+                                "rozhodněte ponechat / upravit / vyřadit a připište "
+                                "odůvodnění."))
+    unexplained = [r for r in revisions
+                   if r.decision != CardRevision.Decision.OPEN and not r.decision_note.strip()]
+    if unexplained:
+        out.issues.append(Issue(f"Rozhodnuté revizní záznamy bez odůvodnění "
+                                f"({len(unexplained)}): " + ", ".join(r.part for r in unexplained[:3])
+                                + ("…" if len(unexplained) > 3 else "") + "."))
     return out
 
 

@@ -6,6 +6,9 @@ zprávy. Tahle fáze (kostra) řeší **obsah a data**: karty s revizí a schvá
 souhlas, vzorek a genotypy. Genetická zpráva a propojení s měřením jsou další
 fáze (viz konec).
 
+Jak modul odpovídá obsahovým podkladům v02 (genové karty, dotazník a report,
+kontrola úplnosti) a co zůstává k rozhodnutí: [genetika-soulad-s-podklady.md](genetika-soulad-s-podklady.md).
+
 ## Zásady
 
 - **Obsah je data s verzí a historií.** Genová karta má stav *původní znění →
@@ -40,7 +43,8 @@ fáze (viz konec).
 | **Genetika → Jak to funguje** | `/genetika/navod/`: obsah – lidé – zpráva, kdo co dělá, stav nastavení |
 | **karta sportovce → Genetika** | postup v pěti krocích (souhlas → vzorek → ověření → dotazník → zpráva) s *Další krok*; zápis podepsaného souhlasu / odvolání, dotazník, vzorky, genotypy, *Ověřit příslušnost* výsledku, nový vzorek, sestavení genetické zprávy |
 | **portál sportovce → Souhlasy a sdílení → Genetika** | sportovec souhlas uděluje a odvolává sám, vyplňuje dotazník; vydanou zprávu pro sportovce vidí v Mých výsledcích |
-| **Genetika → Interakce variant** | `/genetika/interakce/`: kombinace genotypů více variant (hypotéza → schváleno / zamítnuto), formulář ve čtyřech částech, varianta mimo panel se označí; volitelný pátý krok nastavení |
+| **Genetika → Interakce variant** | `/genetika/interakce/`: kombinace genotypů více variant (hypotéza → schváleno / zamítnuto), formulář ve čtyřech částech (i s variantami mimo katalog a s důkazy a poznámkami k posouzení), varianta mimo panel se označí; volitelný pátý krok nastavení. Na stránce karty jsou všechny kombinace, ve kterých varianta je – i z jiných karet – s tím, co chybí v panelu |
+| **Genetika → Měření v genetické zprávě** | jeden přepínač (správce) na stránce Genetika: *Jen dostupnost (V1)* – zpráva uvede, které výsledky z testování jsou k dispozici, bez hodnot; *Hodnoty měření* – hodnota s testem, datem a kvalitou, norma jen s referenčním souborem |
 | **administrace → Genetika** (pro pokročilé) | totéž co průvodce; navíc jen vzorky ke čtení a technické záznamy |
 
 ## Postup
@@ -94,7 +98,9 @@ i aktualizace serveru ho volají samy).
       frekvence se zdrojem, odborné znění.
    4. *Doporučení s důvody* – doložená interpretace varianty / odpověď
       v dotazníku / obecný postup / budoucí měření s testem z katalogu; bez
-      důvodu kartu nejde schválit.
+      důvodu kartu nejde schválit. U budoucího měření se zaškrtne, pro jaký
+      **cíl klienta** (otázka *cil* dotazníku) má smysl – zpráva ho pak
+      nabídne jen klientovi s tímto cílem; nic = bez ohledu na cíl.
    5. *Kontext z dotazníku* – scénáře: odpověď sportovce, která je spouští,
       text pro každý genotyp, zapnutí (jde jen se spouštěcí odpovědí), nové
       scénáře; scénář s měřením má podmínku ze stavitele (druh, ukazatel,
@@ -105,8 +111,14 @@ i aktualizace serveru ho volají samy).
    7. *Zdroje a důkazy* – citace s odkazem a řádky důkazů (E01…: znak, podklad
       a omezení, použití ve zprávě, zdroje).
    8. *Kontrola a schválení* – kontrolní seznam (blokující / k doplnění),
-      rozhodnutí revizních záznamů, *Poslat k revizi garantovi*; garant tu
-      kartu *schválí* (jen bez blokujících nedostatků) nebo *vrátí k úpravě*.
+      rozhodnutí revizních záznamů: **ponechat původní znění / upravit podle
+      návrhu / vyřadit z karty**, vždy s odůvodněním (bez něj se rozhodnutí
+      neuloží). U interpretace genotypu a vysvětlení pro klienta se rozhodnutí
+      propíše do textu karty (jen když text je jedno z obou znění – ruční
+      úprava zůstane). Nerozhodnutý záznam a rozhodnutí bez odůvodnění
+      schválení zastaví; stejně tak frekvence genotypů bez zdroje.
+      *Poslat k revizi garantovi*; garant tu kartu *schválí* (jen bez
+      blokujících nedostatků) nebo *vrátí k úpravě*.
 
    Schválené znění je neměnné; *Nová verze* na stránce karty otevře průvodce
    nové verze s předchozím zněním vedle polí.
@@ -158,8 +170,27 @@ V repozitáři je deset souborů, jeden pro každou variantu panelu:
 | `slc16a1.json`, `fto.json`, `tcf7l2.json` | SLC16A1, FTO, TCF7L2 | karty bez původního obsahu (v podkladech jen osnova): v1 návrh od začátku – biologie, omezení, opatrné texty pro genotypy, obecná doporučení, výroky, zdroje bez DOI a důkazy; osnovové úkoly zůstávají v revizních záznamech spolu s úkolem rozhodnout o zařazení do V1 |
 
 Všechny návrhy mají kroky 1–7 průvodce hotové; schválení blokují jen značky
-k ověření a otevřené revizní záznamy (krok 8). U ACTN3 kontrola nic
-neblokuje, protože texty jsou z revize v0.2.
+k ověření a nerozhodnuté revizní záznamy (krok 8). U ACTN3 blokují jen
+revizní záznamy – texty jsou z revize v0.2; v přehledu změn návrhu je
+doslovné znění „Zdroje a změny proti původní kartě“ z podkladů.
+
+Soubory nesou i **kombinace variant** (`interakce`, 18 hypotéz z původních
+karet ACE, ACTN3, COL5A1, CYP1A2, IL6 a PPARGC1A): původní znění zůstává,
+v *důkazech a poznámkách* je pokyn, kam text patřil („doplnění textu
+pro …“), oprava identifikátoru AMPD1 (rs1760279 → rs17602729 podle revize
+ACTN3, zdroj S6) a co ke kombinaci chybí (neurčený genotyp druhé varianty,
+kombinace s tréninkem či zátěží). Ke kartě se založí **jednou** – i do
+katalogu, kde karta už je; smazaná kombinace se při další aktualizaci
+nevrátí. Přehled změn neschváleného návrhu se ze souboru doplní, jen když ho
+nikdo neupravil.
+
+Stejné obecné doporučení pod jedním *klíčem pro slučování* má ve všech
+návrzích jedno znění (např. `trenink-podle-mereni` u ACE, ACTN3, PPARGC1A
+a SLC16A1) – zpráva ho spojí do jednoho doporučení s více důvody; rozpor
+„k odbornému posouzení“ zůstává pro skutečně odlišná doporučení. Texty
+budoucího měření jsou podle cíle klienta a neslibují srovnání s normou.
+Migrace `0005` obojí přenese i do existujícího katalogu – jen u neschválených
+karet a jen u textů, které nikdo neupravil (`apps/genetics/draft_updates.py`).
 
 ## Knihovna článků ke kartám
 
@@ -200,6 +231,14 @@ regenerace, kofein, laktóza a výživa, hmotnost a metabolický kontext,
 dostupnost dalších informací). Není to validovaný formulář – laboratoř ho
 dokončí v administraci; seed existující otázky nepřepisuje.
 
+- Osnova podle podkladů rozlišuje i subjektivní obtíže a doloženou diagnózu
+  (*Byly obtíže vyšetřeny lékařem nebo fyzioterapeutem?*), načasování
+  kofeinu vůči spánku (*Kofein méně než 6 hodin před spaním*), četnost
+  mléčných výrobků a proteinových nápojů a načasování zažívacích obtíží
+  (po jídle / při zátěži). Nové otázky seed doplní i do existujícího
+  dotazníku na jejich místo v oddílu; vlastní otázky laboratoře zůstanou za
+  otázkou, za kterou byly. Známé diagnózy se záměrně neptají (rozsah
+  citlivých údajů jen na to, co zpráva použije); léky a doplňky ano.
 - Otázky mají druh (škála, číslo, ano/ne, jedna nebo více možností, text)
   a mohou nabízet **nevím** a **netýká se**. Tyto stavy jsou plnohodnotné
   odpovědi a nikdy se nepřekládají na „ne“.
@@ -228,22 +267,33 @@ Obsah je deterministický a v pořadí podle podkladů:
    panel, vzorek, zda je dotazník vyplněn.
 2. **Přehled zjištěných genotypů** – gen, oblast, genotyp, kvalita zápisu,
    verze karty. Vypnuté varianty se neuvádějí.
-3. **Výsledky podle oblastí** – u každé varianty text pro zjištěný genotyp
-   **doslova ze schválené verze karty** (pro lékaře odborné znění a důkazy),
-   kontext z dotazníku jen z aktivních scénářů, které odpověď skutečně
-   spouští, a doporučení s důvodem.
+3. **Výsledky podle oblastí** – u každé oblasti tři kroky:
+   **Co víme** (laboratorní nález, odpovědi z dotazníku, které zpráva
+   použila, měření – hodnoty, nebo jen co je k dispozici, viz přepínač) →
+   **Co z toho lze vyvodit** (text pro zjištěný genotyp **doslova ze
+   schválené verze karty**, pro lékaře odborné znění, účinek, důkazy
+   a populační frekvence se zdrojem; kontext z dotazníku jen z aktivních
+   scénářů, které odpověď skutečně spouští) → **Další krok** (čísla
+   doporučení v části 4, co je k odbornému posouzení, měření z části 5).
+   Frekvence genotypů sportovec ve zprávě nedostává – bez populace a zdroje
+   mu nic neříká.
 4. **Praktická doporučení a jejich důvody** – sloučená napříč kartami podle
    *klíče pro slučování*: stejný text = jedno doporučení s více důvody;
    různé texty pod jedním klíčem = **k odbornému posouzení** (zpráva nic
    nevybírá). Komentář diagnostika patří sem.
 5. **Co by bylo vhodné doplnit nebo změřit** – doporučení s důvodem
-   „budoucí měření“; když má doporučení přiřazený test, zpráva řekne, zda
-   sportovec má výsledek z posledního roku (uvede hodnoty klíčových
-   ukazatelů bez výkladu), nebo že chybí.
+   „budoucí měření“ **podle cíle klienta**: měření s vybranými cíli se
+   nabídne jen klientovi s takovým cílem (samotná přítomnost varianty
+   povinnost testu nezakládá); bez vyplněného cíle se nabídne s poznámkou,
+   že vhodnost posoudí diagnostik. Lékař vidí i návrhy mimo cíl klienta.
+   Když má doporučení přiřazený test, zpráva řekne, zda je výsledek
+   z posledního roku k dispozici (s hodnotami jen v režimu *Hodnoty
+   měření*), nebo „Jeho výsledek v této zprávě není k dispozici.“
 6. **Omezení interpretace a zdroje** – varianty bez interpretace s důvodem
    (chybějící nebo nejasný výsledek, neschválená karta, karta bez textu pro
    genotyp), pevná omezení, omezení karet, zdroje karet číslované [n], verze
-   karet a dotazníku.
+   karet a dotazníku (otisk otázek – změní se s každou úpravou dotazníku,
+   datum vyplnění a číslo záznamu).
 
 Souhrn na začátku je **spojovací**: bez modelu ho složí šablona; se
 zapnutým modelem ho napíše model z faktů, které obsahují jen schválené
@@ -263,12 +313,22 @@ souhlasu nejde.
 Zásada: **měření mluví první, genotyp je kontext.** Zpráva měření nikdy
 nepopisuje jako potvrzení nebo vysvětlení genotypu.
 
+- **Přepínač Měření v genetické zprávě** (stránka Genetika, správce). Podle
+  podkladů nejsou fenotypové výsledky v první verzi vstupem zprávy:
+  *Jen dostupnost (V1)* znamená, že zpráva u oblasti uvede jen, které
+  výsledky z testování jsou k dispozici (test a datum), bez hodnot, bez
+  norem a bez únavy, scénáře s měřením a pokus s kofeinem se nevyhodnocují.
+  *Hodnoty měření* je rozšíření nad V1 (viz další body). Přepínač nastaví
+  všechny oblasti najednou (po oblastech jde v administraci: *hodnoty
+  měření ve zprávě*); vydané zprávy nemění.
 - **Ukazatele oblasti.** Každá oblast má v administraci (Genetika → Oblasti)
   seznam ukazatelů z katalogu (*ukazatele oblasti*); seed doplní výchozí
-  výběr jen do oblasti bez ukazatelů. V části 3 genetické zprávy je u každé
-  oblasti **před genotypem** tabulka měření: poslední hodnota z posledního
-  roku, norma slovy (stejně jako ve zprávě z měření) a změna proti minulému
-  měření posouzená podle MDC. Vypne se volbou *ukázat měření ve zprávě*.
+  výběr jen do oblasti bez ukazatelů. V režimu hodnot je v části 3 u každé
+  oblasti v kroku *Co víme* tabulka měření: poslední hodnota z posledního
+  roku s **testem (protokol a verze) a kvalitou** (počet platných pokusů,
+  ručně upravená nebo podezřelá hodnota), norma slovy **jen s referenčním
+  souborem** (citace normy, n) a změna proti minulému měření posouzená
+  podle MDC.
 - **Únava a RPE.** Oblast se zapnutým *sledovat únavu a RPE* (výchozí
   Regenerace) ukáže subjektivní únavu z testovacích dnů a RPE po testech –
   jak je sportovec uvedl, bez výkladu.

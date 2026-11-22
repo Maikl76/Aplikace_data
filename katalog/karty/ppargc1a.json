@@ -76,7 +76,8 @@
      "basis": "",
      "merge_key": "",
      "order": 0,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "AA",
@@ -85,7 +86,8 @@
      "basis": "",
      "merge_key": "",
      "order": 1,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "AA",
@@ -94,7 +96,8 @@
      "basis": "",
      "merge_key": "",
      "order": 2,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "AG",
@@ -103,7 +106,8 @@
      "basis": "",
      "merge_key": "",
      "order": 3,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "AG",
@@ -112,7 +116,8 @@
      "basis": "",
      "merge_key": "",
      "order": 4,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "AG",
@@ -121,7 +126,8 @@
      "basis": "",
      "merge_key": "",
      "order": 5,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "GG",
@@ -130,7 +136,8 @@
      "basis": "",
      "merge_key": "",
      "order": 6,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "GG",
@@ -139,7 +146,8 @@
      "basis": "",
      "merge_key": "",
      "order": 7,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "GG",
@@ -148,7 +156,8 @@
      "basis": "",
      "merge_key": "",
      "order": 8,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     }
    ],
    "dukazy": [],
@@ -350,20 +359,24 @@
     {
      "genotype": "",
      "kind": "training",
-     "text": "Zaměření a dávkování vytrvalostního tréninku vychází z cíle, sportu, tréninkové historie a měření, ne z genotypu.",
+     "text": "Zaměření a dávkování tréninku vychází z cíle, sportu, tréninkové historie a měření, ne z genotypu.",
      "basis": "general",
      "merge_key": "trenink-podle-mereni",
      "order": 9,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "",
      "kind": "training",
-     "text": "Reakci na vytrvalostní trénink ukáže opakovaná spiroergometrie (VO₂max, ventilační prahy) v odstupu týdnů; zpráva porovná měření a změnu posoudí podle chyby měření.",
+     "text": "Reakci na vytrvalostní trénink by ukázala opakovaná spiroergometrie v odstupu několika týdnů; změnu je třeba posuzovat vůči chybě měření.",
      "basis": "measurement",
      "merge_key": "vytrvalost-adaptace",
      "order": 10,
-     "protokol": "spiro_ramp"
+     "protokol": "spiro_ramp",
+     "goals": [
+      "vytrvalost"
+     ]
     },
     {
      "genotype": "",
@@ -372,7 +385,8 @@
      "basis": "general",
      "merge_key": "aerobni-zaklad",
      "order": 11,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     }
    ],
    "dukazy": [
@@ -610,6 +624,86 @@
      "decided_at": null
     }
    ]
+  }
+ ],
+ "interakce": [
+  {
+   "organizace": null,
+   "karta": {
+    "varianta": "rs8192678",
+    "verze": 1
+   },
+   "title": "Interakce variant PPARGC1A rs8192678 (Gly482Ser) a PPARA rs4253778 (intron 7)",
+   "areas": [
+    "Vytrvalost a aerobní kapacita"
+   ],
+   "assumption": "Za předpokladu kombinace PPARGC1A rs8192678 GG + PPARA rs4253778 GG",
+   "text": "Tato kombinace genotypů může aditivně podporovat oxidativní metabolismus, příznivější adaptační odpověď na vytrvalostní trénink a celkově vytrvalostní profil. Prakticky může být výhodná pro disciplíny s vysokými nároky na aerobní kapacitu.",
+   "variants": [
+    "rs4253778",
+    "rs8192678"
+   ],
+   "status": "hypothesis",
+   "order": 0,
+   "evidence": ""
+  },
+  {
+   "organizace": null,
+   "karta": {
+    "varianta": "rs8192678",
+    "verze": 1
+   },
+   "title": "Interakce variant PPARGC1A rs8192678 (Gly482Ser) a PPARA rs4253778 (intron 7)",
+   "areas": [
+    "Vytrvalost a aerobní kapacita"
+   ],
+   "assumption": "Za předpokladu kombinace PPARGC1A rs8192678 AA nebo AG + PPARA rs4253778 C alela",
+   "text": "Tato kombinace může vyznívat méně příznivě pro čistě vytrvalostní profil a může znamenat potřebu pečlivější individualizace tréninku. Nejde však o deterministický závěr a významně záleží na tréninkové historii.",
+   "variants": [
+    "rs4253778",
+    "rs8192678"
+   ],
+   "status": "hypothesis",
+   "order": 1,
+   "evidence": ""
+  },
+  {
+   "organizace": null,
+   "karta": {
+    "varianta": "rs8192678",
+    "verze": 1
+   },
+   "title": "Interakce varianty PPARGC1A rs8192678 a dlouhodobého vytrvalostního tréninku",
+   "areas": [
+    "Vytrvalostní trénink a energetická účinnost"
+   ],
+   "assumption": "Za předpokladu genotypu GG + systematického vytrvalostního tréninku",
+   "text": "Tato kombinace odpovídá nejpříznivějšímu profilu pro rozvoj aerobní kapacity, mitochondriálních adaptací a ekonomiky pohybu. Doporučujeme dlouhodobě rozvíjet vytrvalostní složku výkonu.",
+   "variants": [
+    "rs8192678"
+   ],
+   "status": "hypothesis",
+   "order": 2,
+   "evidence": "Druhou složkou kombinace není konkrétní varianta (trénink, zátěž, měřený znak nebo blíže neurčené geny) – z genetického výsledku ji nejde vyhodnotit; patří spíš ke kontextu z dotazníku nebo měření."
+  },
+  {
+   "organizace": null,
+   "karta": {
+    "varianta": "rs8192678",
+    "verze": 1
+   },
+   "title": "Interakce varianty PPARGC1A rs8192678 a dlouhodobého vytrvalostního tréninku",
+   "areas": [
+    "Vytrvalostní trénink a energetická účinnost"
+   ],
+   "assumption": "Za předpokladu genotypu AA nebo AG + dobře strukturovaného vytrvalostního tréninku",
+   "text": "I méně příznivý nebo střední genetický profil může při kvalitním tréninku vést k významnému zlepšení aerobní výkonnosti. Genotyp by proto neměl být používán jako důvod k omezení vytrvalostního rozvoje, ale spíše jako vodítko pro individualizaci.",
+   "variants": [
+    "rs8192678"
+   ],
+   "status": "hypothesis",
+   "order": 3,
+   "evidence": "Druhou složkou kombinace není konkrétní varianta (trénink, zátěž, měřený znak nebo blíže neurčené geny) – z genetického výsledku ji nejde vyhodnotit; patří spíš ke kontextu z dotazníku nebo měření."
   }
  ]
 }

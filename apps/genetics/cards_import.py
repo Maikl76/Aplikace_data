@@ -45,6 +45,17 @@ SOURCE_HEADING = re.compile(r"^S(?P<n>\d+)\s+(?P<title>.+)$")
 RSID = re.compile(r"rs\d+")
 SOURCE_LABELS = re.compile(r"\[(S\d+(?:\s*,\s*S\d+)*)\]")
 WORKING_GENOTYPES = re.compile(r"Pracovní zápisy genotypů:\s*(?P<list>[A-Z]{2}(?:\s*,\s*[A-Z]{2})*)")
+# Předpoklad kombinace v podkladech někdy pokračuje pokynem, kam text patří
+# („… DD nebo ID doplnění textu pro "Genotyp CC (RR)" "Tréninková doporučení"“).
+PLACEMENT = re.compile(r"\s+(?P<note>doplnění textu pro\b.*)$", re.S)
+# Opravy identifikátorů doložené revizí: do seznamu variant jde správné rsID,
+# původní znění kombinace zůstává beze změny jako doklad.
+RSID_FIXES = {
+    "rs1760279": ("rs17602729",
+                  "Identifikátor AMPD1 opraven z rs1760279 na rs17602729 podle revize ACTN3 "
+                  "(zdroj S6, NCBI ClinVar); původní znění kombinace zůstává beze změny."),
+}
+UNDETERMINED = re.compile(r"rizikov|profil|genotypů podporujících", re.I)
 
 RECO_KINDS = {
     "sportovní doporučení": Recommendation.Kind.SPORT,
@@ -403,6 +414,41 @@ def _interactions(data: CardData, section: Section) -> None:
             data.notes.append(f"{section.title}: {text}")
 
 
+def interaction_items(data: CardData) -> list[dict]:
+    """
+    Kombinace z karty jako hypotézy (pole GeneInteraction). Původní znění
+    zůstává; pokyn k umístění textu, oprava rsID a co ke kombinaci chybí jdou
+    do poznámky k posouzení.
+    """
+    from_revision = [s.strip() for s in re.split(r"(?<=\.)\s+", data.change_summary)
+                     if "nterakc" in s]
+    out = []
+    for order, item in enumerate(data.interactions):
+        assumption, notes = item.assumption, []
+        match = PLACEMENT.search(assumption)
+        if match:
+            assumption = assumption[:match.start()].strip()
+            notes.append(f"Původní předpoklad pokračuje pokynem: {match['note'].strip()}.")
+        rsids = set(RSID.findall(item.assumption + " " + item.title)) | {data.rsid}
+        for wrong, (right, note) in RSID_FIXES.items():
+            if wrong in rsids:
+                rsids = (rsids - {wrong}) | {right}
+                notes.append(note)
+        if rsids == {data.rsid}:
+            notes.append("Druhou složkou kombinace není konkrétní varianta (trénink, zátěž, "
+                         "měřený znak nebo blíže neurčené geny) – z genetického výsledku ji nejde "
+                         "vyhodnotit; patří spíš ke kontextu z dotazníku nebo měření.")
+        elif UNDETERMINED.search(assumption):
+            notes.append("Genotyp druhé varianty není v podkladu určen (např. „rizikový genotyp“, "
+                         "„profil“) – před posouzením doplnit konkrétní genotyp a zdroj.")
+        notes += [f"Z revize karty: {s}" for s in from_revision]
+        out.append({"title": item.title[:300], "areas": list(item.areas),
+                    "assumption": assumption, "text": item.text, "variants": sorted(rsids),
+                    "status": GeneInteraction.Status.HYPOTHESIS, "order": order,
+                    "evidence": "\n".join(notes)})
+    return out
+
+
 def _evidence(data: CardData, table: Table) -> None:
     for row in table.rows:
         if len(row) < 2 or not row[0].strip() or row[0].strip().lower().startswith("id"):
@@ -529,12 +575,12 @@ def _cards(data: CardData, variant: GeneVariant, user) -> None:
     for order, (label, title, citation, url) in enumerate(data.sources):
         CardSource.objects.create(card=original, label=label, title=title, citation=citation,
                                   url=url[:500], order=order)
-    for order, item in enumerate(data.interactions):
-        rsids = sorted(set(RSID.findall(item.assumption + " " + item.title)) | {data.rsid})
-        GeneInteraction.objects.create(
-            organization=variant.organization, title=item.title[:300], areas=item.areas,
-            assumption=item.assumption, text=item.text, variants=rsids,
-            source_card=original, order=order)
+    for item in interaction_items(data):
+        GeneInteraction.objects.create(organization=variant.organization, source_card=original,
+                                       **item)
+    if data.interactions:
+        original.interactions_loaded = True
+        original.save(update_fields=["interactions_loaded"])
 
     draft = GeneCard.objects.create(
         version=2, status=GeneCard.Status.DRAFT, supersedes=original,

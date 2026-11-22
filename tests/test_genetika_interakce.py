@@ -53,9 +53,12 @@ def test_interakce_variant_v_aplikaci(org):
     assert "Nová kombinace" not in researcher.get(url).content.decode()
 
     # laborant: chyby zápisu; založení jde jen jako hypotéza
-    text = lab.post(new, _form(actn3, ace, text="", variants=[actn3.rsid]),
+    text = lab.post(new, _form(actn3, ace, text="", variants=[actn3.rsid], assumption=""),
                     follow=True).content.decode()
-    assert "Doplňte text" in text and "aspoň dvě varianty" in text
+    assert "Doplňte text" in text and "potřebuje druhou složku" in text
+    text = lab.post(new, _form(actn3, ace, variants=[], other_variants="rs17602729, AMPD1"),
+                    follow=True).content.decode()
+    assert "aspoň jednu variantu z katalogu" in text and "nejde: AMPD1" in text
     assert not GeneInteraction.objects.exists()
     resp = lab.post(new, _form(actn3, ace, status="approved"))
     inter = GeneInteraction.objects.get()

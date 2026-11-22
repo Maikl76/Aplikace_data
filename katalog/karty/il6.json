@@ -76,7 +76,8 @@
      "basis": "",
      "merge_key": "",
      "order": 0,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CC",
@@ -85,7 +86,8 @@
      "basis": "",
      "merge_key": "",
      "order": 1,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CC",
@@ -94,7 +96,8 @@
      "basis": "",
      "merge_key": "",
      "order": 2,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CG",
@@ -103,7 +106,8 @@
      "basis": "",
      "merge_key": "",
      "order": 3,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CG",
@@ -112,7 +116,8 @@
      "basis": "",
      "merge_key": "",
      "order": 4,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "CG",
@@ -121,7 +126,8 @@
      "basis": "",
      "merge_key": "",
      "order": 5,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "GG",
@@ -130,7 +136,8 @@
      "basis": "",
      "merge_key": "",
      "order": 6,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "GG",
@@ -139,7 +146,8 @@
      "basis": "",
      "merge_key": "",
      "order": 7,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "GG",
@@ -148,7 +156,8 @@
      "basis": "",
      "merge_key": "",
      "order": 8,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     }
    ],
    "dukazy": [],
@@ -361,7 +370,8 @@
      "basis": "general",
      "merge_key": "regenerace-sledovani",
      "order": 9,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "",
@@ -370,7 +380,8 @@
      "basis": "general",
      "merge_key": "spanek-energie",
      "order": 10,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     },
     {
      "genotype": "",
@@ -379,7 +390,8 @@
      "basis": "general",
      "merge_key": "unava-pretrvava",
      "order": 11,
-     "protokol": null
+     "protokol": null,
+     "goals": []
     }
    ],
    "dukazy": [
@@ -620,6 +632,52 @@
      "decided_at": null
     }
    ]
+  }
+ ],
+ "interakce": [
+  {
+   "organizace": null,
+   "karta": {
+    "varianta": "rs1800795",
+    "verze": 1
+   },
+   "title": "Interakce variant IL6 rs1800795 (-174G>C) a CRP rs1205",
+   "areas": [
+    "Regenerace po tréninku",
+    "Prozánětlivá odpověď po cvičení",
+    "Nutriční modulace zánětu"
+   ],
+   "assumption": "Za předpokladu kombinace IL6 rs1800795 CC nebo CG + CRP rs1205 GG nebo AG",
+   "text": "Tato kombinace může zvyšovat pravděpodobnost výraznější pozátěžové zánětlivé odpovědi a delší regenerace. Prakticky dává smysl důsledněji sledovat kumulaci únavy, dostatečný příjem energie a protizánětlivě orientovanou výživu.",
+   "variants": [
+    "rs1205",
+    "rs1800795"
+   ],
+   "status": "hypothesis",
+   "order": 0,
+   "evidence": ""
+  },
+  {
+   "organizace": null,
+   "karta": {
+    "varianta": "rs1800795",
+    "verze": 1
+   },
+   "title": "Interakce variant IL6 rs1800795 a FADS1 rs174547",
+   "areas": [
+    "Regenerace po tréninku",
+    "Prozánětlivá odpověď po cvičení",
+    "Nutriční modulace zánětu"
+   ],
+   "assumption": "Za předpokladu kombinace IL6 rs1800795 CC nebo CG + FADS1 rs174547 CC nebo CT",
+   "text": "U této kombinace může mít větší význam optimalizace příjmu omega-3 mastných kyselin a omezení nadbytku omega-6, protože genetické pozadí může méně příznivě nastavovat jak zánětlivou odpověď, tak dostupnost vybraných mastných kyselin.",
+   "variants": [
+    "rs174547",
+    "rs1800795"
+   ],
+   "status": "hypothesis",
+   "order": 1,
+   "evidence": ""
   }
  ]
 }

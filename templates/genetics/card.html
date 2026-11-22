@@ -76,7 +76,7 @@
           </div>
         {% endfor %}
       </div>
-      {% for r in general %}<p class="text-sm mt-3"><span class="text-xs text-muted">Pro všechny genotypy · {{ r.get_kind_display }}{% if r.basis %} · {{ r.get_basis_display|lower }}{% endif %}</span><br>{{ r.text }}</p>{% endfor %}
+      {% for r in general %}<p class="text-sm mt-3"><span class="text-xs text-muted">Pro všechny genotypy · {{ r.get_kind_display }}{% if r.basis %} · {{ r.get_basis_display|lower }}{% endif %}{% if r.protocol %} · test {{ r.protocol.name }}{% endif %}{% if r.goal_labels %} · pro cíl: {{ r.goal_labels|join:", " }}{% elif r.basis == "measurement" %} · bez ohledu na cíl{% endif %}</span><br>{{ r.text }}</p>{% endfor %}
     </section>
 
     {% if scenarios %}
@@ -98,10 +98,18 @@
     {% if interactions or may_edit %}
       <section class="card p-4">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-1"><h2 class="card-title">Navržené interakce a kombinace</h2>{% if may_edit %}<a href="{% url 'genetics_interaction_new' %}?karta={{ card.pk }}" class="btn btn-sm">{% icon "plus" %}Nová kombinace</a>{% endif %}</div>
-        <p class="text-xs text-muted mb-3">Hypotézy k odbornému posouzení; schvaluje správce v <a class="link" href="{% url 'genetics_interactions' %}">Interakcích variant</a>. Kombinaci s variantou mimo panel nejde z testu vyhodnotit.</p>
+        <p class="text-xs text-muted mb-3">Kombinace, ve kterých varianta je – z této i z jiných karet. Hypotézy k odbornému posouzení; schvaluje správce v <a class="link" href="{% url 'genetics_interactions' %}">Interakcích variant</a>. Do zprávy se kombinace nedostávají; s variantou mimo panel je z testu ani vyhodnotit nejde.</p>
         {% for i in interactions %}
-          <div class="mb-3 text-sm"><span class="badge {% if i.status == 'approved' %}badge-good{% elif i.status == 'hypothesis' %}badge-warn{% endif %}">{{ i.get_status_display }}</span> <span class="font-medium">{{ i.title }}</span>{% if may_edit %} <a class="link text-xs" href="{% url 'genetics_interaction_edit' i.pk %}">upravit</a>{% endif %}<br><span class="text-muted">{{ i.assumption }}</span><br>{{ i.text }}<br><span class="text-xs text-muted">varianty: {{ i.variants|join:", " }}</span></div>
-        {% empty %}<p class="text-sm text-muted">Žádná kombinace s touto kartou.</p>{% endfor %}
+          <div class="mb-3 pb-3 text-sm border-b" style="border-color: var(--border)">
+            <span class="badge {% if i.status == 'approved' %}badge-good{% elif i.status == 'hypothesis' %}badge-warn{% endif %}">{{ i.get_status_display }}</span>
+            {% if i.missing and i.status != "rejected" %}<span class="badge badge-warn" title="Varianty mimo panel laboratoře">mimo panel: {{ i.missing|join:", " }}</span>{% elif i.status != "rejected" and i.variants|length > 1 %}<span class="badge badge-good">všechny varianty v panelu</span>{% endif %}
+            <span class="font-medium">{{ i.title }}</span>{% if may_edit %} <a class="link text-xs" href="{% url 'genetics_interaction_edit' i.pk %}">upravit</a>{% endif %}
+            {% if i.assumption %}<div class="text-muted mt-0.5">{{ i.assumption }}</div>{% endif %}
+            <div class="mt-0.5">{{ i.text }}</div>
+            {% if i.evidence %}<div class="text-xs text-2 mt-1 whitespace-pre-line"><span class="font-medium">Důkazy a poznámky:</span> {{ i.evidence }}</div>{% endif %}
+            <div class="text-xs text-muted mt-0.5">varianty: {{ i.variants|join:", " }}{% if i.source_card and i.source_card.variant_id != variant.pk %} · z karty {{ i.source_card.variant.label }}{% endif %}</div>
+          </div>
+        {% empty %}<p class="text-sm text-muted">Žádná kombinace s touto variantou.</p>{% endfor %}
       </section>
     {% endif %}
   </div>
@@ -131,7 +139,8 @@
         <h2 class="card-title mb-2">Revizní záznamy</h2>
         {% for r in revisions %}
           <div class="text-sm mb-3 pb-3 border-b" style="border-color: var(--border)">
-            <div class="flex items-center gap-2"><span class="font-medium">{{ r.part }}</span><span class="badge {% if r.decision == 'accepted' %}badge-good{% elif r.decision == 'open' %}badge-warn{% endif %}">{{ r.get_decision_display }}</span></div>
+            <div class="flex flex-wrap items-center gap-2"><span class="font-medium">{{ r.part }}</span><span class="badge {% if r.decision == 'accepted' %}badge-good{% elif r.decision == 'open' %}badge-warn{% endif %}">{{ r.get_decision_display }}</span>{% if r.decided_by %}<span class="text-xs text-muted">{{ r.decided_by.get_full_name|default:r.decided_by.get_username }}, {{ r.decided_at|date:"d.m.Y" }}</span>{% endif %}</div>
+            {% if r.decision_note %}<p class="text-xs mt-1"><span class="text-muted">Odůvodnění:</span> {{ r.decision_note }}</p>{% endif %}
             {% if r.original %}<p class="text-xs text-muted mt-1">Původní znění</p><p class="text-2">{{ r.original }}</p>{% endif %}
             {% if r.proposal %}<p class="text-xs text-muted mt-1">Návrh</p><p>{{ r.proposal }}</p>{% endif %}
             {% if r.reason %}<p class="text-xs text-muted mt-1">Důvod: {{ r.reason }}</p>{% endif %}

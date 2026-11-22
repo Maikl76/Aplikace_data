@@ -40,7 +40,11 @@ class Domain(CatalogModel):
         related_name="gene_domains",
         help_text="Co se v oblasti měří. Genetická zpráva u oblasti ukáže poslední hodnotu, "
                   "normu slovy a změnu proti minulému měření – před genotypem.")
-    show_measurements = models.BooleanField("ukázat měření ve zprávě", default=True)
+    show_measurements = models.BooleanField(
+        "hodnoty měření ve zprávě", default=True,
+        help_text="Zapnuto: zpráva u oblasti uvede hodnoty měření (test, datum, kvalita, norma "
+                  "jen s referenčním souborem). Vypnuto (první verze podle podkladů): jen "
+                  "které výsledky jsou k dispozici, bez hodnot a bez vyhodnocení.")
     uses_fatigue = models.BooleanField(
         "sledovat únavu a RPE", default=False,
         help_text="Zpráva v oblasti ukáže subjektivní únavu z testovacích dnů a RPE po testech.")
@@ -240,6 +244,10 @@ class GeneCard(CatalogModel):
     import_note = models.TextField("poznámka z podkladů", blank=True,
                                    help_text="Co o kartě říkaly podklady při převodu; jen ke čtení.")
     change_summary = models.TextField("přehled změn proti předchozí verzi", blank=True)
+    interactions_loaded = models.BooleanField(
+        "interakce z podkladů načtené", default=False, editable=False,
+        help_text="Kombinace z podkladů karty už jednou načtené – smazanou se při aktualizaci "
+                  "znovu nezaloží.")
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="založil",
                                    on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name="+")
@@ -332,6 +340,10 @@ class Recommendation(models.Model):
                                  related_name="gene_recommendations",
                                  help_text="U důvodu „budoucí měření“: kterým testem se znak "
                                            "posoudí. Zpráva pak řekne, zda už výsledek je.")
+    goals = models.JSONField(
+        "pro cíl klienta", default=list, blank=True,
+        help_text="U budoucího měření: kódy cílů z dotazníku (otázka „cil“), pro které má "
+                  "měření smysl. Prázdné = zpráva měření nabídne bez ohledu na cíl.")
     order = models.PositiveSmallIntegerField("pořadí", default=0)
 
     class Meta:
@@ -523,6 +535,10 @@ class GeneInteraction(CatalogModel):
     assumption = models.TextField("předpoklad", blank=True,
                                   help_text="Např. „Za předpokladu kombinace ACE DD nebo ID + ACTN3 CC nebo CT“.")
     text = models.TextField("text")
+    evidence = models.TextField(
+        "důkazy a poznámky k posouzení", blank=True,
+        help_text="Co kombinaci dokládá a co chybí; opravy proti původnímu znění (původní text "
+                  "zůstává beze změny).")
     variants = models.JSONField("varianty", default=list, blank=True,
                                 help_text='rsID všech variant kombinace, např. ["rs1799752", "rs1815739"].')
     status = models.CharField("stav", max_length=12, choices=Status.choices,
@@ -553,8 +569,9 @@ class CardRevision(TimeStampedModel):
 
     class Decision(models.TextChoices):
         OPEN = "open", "K rozhodnutí"
-        ACCEPTED = "accepted", "Přijato"
-        REJECTED = "rejected", "Zamítnuto"
+        REJECTED = "rejected", "Ponechat původní znění"
+        ACCEPTED = "accepted", "Upravit podle návrhu"
+        REMOVED = "removed", "Vyřadit z karty"
 
     card = models.ForeignKey(GeneCard, verbose_name="karta", on_delete=models.CASCADE,
                              related_name="revisions")
@@ -565,6 +582,7 @@ class CardRevision(TimeStampedModel):
     source = models.TextField("zdroj", blank=True)
     decision = models.CharField("rozhodnutí", max_length=10, choices=Decision.choices,
                                 default=Decision.OPEN)
+    decision_note = models.TextField("odůvodnění rozhodnutí", blank=True)
     decided_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="rozhodl",
                                    on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name="+")

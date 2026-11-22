@@ -66,11 +66,22 @@
     {
      "genotype": "",
      "kind": "nutrition",
-     "text": "Stravu a hmotnost nastavujte podle cíle, tréninku a měření; s otázkami na hladinu cukru nebo metabolické zdraví se obraťte na lékaře, ne na genotyp.",
+     "text": "Stravu a hmotnost nastavujte podle cíle, tréninkového zatížení a měření složení těla, ne podle genotypu; při záměru měnit hmotnost se poraďte se sportovním nutričním specialistou.",
      "basis": "general",
      "merge_key": "strava-podle-cile",
      "order": 0,
-     "protokol": null
+     "protokol": null,
+     "goals": []
+    },
+    {
+     "genotype": "",
+     "order": 0,
+     "goals": [],
+     "protokol": null,
+     "kind": "risk",
+     "basis": "general",
+     "merge_key": "metabolicke-zdravi-lekar",
+     "text": "S otázkami na hladinu cukru nebo metabolické zdraví se obraťte na lékaře; genotyp TCF7L2 vyšetření nenahrazuje."
     }
    ],
    "dukazy": [

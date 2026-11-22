@@ -86,6 +86,7 @@ def home(request):
 
     steps = setup_steps(user)
     return render(request, "genetics/home.html", {
+        "measurement_mode": measurement_mode(domains),
         "variants": variants, "review": review, "domains": domains, "panels": panels,
         "samples": samples, "key_missing": not crypto.configured(),
         "approved_count": sum(1 for v in variants if v.approved),
@@ -94,6 +95,39 @@ def home(request):
         "may_edit": user.is_superuser or user.role in (Role.ADMIN, Role.LAB, Role.METHODOLOGIST),
         "is_admin": _is_admin(user),
     })
+
+
+def measurement_mode(domains) -> dict:
+    """Měření v genetické zprávě: hodnoty, jen dostupnost (první verze), nebo po oblastech."""
+    with_values = [d.name for d in domains if d.show_measurements]
+    mode = ("hodnoty" if domains and len(with_values) == len(domains) else
+            "dostupnost" if not with_values else "smisene")
+    return {"mode": mode, "with_values": with_values}
+
+
+@login_required
+@require_POST
+def measurement_mode_set(request):
+    """Jeden přepínač pro všechny oblasti: hodnoty měření, nebo jen dostupnost (V1)."""
+    user = request.user
+    if not _is_admin(user):
+        return _denied(request, "Měření v genetické zprávě nastavuje správce.")
+    wanted = request.POST.get("rezim")
+    if wanted not in ("hodnoty", "dostupnost"):
+        messages.error(request, "Neznámé nastavení měření.")
+        return redirect("genetics_home")
+    domains = _catalog(Domain, user).filter(is_active=True).order_by("order", "pk")
+    first = domains.first()
+    changed = domains.exclude(show_measurements=(wanted == "hodnoty")).update(
+        show_measurements=(wanted == "hodnoty"), updated_at=timezone.now())
+    if first is not None:
+        record(request, AuditLog.Action.UPDATE, first, nastaveni="mereni_v_geneticke_zprave",
+               rezim=wanted, oblasti=changed)
+    messages.success(request, "Genetická zpráva teď uvádí hodnoty měření (test, datum, kvalita, "
+                              "norma jen s referenčním souborem)." if wanted == "hodnoty" else
+                     "Genetická zpráva teď uvádí jen, které výsledky měření jsou k dispozici – "
+                     "bez hodnot a bez vyhodnocení (první verze podle podkladů).")
+    return redirect(reverse("genetics_home") + "#mereni-ve-zprave")
 
 
 @login_required
@@ -127,10 +161,16 @@ def _card(request, pk):
 
 @login_required
 def card(request, pk):
+    from .card_wizard import _goal_options
+    from .interaction_views import variant_interactions
+
     card = _card(request, pk)
     variant = card.variant
     texts = {t.genotype: t for t in card.genotype_texts.all()}
     recommendations = list(card.recommendations.all())
+    goals = dict(_goal_options())
+    for rec in recommendations:
+        rec.goal_labels = [goals.get(g, g) for g in rec.goals or []]
     genotypes = [{
         "code": g, "label": variant.genotype_label(g), "text": texts.get(g),
         "recommendations": [r for r in recommendations if r.genotype == g],
@@ -143,7 +183,7 @@ def card(request, pk):
         "sources": card.sources.select_related("article"),
         "forbidden": card.forbidden_statements.all(),
         "scenarios": card.scenarios.prefetch_related("texts"),
-        "interactions": card.interactions.all(),
+        "interactions": variant_interactions(request.user, variant),
         "revisions": card.revisions.all(),
         "checklist": services.checklist(card) if card.is_editable else None,
         "versions": versions,

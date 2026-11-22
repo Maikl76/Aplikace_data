@@ -23,7 +23,7 @@
   </div>
   <label class="block text-sm"><span class="text-xs text-2">Poznámka k zápisu – strand, vztah k jinému rsID, konvence písmen (nepovinné)</span>
     <textarea name="strand_note" rows="2" class="input text-sm">{{ form.strand_note }}</textarea></label>
-  <label class="block text-sm"><span class="text-xs text-2">Zdroj frekvencí genotypů (nepovinné, např. gnomAD v4, Evropané)</span>
+  <label class="block text-sm"><span class="text-xs text-2">Zdroj frekvencí genotypů – povinný, když karta frekvence uvádí: konkrétní soubor a odkaz (např. gnomAD v4, Evropané, https://…)</span>
     <input name="frequency_source" value="{{ form.frequency_source }}" maxlength="500" class="input text-sm py-1.5"></label>
   {% if locked %}<p class="text-xs text-muted">Genotypy nejde měnit: varianta má schválenou kartu nebo uložené výsledky sportovců. Jiný zápis laboratoře se mění v kroku 3 nastavení genetiky (panel).</p>{% endif %}
 </section>

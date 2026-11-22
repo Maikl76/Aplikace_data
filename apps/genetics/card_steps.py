@@ -38,8 +38,9 @@ HINTS = {
               "modelu ani do komentáře diagnostika.",
     "zdroje": "Každé tvrzení v kartě má mít zdroj. Řádek důkazů říká, co zdroj dokládá, "
               "jaká má omezení a co z něj smí do zprávy.",
-    "kontrola": "Schvaluje jen garant oblasti a jen kartu bez blokujících nedostatků. "
-                "Schválené znění je neměnné – další změna je nová verze.",
+    "kontrola": "Schvaluje jen garant oblasti a jen kartu bez blokujících nedostatků – "
+                "i revizní záznamy musí být rozhodnuté (ponechat / upravit / vyřadit) "
+                "s odůvodněním. Schválené znění je neměnné – další změna je nová verze.",
 }
 
 

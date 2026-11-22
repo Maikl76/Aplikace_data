@@ -299,9 +299,16 @@ def _context_genotypy(card, request, original):
     return {"genotypes": _genotype_rows(card, original)}
 
 
+def _goal_options() -> list[tuple[str, str]]:
+    """Cíle klienta z dotazníku genetiky (otázka „cil“) – pro výběr měření podle cíle."""
+    question = Question.objects.filter(questionnaire=seed.seed_questionnaire(), code="cil").first()
+    return [(o["code"], o["label"]) for o in (question.options if question else [])]
+
+
 def _context_doporuceni(card, request, original):
     recommendations = list(card.recommendations.select_related("protocol").order_by("order", "pk"))
     return {
+        "goals": _goal_options(),
         "genotypes": _genotype_rows(card, None), "recommendations": recommendations,
         "blank_rows": range(len(recommendations), len(recommendations) + BLANK_ROWS),
         "rec_count": len(recommendations) + BLANK_ROWS,
@@ -468,6 +475,7 @@ def _save_doporuceni(card, request) -> list[str]:
     count = int(post.get("rec_count", 0) or 0)
     kinds = {k for k, _ in Recommendation.Kind.choices}
     bases = {b for b, _ in Recommendation.Basis.choices}
+    goal_codes = {code for code, _ in _goal_options()}
     for i in range(count):
         text = post.get(f"rec_text_{i}", "").strip()
         rec_id = post.get(f"rec_id_{i}", "")
@@ -486,6 +494,8 @@ def _save_doporuceni(card, request) -> list[str]:
             "basis": basis if basis in bases else "",
             "merge_key": post.get(f"rec_key_{i}", "").strip()[:64],
             "protocol": Protocol.objects.filter(pk=protocol_id).first() if protocol_id else None,
+            "goals": ([g for g in post.getlist(f"rec_goals_{i}") if g in goal_codes]
+                      if basis == Recommendation.Basis.MEASUREMENT else []),
             "order": i,
         }
         if existing is not None:
@@ -655,17 +665,74 @@ def _save_zdroje(card, request) -> list[str]:
     return []
 
 
+def _revision_target(card, part: str):
+    """Pole karty, kterého se revizní záznam týká – jen tam, kde je to jednoznačné."""
+    if part.startswith("Interpretace genotypu "):
+        row = card.genotype_texts.filter(
+            genotype=part.removeprefix("Interpretace genotypu ").strip()).first()
+        return (row, "client_text") if row else None
+    if part == "Biologická funkce – pro klienta":
+        return card, "biology_client"
+    if part in ("Biologická funkce – odborně", "Biologická funkce – odborný popis"):
+        return card, "biology_expert"
+    return None
+
+
+def _apply_revision(card, revision) -> str:
+    """
+    Rozhodnutí se u interpretace a vysvětlení propíše do textu karty:
+    ponechat = původní znění, upravit = návrh, vyřadit = text pryč. Jen když
+    text karty je jedno z obou znění – ručně upravený text se nepřepisuje.
+    """
+    target = _revision_target(card, revision.part)
+    if target is None or not card.is_editable:
+        return ""
+    obj, field = target
+    current = (getattr(obj, field) or "").strip()
+    original, proposal = revision.original.strip(), revision.proposal.strip()
+    decision = CardRevision.Decision
+    new = None
+    if revision.decision == decision.ACCEPTED and proposal and current == original:
+        new = proposal
+    elif revision.decision == decision.REJECTED and original and current == proposal:
+        new = original
+    elif revision.decision == decision.REMOVED and current and current in (original, proposal):
+        new = ""
+    if new is None or new == current:
+        return ""
+    setattr(obj, field, new)
+    obj.save(update_fields=[field, "updated_at"] if obj is card else [field])
+    return (f"{revision.part}: text karty upraven podle rozhodnutí "
+            f"„{revision.get_decision_display().lower()}“.")
+
+
 def _save_kontrola(card, request) -> list[str]:
+    """Rozhodnutí revizních záznamů – každé (kromě „k rozhodnutí“) s odůvodněním."""
     post = request.POST
+    problems = []
     for revision in card.revisions.all():
+        changed = []
+        note = post.get(f"rev_note_{revision.pk}")
+        if note is not None and note.strip() != revision.decision_note:
+            revision.decision_note = note.strip()[:5000]
+            changed.append("decision_note")
         decision = post.get(f"rev_decision_{revision.pk}")
         if decision in CardRevision.Decision.values and decision != revision.decision:
-            revision.decision = decision
             open_ = decision == CardRevision.Decision.OPEN
-            revision.decided_by = None if open_ else request.user
-            revision.decided_at = None if open_ else timezone.now()
-            revision.save(update_fields=["decision", "decided_by", "decided_at", "updated_at"])
-    return []
+            if not open_ and not revision.decision_note.strip():
+                label = CardRevision.Decision(decision).label.lower()
+                problems.append(f"„{revision.part}“: rozhodnutí „{label}“ potřebuje odůvodnění "
+                                "– rozhodnutí se neuložilo.")
+            else:
+                revision.decision = decision
+                revision.decided_by = None if open_ else request.user
+                revision.decided_at = None if open_ else timezone.now()
+                changed += ["decision", "decided_by", "decided_at"]
+                if applied := _apply_revision(card, revision):
+                    messages.info(request, applied)
+        if changed:
+            revision.save(update_fields=changed + ["updated_at"])
+    return problems
 
 
 SAVERS = {

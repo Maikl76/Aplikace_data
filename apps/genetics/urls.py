@@ -9,6 +9,7 @@ urlpatterns = [
     path("nastaveni/garanti/", setup_views.setup_guarantors, name="genetics_setup_guarantors"),
     path("nastaveni/karty/", setup_views.setup_cards, name="genetics_setup_cards"),
     path("nastaveni/panel/", setup_views.setup_panel, name="genetics_setup_panel"),
+    path("nastaveni/mereni/", views.measurement_mode_set, name="genetics_measurement_mode"),
     path("interakce/", interaction_views.interaction_list, name="genetics_interactions"),
     path("interakce/nova/", interaction_views.interaction_edit, name="genetics_interaction_new"),
     path("interakce/<int:pk>/", interaction_views.interaction_edit,

@@ -23,7 +23,7 @@
     <tbody>
       {% for i in interactions %}
         <tr id="interakce-{{ i.pk }}">
-          <td class="max-w-md"><span class="font-medium">{{ i.title }}</span>{% if i.assumption %}<div class="text-xs text-muted">{{ i.assumption|truncatechars:120 }}</div>{% endif %}{% if i.source_card %}<div class="text-xs text-muted">z karty {{ i.source_card.variant.label }}</div>{% endif %}</td>
+          <td class="max-w-md"><span class="font-medium">{{ i.title }}</span>{% if i.assumption %}<div class="text-xs text-muted">{{ i.assumption|truncatechars:120 }}</div>{% endif %}{% if i.evidence %}<div class="text-xs text-2 mt-0.5">{{ i.evidence|truncatechars:160 }}</div>{% endif %}{% if i.source_card %}<div class="text-xs text-muted">z karty {{ i.source_card.variant.label }}</div>{% endif %}</td>
           <td class="text-2 whitespace-nowrap">{% for rs in i.variants %}<span class="badge {% if rs in i.missing %}badge-warn{% endif %}" {% if rs in i.missing %}title="Varianta není v panelu laboratoře"{% endif %}>{{ rs }}</span> {% endfor %}</td>
           <td class="max-md:hidden text-2">{{ i.areas|join:", "|default:"—" }}</td>
           <td class="whitespace-nowrap">

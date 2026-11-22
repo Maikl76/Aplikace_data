@@ -167,11 +167,18 @@ def test_sestaveni_obsahu_ze_schvalenych_karet(laborator):
     content = genetics_report.compose(L["sample"], L["response"], audience=Audience.ATHLETE)
     assert [g["gen"] for g in content["genotypy"]] == ["ACTN3", "ACE", "COL5A1"]   # FTO vypnuta
     assert content["genotypy"][0]["genotyp_txt"] == "CT (RX)" and content["genotypy"][0]["karta"] == "v1"
-    assert content["cil"] == {"sport": "atletika", "cil": "síla, rychlost, výbušnost"}
+    assert content["cil"] == {"sport": "atletika", "cil": "síla, rychlost, výbušnost",
+                              "kod": "sila_rychlost"}
     assert content["dotaznik"]["oddily"][0]["odpovedi"][0] == {"otazka": "Hlavní sport nebo disciplína",
                                                                "odpoved": "atletika"}
     (area,) = content["oblasti"]
     assert area["nazev"] == "Výkon a trénink" and [e["gen"] for e in area["polozky"]] == ["ACTN3", "ACE"]
+    # co víme → co z toho lze vyvodit → další krok
+    assert area["nalez"] == ["ACTN3 CT (RX)", "ACE II"]
+    assert [o["otazka"] for o in area["odpovedi"]] == ["Vlastní zkušenost s výkonem"]
+    assert area["dalsi_krok"] == {"doporuceni": [1], "k_posouzeni": 1, "mereni": ["Spiroergometrie"]}
+    assert content["doporuceni"][0]["cislo"] == 1 and content["co_doplnit"][0]["cislo"] == 1
+    assert area["polozky"][0]["frekvence"] == ""      # frekvence jen pro odborníka
     actn3 = area["polozky"][0]
     assert actn3["text"] == "Byl zjištěn genotyp CT (RX)." and actn3["biologie"].startswith("Gen ACTN3 – biologie")
     assert actn3["ucinek"] == "" and actn3["dukazy"] == []
@@ -184,7 +191,9 @@ def test_sestaveni_obsahu_ze_schvalenych_karet(laborator):
     # Sloučení podle klíče: stejný text → jedno doporučení se dvěma důvody; různý text → k posouzení.
     (merged,) = content["doporuceni"]
     assert merged["text"] == "Zařaďte plyometrii." and merged["slouceno"] == 2
-    assert merged["varianty"] == ["ACE / rs1799752", "ACTN3 / rs1815739"] and len(merged["duvody"]) == 2
+    assert merged["varianty"] == ["ACE / rs1799752", "ACTN3 / rs1815739"]
+    assert merged["duvody"] == ["Doložená interpretace varianty: ACE / rs1799752 II",
+                                "Obecný postup (platí bez ohledu na genotyp): ACTN3 / rs1815739 CT (RX)"]
     (conflict,) = content["k_posouzeni"]
     assert conflict["klic"] == "regenerace" and len(conflict["moznosti"]) == 2
     # Co změřit: test a výsledek z posledního roku, bez výkladu.
@@ -193,6 +202,12 @@ def test_sestaveni_obsahu_ze_schvalenych_karet(laborator):
     assert (COL := content["neinterpretovano"][0])["gen"] == "COL5A1" and "není schválená" in COL["duvod"]
     assert "Z výsledku nelze určit sílu." in content["omezeni"] and len(content["omezeni"]) == 5
     assert [z["cislo"] for z in content["zdroje"]] == [1, 2]
+    # odkaz, který už je v citaci, se nepřipisuje podruhé
+    CardSource.objects.filter(card=L["card_ace"]).update(
+        citation="NCBI ClinVar 18312. https://example.org/clinvar/18312/",
+        url="https://example.org/clinvar/18312/")
+    again = genetics_report.compose(L["sample"], L["response"], audience=Audience.ATHLETE)
+    assert [z["odkaz"] for z in again["zdroje"] if "ClinVar" in z["citace"]] == [""]
     assert content["versions"]["karty"] == {"rs1799752": 1, "rs1815739": 1}
     assert content["versions"]["karty_text"] == "rs1799752@v1,rs1815739@v1"
     assert content["nepripustne_vyroky"] == []
@@ -205,6 +220,50 @@ def test_sestaveni_obsahu_ze_schvalenych_karet(laborator):
     assert bare["cil"] == {} and bare["dotaznik"] is None and bare["oblasti"][0]["polozky"][0]["kontext"] == []
     summary = genetics_report.template_summary(content)
     assert "3 variant" in summary and "• Výkon a trénink: ACTN3 CT (RX), ACE II." in summary
+
+
+def test_mereni_podle_cile_klienta_frekvence_a_verze_dotazniku(laborator):
+    """Měření v části 5 podle cíle (ne podle přítomnosti varianty); frekvence jen odborníkovi."""
+    L = laborator
+    rec = Recommendation.objects.get(card=L["card_actn3"], basis="measurement")
+    rec.goals = ["vytrvalost"]                       # klient má cíl síla, rychlost
+    rec.save()
+    content = genetics_report.compose(L["sample"], L["response"], audience=Audience.ATHLETE)
+    assert content["co_doplnit"] == [] and content["mimo_cil"] == []
+    assert content["oblasti"][0]["dalsi_krok"]["mereni"] == []
+    html = report_services.render_html(
+        genetics_report.build_draft(L["sample"], user=L["lab"], audience=Audience.ATHLETE))
+    assert "Aerobní kapacitu posoudí spiroergometrie." not in html
+    expert = genetics_report.compose(L["sample"], L["response"], audience=Audience.CLINICIAN)
+    assert [m["test"] for m in expert["mimo_cil"]] == ["Spiroergometrie"]
+
+    rec.goals = ["vytrvalost", "sila_rychlost"]
+    rec.save()
+    (item,) = genetics_report.compose(L["sample"], L["response"])["co_doplnit"]
+    assert item["pro_cil"] == "síla, rychlost, výbušnost" and not item["cil_neuveden"]
+    # bez dotazníku cíl chybí: měření se nabídne s poznámkou, že vhodnost posoudí diagnostik
+    (item,) = genetics_report.compose(L["sample"], None)["co_doplnit"]
+    assert item["cil_neuveden"] and item["pro_cil"] == ""
+
+    # frekvence: klientovi ne, odborníkovi se zdrojem
+    GenotypeText.objects.filter(card=L["card_actn3"], genotype="CT").update(frequency="48 %")
+    L["actn3"].frequency_source = "gnomAD v4, evropská populace"
+    L["actn3"].save()
+    athlete = genetics_report.compose(L["sample"], L["response"], audience=Audience.ATHLETE)
+    assert athlete["oblasti"][0]["polozky"][0]["frekvence"] == ""
+    expert = genetics_report.compose(L["sample"], L["response"], audience=Audience.CLINICIAN)
+    entry = expert["oblasti"][0]["polozky"][0]
+    assert entry["frekvence"] == "48 %" and entry["frekvence_zdroj"] == "gnomAD v4, evropská populace"
+
+    # verze dotazníku: otisk otázek – změna znění otázky dá jiný otisk
+    first = athlete["versions"]["dotaznik_otisk"]
+    assert len(first) == 10 and athlete["dotaznik"]["otisk"] == first
+    Question.objects.filter(questionnaire__code="genetika", code="spanek_h").update(
+        text="Obvyklá délka spánku – upraveno")
+    assert genetics_report.compose(L["sample"], L["response"])["versions"]["dotaznik_otisk"] != first
+    html = report_services.render_html(
+        genetics_report.build_draft(L["sample"], user=L["lab"], audience=Audience.ATHLETE))
+    assert "verze otázek" in html and "dotazník č." not in html
 
 
 def test_koncept_vydani_a_snimek(laborator):
