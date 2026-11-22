@@ -28,9 +28,9 @@
     <ul class="space-y-1 text-sm">
       {% for v in review %}
         <li class="flex flex-wrap items-center gap-2">
-          <a class="link font-medium" href="{% url 'genetics_card' v.working.pk %}">{{ v.working }}</a>
+          <a class="link font-medium" href="{% url 'genetics_review_summary' v.working.pk %}">{{ v.working }}</a>
           <span class="badge">{{ v.domain }}</span>
-          {% if v.garant %}<span class="badge badge-warn">schvalujete vy</span>{% else %}<span class="text-muted text-xs">garant: {% for g in v.domain.guarantors.all %}{{ g.get_full_name|default:g.get_username }}{% if not forloop.last %}, {% endif %}{% empty %}nikdo není nastaven{% endfor %}</span>{% endif %}
+          {% if v.garant %}<span class="badge badge-warn">schvalujete vy</span><a class="btn btn-sm btn-primary" href="{% url 'genetics_review_summary' v.working.pk %}">Souhrn ke schválení</a>{% else %}<span class="text-muted text-xs">garant: {% for g in v.domain.guarantors.all %}{{ g.get_full_name|default:g.get_username }}{% if not forloop.last %}, {% endif %}{% empty %}nikdo není nastaven{% endfor %}</span>{% endif %}
         </li>
       {% endfor %}
     </ul>

@@ -67,8 +67,8 @@ def setup_steps(user) -> list[dict]:
         {"n": 4, "title": "Revize a schválení karet",
          "done": bool(variants) and approved == len(variants),
          "text": f"{approved} z {len(variants)} karet schváleno. Do zprávy jde jen schválená "
-                 "karta; každou vede průvodce kartou v osmi krocích.",
-         "url": "#karty", "button": "Ke kartám"},
+                 "karta; revize vede úkol po úkolu, garant schvaluje ze souhrnu.",
+         "url": reverse("genetics_review"), "button": "Revize"},
         interaction_step(user),
     ]
 

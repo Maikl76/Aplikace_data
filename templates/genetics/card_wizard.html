@@ -13,7 +13,10 @@
     </div>
     <p class="text-sm text-2 mt-2">Osm kroků, každý s jedním formulářem. Stav kroku plyne z toho, co je v kartě. {% if original %}Vedle polí je vidět {{ original_label|lower }}, aby bylo vidět, co se při revizi mění.{% endif %} Do zprávy jde jen schválená karta.</p>
   </div>
-  <a href="{% url 'genetics_card' card.pk %}" class="btn">Zobrazit kartu</a>
+  <div class="flex flex-wrap gap-2">
+    <a href="{% url 'genetics_review_task' card.pk %}" class="btn btn-primary">{% icon "list" %}Revize krok za krokem</a>
+    <a href="{% url 'genetics_card' card.pk %}" class="btn">Zobrazit kartu</a>
+  </div>
 </div>
 
 {% steps steps heading="Kroky karty" done_label="karta je schválená" %}
@@ -29,8 +32,8 @@
     {% if open_revisions %}
       <section class="card p-4">
         <h2 class="card-title mb-1">Revizní záznamy k rozhodnutí <span class="badge badge-warn">{{ open_revisions }}</span></h2>
-        <p class="text-sm">Sporná tvrzení a úkoly k doplnění z podkladů. Rozhodují se v kroku 8 (Kontrola a schválení): ponechat původní znění, upravit podle návrhu, nebo vyřadit – vždy s odůvodněním. Nerozhodnutý záznam schválení zastaví; rozhodnutí zůstává v historii karty.</p>
-        <a href="{% url 'genetics_card_step' card.pk 'kontrola' %}" class="btn btn-sm mt-2">Ke kontrole</a>
+        <p class="text-sm">Sporná tvrzení a úkoly k doplnění z podkladů. Nejjednodušší je projít je v <em>Revizi krok za krokem</em> po jednom: ponechat původní znění, upravit podle návrhu, nebo vyřadit – vždy s odůvodněním. Nerozhodnutý záznam schválení zastaví; rozhodnutí zůstává v historii karty.</p>
+        <div class="flex flex-wrap gap-2 mt-2"><a href="{% url 'genetics_review_task' card.pk %}" class="btn btn-sm btn-primary">Revize krok za krokem</a><a href="{% url 'genetics_card_step' card.pk 'kontrola' %}" class="btn btn-sm">Krok 8 – vše najednou</a></div>
       </section>
     {% endif %}
     {% if card.import_note %}

@@ -50,7 +50,8 @@ kontrole · **k rozhodnutí** = věcné rozhodnutí garanta nebo vedení projekt
 | Požadavek podkladu | V aplikaci | Stav |
 |---|---|---|
 | Část karty *Interakce*: kombinace, důkazy a dostupnost variant | stránka karty ukazuje všechny kombinace varianty (i z jiných karet), *důkazy a poznámky*, štítek *mimo panel* / *všechny varianty v panelu* | doplněno |
-| Část *Revize*: co ponechat, co upravit, co vyřadit, vždy s odůvodněním | rozhodnutí *ponechat původní znění / upravit podle návrhu / vyřadit z karty* s povinným odůvodněním; u interpretací a vysvětlení pro klienta se propíše do textu karty | doplněno |
+| Část *Revize*: co ponechat, co upravit, co vyřadit, vždy s odůvodněním | rozhodnutí *ponechat původní znění / upravit podle návrhu / vyřadit z karty* s povinným odůvodněním; u interpretací a vysvětlení pro klienta se propíše do textu karty. *Revize krok za krokem*: jeden úkol na obrazovce, návrhy AI přijímané po jednom, souhrn ke schválení garantem | doplněno |
+| U sporného tvrzení zapsat původní znění, navrhovanou úpravu, důvod a zdroj | každé vyřešení textu v revizi krok za krokem vytvoří revizní záznam (původní a nové znění, důvod, zdroj, kdo a kdy) | doplněno |
 | Žádná část se neztratí bez záznamu; původní znění a rozhodnutí v historii | v1 jen ke čtení, revizní záznamy s kým a kdy rozhodnuto | ✔ |
 | Populační frekvence: konkrétní soubor a dohledatelný zdroj | frekvence bez zdroje schválení **zastaví**; zdroj bez URL/DOI upozorní; klient frekvence ve zprávě nevidí | doplněno |
 | COL5A1: neúplný fragment „elders in Taiwan. Experimental Gerontology, 82, 46-52.“ doplnit, nebo po ověření vyřadit | zdroj S5 + revizní záznam; nerozhodnutý záznam teď blokuje schválení. Kontrola v PubMedu: roč. 82 (2016) má na těchto stranách jiné články (s. 39–49 a 50–57) – citaci se ověřit nepodařilo | k rozhodnutí (garant: doplnit, jinak vyřadit) |

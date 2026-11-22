@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Revize a schválení karet – FTVS{% endblock %}
+{% block content %}
+<div class="mb-5">
+  <a href="{% url 'genetics_home' %}" class="text-sm link">← Genetika</a>
+  <h1 class="text-2xl font-semibold mt-1">Revize a schválení karet</h1>
+  <p class="text-sm text-muted mt-1 max-w-3xl">Každá karta má frontu úkolů – značky k ověření, revizní záznamy a chybějící texty. Úkoly se procházejí po jednom; každé rozhodnutí má odůvodnění a zapíše se do historie karty.</p>
+</div>
+
+<section class="card p-4 mb-5">
+  <div class="grid sm:grid-cols-3 gap-3 text-sm">
+    <div class="flex items-start gap-3"><span class="krok-cislo">1</span><div><div class="font-medium">Připravit</div><p class="text-muted">Laborant nebo metodik projde úkoly karty jeden po druhém.</p></div></div>
+    <div class="flex items-start gap-3"><span class="krok-cislo">2</span><div><div class="font-medium">Poslat garantovi</div><p class="text-muted">Až nic neblokuje, v souhrnu karty jedním tlačítkem.</p></div></div>
+    <div class="flex items-start gap-3"><span class="krok-cislo">3</span><div><div class="font-medium">Garant schválí</div><p class="text-muted">Ze souhrnu: co se změnilo, jak to uvidí sportovec, rozhodnutí. Nebo vrátí s připomínkou.</p></div></div>
+  </div>
+  {% if resume %}
+    <div class="mt-4 flex flex-wrap items-center gap-3">
+      <a href="{% url 'genetics_review_task' resume.card.pk %}{% if resume.next %}?ukol={{ resume.next|urlencode }}{% endif %}" class="btn btn-primary">{% icon "chevron-right" %}Pokračovat: {{ resume.card.variant.label }}</a>
+      <span class="text-xs text-muted">zbývá {{ resume.progress.open }} úkolů, z toho {{ resume.progress.blocking }} blokujících</span>
+    </div>
+  {% endif %}
+</section>
+
+{% if waiting %}
+  <section class="card p-4 mb-5 border-l-4" style="border-left-color: var(--warn)">
+    <h2 class="card-title mb-2">Čeká na vaše schválení</h2>
+    <ul class="space-y-1 text-sm">{% for r in waiting %}<li class="flex flex-wrap items-center gap-2"><span class="font-medium">{{ r.card.variant.label }} v{{ r.card.version }}</span><span class="text-muted">{{ r.card.variant.domain }}</span><a class="btn btn-sm btn-primary" href="{% url 'genetics_review_summary' r.card.pk %}">Otevřít souhrn ke schválení</a></li>{% endfor %}</ul>
+  </section>
+{% endif %}
+
+<section class="card overflow-x-auto">
+  <div class="px-4 pt-4 pb-2 flex flex-wrap items-center justify-between gap-2"><h2 class="card-title">Karty v revizi</h2><span class="text-xs text-muted">{{ rows|length }} rozpracovaných · {{ approved }} schválených</span></div>
+  <table class="table text-sm">
+    <thead><tr><th>Karta</th><th>Stav a úkoly</th><th class="max-lg:hidden">Hotovo</th>{% if ai_available %}<th class="max-md:hidden">Návrhy AI</th>{% endif %}<th></th></tr></thead>
+    <tbody>
+      {% for r in rows %}
+        <tr>
+          <td><div class="font-medium whitespace-nowrap">{{ r.card.variant.label }} <span class="text-muted font-normal">v{{ r.card.version }}</span></div><div class="text-xs text-muted">{{ r.card.variant.domain }}</div></td>
+          <td><div class="flex flex-wrap items-center gap-1.5">{% if r.card.status == "review" %}<span class="badge badge-warn">čeká na garanta</span>{% elif r.progress.blocking %}<span class="badge">připravuje se</span>{% else %}<span class="badge badge-good">připraveno</span>{% endif %}{% if r.progress.blocking %}<span class="badge badge-warn">{{ r.progress.blocking }} blokujících</span>{% endif %}</div><div class="text-xs text-muted mt-0.5">{% if r.progress.optional %}{{ r.progress.optional }} k doplnění (neblokuje){% elif not r.progress.open %}nic nezbývá{% endif %}</div></td>
+          <td class="max-lg:hidden"><div class="flex items-center gap-2"><div class="h-1.5 w-24 rounded-full overflow-hidden" style="background: var(--surface-2)"><div class="h-full" style="width: {{ r.progress.percent }}%; background: var(--good)"></div></div><span class="text-xs text-muted tabular-nums">{{ r.progress.done }}/{{ r.progress.total }}</span></div></td>
+          {% if ai_available %}<td class="max-md:hidden whitespace-nowrap text-xs">
+            {% if r.ai.running %}<span class="text-muted">připravuje se {{ r.ai.pending }}…</span>
+            {% elif r.ai.ready %}<span class="badge badge-accent">{{ r.ai.ready }} z {{ r.ai.open }} připraveno</span>
+            {% elif r.progress.open and r.card.status == "draft" %}<form method="post" action="{% url 'genetics_review_task' r.card.pk %}">{% csrf_token %}<button name="akce" value="ai_karta" class="btn btn-sm">Připravit</button></form>
+            {% else %}<span class="text-muted">—</span>{% endif %}
+          </td>{% endif %}
+          <td class="text-right whitespace-nowrap">
+            {% if r.next and r.card.status == "draft" %}<a class="btn btn-sm btn-primary" href="{% url 'genetics_review_task' r.card.pk %}?ukol={{ r.next|urlencode }}">Pokračovat</a>{% endif %}
+            <a class="btn btn-sm" href="{% url 'genetics_review_summary' r.card.pk %}">Souhrn</a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="text-muted py-6">Žádná karta není rozpracovaná. Novou verzi karty založí <em>Nová verze</em> na stránce schválené karty.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+<p class="text-xs text-muted mt-3">Podrobná úprava karty zůstává v průvodci kartou (osm kroků) – úkol k němu vždy odkáže, když je potřeba upravit víc než jeden text.{% if ai_available %} Návrhy AI připraví nastavený jazykový model jen z obsahu karty, knihovny článků a PubMedu; přijímá je člověk, po jednom.{% else %} Návrhy AI zapne správce v Nastavení → Klíče a model.{% endif %}</p>
+{% endblock %}

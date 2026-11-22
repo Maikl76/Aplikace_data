@@ -19,7 +19,7 @@
       {% endif %}
     </div>
     <div class="flex flex-wrap gap-2">
-      {% if card.is_editable and may_edit %}<a href="{% url 'genetics_card_edit' card.pk %}" class="btn {% if card.status == 'draft' %}btn-primary{% endif %}">{% icon "edit" %}Upravit</a>{% endif %}
+      {% if card.is_editable and may_edit %}<a href="{% url 'genetics_review_task' card.pk %}" class="btn {% if card.status == 'draft' %}btn-primary{% endif %}">{% icon "list" %}Revize krok za krokem</a><a href="{% url 'genetics_card_edit' card.pk %}" class="btn">{% icon "edit" %}Upravit</a>{% endif %}
       {% if may_edit %}
         <form method="post" action="{% url 'genetics_card_action' card.pk %}" class="flex flex-wrap gap-2">{% csrf_token %}
           {% if card.status == 'draft' %}<button name="akce" value="k_revizi" class="btn">{% icon "check" %}Poslat k revizi garantovi</button>{% endif %}

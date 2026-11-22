@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import card_wizard, interaction_views, setup_views, views
+from . import card_wizard, interaction_views, review_views, setup_views, views
 
 urlpatterns = [
     path("", views.home, name="genetics_home"),
@@ -10,6 +10,9 @@ urlpatterns = [
     path("nastaveni/karty/", setup_views.setup_cards, name="genetics_setup_cards"),
     path("nastaveni/panel/", setup_views.setup_panel, name="genetics_setup_panel"),
     path("nastaveni/mereni/", views.measurement_mode_set, name="genetics_measurement_mode"),
+    path("revize/", review_views.overview, name="genetics_review"),
+    path("revize/karta/<int:pk>/", review_views.task_view, name="genetics_review_task"),
+    path("revize/karta/<int:pk>/souhrn/", review_views.summary, name="genetics_review_summary"),
     path("interakce/", interaction_views.interaction_list, name="genetics_interactions"),
     path("interakce/nova/", interaction_views.interaction_edit, name="genetics_interaction_new"),
     path("interakce/<int:pk>/", interaction_views.interaction_edit,

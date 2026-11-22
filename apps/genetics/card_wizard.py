@@ -33,7 +33,7 @@ from apps.rules.setup_views import (
 )
 from apps.rules.steps import describe
 
-from . import seed, services
+from . import review, seed, services
 from .card_steps import HINTS, STEPS, TITLES, card_steps, next_slug
 from .models import (
     CardEvidence,
@@ -665,47 +665,6 @@ def _save_zdroje(card, request) -> list[str]:
     return []
 
 
-def _revision_target(card, part: str):
-    """Pole karty, kterého se revizní záznam týká – jen tam, kde je to jednoznačné."""
-    if part.startswith("Interpretace genotypu "):
-        row = card.genotype_texts.filter(
-            genotype=part.removeprefix("Interpretace genotypu ").strip()).first()
-        return (row, "client_text") if row else None
-    if part == "Biologická funkce – pro klienta":
-        return card, "biology_client"
-    if part in ("Biologická funkce – odborně", "Biologická funkce – odborný popis"):
-        return card, "biology_expert"
-    return None
-
-
-def _apply_revision(card, revision) -> str:
-    """
-    Rozhodnutí se u interpretace a vysvětlení propíše do textu karty:
-    ponechat = původní znění, upravit = návrh, vyřadit = text pryč. Jen když
-    text karty je jedno z obou znění – ručně upravený text se nepřepisuje.
-    """
-    target = _revision_target(card, revision.part)
-    if target is None or not card.is_editable:
-        return ""
-    obj, field = target
-    current = (getattr(obj, field) or "").strip()
-    original, proposal = revision.original.strip(), revision.proposal.strip()
-    decision = CardRevision.Decision
-    new = None
-    if revision.decision == decision.ACCEPTED and proposal and current == original:
-        new = proposal
-    elif revision.decision == decision.REJECTED and original and current == proposal:
-        new = original
-    elif revision.decision == decision.REMOVED and current and current in (original, proposal):
-        new = ""
-    if new is None or new == current:
-        return ""
-    setattr(obj, field, new)
-    obj.save(update_fields=[field, "updated_at"] if obj is card else [field])
-    return (f"{revision.part}: text karty upraven podle rozhodnutí "
-            f"„{revision.get_decision_display().lower()}“.")
-
-
 def _save_kontrola(card, request) -> list[str]:
     """Rozhodnutí revizních záznamů – každé (kromě „k rozhodnutí“) s odůvodněním."""
     post = request.POST
@@ -728,7 +687,7 @@ def _save_kontrola(card, request) -> list[str]:
                 revision.decided_by = None if open_ else request.user
                 revision.decided_at = None if open_ else timezone.now()
                 changed += ["decision", "decided_by", "decided_at"]
-                if applied := _apply_revision(card, revision):
+                if applied := review.apply_revision(card, revision):
                     messages.info(request, applied)
         if changed:
             revision.save(update_fields=changed + ["updated_at"])

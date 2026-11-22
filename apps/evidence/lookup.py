@@ -110,14 +110,44 @@ def _text(element) -> str:
     return " ".join("".join(element.itertext()).split())
 
 
-def parse_pubmed_xml(raw: bytes) -> dict:
+def search_pubmed(term: str, *, retmax: int = 8) -> list[str]:
+    """PMID článků podle dotazu (řazení podle relevance)."""
+    query = urllib.parse.urlencode({"db": "pubmed", "term": term, "retmode": "json",
+                                    "retmax": retmax, "sort": "relevance"})
     try:
-        root = ET.fromstring(raw)
+        body = json.loads(_get(f"{EUTILS}esearch.fcgi?{query}"))
+    except ValueError as exc:
+        raise LookupError_("PubMed vrátil odpověď, které nerozumím.") from exc
+    return [str(i) for i in body.get("esearchresult", {}).get("idlist", [])]
+
+
+def fetch_pubmed_many(pmids: list[str]) -> list[dict]:
+    """Údaje a abstrakty více článků najednou (jedno volání)."""
+    if not pmids:
+        return []
+    query = urllib.parse.urlencode({"db": "pubmed", "id": ",".join(pmids), "retmode": "xml"})
+    return parse_pubmed_entries(_get(f"{EUTILS}efetch.fcgi?{query}"))
+
+
+def _root(raw: bytes):
+    try:
+        return ET.fromstring(raw)
     except ET.ParseError as exc:
         raise LookupError_("PubMed vrátil odpověď, které nerozumím.") from exc
-    entry = root.find(".//PubmedArticle")
+
+
+def parse_pubmed_entries(raw: bytes) -> list[dict]:
+    return [_parse_entry(entry) for entry in _root(raw).findall(".//PubmedArticle")]
+
+
+def parse_pubmed_xml(raw: bytes) -> dict:
+    entry = _root(raw).find(".//PubmedArticle")
     if entry is None:
         return {}
+    return _parse_entry(entry)
+
+
+def _parse_entry(entry) -> dict:
     article = entry.find("MedlineCitation/Article")
     pmid = _text(entry.find("MedlineCitation/PMID"))
 

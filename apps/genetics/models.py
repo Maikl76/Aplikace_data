@@ -600,6 +600,54 @@ class CardRevision(TimeStampedModel):
         return f"{self.card} – {self.part}"
 
 
+class ReviewProposal(TimeStampedModel):
+    """
+    Návrh jazykového modelu k jednomu úkolu revize karty (apps/genetics/review.py).
+    Model nic neschvaluje: návrh přijímá člověk, po jednom; přijetí se zapíše
+    do revizního záznamu i s tím, že šlo o návrh modelu.
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Připravuje se"
+        READY = "ready", "Připraveno"
+        FAILED = "failed", "Nepodařilo se"
+        USED = "used", "Přijato"
+        DISMISSED = "dismissed", "Odmítnuto"
+
+    card = models.ForeignKey(GeneCard, verbose_name="karta", on_delete=models.CASCADE,
+                             related_name="review_proposals")
+    task_key = models.CharField("úkol", max_length=200)
+    base = models.CharField("otisk úkolu", max_length=32, blank=True,
+                            help_text="Pro jaké znění návrh vznikl – po změně textu neplatí.")
+    status = models.CharField("stav", max_length=10, choices=Status.choices,
+                              default=Status.PENDING)
+    decision = models.CharField("navržené řešení", max_length=24, blank=True)
+    text = models.TextField("navržené znění", blank=True)
+    justification = models.TextField("zdůvodnění", blank=True)
+    labels = models.JSONField("opírá se o zdroje", default=list, blank=True)
+    new_source = models.JSONField("nový zdroj z PubMedu", default=dict, blank=True)
+    confidence = models.CharField("jistota", max_length=12, blank=True)
+    verify = models.TextField("co ověřit", blank=True)
+    issues = models.JSONField("výhrady kontroly", default=list, blank=True,
+                              help_text="Návrh s výhradou nejde přijmout jedním klikem.")
+    model = models.CharField("model", max_length=120, blank=True)
+    error = models.TextField("chyba", blank=True)
+    accepted_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name="přijal",
+                                    on_delete=models.SET_NULL, null=True, blank=True,
+                                    related_name="+")
+    accepted_at = models.DateTimeField("přijato", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "návrh AI k revizi"
+        verbose_name_plural = "návrhy AI k revizi"
+        constraints = [
+            models.UniqueConstraint(fields=["card", "task_key"], name="uniq_review_proposal"),
+        ]
+
+    def __str__(self):
+        return f"{self.card} – {self.task_key}"
+
+
 class GeneticSample(TimeStampedModel):
     """
     Vzorek a výsledek z laboratoře. Soubor s výsledkem se neukládá, jen

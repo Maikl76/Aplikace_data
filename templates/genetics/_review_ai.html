@@ -1,0 +1,67 @@
+{% load ui %}{# Návrh AI k úkolu revize. Rodič má x-data s „edit“, „text“ a „duvod“ (Alpine). #}
+{% if ai.available %}
+  <div class="p-4 rounded-xl border mb-4" style="border-color: var(--border-strong); background: var(--surface-2)">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <div class="text-sm font-semibold">Návrh AI</div>
+      <span class="text-xs text-muted">{% if ai.ready %}připraveno {{ ai.ready }} z {{ ai.open }} úkolů karty{% endif %}{% if ai.running %}{% if ai.ready %} · {% endif %}připravuje se {{ ai.pending }}…{% endif %}</span>
+    </div>
+
+    {% if proposal and proposal.status == "ready" and proposal.fresh %}
+      <p class="text-sm mt-2"><span class="badge badge-accent">{{ proposal.label }}</span>{% if proposal.confidence %} <span class="text-xs text-muted">jistota: {{ proposal.confidence_label }}</span>{% endif %}</p>
+      {% if proposal_preview %}
+        <div class="text-xs text-muted mt-2">{% if task.kind == "revize" %}Navržené znění v kartě{% else %}Text po přijetí{% endif %}</div>
+        <p class="text-sm p-3 rounded-lg mt-1 whitespace-pre-line" style="background: var(--surface)">{{ proposal_preview }}</p>
+      {% endif %}
+      {% if proposal.justification %}<p class="text-sm mt-2"><span class="text-muted">Proč:</span> {{ proposal.justification }}</p>{% endif %}
+      {% if proposal.new_source.title %}
+        <div class="text-sm mt-2 p-3 rounded-lg border" style="border-color: var(--border); background: var(--surface)">
+          <span class="badge badge-warn">nový zdroj z PubMedu – k ověření</span>
+          <div class="mt-1 font-medium">{{ proposal.new_source.title }}</div>
+          <div class="text-xs text-2">{{ proposal.new_source.authors|truncatechars:120 }}{% if proposal.new_source.journal %} · {{ proposal.new_source.journal }}{% endif %}{% if proposal.new_source.year %} {{ proposal.new_source.year }}{% endif %} · <a class="link" href="https://pubmed.ncbi.nlm.nih.gov/{{ proposal.new_source.pmid }}/" target="_blank" rel="noopener">PMID {{ proposal.new_source.pmid }}</a>{% if proposal.new_source.doi %} · <a class="link" href="https://doi.org/{{ proposal.new_source.doi }}" target="_blank" rel="noopener">DOI</a>{% endif %}</div>
+          {% if proposal.new_source.abstract %}<details class="mt-1"><summary class="cursor-pointer link text-xs">Abstrakt</summary><p class="text-xs mt-1 text-2">{{ proposal.new_source.abstract }}</p></details>{% endif %}
+          <p class="text-xs text-muted mt-1">Po přijetí se přidá jako další zdroj karty a jako navržený článek do knihovny (zařadí ho správce).</p>
+        </div>
+      {% endif %}
+      {% if proposal.verify %}<p class="text-xs mt-2"><span class="text-muted">Před přijetím zkontrolujte:</span> {{ proposal.verify }}</p>{% endif %}
+      {% if proposal.issues %}
+        <div class="text-xs mt-2 p-2 rounded-lg" style="background: var(--warn-soft); color: var(--warn)">
+          <strong>Kontrola návrhu:</strong>
+          <ul class="list-disc pl-4">{% for i in proposal.issues %}<li>{{ i }}</li>{% endfor %}</ul>
+          Jedním klikem ho přijmout nejde{% if proposal.decision == "upravit" %} – upravte ho ručně{% endif %}.
+        </div>
+      {% endif %}
+      <form method="post" class="flex flex-wrap gap-2 mt-3">
+        {% csrf_token %}
+        <input type="hidden" name="ukol" value="{{ task.key }}"><input type="hidden" name="base" value="{{ task.base }}">
+        <button name="akce" value="navrh" class="btn btn-primary" {% if proposal.issues %}disabled{% endif %}>{% icon "check" %}Přijmout návrh</button>
+        {% if proposal.decision == "upravit" and task.kind != "revize" %}<button type="button" class="btn" @click="text = '{{ proposal.text|escapejs }}'; duvod = '{{ proposal.justification|escapejs }}'; edit = true">{% icon "edit" %}Upravit návrh</button>{% endif %}
+        {% if proposal.justification %}<button type="button" class="btn" @click="duvod = '{{ proposal.justification|escapejs }}'">Převzít zdůvodnění</button>{% endif %}
+        <button name="akce" value="navrh_odmitnout" class="btn">Odmítnout</button>
+      </form>
+      <p class="text-xs text-muted mt-2">Návrh připravil model {{ proposal.model|default:"—" }} jen z obsahu karty, knihovny článků a PubMedu. Přijetím ho potvrzujete vy – do historie karty se zapíše i s tím, že šlo o návrh AI.</p>
+
+    {% elif proposal and proposal.status == "pending" and not proposal.stalled %}
+      <p class="text-sm mt-2 text-muted">AI připravuje návrh k tomuto úkolu… stránka se sama obnoví. Mezitím můžete úkol vyřešit i sami.</p>
+
+    {% else %}
+      {% if proposal and proposal.status == "failed" %}
+        <p class="text-sm mt-2" style="color: var(--warn)">Návrh se nepodařilo připravit: {{ proposal.error|default:"neznámá chyba" }}</p>
+      {% elif proposal and proposal.status == "ready" %}
+        <p class="text-sm mt-2 text-muted">Návrh je ke staršímu znění úkolu – text se mezitím změnil.</p>
+      {% elif proposal and proposal.status == "dismissed" %}
+        <p class="text-sm mt-2 text-muted">Návrh jste odmítli.</p>
+      {% elif proposal and proposal.stalled %}
+        <p class="text-sm mt-2 text-muted">Příprava návrhu se nedokončila (restart aplikace nebo model neodpověděl).</p>
+      {% else %}
+        <p class="text-sm mt-2 text-muted">AI navrhne řešení podle zdrojů karty, knihovny článků a PubMedu. Přijímáte ho vy, po jednom.</p>
+      {% endif %}
+      <form method="post" class="flex flex-wrap gap-2 mt-3">
+        {% csrf_token %}
+        <input type="hidden" name="ukol" value="{{ task.key }}">
+        {% if proposal %}<button name="akce" value="ai_ukol" class="btn btn-sm">Připravit návrh znovu</button>{% endif %}
+        {% if not ai.running %}<button name="akce" value="ai_karta" class="btn btn-sm {% if not proposal %}btn-primary{% endif %}">Připravit návrhy pro celou kartu</button>{% endif %}
+        {% if not proposal %}<button name="akce" value="ai_ukol" class="btn btn-sm">Jen pro tento úkol</button>{% endif %}
+      </form>
+    {% endif %}
+  </div>
+{% endif %}

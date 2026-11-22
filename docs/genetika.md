@@ -43,6 +43,7 @@ kontrola úplnosti) a co zůstává k rozhodnutí: [genetika-soulad-s-podklady.m
 | **Genetika → Jak to funguje** | `/genetika/navod/`: obsah – lidé – zpráva, kdo co dělá, stav nastavení |
 | **karta sportovce → Genetika** | postup v pěti krocích (souhlas → vzorek → ověření → dotazník → zpráva) s *Další krok*; zápis podepsaného souhlasu / odvolání, dotazník, vzorky, genotypy, *Ověřit příslušnost* výsledku, nový vzorek, sestavení genetické zprávy |
 | **portál sportovce → Souhlasy a sdílení → Genetika** | sportovec souhlas uděluje a odvolává sám, vyplňuje dotazník; vydanou zprávu pro sportovce vidí v Mých výsledcích |
+| **Genetika → Revize a schválení** | `/genetika/revize/`: přehled rozpracovaných karet s postupem, jeden úkol na obrazovce (`/genetika/revize/karta/<id>/`) s odůvodněním a návrhem AI, souhrn karty ke schválení garantem (`…/souhrn/`) |
 | **Genetika → Interakce variant** | `/genetika/interakce/`: kombinace genotypů více variant (hypotéza → schváleno / zamítnuto), formulář ve čtyřech částech (i s variantami mimo katalog a s důkazy a poznámkami k posouzení), varianta mimo panel se označí; volitelný pátý krok nastavení. Na stránce karty jsou všechny kombinace, ve kterých varianta je – i z jiných karet – s tím, co chybí v panelu |
 | **Genetika → Měření v genetické zprávě** | jeden přepínač (správce) na stránce Genetika: *Jen dostupnost (V1)* – zpráva uvede, které výsledky z testování jsou k dispozici, bez hodnot; *Hodnoty měření* – hodnota s testem, datem a kvalitou, norma jen s referenčním souborem |
 | **administrace → Genetika** (pro pokročilé) | totéž co průvodce; navíc jen vzorky ke čtení a technické záznamy |
@@ -84,7 +85,9 @@ i aktualizace serveru ho volají samy).
    (předvyplněno z jiných zápisů varianty). Aplikace zápis nikdy nehádá: co
    nejde převést, uloží jako *nejasný zápis*. Není-li žádný panel, vznikne
    „Panel laboratoře“ se všemi variantami.
-4. **Revize a schválení.** V tabulce karet otevře *Upravit* průvodce
+4. **Revize a schválení.** Nejjednodušší cesta je *Revize a schválení*
+   krok za krokem (viz níže): úkol po úkolu, s návrhy AI, garant schvaluje ze
+   souhrnu. Pro podrobnou úpravu otevře *Upravit* v tabulce karet průvodce
    kartou (`/genetika/karta/<id>/upravit/`): přehled osmi kroků, u každého
    stav z dat („chybí text pro CT“, „2 doporučení bez důvodu“) a tlačítko
    *Další krok*. Každý krok je jedna stránka s jedním formulářem, připomínkou,
@@ -141,6 +144,74 @@ a interakce se přenáší s katalogem (`ulozit-katalog.bat` / `nacist-katalog.b
 Garanti jsou účty a nepřenáší se; vzorky a genotypy do katalogu nepatří
 nikdy. Načtení nahradí obsah karty se stejnou variantou a verzí obsahem ze
 souboru.
+
+## Revize a schválení krok za krokem
+
+Stránka **Genetika → Revize a schválení** (`/genetika/revize/`, krok 4 nastavení)
+vede revizi karet jednoduše a postupně:
+
+1. **Přehled karet** – u každé rozpracované karty počet blokujících úkolů,
+   úkolů k doplnění a postup (hotovo X z Y); tlačítko *Pokračovat, kde jsem
+   skončil*. Garantovi se nahoře ukážou karty, které *čekají na jeho
+   schválení*.
+2. **Jeden úkol na obrazovce** (`/genetika/revize/karta/<id>/`). Fronta karty
+   se skládá z dat: texty se značkou [OVĚŘIT …] / [DOPLNIT …] nebo
+   s nepřípustným výrokem, nerozhodnuté revizní záznamy (a rozhodnuté bez
+   odůvodnění), chybějící texty pro klienta. Blokující úkoly jdou první, pak
+   podle kroků průvodce; řádky důkazů a odborné texty jsou *k doplnění*
+   a schválení neblokují. U úkolu je vidět, kde se text ve zprávě objeví,
+   značky zvýrazněné, původní znění z podkladů a zdroje karty, na které text
+   odkazuje (s hlavním zjištěním a omezením z knihovny článků). Akce:
+   *Ověřeno ve zdroji – ponechat text* (jen u [OVĚŘIT]: značka zmizí, štítky
+   [S1] zůstanou), *Vyřadit věty se značkou* (s náhledem výsledku), *Upravit
+   text*; u revizního záznamu *Upravit podle návrhu / Ponechat původní znění
+   / Vyřadit z karty* (u úkolu *Hotovo – karta upravena / Ponechat beze
+   změny / Vyřadit*). Každé rozhodnutí má odůvodnění (rychlé volby jedním
+   klikem) a každé vyřešení textu se zapíše jako revizní záznam (původní
+   znění, nové znění, důvod, kdo a kdy). Po akci se otevře další úkol.
+3. **Souhrn karty** (`…/souhrn/`): zbývající úkoly, *Jak to uvidí sportovec*
+   (texty pro genotypy, omezení, doporučení), *Co se změnilo* proti
+   původnímu znění, *Rozhodnutí v revizi* (kdo, kdy, odůvodnění; štítek
+   *návrh AI*). Připravující (laborant, metodik) kartu bez blokujících úkolů
+   *Pošle garantovi*; garant oblasti ji ze souhrnu *Schválí*, nebo *Vrátí
+   k úpravě s připomínkou* – připomínka se připravujícímu objeví jako úkol
+   karty. Když úkoly rozhodoval i sám garant, souhrn na chybějící druhý
+   pohled upozorní.
+
+Průvodce kartou v osmi krocích zůstává pro podrobnou úpravu; úkol na něj
+odkáže, když je potřeba změnit víc než jeden text.
+
+### Návrhy AI
+
+Se zapnutým jazykovým modelem (Nastavení → Klíče a model; mimo zkušební
+provoz jen lokální model nebo model v síti pracoviště) připraví tlačítko
+*Připravit návrhy pro celou kartu* (na obrazovce úkolu nebo v přehledu) ke
+každému otevřenému úkolu návrh: řešení (upravit / ověřeno / vyřadit, u
+záznamu upravit podle návrhu / ponechat / vyřadit), nové znění, zdůvodnění se
+štítky zdrojů, jistotu a co má člověk před přijetím zkontrolovat. Běží na
+pozadí; obrazovka úkolu se během přípravy sama obnovuje.
+
+- Model dostane **jen obsah karty**: texty, zdroje S1… s abstraktem, hlavním
+  zjištěním, omezením a úrovní evidence z knihovny článků, nepřípustné
+  výroky a **kandidátní články z PubMedu** k variantě (rsID + sport, výkon,
+  trénink; jen ty, které karta ještě nemá). Nic o sportovcích.
+- **Nový zdroj** smí navrhnout jen z kandidátů z PubMedu (v textu
+  `[NOVÝ ZDROJ]`). Po přijetí se přidá jako další zdroj karty (S…) s názvem
+  „Nový zdroj z PubMedu (návrh AI) – k ověření“ a jako **navržený článek**
+  v knihovně (štítky genetika, gen, rsID); zařadí ho správce. Článek, který
+  karta už má, dostane stejný štítek.
+- **Kontrola návrhu**: řešení povolené pro daný úkol, zdůvodnění, žádná
+  značka k ověření, žádný nepřípustný výrok, odkazy jen na existující štítky
+  zdrojů, čísla jen z podkladů, nový zdroj jen z kandidátů. Návrh s výhradou
+  nejde přijmout jedním klikem – jde ho *Upravit* (předvyplní text
+  i zdůvodnění) nebo *Odmítnout*.
+- **Přijímá člověk, po jednom.** *Přijmout návrh* provede akci úkolu
+  s odůvodněním „Návrh AI (model) přijat: …“; do historie karty se zapíše
+  i s tím, že šlo o návrh AI, a v souhrnu má štítek *návrh AI*. Hromadné
+  přijetí není. Odmítnutý návrh se při další přípravě nevrátí (jen na
+  *Připravit návrh znovu*); návrh ke staršímu znění textu se nepřijme.
+- Bez modelu revize funguje stejně, jen bez návrhů; bez internetu (offline
+  server) návrhy vzniknou bez kandidátů z PubMedu.
 
 ## Návrhy karet ze souboru
 

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Souhrn karty {{ variant.label }} – FTVS{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+  <div>
+    <a href="{% url 'genetics_review' %}" class="text-sm link">← Revize a schválení</a>
+    <h1 class="text-2xl font-semibold mt-1">{{ variant.label }} <span class="text-muted font-normal">v{{ card.version }}</span></h1>
+    <p class="text-sm text-muted mt-1">{{ variant.domain }} · garant: {{ guarantors }}{% if preparers %} · rozhodovali: {{ preparers|join:", " }}{% endif %}</p>
+  </div>
+  <div class="flex flex-wrap items-center gap-2">
+    <span class="badge {% if card.status == 'approved' %}badge-good{% elif card.status == 'review' %}badge-warn{% endif %}">{{ card.get_status_display }}</span>
+    <a href="{% url 'genetics_card' card.pk %}" class="btn btn-sm">Celá karta</a>
+  </div>
+</div>
+
+{% if progress %}
+  {% if progress.blocking %}
+    <section class="card p-4 mb-4 border-l-4" style="border-left-color: var(--warn)">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div><h2 class="card-title">Zbývá {{ progress.blocking }} blokujících úkolů</h2><p class="text-sm text-muted">Dokud nejsou vyřešené, kartu nejde poslat garantovi ani schválit.</p></div>
+        <a href="{% url 'genetics_review_task' card.pk %}" class="btn btn-primary">{% icon "chevron-right" %}Pokračovat v úkolech</a>
+      </div>
+    </section>
+  {% else %}
+    <section class="card p-4 mb-4 border-l-4" style="border-left-color: var(--good)">
+      <h2 class="card-title">Všechny blokující úkoly jsou vyřešené</h2>
+      <p class="text-sm text-muted">{% if progress.optional %}Zbývá {{ progress.optional }} úkolů k doplnění (řádky důkazů, odborné texty) – schválení neblokují. <a class="link" href="{% url 'genetics_review_task' card.pk %}">Projít je</a>.{% else %}Nic nezbývá.{% endif %}</p>
+    </section>
+  {% endif %}
+  {% if checklist.blocking and not progress.blocking %}
+    <section class="card p-4 mb-4"><h2 class="card-title mb-1">Kontrola před schválením ještě hlásí</h2><ul class="text-sm list-disc pl-5">{% for i in checklist.blocking %}<li>{{ i.text }}</li>{% endfor %}</ul><p class="text-xs text-muted mt-1"><a class="link" href="{% url 'genetics_card_step' card.pk 'kontrola' %}">Otevřít kontrolu v průvodci kartou</a></p></section>
+  {% endif %}
+{% endif %}
+
+<div class="grid lg:grid-cols-2 gap-4">
+  <section class="card p-4">
+    <h2 class="card-title mb-2">Jak to uvidí sportovec</h2>
+    {% for g in genotypes %}
+      <div class="mb-3"><span class="badge badge-accent">{{ g.label }}</span><p class="text-sm mt-1 whitespace-pre-line">{{ g.text.client_text|default:"— text chybí —" }}</p></div>
+    {% endfor %}
+    {% if card.limitations %}<p class="text-xs text-muted mt-2"><span class="font-medium">Omezení interpretace (ve zprávě doslova):</span> {{ card.limitations }}</p>{% endif %}
+    {% if recommendations %}
+      <h3 class="text-sm font-semibold mt-4 mb-1">Doporučení</h3>
+      <ul class="text-sm space-y-1">{% for r in recommendations %}<li><span class="text-xs text-muted">{{ r.get_kind_display }}{% if r.genotype %} · {{ r.genotype }}{% endif %} · {{ r.get_basis_display|lower|default:"bez důvodu" }}</span><br>{{ r.text }}</li>{% endfor %}</ul>
+    {% endif %}
+  </section>
+
+  <div class="space-y-4">
+    <section class="card p-4">
+      <h2 class="card-title mb-2">Co se změnilo{% if original_label %} proti: {{ original_label|lower }}{% endif %}</h2>
+      {% for c in changes %}
+        <div class="text-sm mb-3 pb-3 border-b" style="border-color: var(--border)">
+          <div class="font-medium">{{ c.cast }}</div>
+          <div class="grid sm:grid-cols-2 gap-2 mt-1"><p class="text-xs text-2 whitespace-pre-line"><span class="text-muted">původně:</span> {{ c.puvodne|default:"—" }}</p><p class="text-xs whitespace-pre-line"><span class="text-muted">nyní:</span> {{ c.nyni|default:"—" }}</p></div>
+        </div>
+      {% empty %}<p class="text-sm text-muted">{% if original_label %}Texty pro klienta se nezměnily.{% else %}Karta nemá původní znění ani předchozí verzi.{% endif %}</p>{% endfor %}
+    </section>
+
+    <section class="card p-4">
+      <h2 class="card-title mb-2">Rozhodnutí v revizi ({{ decided|length }})</h2>
+      {% for r in decided %}
+        <div class="text-sm mb-2"><span class="font-medium">{{ r.part }}</span> <span class="badge {% if r.decision == 'accepted' %}badge-good{% endif %}">{{ r.get_decision_display }}</span>{% if r.decision_note|slice:":9" == "Návrh AI " %} <span class="badge badge-accent">návrh AI</span>{% endif %}
+          <div class="text-xs text-2">{{ r.decision_note|default:"— bez odůvodnění —" }}{% if r.decided_by %} · {{ r.decided_by.get_full_name|default:r.decided_by.get_username }}, {{ r.decided_at|date:"d.m.Y" }}{% endif %}</div></div>
+      {% empty %}<p class="text-sm text-muted">Zatím nic nerozhodnuto.</p>{% endfor %}
+    </section>
+  </div>
+</div>
+
+<section class="card p-4 mt-4">
+  <h2 class="card-title mb-2">Další krok</h2>
+  {% if card.status == "draft" %}
+    <form method="post" class="flex flex-wrap items-center gap-3">{% csrf_token %}
+      <button name="akce" value="k_revizi" class="btn btn-primary" {% if progress.blocking %}disabled{% endif %}>{% icon "check" %}Poslat garantovi</button>
+      <span class="text-sm text-muted">Garant oblasti „{{ variant.domain }}“ ({{ guarantors }}) uvidí tento souhrn a kartu schválí, nebo vrátí s připomínkou.</span>
+    </form>
+  {% elif card.status == "review" and may_approve %}
+    {% if same_person %}<p class="text-sm mb-3 p-3 rounded-lg" style="background: var(--warn-soft); color: var(--warn)">Úkoly karty jste rozhodoval(a) i vy – druhý pohled garanta tu chybí. Schválit můžete, ale zvažte, zda souhrn neprojde ještě někdo další.</p>{% endif %}
+    <div class="grid md:grid-cols-2 gap-4">
+      <form method="post">{% csrf_token %}
+        <button name="akce" value="schvalit" class="btn btn-primary" {% if progress.blocking %}disabled{% endif %}>{% icon "check" %}Schválit kartu</button>
+        <p class="text-xs text-muted mt-2">Schválené znění je neměnné a od teď jediné, které smí do zpráv. Další změna je nová verze.</p>
+      </form>
+      <form method="post" x-data="{ open: false }">{% csrf_token %}
+        <button type="button" class="btn" x-show="!open" @click="open = true">Vrátit k úpravě</button>
+        <div x-show="open" style="display: none">
+          <label class="block text-sm font-medium" for="pripominka">Co upravit</label>
+          <textarea id="pripominka" name="pripominka" rows="3" maxlength="5000" class="input text-sm mt-1" placeholder="Připomínka se připravujícímu objeví jako úkol karty."></textarea>
+          <button name="akce" value="vratit" class="btn mt-2">Vrátit s připomínkou</button>
+        </div>
+      </form>
+    </div>
+  {% elif card.status == "review" %}
+    <p class="text-sm">Karta čeká na garanta oblasti „{{ variant.domain }}“: {{ guarantors }}.</p>
+  {% elif card.status == "approved" %}
+    <p class="text-sm">Karta je schválená{% if card.approved_by %} ({{ card.approved_by.get_full_name|default:card.approved_by.get_username }}, {{ card.approved_at|date:"d.m.Y" }}){% endif %}.</p>
+  {% else %}
+    <p class="text-sm text-muted">Karta je {{ card.get_status_display|lower }}.</p>
+  {% endif %}
+</section>
+{% endblock %}
