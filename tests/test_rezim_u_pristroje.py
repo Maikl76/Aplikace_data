@@ -124,6 +124,13 @@ def test_rezim_u_pristroje_vede_test_za_testem(lab):
     response = client.post(url, {_field(cmj, "cmj_height", 2): "31", "pokusy_stav": "1", "pokusu": "3"})
     assert response["Location"] == url
 
+    # po jedné hodnotě v každém testu den změřený není: oba testy jsou rozpracované
+    done = client.get(reverse("session_device_done", args=[session.pk])).content.decode()
+    assert "zbývá 2 testy" in done and "vyplněno 1 z " in done
+    from tests.vyplnit import vyplnit_vse
+
+    for run in (cmj, imtp):
+        vyplnit_vse(run)
     done = client.get(reverse("session_device_done", args=[session.pk])).content.decode()
     assert "den změřen" in done and "chybí RPE" in done   # CMJ má RPE po testu
     assert f"Další sportovec: FTVS-0002 · {o_cmj.protocol.name}" in done

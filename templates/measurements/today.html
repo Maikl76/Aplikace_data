@@ -64,6 +64,8 @@
                 <td class="text-center">
                   {% if c.stav == "hotovo" %}
                     <a href="{% url 'run_entry' c.run.pk %}" class="badge badge-good" title="Změřeno – zobrazit">{% icon "check" "w-3.5 h-3.5" %}hotovo</a>
+                  {% elif c.stav == "rozpracovano" %}
+                    <a href="{% url 'run_entry' c.run.pk %}" class="badge badge-warn" title="Rozpracováno – vyplněno {{ c.run.vyplneno }} z {{ c.run.ukazatelu }}. {{ c.run.chybi_text }}">{{ c.run.vyplneno }}/{{ c.run.ukazatelu }}</a>
                   {% elif c.stav == "zalozeno" %}
                     <a href="{% url 'run_entry' c.run.pk %}" class="badge badge-accent" title="Založeno – zadat hodnoty nebo nahrát export">zadat</a>
                   {% else %}
@@ -72,7 +74,7 @@
                 </td>
               {% endfor %}
               <td class="text-right whitespace-nowrap">
-                {% if row.zprava %}<a class="text-sm link" href="{% url 'report_detail' row.zprava.pk %}" title="Zpráva {{ row.zprava.report_number }} ({{ row.zprava.get_status_display|lower }})">zpráva</a> · {% elif row.kompletni %}<span class="text-sm text-muted" title="Den má hodnoty u všech testů, zpráva zatím není">bez zprávy</span> · {% endif %}{% if row.pristroj %}<a class="text-sm link" href="{% url 'run_device' row.pristroj.pk %}" title="Režim u přístroje: test za testem na jedné obrazovce">u přístroje</a> · {% endif %}{% if row.session %}<a class="text-sm link" href="{% url 'session_detail' row.session.pk %}">den →</a>{% endif %}
+                {% if row.zprava %}<a class="text-sm link" href="{% url 'report_detail' row.zprava.pk %}" title="Zpráva {{ row.zprava.report_number }} ({{ row.zprava.get_status_display|lower }})">zpráva</a> · {% elif row.kompletni %}<span class="text-sm text-muted" title="Všechny testy dne jsou vyplněné, zpráva zatím není">bez zprávy</span> · {% endif %}{% if row.pristroj %}<a class="text-sm link" href="{% url 'run_device' row.pristroj.pk %}" title="Režim u přístroje: test za testem na jedné obrazovce">u přístroje</a> · {% endif %}{% if row.session %}<a class="text-sm link" href="{% url 'session_detail' row.session.pk %}">den →</a>{% endif %}
               </td>
             </tr>
           {% endfor %}
@@ -102,9 +104,9 @@
       <section class="card p-4">
         <h2 class="card-title mb-1">Koncepty zpráv pro hotové dny</h2>
         <p class="text-sm text-2 mb-3">
-          {% if bez_zpravy %}{{ bez_zpravy|length }} {% if bez_zpravy|length == 1 %}den má{% elif bez_zpravy|length < 5 %}dny mají{% else %}dnů má{% endif %} hodnoty u všech testů a zatím bez zprávy.
+          {% if bez_zpravy %}{{ bez_zpravy|length }} {% if bez_zpravy|length == 1 %}den má{% elif bez_zpravy|length < 5 %}dny mají{% else %}dnů má{% endif %} všechny testy vyplněné a zatím bez zprávy.
           Koncepty vzniknou najednou; každý pak zkontrolujete a vydáte jako dosud.
-          {% else %}Žádný hotový den bez zprávy – koncepty vzniknou, jakmile budou mít dny hodnoty u všech testů.{% endif %}
+          {% else %}Žádný hotový den bez zprávy – koncepty vzniknou, jakmile budou mít dny všechny testy vyplněné.{% endif %}
         </p>
         <form method="post" action="{% url 'today_drafts' %}" class="flex flex-wrap gap-2 items-center" data-jednou="Zakládám koncepty…">
           {% csrf_token %}

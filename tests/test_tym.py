@@ -122,11 +122,11 @@ def test_sjednocene_obrazovky_se_vykresli(tym):
     run = session.protocol_runs.get()
 
     seznam = client.get("/mereni/").content.decode()
-    assert "FTVS-0001" in seznam and "1/1" in seznam
+    assert "FTVS-0001" in seznam and "0/1" in seznam        # jedna hodnota = rozpracováno
     assert "FTVS-0005" not in client.get("/mereni/?q=0001").content.decode()
 
     detail = client.get(f"/mereni/{session.pk}/").content.decode()
-    assert "1 hodnot" in detail and "Vytvořit zprávu" in detail
+    assert "vyplněno 1 z " in detail and "zbývá" in detail and "Vytvořit zprávu" in detail
     assert "DSI" not in detail.split('name="protocol"')[1].split("</select>")[0]
 
     assert "Uložit hodnoty" in client.get(f"/mereni/provedeni/{run.pk}/").content.decode()

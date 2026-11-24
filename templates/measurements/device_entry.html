@@ -27,7 +27,7 @@
 {# Postup baterií: který test je hotový, který je na řadě. #}
 <ol class="flex flex-wrap items-center gap-2 mb-4 text-sm" id="postup-baterie">
   {% for p in progress %}
-    <li><a href="{% url 'run_device' p.run.pk %}" class="badge py-1.5 px-3 text-sm {% if p.state == 'current' %}badge-accent{% elif p.state == 'done' %}badge-good{% endif %}" title="{% if p.state == 'done' %}{{ p.run.hodnot }} hodnot{% elif p.state == 'current' %}právě měříte{% else %}čeká{% endif %}">{% if p.state == 'done' %}{% icon "check" "w-3.5 h-3.5" %}{% else %}{{ forloop.counter }}.{% endif %} {{ p.run.protocol.name }}</a></li>
+    <li><a href="{% url 'run_device' p.run.pk %}" class="badge py-1.5 px-3 text-sm {% if p.state == 'current' %}badge-accent{% elif p.state == 'done' %}badge-good{% elif p.state == 'partial' %}badge-warn{% endif %}" title="{% if p.state == 'done' %}hotovo – {{ p.run.vyplneno }} z {{ p.run.ukazatelu }}{% elif p.state == 'partial' %}rozpracováno – vyplněno {{ p.run.vyplneno }} z {{ p.run.ukazatelu }}{% elif p.state == 'current' %}právě měříte – vyplněno {{ p.run.vyplneno }} z {{ p.run.ukazatelu }}{% else %}čeká{% endif %}">{% if p.state == 'done' %}{% icon "check" "w-3.5 h-3.5" %}{% else %}{{ forloop.counter }}.{% endif %} {{ p.run.protocol.name }}{% if p.state == 'partial' %} <span class="tabular-nums">{{ p.run.vyplneno }}/{{ p.run.ukazatelu }}</span>{% endif %}</a></li>
   {% endfor %}
   <li class="text-muted">test {{ position }} z {{ progress|length }}</li>
 </ol>

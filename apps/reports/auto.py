@@ -1,8 +1,8 @@
 """
 Koncept zprávy sám.
 
-Jakmile má testovací den hodnoty u všech testů (odvozené ukazatele se
-nepočítají), vznikne koncept pro čtenáře, který dává smysl: pro trenéra,
+Jakmile jsou všechny testy dne vyplněné – hodnotu má každý ukazatel (odvozené
+testy a vypočtené ukazatele se nepočítají) –, vznikne koncept pro čtenáře, který dává smysl: pro trenéra,
 když sportovec sdílí výsledky s trenérem, jinak pro sportovce. Nic se
 nevydává – diagnostik koncept zkontroluje a vydá jako dosud. Vypíná se
 v Nastavení → Pracoviště a týmy.
@@ -21,10 +21,12 @@ logger = logging.getLogger(__name__)
 
 
 def session_complete(session) -> bool:
-    """Každý test dne (mimo odvozených) má aspoň jeden pokus s hodnotami."""
-    runs = [r for r in session.protocol_runs.select_related("protocol").prefetch_related("trials")
+    """Každý test dne (mimo odvozených) je vyplněný – hodnotu má každý jeho ukazatel."""
+    from apps.measurements import completeness
+
+    runs = [r for r in session.protocol_runs.select_related("protocol")
             if r.protocol.code not in DERIVED_PROTOCOLS]
-    return bool(runs) and all(r.trials.all() for r in runs)
+    return bool(runs) and all(r.stav == completeness.DONE for r in completeness.annotate(runs))
 
 
 def audience_for(session) -> str:

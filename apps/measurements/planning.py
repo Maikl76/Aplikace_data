@@ -127,9 +127,12 @@ def empty_run(session, protocol):
 
 def day_overview(subjects, protocols, day) -> list[dict]:
     """
-    Stav testovacího dne: pro každého sportovce a test „hotovo“, „založeno“
-    nebo nic. Hotovo = provedení s aspoň jednou hodnotou.
+    Stav testovacího dne: pro každého sportovce a test „hotovo“, „rozpracováno“,
+    „založeno“ nebo nic. Hotovo = všechny ukazatele testu mají hodnotu;
+    rozpracováno = některé ano (completeness).
     """
+    from . import completeness
+
     sessions = {s.subject_id: s for s in TestSession.objects.filter(subject__in=subjects,
                                                                      date=day)}
     runs = (ProtocolRun.objects.filter(session__in=sessions.values(),
@@ -142,6 +145,9 @@ def day_overview(subjects, protocols, day) -> list[dict]:
         if best is None or run.n > best["n"]:
             state[key] = {"run": run, "n": run.n}
 
+    completeness.annotate(e["run"] for e in state.values())
+    names = {completeness.DONE: "hotovo", completeness.PARTIAL: "rozpracovano",
+             completeness.EMPTY: "zalozeno"}
     rows = []
     for subject in subjects:
         cells = []
@@ -150,8 +156,7 @@ def day_overview(subjects, protocols, day) -> list[dict]:
             cells.append({
                 "protocol": protocol,
                 "run": entry["run"] if entry else None,
-                "stav": ("hotovo" if entry and entry["n"] else
-                         "zalozeno" if entry else "nic"),
+                "stav": names[entry["run"].stav] if entry else "nic",
             })
         rows.append({"subject": subject, "session": sessions.get(subject.pk), "cells": cells,
                      "hotovo": sum(c["stav"] == "hotovo" for c in cells)})

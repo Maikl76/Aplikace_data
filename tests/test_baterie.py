@@ -104,6 +104,13 @@ def test_dnesni_testovani_zalozi_den_a_ukaze_stav(lab):
     trial = Trial.objects.create(protocol_run=run, number=1)
     Measurement.objects.create(trial=trial, metric=MetricDef.objects.get(code="cmj_height"),
                                side="B", value=35)
+    # jedna hodnota ještě není hotový test: rozpracováno, kolik je vyplněno z kolika
+    html = client.get(f"/testovani/?datum=2026-09-01&baterie={battery.pk}").content.decode()
+    assert 'title="Rozpracováno – vyplněno 1 z ' in html and "zadat" in html
+    assert "0 <span class=\"kpi-unit\">/ 4</span>" in html
+    from tests.vyplnit import vyplnit_vse
+
+    vyplnit_vse(run)
     html = client.get(f"/testovani/?datum=2026-09-01&baterie={battery.pk}").content.decode()
     assert html.count("hotovo") >= 1 and "zadat" in html
     assert "1 <span class=\"kpi-unit\">/ 4</span>" in html

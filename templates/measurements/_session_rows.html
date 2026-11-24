@@ -20,8 +20,8 @@
     </td>
     <td class="text-right whitespace-nowrap">
       {% if not s.testu %}<span class="text-muted">—</span>
-      {% elif s.zmereno == s.testu %}<span class="badge badge-good">{% icon "check" "w-3.5 h-3.5" %}{{ s.zmereno }}/{{ s.testu }}</span>
-      {% elif s.zmereno %}<span class="badge badge-warn">{{ s.zmereno }}/{{ s.testu }}</span>
+      {% elif s.zmereno == s.testu %}<span class="badge badge-good" title="Všechny testy jsou vyplněné">{% icon "check" "w-3.5 h-3.5" %}{{ s.zmereno }}/{{ s.testu }}</span>
+      {% elif s.s_hodnotami %}<span class="badge badge-warn" title="Vyplněné testy z celkového počtu; rozpracované testy ještě nemají všechny hodnoty">{{ s.zmereno }}/{{ s.testu }}</span>
       {% else %}<span class="badge badge-accent">naplánováno</span>{% endif %}
     </td>
     <td class="text-2 max-md:hidden">{{ s.operator|default:"—" }}</td>

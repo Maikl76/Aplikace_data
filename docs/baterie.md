@@ -67,9 +67,18 @@ Hodí se, když se sportovec vrací na kontrolu a má se měřit totéž.
 Vyberete baterii a datum a vidíte všechny sportovce daného sportu
 (a kategorie) proti testům baterie:
 
-- **hotovo** – test má naměřené hodnoty,
+- **hotovo** – hodnotu má každý ukazatel testu (vypočtené ukazatele se
+  nepočítají, hodnota z neplatného pokusu taky ne),
+- **1/19** – rozpracováno: vyplněno z kolika ukazatelů; v bublině, co chybí,
 - **zadat** – test je založený, čeká na hodnoty,
 - **—** – nic.
+
+Stejně počítá přehled testovacího dne (*vyplněno 1 z 19 · zbývá 18*), krok
+*Hodnoty* v postupu dne, režim u přístroje, seznam dnů a týdenní přehled.
+Koncept zprávy, který vzniká sám, vznikne až po vyplnění všech testů dne.
+Oboustranná hodnota uložená bez strany (některé importy) se počítá jako
+oboustranná. Hodnota, která do žádného řádku tabulky nepatří (starý formát
+bez strany u testu s levou a pravou stranou), se nepočítá – bublina ji zmíní.
 
 Zaškrtnete sportovce a **Založit testování pro vybrané** – každému vznikne
 testovací den se všemi testy baterie. Hodnoty pak zadáte ručně, nebo
@@ -85,12 +94,12 @@ Pod tabulkou jsou dvě akce **za celou skupinu**:
   založený nemají), řádky bez data se zapíší k vybranému dni a hodnoty se
   doplní do založených testů. Po uložení se aplikace vrátí do Dnešního
   testování (z testovacího dne zase do něj).
-- **Koncepty zpráv pro hotové dny** – pro každý den skupiny, který má hodnoty
-  u všech testů baterie a zatím žádnou zprávu, vznikne koncept najednou (pro
-  koho: podle sdílení s trenérem, nebo zvolíte). Dny, které už zprávu mají
-  nebo nejsou hotové, se přeskočí a aplikace to řekne. Každý koncept pak
-  zkontrolujete a vydáte jako dosud. Poslední sloupec tabulky ukazuje
-  *zpráva* (odkaz) nebo *bez zprávy*.
+- **Koncepty zpráv pro hotové dny** – pro každý den skupiny, který má všechny
+  testy vyplněné (hodnotu má každý ukazatel) a zatím žádnou zprávu, vznikne
+  koncept najednou (pro koho: podle sdílení s trenérem, nebo zvolíte). Dny,
+  které už zprávu mají nebo nejsou hotové, se přeskočí a aplikace to řekne.
+  Každý koncept pak zkontrolujete a vydáte jako dosud. Poslední sloupec
+  tabulky ukazuje *zpráva* (odkaz) nebo *bez zprávy*.
 
 ## Přehled na týden
 

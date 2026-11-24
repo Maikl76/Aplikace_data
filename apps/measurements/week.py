@@ -10,12 +10,11 @@ plánuje se v Týmovém testování a v objednávkách.
 from dataclasses import dataclass, field
 from datetime import date, datetime, time, timedelta
 
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.urls import reverse
 from django.utils import timezone
 
 from .models import TestSession
-from .planning import DERIVED_PROTOCOLS
 
 DAY_NAMES = ["pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota", "neděle"]
 DAY_SHORT = ["Po", "Út", "St", "Čt", "Pá", "So", "Ne"]
@@ -104,7 +103,7 @@ def _battery_for(subject, batteries: dict):
 def _state(session) -> str:
     if session.testu and session.zmereno >= session.testu:
         return "hotovo"
-    return "rozpracovano" if session.zmereno else "ceka"
+    return "rozpracovano" if session.s_hodnotami else "ceka"
 
 
 def overview(user, monday: date, *, today: date | None = None) -> dict:
@@ -124,14 +123,13 @@ def overview(user, monday: date, *, today: date | None = None) -> dict:
 
     today = today or timezone.localdate()
     sunday = monday + timedelta(days=6)
-    measured = ~Q(protocol_runs__protocol__code__in=DERIVED_PROTOCOLS)
-    sessions = list(
+    from .completeness import annotate_sessions
+
+    # vyplněnost dnů: hotový test = hodnotu má každý jeho ukazatel (completeness)
+    sessions = annotate_sessions(
         TestSession.objects.for_user(user).filter(date__range=(monday, sunday))
-        .select_related("subject", "subject__sport")
-        .annotate(testu=Count("protocol_runs", distinct=True, filter=measured),
-                  zmereno=Count("protocol_runs", distinct=True, filter=measured & Q(
-                      protocol_runs__trials__measurements__isnull=False)))
-        .order_by("date", "pk"))
+        .select_related("subject", "subject__sport").order_by("date", "pk"),
+        exclude_derived=True)
     reported = set(Report.objects.for_user(user).filter(session__in=sessions)
                    .values_list("session_id", flat=True))
     batteries = _batteries([s.subject for s in sessions])
@@ -178,7 +176,7 @@ def overview(user, monday: date, *, today: date | None = None) -> dict:
         day_due = [p for p in due if p.due == day]
         for plan in day_due:
             plan.jmeno = names.get(plan.subject.pk) or plan.subject.code
-        unreported = [s for s in day_sessions if s.zmereno and not s.ma_zpravu]
+        unreported = [s for s in day_sessions if s.s_hodnotami and not s.ma_zpravu]
         day_bookings = [b for b in bookings if b.den == day]
         days.append({
             "date": day, "name": DAY_NAMES[offset], "short": DAY_SHORT[offset],
@@ -202,7 +200,7 @@ def overview(user, monday: date, *, today: date | None = None) -> dict:
             "waiting": sum(1 for s in sessions if s.stav == "ceka"),
             "bookings": len(bookings),
             "due": len(due), "overdue": overdue,
-            "unreported": sum(1 for s in sessions if s.zmereno and not s.ma_zpravu),
+            "unreported": sum(1 for s in sessions if s.s_hodnotami and not s.ma_zpravu),
             "drafts": Report.objects.for_user(user).filter(status=Report.Status.DRAFT).count(),
         },
     }

@@ -18,7 +18,7 @@ from apps.core import access
 from apps.core.models import Organization, Role, User
 from apps.ingest.models import ImportBatch
 from apps.measurements import planning, week
-from apps.measurements.models import Measurement, ProtocolRun, TestSession, Trial
+from apps.measurements.models import Measurement, ProtocolRun, TestSession
 from apps.reports.models import Report
 from apps.subjects.models import Sport, Subject
 
@@ -42,15 +42,15 @@ def lab(db):
 
 
 def _day(subject, day, *, values=()):
-    """Testovací den podle baterie; ``values`` = kódy testů, které dostanou hodnotu."""
+    """Testovací den podle baterie; ``values`` = kódy testů, které se celé vyplní."""
+    from tests.vyplnit import vyplnit_vse
+
     session = TestSession.objects.create(organization=subject.organization, subject=subject,
                                          date=day)
     planning.ensure_runs(session, planning.battery_protocols(subject))
     for run in session.protocol_runs.select_related("protocol"):
         if run.protocol.code in values:
-            trial = Trial.objects.create(protocol_run=run, number=1)
-            metric = run.protocol.protocol_metrics.select_related("metric").first().metric
-            Measurement.objects.create(trial=trial, metric=metric, side="B", value=30)
+            vyplnit_vse(run)
     return session
 
 
@@ -169,7 +169,7 @@ def test_koncepty_pro_hotove_dny_skupiny(lab):
     assert Report.objects.filter(audience="trener", status=Report.Status.DRAFT).count() == 2
     text = response.content.decode()
     assert "Vznikly 2 koncepty zpráv ke kontrole." in text
-    assert "1 den ještě nemá hodnoty u všech testů." in text
+    assert "1 den ještě nemá všechny testy vyplněné." in text
 
     # podruhé nic nevznikne – dny už zprávu mají
     response = client.post("/testovani/koncepty/", {"datum": today.isoformat(),

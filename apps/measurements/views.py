@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -12,7 +12,7 @@ from apps.core.models import AuditLog
 from apps.external.models import ExternalExam
 from apps.subjects.models import Subject
 
-from . import planning, questionnaires
+from . import completeness, planning, questionnaires
 from .forms import AddProtocolForm, TestSessionForm, build_grid, parse_field_name, parse_value
 from .models import Measurement, ProtocolRun, QuestionnaireResponse, TestSession, Trial
 from .trials import apply_trial_states, trial_states
@@ -25,14 +25,11 @@ def session_list(request):
     sessions = (TestSession.objects.for_user(request.user)
                 .select_related("subject", "subject__sport", "operator")
                 .prefetch_related("protocol_runs__protocol")
-                .annotate(testu=Count("protocol_runs", distinct=True),
-                          zmereno=Count("protocol_runs", distinct=True, filter=Q(
-                              protocol_runs__trials__measurements__isnull=False)))
                 .order_by("-date", "-pk"))
     q = request.GET.get("q", "").strip()
     if q:
         sessions = sessions.filter(subject__in=[s.pk for s in search(request.user, q, limit=None)])
-    sessions = label(sessions[:150], request.user)
+    sessions = completeness.annotate_sessions(label(sessions[:150], request.user))
     for s in sessions:
         s.protokoly = [run.protocol.name for run in s.protocol_runs.all()]
     template = ("measurements/_session_rows.html" if request.headers.get("HX-Request")
@@ -216,10 +213,10 @@ def today(request):
             session__in=[row["session"] for row in rows if row["session"]])
             .order_by("created_at")}
         for row in rows:
-            # vstup do režimu u přístroje: první založený test bez hodnot
-            pending = [c["run"] for c in row["cells"] if c["stav"] == "zalozeno"]
+            # vstup do režimu u přístroje: první založený nebo rozpracovaný test
+            pending = [c["run"] for c in row["cells"] if c["stav"] in ("zalozeno", "rozpracovano")]
             row["pristroj"] = pending[0] if pending else None
-            # den je hotový, když má hodnoty u všech testů baterie
+            # den je hotový, když jsou všechny testy baterie vyplněné
             row["kompletni"] = bool(protocols) and row["hotovo"] == len(protocols)
             row["zprava"] = reports.get(row["session"].pk) if row["session"] else None
 
@@ -270,7 +267,7 @@ def today_drafts(request):
         parts.append(f"{n} {plural(n, 'den už zprávu má', 'dny už zprávu mají', 'dnů už zprávu má')}.")
     if n := result["nekompletni"]:
         parts.append(f"{n} {plural(n, 'den ještě nemá', 'dny ještě nemají', 'dnů ještě nemá')} "
-                     "hodnoty u všech testů.")
+                     "všechny testy vyplněné.")
     if result["chyby"]:
         parts.append("Koncept nevznikl u: " + ", ".join(result["chyby"]) + " – otevřete den "
                      "a zkuste to ručně.")
@@ -425,8 +422,9 @@ def session_detail(request, pk):
 
     label([session], request.user)
     unstable = [(block, row) for block in protocol_results(session) for row in block["unstable"]]
-    runs = _in_battery_order(session, session.protocol_runs.select_related("protocol").annotate(
-        hodnot=Count("trials__measurements"), pokusu=Count("trials", distinct=True)))
+    runs = completeness.annotate(_in_battery_order(
+        session, session.protocol_runs.select_related("protocol").annotate(
+            hodnot=Count("trials__measurements"), pokusu=Count("trials", distinct=True))))
     sources = import_sources([r.protocol for r in runs], session.organization)
     for run in runs:
         run.import_zdroje = sources.get(run.protocol_id, [])
@@ -755,7 +753,7 @@ def session_device_done(request, pk):
     unstable = [(block, row) for block in protocol_results(session) for row in block["unstable"]]
     out_of_range = Measurement.objects.filter(
         trial__protocol_run__session=session).exclude(quality=Measurement.Quality.OK).count()
-    pending = [r for r in runs if not r.hodnot]
+    pending = [r for r in runs if r.stav != completeness.DONE]
     following = _next_subject_run(session, request.user)
     from apps.reports.narrative import plural
 
@@ -779,7 +777,7 @@ def _next_subject_run(session, user):
     label(others, user)
     for other in sorted(others, key=lambda s: str(getattr(s, "jmeno", s.subject.code)).lower()):
         for run in _session_runs(other):
-            if not run.hodnot:
+            if run.stav != completeness.DONE:
                 return other, run
     return None
 
@@ -837,7 +835,9 @@ def _entry_context(run, *, columns: int | None = None, device: bool = False) -> 
     if device:
         runs = _session_runs(run.session)
         context["progress"] = [
-            {"run": r, "state": ("current" if r.pk == run.pk else "done" if r.hodnot else "todo")}
+            {"run": r, "state": ("current" if r.pk == run.pk else
+                                 "done" if r.stav == completeness.DONE else
+                                 "partial" if r.stav == completeness.PARTIAL else "todo")}
             for r in runs]
         context["position"] = next((i for i, r in enumerate(runs, start=1) if r.pk == run.pk), 0)
     return context
@@ -870,10 +870,11 @@ def _battery_note(session) -> str:
 
 
 def _session_runs(session):
-    """Měřené testy dne v pořadí, v jakém se zobrazují (a měří), s počtem hodnot."""
-    return _in_battery_order(session, session.protocol_runs.select_related("protocol")
-                             .exclude(protocol__code__in=planning.DERIVED_PROTOCOLS)
-                             .annotate(hodnot=Count("trials__measurements")))
+    """Měřené testy dne v pořadí, v jakém se zobrazují (a měří), s počtem hodnot a vyplněností."""
+    return completeness.annotate(_in_battery_order(
+        session, session.protocol_runs.select_related("protocol")
+        .exclude(protocol__code__in=planning.DERIVED_PROTOCOLS)
+        .annotate(hodnot=Count("trials__measurements"))))
 
 
 def _next_run(run):
@@ -892,11 +893,11 @@ def _next_run_url(run, *, device: bool = False) -> str:
 
 
 def device_url(runs) -> str:
-    """Vstup do režimu u přístroje: první test bez hodnot, jinak první test dne."""
+    """Vstup do režimu u přístroje: první nevyplněný test, jinak první test dne."""
     runs = [r for r in runs if r.protocol.code not in planning.DERIVED_PROTOCOLS]
     if not runs:
         return ""
-    first = next((r for r in runs if not getattr(r, "hodnot", 0)), runs[0])
+    first = next((r for r in runs if getattr(r, "stav", None) != completeness.DONE), runs[0])
     return reverse("run_device", args=[first.pk])
 
 

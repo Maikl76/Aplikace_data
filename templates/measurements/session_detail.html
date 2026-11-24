@@ -42,7 +42,7 @@
       <button class="btn btn-sm" title="Další měření sportovce se budou srovnávat s tímto dnem (proti MDC)">Nastavit tento den jako výchozí měření</button>
     </form>
   {% endif %}
-  {% if session.draft_deleted %}<p class="text-xs text-muted w-full">Koncept zprávy k tomuto dni byl smazán ručně{% if session.organization.auto_draft %}, sám už nevznikne{% endif %}. Založíte ho tlačítkem „Vytvořit zprávu“.</p>{% elif session.organization.auto_draft %}<p class="text-xs text-muted w-full">Koncept vzniká sám, jakmile mají všechny testy dne hodnoty (pro trenéra při sdílení s trenérem, jinak pro sportovce). Tady ho založíte ručně nebo pro jiného čtenáře.</p>{% endif %}
+  {% if session.draft_deleted %}<p class="text-xs text-muted w-full">Koncept zprávy k tomuto dni byl smazán ručně{% if session.organization.auto_draft %}, sám už nevznikne{% endif %}. Založíte ho tlačítkem „Vytvořit zprávu“.</p>{% elif session.organization.auto_draft %}<p class="text-xs text-muted w-full">Koncept vzniká sám, až jsou všechny testy dne vyplněné (pro trenéra při sdílení s trenérem, jinak pro sportovce). Tady ho založíte ručně nebo pro jiného čtenáře.</p>{% endif %}
 </div>
 
 {% if restriction %}
@@ -118,10 +118,12 @@
                 {{ run.protocol.device|default:"" }}{% if run.external_ref|slice:":9" == "odvozeno:" %}{% if run.protocol.device %} · {% endif %}vypočteno automaticky{% elif run.external_ref %}{% if run.protocol.device %} · {% endif %}importováno{% elif not run.hodnot %}{% if run.protocol.device %} · {% endif %}{% if run.import_zdroje %}<span title="Export z tohoto přístroje vyplní tento test">import: {{ run.import_zdroje|join:", " }}</span>{% else %}<span title="Pro tento test není profil importu – hodnoty se zadávají ručně">jen ruční zadání</span>{% endif %}{% endif %}
               </span>
             </span>
-            {% if run.hodnot %}
-              <span class="badge badge-good">{% icon "check" "w-3.5 h-3.5" %}{{ run.hodnot }} hodnot</span>
+            {% if run.stav == "hotovy" %}
+              <span class="badge badge-good" title="Všechny ukazatele testu mají hodnotu">{% icon "check" "w-3.5 h-3.5" %}hotovo{% if run.ukazatelu %} · {{ run.vyplneno }} z {{ run.ukazatelu }}{% endif %}</span>
+            {% elif run.stav == "rozpracovany" %}
+              <span class="badge badge-warn" title="{{ run.chybi_text }}">vyplněno {{ run.vyplneno }} z {{ run.ukazatelu }} · zbývá {{ run.zbyva }}</span>
             {% else %}
-              <span class="badge badge-accent">zadat hodnoty</span>
+              <span class="badge badge-accent">zadat hodnoty{% if run.ukazatelu %} · {{ run.ukazatelu }}{% endif %}</span>
             {% endif %}
             <span class="text-muted">{% icon "chevron-right" "w-4 h-4" %}</span>
           </a>

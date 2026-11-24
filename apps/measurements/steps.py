@@ -4,9 +4,26 @@ from django.urls import reverse
 
 from apps.core.steps import step
 
-from . import planning
+from . import completeness, planning
 from .models import Measurement
 from .questionnaires import RPE
+
+
+def _values_text(empty, partial) -> str:
+    """Kolik testů čeká na hodnoty a kolik je rozpracovaných (s tím, co zbývá)."""
+    from apps.reports.narrative import plural
+
+    parts = []
+    if empty:
+        parts.append(f"{len(empty)} {plural(len(empty), 'test čeká', 'testy čekají', 'testů čeká')}"
+                     " na hodnoty")
+    if partial:
+        detail = ", ".join(f"{r.protocol.name}: zbývá {r.zbyva} z {r.ukazatelu}"
+                           for r in partial[:2]) + (" …" if len(partial) > 2 else "")
+        parts.append(f"{len(partial)} "
+                     f"{plural(len(partial), 'rozpracovaný', 'rozpracované', 'rozpracovaných')} "
+                     f"({detail})")
+    return "; ".join(parts) + " – u přístroje, nebo nahráním exportu."
 
 
 def session_steps(session, runs, unstable, reports, followup=None) -> list[dict]:
@@ -19,8 +36,12 @@ def session_steps(session, runs, unstable, reports, followup=None) -> list[dict]
               if battery else [])
     have = {r.protocol_id for r in runs}
     missing = [p for p in wanted if p.pk not in have]
+    if runs and not hasattr(runs[0], "stav"):
+        completeness.annotate(runs)
     measured = [r for r in runs if r.hodnot]
-    empty = [r for r in runs if not r.hodnot]
+    empty = [r for r in runs if r.stav == completeness.EMPTY]
+    partial = [r for r in runs if r.stav == completeness.PARTIAL]
+    todo = empty + partial
     rpe_done = set(session.responses.filter(questionnaire__code=RPE)
                    .values_list("protocol_run_id", flat=True))
     rpe_needed = [r for r in measured if r.protocol.rpe_after and r.pk not in rpe_done]
@@ -49,11 +70,11 @@ def session_steps(session, runs, unstable, reports, followup=None) -> list[dict]
              ("Vyplněno." if conditions else "Teplota, vlhkost a subjektivní únava – objeví se "
                                              "ve zprávě."),
              url="#prostredi", button="Doplnit", optional=True),
-        step(3, "Hodnoty", bool(runs) and not empty,
-             (f"{len(empty)} testů čeká na hodnoty – u přístroje, nebo nahráním exportu."
-              if empty else ("Všechny testy mají hodnoty." if runs else "Nejdřív testy.")),
-             url=reverse("run_entry", args=[empty[0].pk]) if empty else "#nahrat",
-             button="Zadat hodnoty", count=len(empty) or None),
+        step(3, "Hodnoty", bool(runs) and not todo,
+             (_values_text(empty, partial) if todo else
+              ("Všechny testy mají všechny hodnoty." if runs else "Nejdřív testy.")),
+             url=reverse("run_entry", args=[todo[0].pk]) if todo else "#nahrat",
+             button="Zadat hodnoty" if empty else "Doplnit hodnoty", count=len(todo) or None),
         step(4, "RPE", not rpe_needed,
              (f"{len(rpe_needed)}× chybí RPE po zátěžovém testu: "
               + ", ".join(r.protocol.name for r in rpe_needed) + "." if rpe_needed else
@@ -73,7 +94,7 @@ def session_steps(session, runs, unstable, reports, followup=None) -> list[dict]
               "novou založíte tlačítkem Vytvořit zprávu." if withdrawn else
               "Koncept k tomuto dni byl smazán, sám už nevznikne – založíte ho tlačítkem "
               "Vytvořit zprávu." if session.draft_deleted else
-              "Koncept vznikne sám, jakmile mají všechny testy hodnoty; ručně ho založíte pro "
+              "Koncept vznikne sám, až budou všechny testy vyplněné; ručně ho založíte pro "
               "sportovce, trenéra nebo lékaře. Nic se tím nevydává."
               if getattr(session.organization, "auto_draft", False) else
               "Vytvořte koncept pro sportovce, trenéra nebo lékaře; nic se tím nevydává."),

@@ -16,7 +16,7 @@
     <ul class="space-y-1.5 text-sm">
       {% for r in runs %}
         <li class="flex items-center gap-2">
-          {% if r.hodnot %}<span class="badge badge-good">{% icon "check" "w-3.5 h-3.5" %}{{ r.hodnot }} hodnot</span>{% else %}<span class="badge badge-warn">bez hodnot</span>{% endif %}
+          {% if r.stav == "hotovy" %}<span class="badge badge-good">{% icon "check" "w-3.5 h-3.5" %}hotovo{% if r.ukazatelu %} · {{ r.vyplneno }} z {{ r.ukazatelu }}{% endif %}</span>{% elif r.stav == "rozpracovany" %}<span class="badge badge-warn" title="{{ r.chybi_text }}">vyplněno {{ r.vyplneno }} z {{ r.ukazatelu }} · zbývá {{ r.zbyva }}</span>{% else %}<span class="badge badge-warn">bez hodnot</span>{% endif %}
           <a class="link flex-1 min-w-0 truncate" href="{% url 'run_device' r.pk %}">{{ r.protocol.name }}</a>
           {% if r.rpe_chybi %}<span class="badge badge-warn" title="Po zátěžovém testu chybí RPE">chybí RPE</span>{% endif %}
         </li>
@@ -39,7 +39,7 @@
     {% if reports %}
       <p class="text-sm mt-3">Zpráva: {% for r in reports %}<a class="link" href="{% url 'report_detail' r.pk %}">{{ r.report_number }}</a> ({{ r.get_status_display|lower }}){% if not forloop.last %}, {% endif %}{% endfor %}.</p>
     {% elif not pending and session.organization.auto_draft %}
-      <p class="text-xs text-muted mt-3">Koncept zprávy vzniká sám, jakmile mají všechny testy hodnoty – najdete ho ve Zprávách.</p>
+      <p class="text-xs text-muted mt-3">Koncept zprávy vzniká sám, až jsou všechny testy vyplněné – najdete ho ve Zprávách.</p>
     {% endif %}
   </section>
 </div>
