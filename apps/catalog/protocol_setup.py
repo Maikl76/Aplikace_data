@@ -43,6 +43,7 @@ class MetricRow:
     new_min: float | None = None
     new_max: float | None = None
     primary: bool = False
+    optional: bool = False
     sides: list = field(default_factory=lambda: ["B"])
     modes: list = field(default_factory=list)
     speeds: list = field(default_factory=list)
@@ -91,7 +92,8 @@ def read_rows(post, organization) -> list[MetricRow]:
         choice = post.get(prefix + "metric", "")
         if not choice:
             continue
-        row = MetricRow(key=key, primary=bool(post.get(prefix + "primary")))
+        row = MetricRow(key=key, primary=bool(post.get(prefix + "primary")),
+                        optional=bool(post.get(prefix + "optional")))
         if choice == "nova":
             row.new_name = post.get(prefix + "new_name", "").strip()
             row.new_unit = post.get(prefix + "new_unit", "").strip()
@@ -178,8 +180,9 @@ def save_test(protocol: Protocol | None, *, data: dict, rows: list[MetricRow],
             new_metrics += 1
         ProtocolMetric.objects.update_or_create(
             protocol=protocol, metric=metric,
-            defaults={"order": order, "is_primary": row.primary, "sides": row.sides,
-                      "modes": row.modes, "speeds": row.speeds, "segments": row.segments})
+            defaults={"order": order, "is_primary": row.primary, "is_optional": row.optional,
+                      "sides": row.sides, "modes": row.modes, "speeds": row.speeds,
+                      "segments": row.segments})
         keep.append(metric.pk)
     removed = protocol.protocol_metrics.exclude(metric_id__in=keep).delete()[0]
 
@@ -207,6 +210,7 @@ def _row_dict(key, pm=None) -> dict:
     return {
         "key": key, "metric": str(pm.metric_id) if pm else "",
         "primary": bool(pm and pm.is_primary),
+        "optional": bool(pm and pm.is_optional),
         "sides": [s for s in (pm.sides if pm else ["B"]) if s in dict(SIDES)] or ["B"],
         "modes": list(pm.modes) if pm else [],
         "speeds": ", ".join(f"{s:g}" if isinstance(s, float) else str(s)
@@ -227,6 +231,7 @@ def posted_rows(post) -> list[dict]:
         p = f"m{key}_"
         out.append({
             "key": key, "metric": post.get(p + "metric", ""), "primary": bool(post.get(p + "primary")),
+            "optional": bool(post.get(p + "optional")),
             "sides": post.getlist(p + "sides"), "modes": post.getlist(p + "modes"),
             "speeds": post.get(p + "speeds", ""), "segments": post.getlist(p + "segments"),
             "segment_other": post.get(p + "segment_other", ""),

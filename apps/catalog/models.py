@@ -227,6 +227,10 @@ class ProtocolMetric(models.Model):
     order = models.PositiveSmallIntegerField("pořadí", default=0)
     is_primary = models.BooleanField("klíčová metrika", default=False,
                                      help_text="Zobrazuje se na kartě sportovce a v souhrnu zprávy.")
+    is_optional = models.BooleanField(
+        "volitelný ukazatel", default=False,
+        help_text="Nepočítá se do vyplněnosti testu – test je hotový i bez něj "
+                  "(např. výška, kterou přístroj neexportuje).")
 
     # Které kombinace kvalifikátorů se u téhle metriky v tomhle protokolu
     # měří. Díky tomu je zadávací formulář daný daty: nový protokol se

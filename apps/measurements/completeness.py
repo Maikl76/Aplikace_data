@@ -5,7 +5,8 @@ pokusu) a kolik ještě zbývá.
 Test s jednou hodnotou ještě není hotový. Hotový je, až má hodnotu každý
 ukazatel, který se do mřížky zadává (vypočtené ukazatele – W/kg z W a
 hmotnosti – se nepočítají, přepočítají se samy). Hodnota z neplatného
-pokusu se nepočítá, do výsledků nejde.
+pokusu se nepočítá, do výsledků nejde. Volitelný ukazatel (nastavení testu
+v katalogu) se do vyplněnosti nepočítá – test je hotový i bez něj.
 
 Řádky se párují jako v analytice a ve zprávě: oboustranná hodnota uložená
 bez strany je totéž co „B“ (tak ji ukládají některé importy). Hodnota
@@ -28,7 +29,7 @@ def _key(metric_id, side, mode, speed, segment) -> tuple:
 
 
 def _slots(protocol) -> list[tuple]:
-    """Řádky zadávací mřížky protokolu: (klíč řádku, název pro bublinu)."""
+    """Řádky zadávací mřížky protokolu: (klíč řádku, název pro bublinu, volitelný)."""
     from apps.analytics.derived import DERIVED_METRICS
 
     from .forms import _combo_label
@@ -41,16 +42,17 @@ def _slots(protocol) -> list[tuple]:
             label = _combo_label(combo)
             out.append((_key(pm.metric_id, combo["side"], combo["mode"], combo["speed"],
                              combo["segment"]),
-                        pm.metric.name + (f" ({label})" if label else "")))
+                        pm.metric.name + (f" ({label})" if label else ""), pm.is_optional))
     return out
 
 
 def annotate(runs) -> list:
     """
-    Doplní ke každému provedení ``ukazatelu`` (kolik řádků mřížka má),
-    ``vyplneno``, ``zbyva``, ``chybi`` (názvy prvních chybějících), ``mimo``
-    (hodnoty ukazatelů testu mimo řádky mřížky) a ``stav`` (prázdný /
-    rozpracovaný / hotový). Vrací seznam provedení.
+    Doplní ke každému provedení ``ukazatelu`` (kolik povinných řádků mřížka
+    má), ``vyplneno``, ``zbyva``, ``chybi`` (názvy prvních chybějících),
+    ``volitelne_chybi`` (volitelné bez hodnoty), ``mimo`` (hodnoty ukazatelů
+    testu mimo řádky mřížky), ``stav`` (prázdný / rozpracovaný / hotový)
+    a texty do bublin. Vrací seznam provedení.
     """
     runs = list(runs)
     if not runs:
@@ -65,24 +67,39 @@ def annotate(runs) -> list:
         if run.protocol_id not in slots_by_protocol:
             slots_by_protocol[run.protocol_id] = _slots(run.protocol)
         slots = slots_by_protocol[run.protocol_id]
-        keys = {key for key, _ in slots}
+        keys = {key for key, _, _ in slots}
         metrics = {key[0] for key in keys}
         have = filled[run.pk]
-        missing = [label for key, label in slots if key not in have]
-        run.ukazatelu = len(slots)
-        run.vyplneno = len(slots) - len(missing)
+        required = [(key, label) for key, label, optional in slots if not optional]
+        missing = [label for key, label in required if key not in have]
+        run.ukazatelu = len(required)
+        run.vyplneno = len(required) - len(missing)
         run.zbyva = len(missing)
         run.chybi = missing[:MISSING_SHOWN]
         run.chybi_dalsi = max(0, len(missing) - MISSING_SHOWN)
+        run.volitelne_chybi = [label for key, label, optional in slots
+                               if optional and key not in have]
         run.mimo = sum(1 for key in have if key[0] in metrics and key not in keys)
+        optional_filled = any(optional and key in have for key, _, optional in slots)
         if have and not missing:
-            run.stav = DONE      # i test, kde se nic nezadává a hodnoty jsou vypočtené
-        elif run.vyplneno or run.mimo:
+            run.stav = DONE      # i test, kde se nic povinného nezadává
+        elif run.vyplneno or run.mimo or optional_filled:
             run.stav = PARTIAL
         else:
             run.stav = EMPTY
         run.chybi_text = missing_title(run)
+        run.hotovo_text = done_title(run)
     return runs
+
+
+def done_title(run) -> str:
+    """Text do bubliny u hotového testu (s volitelnými, které zůstaly prázdné)."""
+    optional = getattr(run, "volitelne_chybi", None)
+    if not optional:
+        return "Všechny ukazatele testu mají hodnotu"
+    shown = ", ".join(optional[:MISSING_SHOWN])
+    more = f" a dalších {len(optional) - MISSING_SHOWN}" if len(optional) > MISSING_SHOWN else ""
+    return f"Povinné ukazatele mají hodnotu. Volitelné bez hodnoty: {shown}{more}"
 
 
 def missing_title(run) -> str:

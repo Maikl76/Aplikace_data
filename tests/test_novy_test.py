@@ -126,3 +126,22 @@ def test_test_se_prenese_s_katalogem(lab):
     Protocol.objects.filter(name="Sprint 20 m").update(default_trials=9)
     import_catalog(data)
     assert Protocol.objects.get(name="Sprint 20 m").default_trials == 3
+
+
+def test_volitelna_metrika_se_ulozi_a_nacte(lab):
+    """Zaškrtnutá „volitelná“ se uloží, při úpravě je zaškrtnutá, a jde zase vypnout."""
+    import json
+
+    _, battery, client = lab
+    client.post("/sporty/testy/novy/", novy(battery, m0_optional="on"))
+    protocol = Protocol.objects.get(name="Sprint 20 m")
+    pms = list(protocol.protocol_metrics.order_by("order"))
+    assert [pm.is_optional for pm in pms] == [True, False]
+    page = client.get(f"/sporty/testy/{protocol.pk}/").content.decode()
+    rows = json.loads(page.split('id="radky-data" type="application/json">')[1].split("</script>")[0])
+    assert [r["optional"] for r in rows] == [True, False]
+    assert "volitelná" in page
+    data = novy(battery)
+    data["m1_metric"] = str(pms[1].metric_id)
+    client.post(f"/sporty/testy/{protocol.pk}/", data)
+    assert not protocol.protocol_metrics.filter(is_optional=True).exists()

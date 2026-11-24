@@ -119,7 +119,7 @@
               </span>
             </span>
             {% if run.stav == "hotovy" %}
-              <span class="badge badge-good" title="Všechny ukazatele testu mají hodnotu">{% icon "check" "w-3.5 h-3.5" %}hotovo{% if run.ukazatelu %} · {{ run.vyplneno }} z {{ run.ukazatelu }}{% endif %}</span>
+              <span class="badge badge-good" title="{{ run.hotovo_text }}">{% icon "check" "w-3.5 h-3.5" %}hotovo{% if run.ukazatelu %} · {{ run.vyplneno }} z {{ run.ukazatelu }}{% endif %}</span>
             {% elif run.stav == "rozpracovany" %}
               <span class="badge badge-warn" title="{{ run.chybi_text }}">vyplněno {{ run.vyplneno }} z {{ run.ukazatelu }} · zbývá {{ run.zbyva }}</span>
             {% else %}

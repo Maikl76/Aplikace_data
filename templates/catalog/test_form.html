@@ -64,7 +64,8 @@
       <span class="krok-cislo">2</span>
       <div><h2 class="card-title">Co se měří</h2>
         <p class="text-sm text-muted">Metriky testu v pořadí, v jakém se zadávají. Vyberte z katalogu,
-          nebo založte novou volbou <strong>＋ Nová metrika</strong>. <strong>Klíčová</strong> se ukazuje na kartě sportovce a v týmovém přehledu.</p></div>
+          nebo založte novou volbou <strong>＋ Nová metrika</strong>. <strong>Klíčová</strong> se ukazuje na kartě sportovce a v týmovém přehledu.
+          <strong>Volitelná</strong> se nepočítá do vyplněnosti testu – test je hotový i bez ní (např. výška, kterou přístroj neexportuje).</p></div>
     </div>
 
     <template x-for="(r, i) in radky" :key="r.key">
@@ -82,6 +83,7 @@
             <option value="nova" :selected="r.metric === 'nova'">＋ Nová metrika…</option>
           </select>
           <label class="flex items-center gap-1.5 text-sm"><input type="checkbox" :name="'m' + r.key + '_primary'" value="on" x-model="r.primary"> klíčová</label>
+          <label class="flex items-center gap-1.5 text-sm" title="Nepočítá se do vyplněnosti testu – test je hotový i bez ní"><input type="checkbox" :name="'m' + r.key + '_optional'" value="on" x-model="r.optional"> volitelná</label>
           <button type="button" class="btn btn-sm" title="Posunout výš" @click="posun(i, -1)" :disabled="i === 0">↑</button>
           <button type="button" class="btn btn-sm" title="Posunout níž" @click="posun(i, 1)" :disabled="i === radky.length - 1">↓</button>
           <button type="button" class="btn btn-sm" style="color: var(--bad)" title="Odebrat z testu" @click="radky.splice(i, 1)">✕</button>
@@ -177,7 +179,7 @@ function novyTest() {
   return {
     radky, skupiny,
     pridat() {
-      this.radky.push({ key: String(dalsi++), metric: "", primary: false, sides: ["B"], modes: [],
+      this.radky.push({ key: String(dalsi++), metric: "", primary: false, optional: false, sides: ["B"], modes: [],
         speeds: "", segments: [], segment_other: "", new_name: "", new_unit: "", new_dir: "neutral",
         new_decimals: 2, new_rule: "prumer", new_min: "", new_max: "" });
     },

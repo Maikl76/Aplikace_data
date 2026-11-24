@@ -28,7 +28,7 @@
         {# Meze pro kontrolu hned při psaní (zadavani.js) – stejná slova jako po uložení. #}
         <tr data-cv-limit="{{ row.metric.trial_cv_limit|default_if_none:'' }}" data-min="{{ row.metric.plausible_min|default_if_none:'' }}" data-max="{{ row.metric.plausible_max|default_if_none:'' }}" data-unit="{% if row.metric.unit != '-' %}{{ row.metric.unit }}{% endif %}">
           <td class="min-w-[11rem]">
-            <div class="font-medium">{{ row.metric.name }}</div>
+            <div class="font-medium">{{ row.metric.name }}{% if row.protocol_metric.is_optional %} <span class="badge align-middle font-normal" title="Volitelný ukazatel – do vyplněnosti testu se nepočítá, test je hotový i bez něj">volitelné</span>{% endif %}</div>
             <div class="text-xs text-muted">
               {{ row.label|default:"bez rozlišení" }}{% if row.metric.unit and row.metric.unit != "-" %} · {{ row.metric.unit }}{% endif %}{% if row.metric.trial_rule_note %} · počítá se {{ row.metric.trial_rule_note }}{% endif %}{% if row.long_time %} · lze psát i min:s{% endif %}
             </div>

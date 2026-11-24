@@ -130,3 +130,29 @@ def test_bez_strany_je_oboustranne_a_stary_format_se_nepocita(den):
                                metric=sila, side="", value=480)
     (r,) = completeness.annotate([jiny])
     assert (r.stav, r.vyplneno, r.mimo) == ("rozpracovany", 0, 1)
+
+
+def test_volitelny_ukazatel_se_do_vyplnenosti_nepocita(den):
+    """Test je hotový i bez volitelného ukazatele; koncept vznikne; tabulka ho označí."""
+    client, session, run, (hmotnost, tuk) = den["client"], den["session"], den["run"], den["pms"]
+    tuk.is_optional = True
+    tuk.save(update_fields=["is_optional"])
+    detail = reverse("session_detail", args=[session.pk])
+    assert "zadat hodnoty · 1" in client.get(detail).content.decode()
+    entry = client.get(reverse("run_entry", args=[run.pk])).content.decode()
+    assert entry.count(">volitelné</span>") == 1
+
+    client.post(reverse("run_entry", args=[run.pk]), {f"v|{hmotnost.pk}|||||1": "88"})
+    (r,) = completeness.annotate([run])
+    assert (r.stav, r.vyplneno, r.ukazatelu, r.volitelne_chybi) == ("hotovy", 1, 1, ["Podíl tuku"])
+    text = client.get(detail).content.decode()
+    assert "hotovo · 1 z 1" in text
+    assert 'title="Povinné ukazatele mají hodnotu. Volitelné bez hodnoty: Podíl tuku"' in text
+    assert Report.objects.filter(auto_created=True).count() == 1
+
+    # jen volitelná hodnota: něco zadané je, ale povinné chybí
+    jiny = ProtocolRun.objects.create(session=session, protocol=run.protocol)
+    client.post(reverse("run_entry", args=[jiny.pk]), {f"v|{tuk.pk}|||||1": "14"})
+    (r,) = completeness.annotate([jiny])
+    assert (r.stav, r.vyplneno, r.ukazatelu, r.chybi_text) == (
+        "rozpracovany", 0, 1, "Chybí: Tělesná hmotnost")

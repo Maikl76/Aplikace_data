@@ -63,7 +63,7 @@
               {% for c in row.cells %}
                 <td class="text-center">
                   {% if c.stav == "hotovo" %}
-                    <a href="{% url 'run_entry' c.run.pk %}" class="badge badge-good" title="Změřeno – zobrazit">{% icon "check" "w-3.5 h-3.5" %}hotovo</a>
+                    <a href="{% url 'run_entry' c.run.pk %}" class="badge badge-good" title="{{ c.run.hotovo_text }} – zobrazit">{% icon "check" "w-3.5 h-3.5" %}hotovo</a>
                   {% elif c.stav == "rozpracovano" %}
                     <a href="{% url 'run_entry' c.run.pk %}" class="badge badge-warn" title="Rozpracováno – vyplněno {{ c.run.vyplneno }} z {{ c.run.ukazatelu }}. {{ c.run.chybi_text }}">{{ c.run.vyplneno }}/{{ c.run.ukazatelu }}</a>
                   {% elif c.stav == "zalozeno" %}

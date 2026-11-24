@@ -68,7 +68,7 @@ Vyberete baterii a datum a vidíte všechny sportovce daného sportu
 (a kategorie) proti testům baterie:
 
 - **hotovo** – hodnotu má každý ukazatel testu (vypočtené ukazatele se
-  nepočítají, hodnota z neplatného pokusu taky ne),
+  nepočítají, volitelné taky ne, hodnota z neplatného pokusu taky ne),
 - **1/19** – rozpracováno: vyplněno z kolika ukazatelů; v bublině, co chybí,
 - **zadat** – test je založený, čeká na hodnoty,
 - **—** – nic.
@@ -79,6 +79,15 @@ Koncept zprávy, který vzniká sám, vznikne až po vyplnění všech testů dn
 Oboustranná hodnota uložená bez strany (některé importy) se počítá jako
 oboustranná. Hodnota, která do žádného řádku tabulky nepatří (starý formát
 bez strany u testu s levou a pravou stranou), se nepočítá – bublina ji zmíní.
+
+**Volitelný ukazatel.** Ukazatel, který se běžně neměří nebo ho přístroj
+neexportuje (např. výška u složení těla z DEXA), označte v nastavení testu
+(*Sporty a testy → Testy → upravit*) zaškrtnutím **volitelná** vedle
+*klíčová*. Do vyplněnosti se pak nepočítá: test je hotový i bez něj
+a koncept zprávy vznikne. V zadávací tabulce má štítek *volitelné*
+a zadat ho jde dál; u hotového testu bublina vypíše volitelné, které
+zůstaly prázdné. Hodnota jen ve volitelném ukazateli dělá test
+rozpracovaným (něco zadané je, povinné chybí).
 
 Zaškrtnete sportovce a **Založit testování pro vybrané** – každému vznikne
 testovací den se všemi testy baterie. Hodnoty pak zadáte ručně, nebo
