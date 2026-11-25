@@ -165,7 +165,9 @@ def test_stav_pracoviste_pocita_z_dat(org):
     # bez klíčového ukazatele
     ProtocolMetric.objects.update(is_primary=False)
     steps = {s["title"]: s for s in client.get(reverse("workplace")).context["steps"]}
-    assert not steps["Testy a klíčové ukazatele"]["done"] and "bez klíčového ukazatele" in steps["Testy a klíčové ukazatele"]["text"]
+    step = steps["Testy a klíčové ukazatele"]
+    assert not step["done"] and "Bez klíčového ukazatele: „CMJ“" in step["text"]
+    assert step["url"] == reverse("test_edit", args=[protocol.pk]) and step["button"] == "Upravit test"
 
 
 def test_stav_pracoviste_vidi_i_laborant_a_vyzkumnik(org):

@@ -179,7 +179,9 @@ function novyTest() {
   return {
     radky, skupiny,
     pridat() {
-      this.radky.push({ key: String(dalsi++), metric: "", primary: false, optional: false, sides: ["B"], modes: [],
+      // první přidaná metrika testu bez klíčové je klíčová (jde odškrtnout)
+      this.radky.push({ key: String(dalsi++), metric: "", primary: !this.radky.some(r => r.primary),
+        optional: false, sides: ["B"], modes: [],
         speeds: "", segments: [], segment_other: "", new_name: "", new_unit: "", new_dir: "neutral",
         new_decimals: 2, new_rule: "prumer", new_min: "", new_max: "" });
     },

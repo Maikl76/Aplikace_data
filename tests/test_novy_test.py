@@ -145,3 +145,32 @@ def test_volitelna_metrika_se_ulozi_a_nacte(lab):
     data["m1_metric"] = str(pms[1].metric_id)
     client.post(f"/sporty/testy/{protocol.pk}/", data)
     assert not protocol.protocol_metrics.filter(is_optional=True).exists()
+
+
+def test_test_bez_klicoveho_ukazatele_je_videt_i_s_nazvem(lab):
+    """Krok jmenuje test bez klíčového ukazatele, seznam ho označí a vede rovnou do úpravy."""
+    import json
+
+    _, battery, client = lab
+    page = client.get("/sporty/testy/novy/").content.decode()
+    rows = json.loads(page.split('id="radky-data" type="application/json">')[1].split("</script>")[0])
+    assert rows[0]["primary"] is True      # nový test: první metrika je předvyplněná jako klíčová
+
+    data = novy(battery)
+    del data["m1_primary"]
+    text = client.post("/sporty/testy/novy/", data, follow=True).content.decode()
+    assert "nemá klíčový ukazatel" in text
+    protocol = Protocol.objects.get(name="Sprint 20 m")
+    page = client.get("/sporty/testy/")
+    assert ">bez klíčového ukazatele</span>" in page.content.decode()
+    step = {s["title"]: s for s in page.context["steps"]}["Klíčové ukazatele"]
+    assert not step["done"] and "Bez klíčového ukazatele: „Sprint 20 m“" in step["text"]
+    assert (step["url"], step["button"]) == (f"/sporty/testy/{protocol.pk}/", "Upravit test")
+
+    client.post(f"/sporty/testy/{protocol.pk}/", novy(
+        battery, m1_metric=str(MetricDef.objects.get(code="cas_na_20_m").pk)))
+    page = client.get("/sporty/testy/")
+    html = page.content.decode()
+    assert ">bez klíčového ukazatele</span>" not in html and "klíčová: Čas na 20 m" in html
+    step = {s["title"]: s for s in page.context["steps"]}["Klíčové ukazatele"]
+    assert step["done"] and step["text"] == "1 test v bateriích – má klíčový ukazatel."

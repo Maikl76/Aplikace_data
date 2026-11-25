@@ -33,6 +33,46 @@ def catalog_status(user) -> dict:
     }
 
 
+def _names(protocols, limit: int = 3) -> str:
+    """Názvy testů pro text kroku: první tři a kolik dalších."""
+    from apps.reports.narrative import plural
+
+    rest = len(protocols) - limit
+    return (", ".join(f"„{p.name}“" for p in protocols[:limit])
+            + (f" a {plural(rest, 'další', 'další', 'dalších')} {rest}" if rest > 0 else ""))
+
+
+def key_metric_step(user, c: dict) -> dict:
+    """
+    Krok „klíčové ukazatele“ (tady i ve Stavu pracoviště): jmenuje testy
+    v bateriích, kterým ukazatel chybí, a u jediného vede rovnou do jeho úpravy.
+    """
+    from django.urls import reverse
+
+    from apps.reports.narrative import plural
+
+    from . import protocol_setup
+
+    protocols, no_metrics, no_key = c["protocols"], c["no_metrics"], c["no_key"]
+    parts = []
+    if no_metrics:
+        parts.append(f"Bez ukazatelů: {_names(no_metrics)}.")
+    if no_key:
+        parts.append(f"Bez klíčového ukazatele: {_names(no_key)} – u testu zaškrtněte "
+                     "„klíčová“ u metriky, která se má ukázat na kartě sportovce a v týmovém "
+                     "přehledu.")
+    n = len(protocols)
+    text = " ".join(parts) or (
+        f"{n} {plural(n, 'test', 'testy', 'testů')} v bateriích – "
+        f"{'má' if n == 1 else 'každý má'} klíčový ukazatel." if protocols
+        else "Testy přibudou s bateriemi.")
+    problems = no_metrics + no_key
+    direct = len(problems) == 1 and protocol_setup.can_edit(user)
+    return {"done": bool(protocols) and not problems, "text": text,
+            "url": reverse("test_edit", args=[problems[0].pk]) if direct else reverse("test_list"),
+            "button": "Upravit test" if direct else "Testy", "count": len(problems) or None}
+
+
 def catalog_steps(user, status: dict | None = None) -> list[dict]:
     from django.urls import reverse
 
@@ -40,8 +80,8 @@ def catalog_steps(user, status: dict | None = None) -> list[dict]:
 
     c = status or catalog_status(user)
     sports, without = c["sports"], c["sports_without"]
-    protocols, no_metrics, no_key = c["protocols"], c["no_metrics"], c["no_key"]
     key_metrics, no_mdc = c["key_metrics"], c["no_mdc"]
+    keys = key_metric_step(user, c)
     may_add = access.may_add_sport(user)
     return [
         step(1, "Sporty", bool(sports),
@@ -54,14 +94,8 @@ def catalog_steps(user, status: dict | None = None) -> list[dict]:
                                                           "a v jakém pořadí."),
              url=reverse("sport_list"), button="Sestavit baterie",
              count=len(without) or None),
-        step(3, "Klíčové ukazatele", bool(protocols) and not no_metrics and not no_key,
-             (" ".join(filter(None, [
-                 f"{len(no_metrics)} testů bez ukazatelů." if no_metrics else "",
-                 f"{len(no_key)} testů bez klíčového ukazatele – ten jde na kartu sportovce "
-                 "a do týmového přehledu." if no_key else ""]))
-              or (f"{len(protocols)} testů v bateriích, každý má klíčový ukazatel."
-                  if protocols else "Testy přibudou s bateriemi.")),
-             url=reverse("test_list"), button="Testy", count=(len(no_metrics) + len(no_key)) or None),
+        step(3, "Klíčové ukazatele", keys["done"], keys["text"], url=keys["url"],
+             button=keys["button"], count=keys["count"]),
         step(4, "MDC u klíčových ukazatelů", bool(key_metrics) and not no_mdc,
              (f"{len(no_mdc)} z {len(key_metrics)} klíčových ukazatelů nemá MDC – bez něj zpráva "
               "neřekne „zlepšení“, jen že změnu nelze odlišit od chyby měření."

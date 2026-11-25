@@ -16,19 +16,26 @@ from .models import Direction, MetricDef, Protocol, TestFamily
 
 @login_required
 def test_list(request):
+    from .steps import catalog_status, catalog_steps
+
     protocols = (Protocol.objects.annotate(pocet_metrik=Count("protocol_metrics", distinct=True))
-                 .prefetch_related("battery_items__battery__sport").order_by("-is_active", "name"))
+                 .prefetch_related("battery_items__battery__sport", "protocol_metrics__metric")
+                 .order_by("-is_active", "name"))
     can_edit = setup.can_edit(request.user)
     responsible = access.Responsibility(request.user.organization)
+    status = catalog_status(request.user)
+    # stejné testy, jaké počítá krok „Klíčové ukazatele“ (testy v bateriích)
+    problems = {p.pk for p in status["no_key"] + status["no_metrics"]}
     for p in protocols:
         p.baterie = sorted({item.battery.label for item in p.battery_items.all()})
         p.editable = can_edit and access.family_allowed(request.user, p.family)
         p.metodici = ", ".join(responsible.for_family(p.family))
-    from .steps import catalog_steps
+        p.klicove = [pm.metric.name for pm in p.protocol_metrics.all() if pm.is_primary]
+        p.bez_klicove = p.pk in problems
 
     return render(request, "catalog/tests.html", {
         "protocols": protocols, "can_edit": can_edit,
-        "steps": catalog_steps(request.user)})
+        "steps": catalog_steps(request.user, status)})
 
 
 def _form(request, protocol, *, data, rows, battery_ids):
@@ -101,12 +108,16 @@ def _edit(request, protocol):
         if result["odebrano"]:
             text += " Odebrané metriky se už nebudou zadávat; naměřená data zůstala."
         messages.success(request, text)
+        if not any(row.primary for row in rows):
+            messages.warning(request, f"Test „{saved.name}“ nemá klíčový ukazatel – na kartě "
+                                      "sportovce ani v týmovém přehledu se neukáže. Zaškrtněte "
+                                      "„klíčová“ u metriky, která ho má zastupovat.")
         return redirect("test_list")
 
     if protocol is None:
         data = {"name": "", "family": TestFamily.FIELD, "device": "", "description": "",
                 "trials": 3, "rest": None, "rpe": False, "active": True}
-        rows = [setup._row_dict("0")]
+        rows = [{**setup._row_dict("0"), "primary": True}]
         battery_ids = set()
         if battery := request.GET.get("baterie"):
             battery_ids = {battery}

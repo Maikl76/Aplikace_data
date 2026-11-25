@@ -16,7 +16,7 @@ from .steps import step
 def workplace_steps(user) -> list[dict]:
     from apps.booking.models import Offer, Slot
     from apps.catalog.models import DeviceFormat
-    from apps.catalog.steps import catalog_status
+    from apps.catalog.steps import catalog_status, key_metric_step
     from apps.genetics import crypto as genetics_crypto
     from apps.genetics.setup_views import setup_steps as genetics_steps
     from apps.ingest.models import ImportBatch
@@ -33,7 +33,7 @@ def workplace_steps(user) -> list[dict]:
 
     c = catalog_status(user)
     sports, sports_without = c["sports"], c["sports_without"]
-    protocols, no_metrics, no_key = c["protocols"], c["no_metrics"], c["no_key"]
+    keys = key_metric_step(user, c)
     key_metrics, no_mdc = c["key_metrics"], c["no_mdc"]
 
     devices = DeviceFormat.objects.filter(shared, is_active=True).count()
@@ -65,14 +65,8 @@ def workplace_steps(user) -> list[dict]:
               + (" Bez baterie se testovací den nepředvyplní." if sports_without else "")
               if sports else "Založte sport a jeho baterii: které testy se měří a v jakém pořadí."),
              url=reverse("sport_list"), button="Sporty a testy"),
-        step(3, "Testy a klíčové ukazatele", bool(protocols) and not no_metrics and not no_key,
-             (" ".join(filter(None, [
-                 f"{len(no_metrics)} testů bez ukazatelů." if no_metrics else "",
-                 f"{len(no_key)} testů bez klíčového ukazatele – ten jde na kartu sportovce "
-                 "a do týmového přehledu." if no_key else ""]))
-              or (f"{len(protocols)} testů v bateriích, každý má klíčový ukazatel."
-                  if protocols else "Testy přibudou s bateriemi.")),
-             url=reverse("test_list"), button="Testy"),
+        step(3, "Testy a klíčové ukazatele", keys["done"], keys["text"], url=keys["url"],
+             button=keys["button"]),
         step(4, "MDC u klíčových ukazatelů", bool(key_metrics) and not no_mdc,
              (f"{len(no_mdc)} z {len(key_metrics)} klíčových ukazatelů nemá MDC – bez něj zpráva "
               "neřekne „zlepšení“, jen že změnu nelze odlišit od chyby měření."

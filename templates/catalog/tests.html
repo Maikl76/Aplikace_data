@@ -24,7 +24,8 @@
           <td class="font-medium">{{ p.name }}
             {% if not p.is_active %}<span class="badge">vypnutý</span>{% endif %}
             {% if p.rpe_after %}<span class="badge" title="Po testu se zaznamenává RPE">RPE</span>{% endif %}
-            <span class="block text-xs text-muted font-normal">{{ p.get_family_display }}{% if p.metodici %} · metodik: {{ p.metodici }}{% endif %}</span></td>
+            {% if p.bez_klicove %}<span class="badge badge-warn" title="Test je v baterii, ale žádná jeho metrika není klíčová – neukáže se na kartě sportovce ani v týmovém přehledu. Opravíte v Upravit: „klíčová“ u metriky.">{% if p.pocet_metrik %}bez klíčového ukazatele{% else %}bez ukazatelů{% endif %}</span>{% endif %}
+            <span class="block text-xs text-muted font-normal">{{ p.get_family_display }}{% if p.klicove %} · klíčová: {{ p.klicove|join:", " }}{% endif %}{% if p.metodici %} · metodik: {{ p.metodici }}{% endif %}</span></td>
           <td class="text-2 max-md:hidden">{{ p.device|default:"—" }}</td>
           <td class="text-right tabular-nums">{{ p.pocet_metrik }}</td>
           <td class="text-right tabular-nums max-md:hidden">{{ p.default_trials }}</td>
